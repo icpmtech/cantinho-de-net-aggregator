@@ -1,8 +1,14 @@
+using AspnetCoreMvcFull.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 // Add services to the container.
+builder.Services.AddHttpClient<NewsService>(client =>
+{
+  client.BaseAddress = new Uri("https://localhost:7230/"); // Replace with your actual base address
+});
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
