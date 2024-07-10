@@ -22,7 +22,7 @@ namespace AspnetCoreMvcFull.Controllers.api
     [HttpGet("scraped")]
     public async Task<IEnumerable<NewsItem>> GetScrapedNewsAsync()
     {
-      var url = "https://news.google.com/search?q=world&hl=en-US&gl=US&ceid=US%3Aen";
+      var url = "https://www.nytimes.com/section/business/economy";
       HttpResponseMessage response;
       try
       {
@@ -31,33 +31,137 @@ namespace AspnetCoreMvcFull.Controllers.api
       }
       catch (HttpRequestException ex)
       {
-        _logger.LogError(ex, "Error fetching news from Google News.");
+        _logger.LogError(ex, "Error fetching news from New York Times.");
         throw;
       }
 
       var responseBody = await response.Content.ReadAsStringAsync();
-      _logger.LogInformation("Fetched news page: {PageContent}", responseBody);
+      _logger.LogInformation("Fetched news page.");
 
       var htmlDoc = new HtmlDocument();
       htmlDoc.LoadHtml(responseBody);
 
-      var newsNodes = htmlDoc.DocumentNode.SelectNodes("//h3");
+      var newsNodes = htmlDoc.DocumentNode.SelectNodes("//li[@class='css-18yolpw']");
+
       if (newsNodes == null)
       {
         _logger.LogWarning("No news items found on the fetched page.");
         return Enumerable.Empty<NewsItem>();
       }
 
-      var newsItems = newsNodes
-          .Select(node => new NewsItem
-          {
-            Title = node.InnerText,
-            Link = "https://news.google.com" + node.SelectSingleNode(".//a")?.GetAttributeValue("href", string.Empty).Substring(1) // To form the correct link
-          })
-          .ToList();
+      var newsItems = new List<NewsItem>();
+
+      foreach (var node in newsNodes)
+      {
+        var titleNode = node.SelectSingleNode(".//h3[@class='css-1j88qqx e15t083i0']");
+        var linkNode = node.SelectSingleNode(".//a[@class='css-8hzhxf']");
+        var descriptionNode = node.SelectSingleNode(".//p[@class='css-1pga48a e15t083i1']");
+        var authorNode = node.SelectSingleNode(".//div[@class='css-1i4y2t3 e140qd2t0']//span[@class='css-1n7hynb']");
+        var dateNode = node.SelectSingleNode(".//div[@class='css-e0xall e15t083i3']//span[@data-testid='todays-date']");
+
+        if (titleNode == null || linkNode == null)
+        {
+          continue;
+        }
+
+        var title = titleNode.InnerText.Trim();
+        var link = linkNode.GetAttributeValue("href", string.Empty);
+        var description = descriptionNode?.InnerText.Trim();
+        var author = authorNode?.InnerText.Trim();
+        var date = dateNode?.InnerText.Trim();
+
+        // Ensure the link is well-formed
+        if (!link.StartsWith("http"))
+        {
+          link = "https://www.nytimes.com" + link;
+        }
+
+        newsItems.Add(new NewsItem
+        {
+          Title = title,
+          Link = link,
+          Description = description,
+          Author = author,
+          Date = date,
+          Category = "Economy" // Fixed category for this example
+        });
+      }
 
       return newsItems;
     }
+    [HttpGet("scraped-env")]
+    public async Task<IEnumerable<NewsItem>> GetScrapedNewsEnvAsync()
+    {
+      var url = "https://www.nytimes.com/section/business/energy-environment";
+      HttpResponseMessage response;
+      try
+      {
+        response = await _httpClient.GetAsync(url);
+        response.EnsureSuccessStatusCode();
+      }
+      catch (HttpRequestException ex)
+      {
+        _logger.LogError(ex, "Error fetching news from New York Times.");
+        throw;
+      }
+
+      var responseBody = await response.Content.ReadAsStringAsync();
+      _logger.LogInformation("Fetched news page.");
+
+      var htmlDoc = new HtmlDocument();
+      htmlDoc.LoadHtml(responseBody);
+
+      var newsNodes = htmlDoc.DocumentNode.SelectNodes("//li[contains(@class, 'css-18yolpw')]");
+
+      if (newsNodes == null)
+      {
+        _logger.LogWarning("No news items found on the fetched page.");
+        return Enumerable.Empty<NewsItem>();
+      }
+
+      var newsItems = new List<NewsItem>();
+
+      foreach (var node in newsNodes)
+        {
+          var titleNode = node.SelectSingleNode(".//h3[contains(@class, 'css-1j88qqx')]");
+          var linkNode = node.SelectSingleNode(".//a[contains(@class, 'css-8hzhxf')]");
+          var descriptionNode = node.SelectSingleNode(".//p[contains(@class, 'css-1pga48a')]");
+          var authorNode = node.SelectSingleNode(".//div[contains(@class, 'css-1i4y2t3')]//span[contains(@class, 'css-1n7hynb')]");
+          var dateNode = node.SelectSingleNode(".//div[contains(@class, 'css-e0xall')]//span[@data-testid='todays-date']");
+
+          if (titleNode == null || linkNode == null)
+          {
+            continue;
+          }
+
+          var title = titleNode.InnerText.Trim();
+          var link = linkNode.GetAttributeValue("href", string.Empty);
+          var description = descriptionNode?.InnerText.Trim();
+          var author = authorNode?.InnerText.Trim();
+          var date = dateNode?.InnerText.Trim();
+
+          // Ensure the link is well-formed
+          if (!link.StartsWith("http"))
+          {
+            link = "https://www.nytimes.com" + link;
+          }
+
+          newsItems.Add(new NewsItem
+          {
+            Title = title,
+            Link = link,
+            Description = description,
+            Author = author,
+            Date = date,
+            Category = "Energy and Environment" // Assign the category based on the URL
+          });
+        }
+
+      return newsItems;
+    }
+
+
+
 
     [HttpGet("hardcoded")]
     public ActionResult<IEnumerable<NewsItem>> GetHardcodedNews()
