@@ -1,18 +1,19 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Services;
+using AspnetCoreMvcFull.Services.News;
 using AspnetCoreMvcFull.Models.News;
 using AspnetCoreMvcFull.Controllers.api;
 using Microsoft.Extensions.Logging;
+using AspnetCoreMvcFull.Models.SetupDb;
+using Microsoft.EntityFrameworkCore;
 
 namespace AspnetCoreMvcFull.Controllers;
-
 public class SourcesController : Controller
 {
-  private readonly NewsService _newsService;
+  private readonly AppNewsService _newsService;
   private readonly ILogger<SourcesController> _logger;
-  public SourcesController(NewsService newsService,ILogger<SourcesController> logger)
+  public SourcesController(AppNewsService newsService ,ILogger<SourcesController> logger)
   {
     _newsService = newsService;
     _logger = logger;
@@ -20,28 +21,30 @@ public class SourcesController : Controller
   public IActionResult Blank() => View();
   public IActionResult Container() => View();
   public IActionResult Fluid() => View();
-  public  async Task<IActionResult> News(string category) {
+  public  async Task<IActionResult> News(string category, string sortOrder, int pageNumber = 1, int pageSize = 50, string searchQuery = "") {
 
-    IEnumerable<NewsItem> news;
-    try
+    var paginatedNews = await _newsService.GetPaginatedNewsAsync(category, sortOrder, pageNumber, pageSize, searchQuery);
+    ViewBag.PageSize = pageSize; // Pass pageSize to view
+    ViewBag.SearchQuery = searchQuery; // Pass searchQuery to view
+    return View(paginatedNews);
+  }
+
+  [HttpGet("get/{id}")]
+  public async Task<IActionResult> GetNewsItem(int id)
+  {
+    var newsItem = await _newsService.GetNewsByIdAsync(id);
+    if (newsItem == null)
     {
-      news = await _newsService.GetNewsAsync();
-      if (!string.IsNullOrEmpty(category))
-      {
-        news = news.Where(n => n.Category.Equals(category, StringComparison.OrdinalIgnoreCase));
-      }
+      return NotFound();
     }
-    catch (HttpRequestException ex)
-    {
-      _logger.LogError(ex, "Failed to fetch or parse news.");
-      return StatusCode(500, "Failed to fetch or parse news.");
-    }
+    return Json(newsItem);
+  }
 
-    ViewBag.Categories = news.Select(n => n.Category).Distinct().ToList();
-    ViewBag.SelectedCategory = category;
+  public IActionResult Reddit() => View();
+  public IActionResult Linkedin() => View();
 
-    return View(news);
-  } 
+  public IActionResult Facebook() => View();
+
   public IActionResult HorizontalMenu() => View();
   public IActionResult WithoutMenu() => View();
   public IActionResult WithoutNavbar() => View();

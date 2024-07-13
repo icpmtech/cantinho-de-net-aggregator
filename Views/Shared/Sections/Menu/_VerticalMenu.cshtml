@@ -30,7 +30,7 @@
     <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards/") ? " active open" : "")'>
       <a href="javascript:void(0);" class="menu-link menu-toggle">
         <i class="menu-icon tf-icons bx bx-home-circle"></i>
-        <div>Dashboards</div>
+        <div>Indicators</div>
         <div class="badge bg-danger rounded-pill ms-auto">1</div>
       </a>
       <ul class="menu-sub">
@@ -43,10 +43,13 @@
       </ul>
     </li>
 
-    <!-- Layouts -->
+        <!-- Research -->
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Research</span>
+        </li>
     <li class='menu-item@(currentPage.StartsWith("/Sources") ? " active open" : "")'>
       <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-layout"></i>
+                <i class="menu-icon tf-icons bx bx-archive"></i>
         <div>Sources</div>
       </a>
 
@@ -60,13 +63,26 @@
       </ul>
     </li>
 
-   
-    <!-- Apps & Pages -->
+
+        <!-- Configurations -->
     <li class="menu-header small text-uppercase">
-      <span class="menu-header-text">Apps &amp; Pages</span>
+      <span class="menu-header-text">Configuration</span>
     </li>
     <!-- Apps -->
-   
+        <li class='menu-item@(currentPage == "/Configurations/News" ? " active" : "")'>
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx bx-archive"></i>
+                <div>Sources</div>
+            </a>
+            <ul class="menu-sub">
+
+                <li class='menu-item@(currentPage == "/Configurations/News" ? " active" : "")'>
+                    <a asp-controller="Configurations" asp-action="News" class="menu-link">
+                        <div>News</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
     <!-- Pages -->
     <li class='menu-item@(currentPage.StartsWith("/Pages/Account") ? " active open" : "")'>
       <a href="javascript:void(0);" class="menu-link menu-toggle">
