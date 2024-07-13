@@ -60,8 +60,55 @@
                         <div>News</div>
             </a>
         </li>
+                <li class='menu-item@(currentPage == "/Sources/Reddit" ? " active" : "")'>
+                    <a asp-controller="Sources" asp-action="Reddit" class="menu-link">
+                        <div>Reddit</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Sources/Linkedin" ? " active" : "")'>
+                    <a asp-controller="Sources" asp-action="Linkedin" class="menu-link">
+                        <div>Linkedin</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Sources/Facebook" ? " active" : "")'>
+                    <a asp-controller="Sources" asp-action="Facebook" class="menu-link">
+                        <div>Facebook</div>
+                    </a>
+                </li>
+
       </ul>
     </li>
+        <li class='menu-item@(currentPage.StartsWith("/APilot") ? " active open" : "")'>
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-archive"></i>
+                <div>APilot</div>
+            </a>
+
+            <ul class="menu-sub">
+
+                <li class='menu-item@(currentPage == "/APilot/News" ? " active" : "")'>
+                    <a asp-controller="APilot" asp-action="News" class="menu-link">
+                        <div>News</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/APilot/Reddit" ? " active" : "")'>
+                    <a asp-controller="APilot" asp-action="Reddit" class="menu-link">
+                        <div>Reddit</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/APilot/Linkedin" ? " active" : "")'>
+                    <a asp-controller="APilot" asp-action="Linkedin" class="menu-link">
+                        <div>Linkedin</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Sources/Facebook" ? " active" : "")'>
+                    <a asp-controller="APilot" asp-action="Facebook" class="menu-link">
+                        <div>Facebook</div>
+                    </a>
+                </li>
+
+            </ul>
+        </li>
 
 
         <!-- Configurations -->
@@ -79,6 +126,21 @@
                 <li class='menu-item@(currentPage == "/Configurations/News" ? " active" : "")'>
                     <a asp-controller="Configurations" asp-action="News" class="menu-link">
                         <div>News</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Reddit/Index" ? " active" : "")'>
+                    <a asp-controller="Reddit" asp-action="Index" class="menu-link">
+                        <div>Reddit</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Linkedin/Index" ? " active" : "")'>
+                    <a asp-controller="Linkedin" asp-action="Index" class="menu-link">
+                        <div>Linkedin</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Facebook/Index" ? " active" : "")'>
+                    <a asp-controller="Facebook" asp-action="Index" class="menu-link">
+                        <div>Facebook</div>
                     </a>
                 </li>
             </ul>

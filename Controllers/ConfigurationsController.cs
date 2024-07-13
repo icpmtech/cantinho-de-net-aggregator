@@ -7,6 +7,7 @@ using AspnetCoreMvcFull.Controllers.api;
 using Microsoft.Extensions.Logging;
 using AspnetCoreMvcFull.Models.SetupDb;
 using AspnetCoreMvcFull.Models.News;
+using ApplicationDbContext = AspnetCoreMvcFull.Models.SetupDb.ApplicationDbContext;
 
 namespace AspnetCoreMvcFull.Controllers;
 
@@ -44,7 +45,6 @@ public class ConfigurationsController : Controller
 
     return Json(new { success = false, message = "Invalid data received.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
   }
-  
 
   [HttpDelete("deletenews/{id}")]
   public IActionResult Delete(int id)
