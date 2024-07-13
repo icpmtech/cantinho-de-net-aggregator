@@ -1,0 +1,370 @@
+@model PaginatedList<AspnetCoreMvcFull.Models.News.NewsItem>
+
+@{
+    ViewData["Title"] = "News";
+    ViewData["container"] = (ViewData["container"] ?? "container-fluid");
+    ViewData["containerNav"] = (ViewData["containerNav"] ?? "container-fluid");
+}
+
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">Sources /</span> News
+</h4>
+
+
+
+<div class="mb-4">
+    <label for="categorySelect" class="form-label">Filter by Category</label>
+    <select id="categorySelect" class="form-select" onchange="filterByCategory()">
+        <option value="">All Categories</option>
+        <option value="Tech">Tech</option>
+        <option value="Economy">Economy</option>
+        <option value="Energy and Environment">Energy and Environment</option>
+    </select>
+</div>
+
+<!-- News Table -->
+<div class="card">
+    <h5 class="card-header">News</h5>
+    <div class="table-responsive text-nowrap">
+        <table class="table" id="newsTable">
+            <thead>
+                <tr>
+                    <th>
+                        Category
+                        <a href="javascript:void(0);" onclick="sortByCategory('asc')">▲</a>
+                        <a href="javascript:void(0);" onclick="sortByCategory('desc')">▼</a>
+                    </th>
+                    <th>Sentiment</th>
+                    <th>Title</th>
+                    <th>Short Description</th>
+                    <th>Link</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+                @foreach (var news in Model)
+                {
+                    <tr id="row-@news.Id">
+                        <td>
+                            <i class="bx bx-news bx-sm text-primary me-3"></i>
+                            <span class="fw-medium category-display">@news.Category</span>
+                        </td>
+                        <td id="newsSentiment-@news.Id">
+                            <span class="stars">@news.Sentiment</span>
+                            <span class="fw-bold sentiment-label" data-sentiment="@news.Sentiment"></span>
+                        </td>
+                        <td>
+                            <span class="title-display">@news.Title</span>
+                        </td>
+                        <td>
+                            <span class="description-display">@news.Description</span>
+                        </td>
+                        <td>
+                            <span class="link-display"><a href="@news.Link" target="_blank">@news.Link</a></span>
+                        </td>
+                        <td>
+                            <span class="date-display">@news.Date</span>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item edit-btn" href="javascript:void(0);" onclick="editRow(@news.Id)">
+                                        <i class="bx bx-edit-alt me-1"></i> Edit
+                                    </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="deleteNews(@news.Id)">
+                                        <i class="bx bx-trash me-1"></i> Delete
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="card">
+    <h5 class="card-header">Pagination</h5>
+
+<!-- Pagination Controls -->
+<nav aria-label="Page navigation example">
+    <ul class="pagination">
+        @if (Model.HasPreviousPage)
+        {
+            <li class="page-item">
+                    <a class="page-link" href="@Url.Action("News", new { pageNumber = Model.PageIndex - 1, pageSize = ViewBag.PageSize, searchQuery = ViewBag.SearchQuery })">Previous</a>
+            </li>
+        }
+        else
+        {
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+        }
+
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            if (i == Model.PageIndex)
+            {
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link">@i</span>
+                </li>
+            }
+            else
+            {
+                <li class="page-item">
+                        <a class="page-link" href="@Url.Action("News", new { pageNumber = i, pageSize = ViewBag.PageSize , searchQuery = ViewBag.SearchQuery})">@i</a>
+                </li>
+            }
+        }
+
+        @if (Model.HasNextPage)
+        {
+            <li class="page-item">
+                    <a class="page-link" href="@Url.Action("News", new { pageNumber = Model.PageIndex + 1, pageSize = ViewBag.PageSize, searchQuery = ViewBag.SearchQuery })">Next</a>
+            </li>
+        }
+        else
+        {
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+        }
+            <li class="page-item">
+                <div class="mb-4" style="margin-left: 1rem;">
+                    <select id="pageSizeSelect" class="form-select" onchange="setPageSize()">
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                    </select>
+                </div>
+            </li>
+    </ul>
+</nav>
+</div>
+<!-- Edit News Modal -->
+<!-- Edit News Modal -->
+<div class="modal fade" id="editNewsModal" tabindex="-1" aria-labelledby="editNewsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editNewsModalLabel">Edit News</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editNewsId">
+                <div class="mb-3">
+                    <label for="editNewsCategory" class="form-label">Category</label>
+                    <select id="editNewsCategory" class="form-select">
+                        <option value="Economy">Economy</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Energy and Environment">Energy and Environment</option>
+                        <!-- Add other categories as needed -->
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="editNewsTitle" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="editNewsTitle" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsDescription" class="form-label">Description</label>
+                    <textarea class="form-control" id="editNewsDescription" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsLink" class="form-label">Link</label>
+                    <input type="url" class="form-control" id="editNewsLink" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsDate" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="editNewsDate" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveNews()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section PageScripts {
+      <script>
+        
+
+        
+
+      
+
+        function getStars(sentiment) {
+            const maxStars = 5;
+            const rating = Math.round((sentiment + 1) / 2 * maxStars);
+            let stars = '';
+            const starColor = sentiment >= 0 ? 'gold' : 'red';
+
+            for (let i = 0; i < maxStars; i++) {
+                stars += i < rating ? `<span style="color:${starColor};">★</span>` : '☆';
+            }
+
+            return stars;
+        }
+
+        function getSentimentLabel(sentiment) {
+            return sentiment >= 0 ? 'Positive' : 'Negative';
+        }
+
+        function getSentimentColor(sentiment) {
+            return sentiment >= 0 ? 'success' : 'danger';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelectorAll('.stars').forEach(function (element) {
+                let sentimentText = element.innerText.trim().replace(',', '.');
+                const sentiment = parseFloat(sentimentText);
+                if (!isNaN(sentiment)) {
+                    element.innerHTML = getStars(sentiment);
+                } else {
+                    console.error(`Invalid sentiment value: ${sentimentText}`);
+                }
+            });
+
+            document.querySelectorAll('.sentiment-label').forEach(function (element) {
+                const sentiment = parseFloat(element.getAttribute('data-sentiment'));
+                if (!isNaN(sentiment)) {
+                    element.classList.add(`text-${getSentimentColor(sentiment)}`);
+                    element.innerText = getSentimentLabel(sentiment);
+                } else {
+                    console.error(`Invalid sentiment value: ${sentiment}`);
+                }
+            });
+        });
+
+        function filterByCategory() {
+            var selectedCategory = document.getElementById("categorySelect").value;
+            var url = new URL(window.location.href);
+            if (selectedCategory) {
+                url.searchParams.set('category', selectedCategory);
+            } else {
+                url.searchParams.delete('category');
+            }
+            window.location.href = url.toString();
+        }
+
+        function sortByCategory(order) {
+            var url = new URL(window.location.href);
+            url.searchParams.set('sortOrder', order);
+            window.location.href = url.toString();
+        }
+
+        function setPageSize() {
+            var pageSize = document.getElementById("pageSizeSelect").value;
+            var url = new URL(window.location.href);
+            url.searchParams.set('pageSize', pageSize);
+            window.location.href = url.toString();
+        }
+
+        function editRow(id) {
+            fetch(`/news/get/${id}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('editNewsId').value = data.id;
+                    document.getElementById('editNewsCategory').value = data.category;
+                    document.getElementById('editNewsTitle').value = data.title;
+                    document.getElementById('editNewsDescription').value = data.description;
+                    document.getElementById('editNewsLink').value = data.link;
+                    document.getElementById('editNewsDate').value = new Date(data.date).toISOString().substring(0, 10);
+
+                    var editNewsModal = new bootstrap.Modal(document.getElementById('editNewsModal'));
+                    editNewsModal.show();
+                })
+                .catch(error => console.error('Error fetching news item:', error));
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                searchNews();
+            }
+        }
+
+        function searchNews() {
+            var searchQuery = document.getElementById("searchInput").value;
+            var url = new URL(window.location.href);
+            url.searchParams.set('searchQuery', searchQuery);
+            window.location.href = url.toString();
+        }
+
+        function saveNews() {
+            const id = document.getElementById('editNewsId').value;
+            const category = document.getElementById('editNewsCategory').value;
+            const title = document.getElementById('editNewsTitle').value;
+            const description = document.getElementById('editNewsDescription').value;
+            const link = document.getElementById('editNewsLink').value;
+            const date = document.getElementById('editNewsDate').value;
+
+            const updatedNews = {
+                id,
+                category,
+                title,
+                description,
+                link,
+                date
+            };
+
+            fetch(`/news/update/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedNews)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('News item updated successfully');
+                        location.reload();
+                    } else {
+                        alert('Error updating news item: ' + data.message);
+                    }
+                })
+                .catch(error => console.error('Error updating news item:', error));
+        }
+
+        function deleteNews(id) {
+            if (confirm('Are you sure you want to delete this news item?')) {
+                fetch(`/news/delete/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('News item deleted successfully');
+                            location.reload();
+                        } else {
+                            alert('Error deleting news item: ' + data.message);
+                        }
+                    })
+                    .catch(error => console.error('Error deleting news item:', error));
+            }
+        }
+    </script>
+}
+
+
+<style>
+    .stars {
+        font-size: 1.5rem;
+    }
+
+    
+
+
+</style>
+
