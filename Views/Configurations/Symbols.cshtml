@@ -1,0 +1,303 @@
+@model IEnumerable<AspnetCoreMvcFull.Models.SymbolItem>
+
+@{
+    ViewData["Title"] = "Symbols";
+    ViewData["container"] = (ViewData["container"] ?? "container-fluid");
+    ViewData["containerNav"] = (ViewData["containerNav"] ?? "container-fluid");
+}
+
+<!-- Add Symbol Button -->
+<div class="mb-4">
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSymbolModal" onclick="resetForm()">Add Symbols</button>
+</div>
+<div class="mb-4">
+    <label for="categorySelect" class="form-label">Filter by Category</label>
+    <select id="categorySelect" class="form-select" onchange="filterByCategory()">
+        <option value="">All Categories</option>
+        <option value="Americas">Americas</option>
+        <option value="Europe_Middle_East_Africa">Europe, Middle East & Africa</option>
+        <option value="Asia_Pacific">Asia Pacific</option>
+    </select>
+</div>
+
+<!-- Symbols Table -->
+<div class="card">
+    <h5 class="card-header">Symbols</h5>
+    <div class="table-responsive text-nowrap">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Category</th>
+                    <th>Title</th>
+                    <th>Link</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+                @foreach (var symbol in Model)
+                {
+                    <tr>
+                        <td>
+                            <i class="bx bx-news bx-sm text-primary me-3"></i>
+                            <button class="btn btn-sm btn-link" data-bs-toggle="collapse" href="#collapseDescription-@symbol.Id" role="button" aria-expanded="false" aria-controls="collapseDescription-@symbol.Id">
+                                <i class="bx bx-chevron-down"></i>
+                            </button>
+                        </td>
+                        <td id="symbolCategory-@symbol.Id">@symbol.Category</td>
+                        <td id="symbolTitle-@symbol.Id">
+                            @symbol.Title
+                            <div class="collapse mt-2" id="collapseDescription-@symbol.Id">
+                                <div class="card card-body text-wrap">@symbol.Description</div>
+                            </div>
+                        </td>
+                        <td id="symbolLink-@symbol.Id"><a href="@symbol.Link" target="_blank">@symbol.Link</a></td>
+                        <td id="symbolDate-@symbol.Id">@symbol.Date</td>
+                        <td>
+                            <div class="dropdown">
+                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="editSymbol(@symbol.Id)"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="deleteSymbol(@symbol.Id)"><i class="bx bx-trash me-1"></i> Delete</a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add/Edit Symbol Modal -->
+<div class="modal fade" id="addSymbolModal" tabindex="-1" aria-labelledby="addSymbolModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSymbolModalLabel">Add Symbol</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="symbolForm">
+                <div class="modal-body">
+                    <input type="hidden" id="symbolId" name="Id">
+                    <div class="mb-3">
+                        <label for="symbolCategory" class="form-label">Category</label>
+                        <select id="symbolCategory" name="Category" class="form-select" required>
+                            <option value="">Select Category</option>
+                            <option value="Americas">Americas</option>
+                            <option value="Europe_Middle_East_Africa">Europe, Middle East & Africa</option>
+                            <option value="Asia_Pacific">Asia Pacific</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a category.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="symbolTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="symbolTitle" name="Title" required>
+                        <div class="invalid-feedback">
+                            Title is required.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="symbolDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="symbolDescription" name="Description" required></textarea>
+                        <div class="invalid-feedback">
+                            Description is required.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="symbolLink" class="form-label">Link</label>
+                        <input type="url" class="form-control" id="symbolLink" name="Link" required>
+                        <div class="invalid-feedback">
+                            Valid URL is required.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="symbolDate" class="form-label">Date</label>
+                        <input type="date" class="form-control" id="symbolDate" name="Date" required>
+                        <div class="invalid-feedback">
+                            Date is required.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="saveSymbolButton" type="button" class="btn btn-primary" disabled>Save Symbol</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+    <script>
+        function filterByCategory() {
+            var selectedCategory = document.getElementById("categorySelect").value;
+            var url = new URL(window.location.href);
+            if (selectedCategory) {
+                url.searchParams.set('category', selectedCategory);
+            } else {
+                url.searchParams.delete('category');
+            }
+            window.location.href = url.toString();
+        }
+
+        function resetForm() {
+            const form = document.getElementById('symbolForm');
+            form.reset();
+            form.classList.remove('was-validated');
+            document.getElementById('symbolId').value = '';
+            document.getElementById('addSymbolModalLabel').innerText = 'Add Symbol';
+            document.getElementById('saveSymbolButton').disabled = true;
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('saveSymbolButton').addEventListener('click', function (event) {
+                event.preventDefault();
+                saveSymbol();
+            });
+
+            document.getElementById('symbolForm').addEventListener('input', function () {
+                const form = document.getElementById('symbolForm');
+                const isValid = form.checkValidity();
+                document.getElementById('saveSymbolButton').disabled = !isValid;
+            });
+        });
+
+        function saveSymbol() {
+            const form = document.getElementById('symbolForm');
+            if (!form.checkValidity()) {
+                form.classList.add('was-validated');
+                return;
+            }
+
+            const id = document.getElementById('symbolId').value;
+            const category = document.getElementById('symbolCategory').value;
+            const title = document.getElementById('symbolTitle').value;
+            const description = document.getElementById('symbolDescription').value;
+            const link = document.getElementById('symbolLink').value;
+            const date = document.getElementById('symbolDate').value;
+
+            const formData = {
+                id: id,
+                category: category,
+                title: title,
+                description: description,
+                link: link,
+                date: date
+            };
+
+            const url = id ? `/editsymbol/${id}` : '/addsymbol';
+            const method = id ? 'PUT' : 'POST';
+            if (method === 'POST') {
+                formData.id = -1;
+            }
+
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Success: ' + data.message);
+                        const modalElement = document.getElementById('addSymbolModal');
+                        const modal = bootstrap.Modal.getInstance(modalElement);
+                        modal.hide();
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                        if (data.errors) {
+                            data.errors.forEach(error => console.error('Validation error:', error));
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+
+        function deleteSymbol(id) {
+            if (confirm('Are you sure you want to delete this symbol?')) {
+                fetch(`/deletesymbol/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Success: ' + data.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+        }
+
+        function editSymbol(id) {
+            fetch(`/getsymbols/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const symbol = data.symbol;
+                        document.getElementById('symbolId').value = symbol.id;
+                        document.getElementById('symbolCategory').value = symbol.category;
+                        document.getElementById('symbolTitle').value = symbol.title;
+                        document.getElementById('symbolDescription').value = symbol.description;
+                        document.getElementById('symbolLink').value = symbol.link;
+                        document.getElementById('symbolDate').value = symbol.date;
+
+                        document.getElementById('addSymbolModalLabel').innerText = 'Edit Symbol';
+                        document.getElementById('saveSymbolButton').disabled = false;
+
+                        new bootstrap.Modal(document.getElementById('addSymbolModal')).show();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+}
+
+<style>
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .collapse .card-body {
+        max-width: 500px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+    }
+
+    .btn-link {
+        color: #007bff;
+    }
+
+        .btn-link:hover {
+            color: #0056b3;
+        }
+
+    .btn-close {
+        font-size: 1.2rem;
+    }
+</style>

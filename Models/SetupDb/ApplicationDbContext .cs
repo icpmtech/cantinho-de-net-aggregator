@@ -13,6 +13,8 @@ namespace AspnetCoreMvcFull.Models.SetupDb
     }
 
     public DbSet<NewsItem> News { get; set; }
+
+    public DbSet<SymbolItem> Symbols { get; set; }
     public DbSet<NewsScrapingItem> NewsScrapingItem { get; set; }
     
   }
