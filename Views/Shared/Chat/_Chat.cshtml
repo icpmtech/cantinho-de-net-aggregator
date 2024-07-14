@@ -1,6 +1,5 @@
 @* _Chat.cshtml *@
-<!-- Chat Window
-https://themesbrand.com/skote/layouts/icons-boxicons.html-->
+<!-- Chat Window -->
 <div id="chatWindow" class="card chat-window minimized">
     <div class="card-header">
         <h5 class="d-inline">AI-Pilot</h5>
@@ -16,6 +15,10 @@ https://themesbrand.com/skote/layouts/icons-boxicons.html-->
             <button class="btn btn-primary" type="button" onclick="sendMessage()">
                 <i class="bx bx-send"></i> Send
             </button>
+            <input class="form-control mb-2" type="file" id="fileInput" />
+            <button class="btn btn-secondary" type="button" onclick="sendFile()">
+                <i class="bx bx-upload"></i> Upload
+            </button>
         </div>
         <div id="messagesList" class="mt-3"></div>
     </div>
@@ -26,82 +29,150 @@ https://themesbrand.com/skote/layouts/icons-boxicons.html-->
     <i class="bx bx-bot bx-sm"></i>
 </button>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.18/signalr.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.0/marked.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
 
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chathub")
+            .build();
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/3.1.18/signalr.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/2.0.0/marked.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism-okaidia.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/chathub")
-                .build();
-
-            connection.on("ReceiveMessage", (user, message) => {
-                const msg = document.createElement("div");
-                const messageId = `msg-${Date.now()}`;
-                msg.setAttribute("id", messageId);
-                msg.innerHTML = `<strong>${user}:</strong> ${marked(message)}
-                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
-                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>`;
-                document.getElementById("messagesList").appendChild(msg);
-                Prism.highlightAllUnder(msg);
-            });
-
-            connection.start().catch(err => console.error(err.toString()));
-
-            window.sendMessage = function () {
-                const user = document.getElementById("userInput").value;
-                const message = document.getElementById("messageInput").value;
-                connection.invoke("SendMessage", user, message).catch(err => console.error(err.toString()));
-            };
-
-            window.toggleChat = function () {
-                const chatWindow = document.getElementById("chatWindow");
-                chatWindow.classList.toggle("minimized");
-            };
-
-            window.maximizeChat = function () {
-                const chatWindow = document.getElementById("chatWindow");
-                chatWindow.classList.toggle("maximized");
-            };
-
-            window.copyMessage = function (messageId) {
-                const messageText = document.getElementById(messageId).innerText;
-                navigator.clipboard.writeText(messageText).then(() => {
-                    alert("Message copied to clipboard");
-                });
-            };
-
-            window.deleteMessage = function (messageId) {
-                const messageElement = document.getElementById(messageId);
-                messageElement.parentNode.removeChild(messageElement);
-            };
-
-            window.saveMessage = function (messageId) {
-                const messageElement = document.getElementById(messageId);
-                const messageText = messageElement.innerText;
-                fetch('/api/Chat/saveMessage', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ content: messageText })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        alert(`Message saved to ${data.filePath}`);
-                    })
-                    .catch(error => {
-                        console.error('Error saving message:', error);
-                    });
-            };
+        connection.on("ReceiveMessage", function (user, message) {
+            const msg = document.createElement("div");
+            const messageId = `msg-${Date.now()}`;
+            msg.setAttribute("id", messageId);
+            msg.innerHTML = `<strong>${user}:</strong> ${marked(message)}
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>`;
+            document.getElementById("messagesList").appendChild(msg);
+            Prism.highlightAllUnder(msg);
         });
-    </script>
 
+        connection.on("ReceiveFile", function (user, fileUrl, analysis) {
+            const msg = document.createElement("div");
+            const messageId = `msg-${Date.now()}`;
+            msg.setAttribute("id", messageId);
+            msg.innerHTML = `<strong>${user}:</strong> <a href="${fileUrl}" target="_blank">${fileUrl}</a>
+                                    <p>Analysis: ${marked(analysis)}</p>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>`;
+            document.getElementById("messagesList").appendChild(msg);
+        });
+
+        connection.start().catch(function (err) {
+            return console.error(err.toString());
+        });
+
+        window.sendMessage = function () {
+            const user = document.getElementById("userInput").value;
+            const message = document.getElementById("messageInput").value;
+            connection.invoke("SendMessage", user, message).catch(function (err) {
+                return console.error(err.toString());
+            });
+        };
+
+        window.sendFile = function () {
+            const user = document.getElementById("userInput").value;
+            const fileInput = document.getElementById("fileInput");
+            const file = fileInput.files[0];
+            const formData = new FormData();
+            formData.append("file", file);
+
+            // Add instructional message to chat
+            const msgInstruction = document.createElement("div");
+            const instructionId = `msg-instruction-${Date.now()}`;
+            msgInstruction.setAttribute("id", instructionId);
+            msgInstruction.innerHTML = `<strong>${user}:</strong> Please analyze the content of the following file.`;
+            document.getElementById("messagesList").appendChild(msgInstruction);
+
+            // Show "Analyzing file..." message
+            const msg = document.createElement("div");
+            const messageId = `msg-${Date.now()}`;
+            msg.setAttribute("id", messageId);
+            msg.innerHTML = `<strong>${user}:</strong> Analyzing file...`;
+            document.getElementById("messagesList").appendChild(msg);
+
+            fetch('/api/Chat/UploadFile', {
+                method: 'POST',
+                body: formData
+            })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    if (data.success) {
+                        connection.invoke("SendFile", user, data.fileUrl, data.analysis).catch(function (err) {
+                            return console.error(err.toString());
+                        });
+
+                        // Update the "Analyzing file..." message with the analysis result
+                        const analysisMsg = document.createElement("div");
+                        const analysisId = `msg-analysis-${Date.now()}`;
+                        analysisMsg.setAttribute("id", analysisId);
+                        analysisMsg.innerHTML = `<strong>${user}:</strong> File analysis completed. <a href="${data.fileUrl}" target="_blank">Download File</a>
+                                <p>Analysis: ${marked(data.analysis)}</p>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>`;
+                        document.getElementById("messagesList").appendChild(analysisMsg);
+                    } else {
+                        alert('File upload failed: ' + data.message);
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Error uploading file:', error);
+                });
+        };
+
+        window.toggleChat = function () {
+            const chatWindow = document.getElementById("chatWindow");
+            chatWindow.classList.toggle("minimized");
+        };
+
+        window.maximizeChat = function () {
+            const chatWindow = document.getElementById("chatWindow");
+            chatWindow.classList.toggle("maximized");
+        };
+
+        window.copyMessage = function (messageId) {
+            const messageText = document.getElementById(messageId).innerText;
+            navigator.clipboard.writeText(messageText).then(function () {
+                alert("Message copied to clipboard");
+            });
+        };
+
+        window.deleteMessage = function (messageId) {
+            const messageElement = document.getElementById(messageId);
+            messageElement.parentNode.removeChild(messageElement);
+        };
+
+        window.saveMessage = function (messageId) {
+            const messageElement = document.getElementById(messageId);
+            const messageText = messageElement.innerText;
+            fetch('/api/Chat/saveMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: messageText })
+            })
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    alert(`Message saved to ${data.filePath}`);
+                })
+                .catch(function (error) {
+                    console.error('Error saving message:', error);
+                });
+        };
+    });
+</script>
 
 <style>
     .chat-window {
