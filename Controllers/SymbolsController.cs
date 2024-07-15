@@ -48,7 +48,8 @@ namespace AspnetCoreMvcFull.Controllers
       symbol.Id = _context.Symbols.Any() ? _context.Symbols.Max(s => s.Id) + 1 : 1;
       _context.Symbols.Add(symbol);
       await _context.SaveChangesAsync();
-      return Ok(new { success = true, message = "Symbol added successfully" });
+      var symbols = await _context.Symbols.ToListAsync();
+      return Ok(new { success = true, message = "Symbol added successfully", symbols });
     }
 
     // PUT: api/symbols/{id}
@@ -68,7 +69,8 @@ namespace AspnetCoreMvcFull.Controllers
       existingSymbol.Date = symbol.Date;
 
       await _context.SaveChangesAsync();
-      return Ok(new { success = true, message = "Symbol updated successfully" });
+      var symbols = await _context.Symbols.ToListAsync();
+      return Ok(new { success = true, message = "Symbol updated successfully", symbols });
     }
 
     // DELETE: api/symbols/{id}
@@ -82,7 +84,8 @@ namespace AspnetCoreMvcFull.Controllers
       }
       _context.Symbols.Remove(symbol);
       await _context.SaveChangesAsync();
-      return Ok(new { success = true, message = "Symbol deleted successfully" });
+      var symbols = await _context.Symbols.ToListAsync();
+      return Ok(new { success = true, message = "Symbol deleted successfully", symbols });
     }
   }
 }

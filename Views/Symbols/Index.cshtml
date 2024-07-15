@@ -64,10 +64,10 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody class="table-border-bottom-0">
+            <tbody id="symbolsTableBody" class="table-border-bottom-0">
                 @foreach (var symbol in Model)
                 {
-                    <tr>
+                    <tr id="symbolRow-@symbol.Id">
                         <td>
                             <button class="btn btn-sm btn-link" data-bs-toggle="collapse" href="#collapseDescription-@symbol.Id" role="button" aria-expanded="false" aria-controls="collapseDescription-@symbol.Id">
                                 <i class="bx bx-chevron-down"></i>
@@ -257,16 +257,12 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        ViewBag.SuccessMessage = 'Success: ' + data.message;
+                        updateTable(data.symbols);
                         const modalElement = document.getElementById('addSymbolModal');
                         const modal = bootstrap.Modal.getInstance(modalElement);
                         modal.hide();
-                        location.reload();
                     } else {
-                        ViewBag.ErrorMessages = 'Error: ' + data.message;
-                        if (data.errors) {
-                            data.errors.forEach(error => console.error('Validation error:', error));
-                        }
+                        alert('Error: ' + data.message);
                     }
                 })
                 .catch(error => {
@@ -285,10 +281,9 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            ViewBag.SuccessMessage = 'Success: ' + data.message;
-                            location.reload();
+                            updateTable(data.symbols);
                         } else {
-                            ViewBag.ErrorMessages = 'Error: ' + data.message;
+                            alert('Error: ' + data.message);
                         }
                     })
                     .catch(error => {
@@ -320,12 +315,47 @@
 
                         new bootstrap.Modal(document.getElementById('addSymbolModal')).show();
                     } else {
-                        ViewBag.ErrorMessages = 'Error: ' + data.message;
+                        alert('Error: ' + data.message);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                 });
+        }
+
+        function updateTable(symbols) {
+            const tbody = document.getElementById('symbolsTableBody');
+            tbody.innerHTML = '';
+            symbols.forEach(symbol => {
+                const row = document.createElement('tr');
+                row.id = `symbolRow-${symbol.id}`;
+                row.innerHTML = `
+                            <td>
+                                <button class="btn btn-sm btn-link" data-bs-toggle="collapse" href="#collapseDescription-${symbol.id}" role="button" aria-expanded="false" aria-controls="collapseDescription-${symbol.id}">
+                                    <i class="bx bx-chevron-down"></i>
+                                </button>
+                            </td>
+                            <td id="symbolCategory-${symbol.id}"><i class="bx bx-news bx-sm text-primary me-3"></i>${symbol.category}</td>
+                            <td id="symbolTitle-${symbol.id}">
+                                ${symbol.title}
+                                <div class="collapse mt-2" id="collapseDescription-${symbol.id}">
+                                    <div class="card card-body text-wrap">${symbol.description}</div>
+                                </div>
+                            </td>
+                            <td id="symbolLink-${symbol.id}"><a href="${symbol.link}" target="_blank">${symbol.link}</a></td>
+                            <td id="symbolDate-${symbol.id}">${symbol.date}</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
+                                    <div class="dropdown-menu">
+                                        <a class="dropdown-item" href="javascript:void(0);" onclick="editSymbol(${symbol.id})"><i class="bx bx-edit-alt me-1"></i> Edit</a>
+                                        <a class="dropdown-item" href="javascript:void(0);" onclick="deleteSymbol(${symbol.id})"><i class="bx bx-trash me-1"></i> Delete</a>
+                                    </div>
+                                </div>
+                            </td>
+                        `;
+                tbody.appendChild(row);
+            });
         }
     </script>
 }
