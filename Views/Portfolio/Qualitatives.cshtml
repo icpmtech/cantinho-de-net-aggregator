@@ -235,11 +235,7 @@
                 labels: events.map(event => new Date(event.eventDate)),
                 datasets: [{
                     label: 'Qualitative Events',
-                    data: events.map(event => ({
-                        x: new Date(event.eventDate),
-                        y: event.eventDescription.length,
-                        description: event.eventDescription
-                    })),
+                    data: events.map(event => event.news.length), // Use the length of the news array
                     backgroundColor: 'rgba(75, 192, 192, 0.2)',
                     borderColor: 'rgba(75, 192, 192, 1)',
                     borderWidth: 1
@@ -262,7 +258,7 @@
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: 'Event Description Length'
+                            text: 'Number of News Articles'
                         }
                     }
                 },
@@ -270,8 +266,8 @@
                     tooltip: {
                         callbacks: {
                             label: function (context) {
-                                const dataPoint = context.raw;
-                                return `Description: ${dataPoint.description}`;
+                                const event = events[context.dataIndex];
+                                return `${new Date(event.eventDate).toLocaleDateString()}: ${event.news.length} news articles`;
                             }
                         }
                     }
@@ -279,6 +275,7 @@
             }
         });
     }
+
 
     function showAddQualitativeEventModal() {
         document.getElementById('addQualitativeEventForm').reset();
