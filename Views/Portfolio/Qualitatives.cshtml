@@ -8,6 +8,11 @@
     <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Qualitative Events"]
 </h4>
 
+<div id="alerts">
+    <div id="errorAlert" class="alert alert-danger" style="display:none;"></div>
+    <div id="successAlert" class="alert alert-success" style="display:none;"></div>
+</div>
+
 <div class="row">
     <div class="col-md-12">
         <ul class="nav nav-pills flex-column flex-md-row mb-3">
@@ -17,6 +22,17 @@
             <h2 class="card-header">Qualitative Events</h2>
             <div class="card-body" id="qualitativeEventsList">
                 <!-- Qualitative events list will be rendered here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <h2 class="card-header">Qualitative Events Timeline</h2>
+            <div class="card-body">
+                <canvas id="qualitativeEventsChart"></canvas>
             </div>
         </div>
     </div>
@@ -97,7 +113,11 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
 <script>
+    let qualitativeEventsChart = null;
+
     document.addEventListener('DOMContentLoaded', function () {
         loadQualitativeEvents();
         loadSymbols();
@@ -116,6 +136,7 @@
             if (response.ok) {
                 const events = await response.json();
                 renderQualitativeEventsList(events);
+                renderQualitativeEventsChart(events);
             } else {
                 throw new Error('Failed to load qualitative events');
             }
@@ -187,19 +208,75 @@
             const eventDiv = document.createElement('div');
             eventDiv.classList.add('card', 'mb-3');
             eventDiv.innerHTML = `
-                    <div class="card-body">
-                        <h5 class="card-title">${event.symbol}</h5>
-                        <p>${event.eventDescription}</p>
-                        <p>${new Date(event.eventDate).toLocaleDateString()}</p>
-                        <button class="btn btn-primary" onclick="showEditQualitativeEventModal(${event.id})">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteQualitativeEvent(${event.id})">Delete</button>
-                        <h6>Associated News:</h6>
-                        <ul>
-                            ${event.news.map(news => `<li>${news.title}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
+                            <div class="card-body">
+                                <p><strong>Symbol:</strong> ${event.symbol}</p>
+                                <p><strong>Description:</strong> ${event.eventDescription}</p>
+                                <p><strong>Date:</strong> ${new Date(event.eventDate).toLocaleDateString()}</p>
+                                <button class="btn btn-primary" onclick="showEditQualitativeEventModal(${event.id})">Edit</button>
+                                <button class="btn btn-danger" onclick="deleteQualitativeEvent(${event.id})">Delete</button>
+                                <h6>Associated News:</h6>
+                                <ul>
+                                    ${event.news.map(news => `<li>${news.title}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
             qualitativeEventsList.appendChild(eventDiv);
+        });
+    }
+
+    function renderQualitativeEventsChart(events) {
+        const ctx = document.getElementById('qualitativeEventsChart').getContext('2d');
+        if (qualitativeEventsChart) {
+            qualitativeEventsChart.destroy();
+        }
+        qualitativeEventsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: events.map(event => new Date(event.eventDate)),
+                datasets: [{
+                    label: 'Qualitative Events',
+                    data: events.map(event => ({
+                        x: new Date(event.eventDate),
+                        y: event.eventDescription.length,
+                        description: event.eventDescription
+                    })),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day',
+                            tooltipFormat: 'dd.MM.yyyy'
+                        },
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Event Description Length'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                const dataPoint = context.raw;
+                                return `Description: ${dataPoint.description}`;
+                            }
+                        }
+                    }
+                }
+            }
         });
     }
 
@@ -288,6 +365,7 @@
             showError(error.message);
         }
     }
+
     async function deleteQualitativeEvent(eventId) {
         try {
             const response = await fetch(`/api/QualitativeEvents/${eventId}`, {
