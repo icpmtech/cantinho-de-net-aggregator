@@ -1,7 +1,290 @@
-﻿
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Qualitatives";
+    ViewData["Title"] = "Qualitative Events";
 }
 
-<h1>Qualitatives</h1>
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Qualitative Events"]
+</h4>
 
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-3">
+            <li class="nav-item"><button class="btn btn-primary" onclick="showAddQualitativeEventModal()">Add Qualitative Event</button></li>
+        </ul>
+        <div class="card mb-4">
+            <h2 class="card-header">Qualitative Events</h2>
+            <div class="card-body" id="qualitativeEventsList">
+                <!-- Qualitative events list will be rendered here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Qualitative Event Modal -->
+<div id="addQualitativeEventModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Qualitative Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addQualitativeEventForm">
+                    <div class="form-group">
+                        <label for="eventSymbol">Symbol</label>
+                        <select class="form-control" name="eventSymbol" id="eventSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventDescription">Event Description</label>
+                        <textarea class="form-control" name="eventDescription" id="eventDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="eventDate">Event Date</label>
+                        <input type="date" name="eventDate" class="form-control" id="eventDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Qualitative Event Modal -->
+<div id="editQualitativeEventModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Qualitative Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editQualitativeEventForm">
+                    <input type="hidden" id="editEventId">
+                    <div class="form-group">
+                        <label for="editEventSymbol">Symbol</label>
+                        <select class="form-control" id="editEventSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventDescription">Event Description</label>
+                        <textarea class="form-control" id="editEventDescription" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="editEventDate">Event Date</label>
+                        <input type="date" class="form-control" id="editEventDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Error and Success Alerts -->
+<div class="alert alert-danger" id="errorAlert" role="alert" style="display: none;"></div>
+<div class="alert alert-success" id="successAlert" role="alert" style="display: none;"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadQualitativeEvents();
+        loadSymbols();
+    });
+
+    async function loadQualitativeEvents() {
+        try {
+            const response = await fetch('/api/QualitativeEvents', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const events = await response.json();
+                renderQualitativeEventsList(events);
+            } else {
+                throw new Error('Failed to load qualitative events');
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    async function loadSymbols() {
+        try {
+            const response = await fetch('/api/Symbols', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const symbols = await response.json();
+                const symbolSelect = document.getElementById('eventSymbol');
+                const editSymbolSelect = document.getElementById('editEventSymbol');
+                symbols.forEach(symbol => {
+                    const option = document.createElement('option');
+                    option.value = symbol;
+                    option.text = symbol;
+                    symbolSelect.appendChild(option);
+                    editSymbolSelect.appendChild(option.cloneNode(true));
+                });
+            } else {
+                throw new Error('Failed to load symbols');
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    function renderQualitativeEventsList(events) {
+        const qualitativeEventsList = document.getElementById('qualitativeEventsList');
+        qualitativeEventsList.innerHTML = '';
+        events.forEach(event => {
+            const eventDiv = document.createElement('div');
+            eventDiv.classList.add('card', 'mb-3');
+            eventDiv.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">${event.symbol}</h5>
+                        <p>${event.eventDescription}</p>
+                        <p>${new Date(event.eventDate).toLocaleDateString()}</p>
+                        <button class="btn btn-primary" onclick="showEditQualitativeEventModal(${event.id})">Edit</button>
+                        <button class="btn btn-danger" onclick="deleteQualitativeEvent(${event.id})">Delete</button>
+                    </div>
+                `;
+            qualitativeEventsList.appendChild(eventDiv);
+        });
+    }
+
+    function showAddQualitativeEventModal() {
+        document.getElementById('addQualitativeEventForm').reset();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('addQualitativeEventModal')).show();
+    }
+
+    function showEditQualitativeEventModal(eventId) {
+        // Load event data and show the modal
+        fetch(`/api/QualitativeEvents/${eventId}`)
+            .then(response => response.json())
+            .then(event => {
+                document.getElementById('editEventId').value = event.id;
+                document.getElementById('editEventSymbol').value = event.symbol;
+                document.getElementById('editEventDescription').value = event.eventDescription;
+                document.getElementById('editEventDate').value = event.eventDate.split('T')[0];
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('editQualitativeEventModal')).show();
+            })
+            .catch(error => showError('Failed to load qualitative event'));
+    }
+
+    async function saveQualitativeEvent() {
+        try {
+            const form = document.getElementById('addQualitativeEventForm');
+            const jsonData = {
+                symbol: form.eventSymbol.value,
+                eventDescription: form.eventDescription.value,
+                eventDate: form.eventDate.value
+            };
+
+            const response = await fetch('/api/QualitativeEvents', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            });
+
+            if (response.ok) {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('addQualitativeEventModal')).hide();
+                showSuccess('Qualitative event added successfully');
+                loadQualitativeEvents();
+            } else {
+                throw new Error('Failed to save qualitative event');
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    async function updateQualitativeEvent() {
+        try {
+            const form = document.getElementById('editQualitativeEventForm');
+            const jsonData = {
+                id: form.editEventId.value,
+                symbol: form.editEventSymbol.value,
+                eventDescription: form.editEventDescription.value,
+                eventDate: form.editEventDate.value
+            };
+
+            const response = await fetch(`/api/QualitativeEvents/${jsonData.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            });
+
+            if (response.ok) {
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('editQualitativeEventModal')).hide();
+                showSuccess('Qualitative event updated successfully');
+                loadQualitativeEvents();
+            } else {
+                throw new Error('Failed to update qualitative event');
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    async function deleteQualitativeEvent(eventId) {
+        try {
+            const response = await fetch(`/api/QualitativeEvents/${eventId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                showSuccess('Qualitative event deleted successfully');
+                loadQualitativeEvents();
+            } else {
+                throw new Error('Failed to delete qualitative event');
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    document.getElementById('addQualitativeEventForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        await saveQualitativeEvent();
+    });
+
+    document.getElementById('editQualitativeEventForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        await updateQualitativeEvent();
+    });
+
+    function showError(message) {
+        const errorAlert = document.getElementById('errorAlert');
+        errorAlert.textContent = message;
+        errorAlert.style.display = 'block';
+        setTimeout(() => {
+            errorAlert.style.display = 'none';
+        }, 5000);
+    }
+
+    function showSuccess(message) {
+        const successAlert = document.getElementById('successAlert');
+        successAlert.textContent = message;
+        successAlert.style.display = 'block';
+        setTimeout(() => {
+            successAlert.style.display = 'none';
+        }, 5000);
+    }
+</script>

@@ -1,3 +1,4 @@
+using AspnetCoreMvcFull.Models;
 using AspnetCoreMvcFull.Models.Portfolio;
 using MarketAnalyticHub.Models.Configurations.News;
 using MarketAnalyticHub.Models.News;
@@ -20,5 +21,6 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<SymbolItem> Symbols { get; set; }
     public DbSet<NewsScrapingItem> NewsScrapingItem { get; set; }
     public DbSet<UserProfile> UserProfiles { get;  set; }
+    public DbSet<QualitativeEvent> QualitativeEvents { get; internal set; }
   }
 }

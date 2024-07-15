@@ -70,7 +70,8 @@ builder.Services.AddScoped<AppNewsService>();
 builder.Services.AddScoped<PortfolioService>();
 builder.Services.AddScoped<PortfolioItemService>();
 builder.Services.AddScoped<ISymbolService, SymbolService>();
-
+builder.Services.AddScoped<IQualitativeEventService, QualitativeEventService>();
+builder.Services.AddScoped<ISymbolService, SymbolService>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration

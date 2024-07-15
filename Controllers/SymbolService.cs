@@ -1,4 +1,4 @@
-﻿namespace AspnetCoreMvcFull.Controllers
+namespace AspnetCoreMvcFull.Controllers
 {
   public class SymbolService : ISymbolService
   {
@@ -8,4 +8,5 @@
       return await Task.FromResult(new List<string> { "AAPL", "MSFT", "GOOGL", "AMZN", "TSLA" });
     }
   }
+
 }
