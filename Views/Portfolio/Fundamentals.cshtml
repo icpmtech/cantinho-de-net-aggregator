@@ -1,7 +1,325 @@
-﻿
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Fundamentals";
+    ViewData["Title"] = "Portfolio Fundamentals";
 }
 
-<h1>Fundamentals</h1>
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Fundamentals"]
+</h4>
 
+@section VendorStyles {
+    <link rel="stylesheet" href="~/vendor/libs/apex-charts/apex-charts.css" />
+}
+@section VendorScripts {
+    <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
+}
+@section PageScripts {
+    <script src="~/js/dashboards-analytics.js"></script>
+}
+
+@* ************** Content ************** *@
+<div class="row">
+    <div class="col-lg-8 mb-4 order-0">
+        <div class="card">
+            <div class="d-flex align-items-end row">
+                <div class="col-sm-7">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">Congratulations @User.Identity.Name! 🎉</h5>
+                        <p class="mb-4">You have done <span class="fw-medium">72%</span> more transactions today. Check your new badge in your profile.</p>
+
+                        <a href="javascript:;" class="btn btn-sm btn-outline-primary">View Badges</a>
+                    </div>
+                </div>
+                <div class="col-sm-5 text-center text-sm-left">
+                    <div class="card-body pb-0 px-0 px-md-4">
+                        <img src="~/img/illustrations/man-with-laptop-light.png" height="140" alt="View Badge User" data-app-dark-img="illustrations/man-with-laptop-dark.png" data-app-light-img="illustrations/man-with-laptop-light.png">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-4 order-1">
+        <div class="row">
+            <div class="col-lg-6 col-md-12 col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <img src="~/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
+                                    <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                    <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="fw-medium d-block mb-1">Profit</span>
+                        <h3 class="card-title mb-2">$12,628</h3>
+                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-12 col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
+                                    <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                    <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                        <span>Dividends</span>
+                        <h3 class="card-title text-nowrap mb-1">$4,679</h3>
+                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Total Revenue -->
+    <div class="col-12 col-lg-8 order-2 order-md-3 order-lg-2 mb-4">
+        <div class="card">
+            <div class="row row-bordered g-0">
+                <div class="col-md-8">
+                    <h5 class="card-header m-0 me-2 pb-3">Total Revenue</h5>
+                    <div id="totalRevenueChart" class="px-2"></div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card-body">
+                        <div class="text-center">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="growthReportId" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    2022
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="growthReportId">
+                                    <a class="dropdown-item" href="javascript:void(0);">2021</a>
+                                    <a class="dropdown-item" href="javascript:void(0);">2020</a>
+                                    <a class="dropdown-item" href="javascript:void(0);">2019</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="growthChart"></div>
+                    <div class="text-center fw-medium pt-3 mb-2">62% Portfolio Growth</div>
+
+                    <div class="d-flex px-xxl-4 px-lg-2 p-4 gap-xxl-3 gap-lg-1 gap-3 justify-content-between">
+                        <div class="d-flex">
+                            <div class="me-2">
+                                <span class="badge bg-label-primary p-2"><i class="bx bx-dollar text-primary"></i></span>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <small>2022</small>
+                                <h6 class="mb-0">$32.5k</h6>
+                            </div>
+                        </div>
+                        <div class="d-flex">
+                            <div class="me-2">
+                                <span class="badge bg-label-info p-2"><i class="bx bx-wallet text-info"></i></span>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <small>2021</small>
+                                <h6 class="mb-0">$41.2k</h6>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--/ Total Revenue -->
+    <div class="col-12 col-md-8 col-lg-4 order-3 order-md-2">
+        <div class="row">
+            <div class="col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <img src="~/img/icons/unicons/paypal.png" alt="Credit Card" class="rounded">
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt4">
+                                    <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                    <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="d-block mb-1">Payments</span>
+                        <h3 class="card-title text-nowrap mb-2">$2,456</h3>
+                        <small class="text-danger fw-medium"><i class='bx bx-down-arrow-alt'></i> -14.82%</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <img src="~/img/icons/unicons/cc-primary.png" alt="Credit Card" class="rounded">
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn p-0" type="button" id="cardOpt1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="cardOpt1">
+                                    <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                    <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="fw-medium d-block mb-1">Operations</span>
+                        <h3 class="card-title mb-2">$14,857</h3>
+                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.14%</small>
+                    </div>
+                </div>
+            </div>
+            <!-- </div>
+            <div class="row"> -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between flex-sm-row flex-column gap-3">
+                            <div class="d-flex flex-sm-column flex-row align-items-start justify-content-between">
+                                <div class="card-title">
+                                    <h5 class="text-nowrap mb-2">Profile Report</h5>
+                                    <span class="badge bg-label-warning rounded-pill">Year 2021</span>
+                                </div>
+                                <div class="mt-sm-auto">
+                                    <small class="text-success text-nowrap fw-medium"><i class='bx bx-chevron-up'></i> 68.2%</small>
+                                    <h3 class="mb-0">$84,686k</h3>
+                                </div>
+                            </div>
+                            <div id="profileReportChart"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div >
+        <div class="card h-100">
+            <div class="card-header d-flex align-items-center justify-content-between pb-0">
+                <div class="card-title mb-0">
+                    <h5 class="m-0 me-2">Portfolio Statistics</h5>
+                    <small class="text-muted" id="totalValue">Loading...</small>
+                </div>
+                <div class="dropdown">
+                    <button class="btn p-0" type="button" id="orderStatistics" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="bx bx-dots-vertical-rounded"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="orderStatistics">
+                        <a class="dropdown-item" href="javascript:void(0);" onclick="loadPortfolioStatistics()">Refresh</a>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="d-flex flex-column align-items-center gap-1">
+                        <h2 class="mb-2" id="totalSymbols">Loading...</h2>
+                        <span>Total Symbols</span>
+                    </div>
+                    <div id="orderStatisticsChart"></div>
+                </div>
+                <ul class="p-0 m-0" id="portfolioItemsList">
+                    <!-- Portfolio items statistics will be rendered here -->
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadPortfolioStatistics();
+    });
+
+    async function loadPortfolioStatistics() {
+        const response = await fetch('/GetPortfolioStatistics', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const statistics = await response.json();
+            renderPortfolioStatistics(statistics);
+        } else {
+            alert('Failed to load portfolio statistics');
+        }
+    }
+
+    function renderPortfolioStatistics(statistics) {
+        document.getElementById('totalValue').innerText = `${statistics.totalValue.toFixed(2)} Total Value`;
+        document.getElementById('totalSymbols').innerText = statistics.totalSymbols;
+
+        const portfolioItemsList = document.getElementById('portfolioItemsList');
+        portfolioItemsList.innerHTML = '';
+
+        statistics.items.forEach(item => {
+            const listItem = document.createElement('li');
+            listItem.classList.add('d-flex', 'mb-4', 'pb-1');
+            listItem.innerHTML = `
+                    <div class="avatar flex-shrink-0 me-3">
+                        <span class="avatar-initial rounded bg-label-primary"><i class='bx bx-bar-chart-alt-2'></i></span>
+                    </div>
+                    <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="me-2">
+                            <h6 class="mb-0">${item.category}</h6>
+                            <small class="text-muted">${item.description}</small>
+                        </div>
+                        <div class="user-progress">
+                            <small class="fw-medium">${item.value.toFixed(2)}</small>
+                        </div>
+                    </div>
+                `;
+            portfolioItemsList.appendChild(listItem);
+        });
+
+        renderChart(statistics.chartData);
+    }
+
+    function renderChart(chartData) {
+        const ctx = document.getElementById('orderStatisticsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: chartData.labels,
+                datasets: [{
+                    label: 'Value',
+                    data: chartData.values,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+</script>

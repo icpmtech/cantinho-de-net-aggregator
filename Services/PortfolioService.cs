@@ -16,7 +16,32 @@ namespace AspnetCoreMvcFull.Services
     {
       _context = context;
     }
+    public PortfolioStatisticsDto GetPortfolioStatistics()
+    {
+      // Fetch and calculate portfolio statistics
+      var totalValue = 42820.00;
+      var totalSymbols = 8258;
+      var items = new List<PortfolioItemDto>
+        {
+            new PortfolioItemDto { Category = "Electronic", Description = "Mobile, Earbuds, TV", Value = 82500.00 },
+            new PortfolioItemDto { Category = "Fashion", Description = "T-shirt, Jeans, Shoes", Value = 23800.00 },
+            new PortfolioItemDto { Category = "Decor", Description = "Fine Art, Dining", Value = 849000.00 },
+            new PortfolioItemDto { Category = "Sports", Description = "Football, Cricket Kit", Value = 9900.00 }
+        };
+      var chartData = new ChartDataDto
+      {
+        Labels = items.Select(i => i.Category).ToList(),
+        Values = items.Select(i => i.Value).ToList()
+      };
 
+      return new PortfolioStatisticsDto
+      {
+        TotalValue = totalValue,
+        TotalSymbols = totalSymbols,
+        Items = items,
+        ChartData = chartData
+      };
+    }
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
     {
       var portfolios = await _context.Portfolios.Include(p => p.Items)
@@ -76,5 +101,4 @@ namespace AspnetCoreMvcFull.Services
       return await Task.FromResult(100m); // Dummy implementation
     }
   }
-
 }
