@@ -17,6 +17,7 @@ using ApplicationDbContext = MarketAnalyticHub.Models.SetupDb.ApplicationDbConte
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Razor;
 using System.Globalization;
+using AspnetCoreMvcFull.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,6 +66,8 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<SentimentAnalysisService>();
 builder.Services.AddTransient<NewsScraper>();
 builder.Services.AddScoped<AppNewsService>();
+builder.Services.AddScoped<PortfolioService>();
+builder.Services.AddScoped<PortfolioItemService>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration

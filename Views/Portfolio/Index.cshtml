@@ -1,0 +1,338 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = "Portfolio Manager";
+}
+
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Portfolios"]
+</h4>
+
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-3">
+            <li class="nav-item"><button class="btn btn-primary" onclick="showAddPortfolioModal()">Add Portfolio</button></li>
+        </ul>
+        <div class="card mb-4">
+            <h2 class="card-header">My Portfolios</h2>
+            <div class="card-body" id="portfolioList">
+                <!-- Portfolio list will be rendered here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Portfolio Modal -->
+<div id="addPortfolioModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Portfolio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPortfolioForm">
+                    <div class="form-group">
+                        <label for="portfolioName">Name</label>
+                        <input type="text" class="form-control" id="portfolioName" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Portfolio Modal -->
+<div id="editPortfolioModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Portfolio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPortfolioForm">
+                    <input type="hidden" id="editPortfolioId">
+                    <div class="form-group">
+                        <label for="editPortfolioName">Name</label>
+                        <input type="text" class="form-control" id="editPortfolioName" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Portfolio Item Modal -->
+<div id="addPortfolioItemModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Portfolio Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPortfolioItemForm">
+                    <input type="hidden" id="portfolioId" name="portfolioId">
+                    <div class="form-group">
+                        <label for="itemSymbol">Symbol</label>
+                        <input type="text" class="form-control" id="itemSymbol" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemQuantity">Quantity</label>
+                        <input type="number" class="form-control" id="itemQuantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemPurchasePrice">Purchase Price</label>
+                        <input type="number" class="form-control" id="itemPurchasePrice" step="0.01" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadPortfolios();
+    });
+
+    async function loadPortfolios() {
+        const response = await fetch('/api/Portfolio', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const portfolios = await response.json();
+            renderPortfolioList(portfolios);
+        } else {
+            alert('Failed to load portfolios');
+        }
+    }
+
+    function renderPortfolioList(portfolios) {
+        const portfolioList = document.getElementById('portfolioList');
+        portfolioList.innerHTML = '';
+        portfolios.forEach(portfolio => {
+            const portfolioDiv = document.createElement('div');
+            portfolioDiv.classList.add('card', 'mb-3');
+            portfolioDiv.innerHTML = `
+                    <div class="card-body">
+                        <h3 class="card-title">${portfolio.name}</h3>
+                        <p>Total Investment: ${portfolio.totalInvestment.toFixed(2)}</p>
+                        <p>Current Market Value: ${portfolio.currentMarketValue.toFixed(2)}</p>
+                        <button class="btn btn-secondary" onclick="showAddPortfolioItemModal(${portfolio.id})">Add Item</button>
+                        <button class="btn btn-danger" onclick="deletePortfolio(${portfolio.id})">Delete Portfolio</button>
+                        <button class="btn btn-primary" onclick="showEditPortfolioModal(${portfolio.id}, '${portfolio.name}')">Edit Portfolio</button>
+                        <canvas id="chart-${portfolio.id}"></canvas>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        ${portfolio.items.map(item => `
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>Symbol:</strong> ${item.symbol} <br>
+                                        <strong>Quantity:</strong> ${item.quantity} <br>
+                                        <strong>Purchase Price:</strong> ${item.purchasePrice.toFixed(2)} <br>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-primary btn-sm" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
+                                        <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
+                                    </div>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            portfolioList.appendChild(portfolioDiv);
+            renderChart(portfolio);
+        });
+    }
+
+    function showAddPortfolioModal() {
+        document.getElementById('addPortfolioForm').reset();
+        new bootstrap.Modal(document.getElementById('addPortfolioModal')).show();
+    }
+
+    function showEditPortfolioModal(id, name) {
+        document.getElementById('editPortfolioId').value = id;
+        document.getElementById('editPortfolioName').value = name;
+        new bootstrap.Modal(document.getElementById('editPortfolioModal')).show();
+    }
+
+    function showAddPortfolioItemModal(portfolioId) {
+        document.getElementById('addPortfolioItemForm').reset();
+        document.getElementById('portfolioId').value = portfolioId;
+        new bootstrap.Modal(document.getElementById('addPortfolioItemModal')).show();
+    }
+
+    async function showEditPortfolioItemModal(itemId) {
+        const response = await fetch(`/api/PortfolioItem/${itemId}`);
+        const item = await response.json();
+
+        if (response.ok) {
+            document.getElementById('portfolioId').value = item.portfolioId;
+            document.getElementById('itemSymbol').value = item.symbol;
+            document.getElementById('itemQuantity').value = item.quantity;
+            document.getElementById('itemPurchasePrice').value = item.purchasePrice;
+            new bootstrap.Modal(document.getElementById('addPortfolioItemModal')).show();
+        } else {
+            alert('Failed to load portfolio item');
+        }
+    }
+
+    async function savePortfolioItem() {
+        const portfolioId = document.getElementById('portfolioId').value;
+        const symbol = document.getElementById('itemSymbol').value;
+        const quantity = document.getElementById('itemQuantity').value;
+        const purchasePrice = document.getElementById('itemPurchasePrice').value;
+
+        const response = await fetch('/api/PortfolioItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice })
+        });
+
+        if (response.ok) {
+            new bootstrap.Modal(document.getElementById('addPortfolioItemModal')).hide();
+            loadPortfolios();
+        } else {
+            alert('Failed to save portfolio item');
+        }
+    }
+
+    async function deletePortfolioItem(id) {
+        const response = await fetch(`/api/PortfolioItem/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            loadPortfolios();
+        } else {
+            alert('Failed to delete portfolio item');
+        }
+    }
+
+    async function deletePortfolio(id) {
+        const response = await fetch(`/api/Portfolio/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            loadPortfolios();
+        } else {
+            alert('Failed to delete portfolio');
+        }
+    }
+
+    document.getElementById('addPortfolioForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const name = document.getElementById('portfolioName').value;
+
+        const response = await fetch('/api/Portfolio', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name })
+        });
+
+        if (response.ok) {
+            new bootstrap.Modal(document.getElementById('addPortfolioModal')).hide();
+            loadPortfolios();
+        } else {
+            alert('Failed to add portfolio');
+        }
+    });
+
+    document.getElementById('editPortfolioForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const id = document.getElementById('editPortfolioId').value;
+        const name = document.getElementById('editPortfolioName').value;
+
+        const response = await fetch(`/api/Portfolio/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, name })
+        });
+
+        if (response.ok) {
+            new bootstrap.Modal(document.getElementById('editPortfolioModal')).hide();
+            loadPortfolios();
+        } else {
+            alert('Failed to edit portfolio');
+        }
+    });
+
+    document.getElementById('addPortfolioItemForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const portfolioId = document.getElementById('portfolioId').value;
+        const symbol = document.getElementById('itemSymbol').value;
+        const quantity = document.getElementById('itemQuantity').value;
+        const purchasePrice = document.getElementById('itemPurchasePrice').value;
+
+        const response = await fetch('/api/PortfolioItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice })
+        });
+
+        if (response.ok) {
+            new bootstrap.Modal(document.getElementById('addPortfolioItemModal')).hide();
+            loadPortfolios();
+        } else {
+            alert('Failed to add portfolio item');
+        }
+    });
+
+    function renderChart(portfolio) {
+        const ctx = document.getElementById(`chart-${portfolio.id}`).getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: portfolio.items.map(item => item.symbol),
+                datasets: [{
+                    label: 'Current Market Value',
+                    data: portfolio.items.map(item => item.currentMarketValue),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Total Investment',
+                    data: portfolio.items.map(item => item.totalInvestment),
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+</script>
