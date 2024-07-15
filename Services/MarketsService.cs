@@ -1,12 +1,12 @@
-using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Models.SetupDb;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ApplicationDbContext = AspnetCoreMvcFull.Models.SetupDb.ApplicationDbContext;
+using ApplicationDbContext = MarketAnalyticHub.Models.SetupDb.ApplicationDbContext;
 
-namespace AspnetCoreMvcFull.Services
+namespace MarketAnalyticHub.Services
 {
   public class MarketsService
   {

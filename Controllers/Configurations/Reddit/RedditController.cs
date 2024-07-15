@@ -1,8 +1,8 @@
-using AspnetCoreMvcFull.Models.SetupDb;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AspnetCoreMvcFull.Controllers.Configurations.Reddit
+namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 {
   public class RedditController : Controller
   {

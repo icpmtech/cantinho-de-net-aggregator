@@ -1,7 +1,7 @@
-namespace AspnetCoreMvcFull.Controllers
+namespace MarketAnalyticHub.Controllers
 {
-  using AspnetCoreMvcFull.Models;
-  using AspnetCoreMvcFull.Models.SetupDb;
+  using MarketAnalyticHub.Models;
+  using MarketAnalyticHub.Models.SetupDb;
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Identity;
   using Microsoft.AspNetCore.Mvc;

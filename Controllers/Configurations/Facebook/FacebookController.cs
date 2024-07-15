@@ -1,8 +1,8 @@
-using AspnetCoreMvcFull.Models.SetupDb;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AspnetCoreMvcFull.Controllers.Configurations.Facebook
+namespace MarketAnalyticHub.Controllers.Configurations.Facebook
 {
   public class FacebookController : Controller
   {

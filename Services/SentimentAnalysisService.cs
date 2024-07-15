@@ -1,6 +1,6 @@
 using VaderSharp2;
 
-namespace AspnetCoreMvcFull.Services
+namespace MarketAnalyticHub.Services
 {
 
   public class SentimentAnalysisService

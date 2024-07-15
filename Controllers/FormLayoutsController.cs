@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using AspnetCoreMvcFull.Models;
+using MarketAnalyticHub.Models;
 
-namespace AspnetCoreMvcFull.Controllers;
+namespace MarketAnalyticHub.Controllers;
 
 public class FormLayoutsController : Controller
 {

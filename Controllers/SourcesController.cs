@@ -1,14 +1,14 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Services.News;
-using AspnetCoreMvcFull.Models.News;
-using AspnetCoreMvcFull.Controllers.api;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Services.News;
+using MarketAnalyticHub.Models.News;
+using MarketAnalyticHub.Controllers.api;
 using Microsoft.Extensions.Logging;
-using AspnetCoreMvcFull.Models.SetupDb;
+using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 
-namespace AspnetCoreMvcFull.Controllers;
+namespace MarketAnalyticHub.Controllers;
 public class SourcesController : Controller
 {
   private readonly AppNewsService _newsService;

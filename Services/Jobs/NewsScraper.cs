@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
-namespace AspnetCoreMvcFull.Services.Jobs
+namespace MarketAnalyticHub.Services.Jobs
 {
   public class NewsScraper
   {

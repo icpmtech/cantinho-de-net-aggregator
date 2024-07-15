@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AspnetCoreMvcFull.Migrations.AppIdentityDb
+namespace MarketAnalyticHub.Migrations.AppIdentityDb
 {
     /// <inheritdoc />
     public partial class AppIdentityDbContextMigration : Migration

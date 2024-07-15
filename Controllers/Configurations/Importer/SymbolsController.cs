@@ -1,5 +1,5 @@
-using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Models.SetupDb;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,7 +10,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Controllers
+namespace MarketAnalyticHub.Controllers
 {
   public class SymbolsController : Controller
   {

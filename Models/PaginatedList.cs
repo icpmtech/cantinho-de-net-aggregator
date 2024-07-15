@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Models
+namespace MarketAnalyticHub.Models
 {
   public class PaginatedList<T> : List<T>
   {

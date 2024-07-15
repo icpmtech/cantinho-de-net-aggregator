@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace AspnetCoreMvcFull.Migrations
+namespace MarketAnalyticHub.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

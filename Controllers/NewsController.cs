@@ -1,9 +1,9 @@
-using AspnetCoreMvcFull.Models.News;
-using AspnetCoreMvcFull.Services.News;
+using MarketAnalyticHub.Models.News;
+using MarketAnalyticHub.Services.News;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Controllers
+namespace MarketAnalyticHub.Controllers
 {
   [Route("news")]
   public class NewsController : Controller

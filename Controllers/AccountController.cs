@@ -1,8 +1,8 @@
-using AspnetCoreMvcFull.Models;
+using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AspnetCoreMvcFull.Controllers
+namespace MarketAnalyticHub.Controllers
 {
 
   using Microsoft.AspNetCore.Identity;

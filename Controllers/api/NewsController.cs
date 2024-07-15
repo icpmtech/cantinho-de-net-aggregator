@@ -1,6 +1,6 @@
-using AspnetCoreMvcFull.Models.News;
-using AspnetCoreMvcFull.Models.SetupDb;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models.News;
+using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Services;
 using HtmlAgilityPack;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Controllers.api
+namespace MarketAnalyticHub.Controllers.api
 {
   [Route("api/[controller]")]
   [ApiController]

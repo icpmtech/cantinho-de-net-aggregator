@@ -1,9 +1,9 @@
-using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Controllers
+namespace MarketAnalyticHub.Controllers
 {
   [Route("stocks")]
   public class StocksController : Controller

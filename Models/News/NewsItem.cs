@@ -1,4 +1,4 @@
-namespace AspnetCoreMvcFull.Models.News
+namespace MarketAnalyticHub.Models.News
 {
   public class NewsItem
   {

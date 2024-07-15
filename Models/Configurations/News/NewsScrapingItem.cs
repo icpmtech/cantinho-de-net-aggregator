@@ -1,4 +1,4 @@
-namespace AspnetCoreMvcFull.Models.Configurations.News
+namespace MarketAnalyticHub.Models.Configurations.News
 {
   public class NewsScrapingItem
   {

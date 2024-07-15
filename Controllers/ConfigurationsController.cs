@@ -1,15 +1,15 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Services;
-using AspnetCoreMvcFull.Models.Configurations.News;
-using AspnetCoreMvcFull.Controllers.api;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Services;
+using MarketAnalyticHub.Models.Configurations.News;
+using MarketAnalyticHub.Controllers.api;
 using Microsoft.Extensions.Logging;
-using AspnetCoreMvcFull.Models.SetupDb;
-using AspnetCoreMvcFull.Models.News;
-using ApplicationDbContext = AspnetCoreMvcFull.Models.SetupDb.ApplicationDbContext;
+using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Models.News;
+using ApplicationDbContext = MarketAnalyticHub.Models.SetupDb.ApplicationDbContext;
 
-namespace AspnetCoreMvcFull.Controllers;
+namespace MarketAnalyticHub.Controllers;
 
 public class ConfigurationsController : Controller
 {

@@ -1,13 +1,13 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Controllers.api;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Controllers.api;
 using Microsoft.Extensions.Logging;
-using AspnetCoreMvcFull.Models.SetupDb;
+using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Services;
 
-namespace AspnetCoreMvcFull.Controllers;
+namespace MarketAnalyticHub.Controllers;
 public class MarketsController : Controller
 {
   private readonly MarketsService _MarketsService;

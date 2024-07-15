@@ -1,21 +1,46 @@
-using AspnetCoreMvcFull.Models.SetupDb;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Hangfire;
 using Hangfire.SqlServer;
-using AspnetCoreMvcFull.Services.Jobs;
+using MarketAnalyticHub.Services.Jobs;
 using Microsoft.Extensions.DependencyInjection;
-using AspnetCoreMvcFull.Services.News;
-using AspnetCoreMvcFull.Controllers.AIPilot;
+using MarketAnalyticHub.Services.News;
+using MarketAnalyticHub.Controllers.AIPilot;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using AspnetCoreMvcFull.Models;
-using ApplicationDbContext = AspnetCoreMvcFull.Models.SetupDb.ApplicationDbContext;
+using MarketAnalyticHub.Models;
+using ApplicationDbContext = MarketAnalyticHub.Models.SetupDb.ApplicationDbContext;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.Razor;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add services to localization.
+builder.Services.AddControllersWithViews()
+            .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+            .AddDataAnnotationsLocalization();
+
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+  var supportedCultures = new List<CultureInfo>
+            {
+                new CultureInfo("en"),
+                new CultureInfo("fr"),
+                new CultureInfo("de"),
+                new CultureInfo("pt")
+            };
+
+  options.DefaultRequestCulture = new RequestCulture("en");
+  options.SupportedCultures = supportedCultures;
+  options.SupportedUICultures = supportedCultures;
+});
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

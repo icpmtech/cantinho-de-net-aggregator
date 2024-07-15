@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using AspnetCoreMvcFull.Models;
+using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Identity;
 
-namespace AspnetCoreMvcFull.Controllers;
+namespace MarketAnalyticHub.Controllers;
 
 public class AuthController : Controller
 {

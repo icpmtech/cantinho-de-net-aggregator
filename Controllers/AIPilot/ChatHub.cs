@@ -1,4 +1,4 @@
-namespace AspnetCoreMvcFull.Controllers.AIPilot
+namespace MarketAnalyticHub.Controllers.AIPilot
 {
   using Microsoft.AspNetCore.Components;
   using Microsoft.AspNetCore.SignalR;

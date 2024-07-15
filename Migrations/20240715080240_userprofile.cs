@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AspnetCoreMvcFull.Migrations
+namespace MarketAnalyticHub.Migrations
 {
     /// <inheritdoc />
     public partial class userprofile : Migration

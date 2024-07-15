@@ -1,6 +1,6 @@
-namespace AspnetCoreMvcFull.Services
+namespace MarketAnalyticHub.Services
 {
-  using AspnetCoreMvcFull.Models.News;
+  using MarketAnalyticHub.Models.News;
   using System.Collections.Generic;
   using System.Linq;
   using System.Net.Http;
