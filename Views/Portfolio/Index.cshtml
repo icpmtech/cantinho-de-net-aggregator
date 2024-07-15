@@ -126,33 +126,33 @@
             const portfolioDiv = document.createElement('div');
             portfolioDiv.classList.add('card', 'mb-3');
             portfolioDiv.innerHTML = `
-                    <div class="card-body">
-                        <h3 class="card-title">${portfolio.name}</h3>
-                        <p>Total Investment: ${portfolio.totalInvestment.toFixed(2)}</p>
-                        <p>Current Market Value: ${portfolio.currentMarketValue.toFixed(2)}</p>
-                        <button class="btn btn-secondary" onclick="showAddPortfolioItemModal(${portfolio.id})">Add Item</button>
-                        <button class="btn btn-danger" onclick="deletePortfolio(${portfolio.id})">Delete Portfolio</button>
-                        <button class="btn btn-primary" onclick="showEditPortfolioModal(${portfolio.id}, '${portfolio.name}')">Edit Portfolio</button>
-                        <canvas id="chart-${portfolio.id}"></canvas>
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        ${portfolio.items.map(item => `
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <strong>Symbol:</strong> ${item.symbol} <br>
-                                        <strong>Quantity:</strong> ${item.quantity} <br>
-                                        <strong>Purchase Price:</strong> ${item.purchasePrice.toFixed(2)} <br>
+                        <div class="card-body">
+                            <h3 class="card-title">${portfolio.name}</h3>
+                            <p>Total Investment: ${portfolio.totalInvestment.toFixed(2)}</p>
+                            <p>Current Market Value: ${portfolio.currentMarketValue.toFixed(2)}</p>
+                            <button class="btn btn-secondary" onclick="showAddPortfolioItemModal(${portfolio.id})">Add Item</button>
+                            <button class="btn btn-danger" onclick="deletePortfolio(${portfolio.id})">Delete Portfolio</button>
+                            <button class="btn btn-primary" onclick="showEditPortfolioModal(${portfolio.id}, '${portfolio.name}')">Edit Portfolio</button>
+                            <canvas id="chart-${portfolio.id}"></canvas>
+                        </div>
+                        <ul class="list-group list-group-flush">
+                            ${portfolio.items.map(item => `
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <strong>Symbol:</strong> ${item.symbol} <br>
+                                            <strong>Quantity:</strong> ${item.quantity} <br>
+                                            <strong>Purchase Price:</strong> ${item.purchasePrice.toFixed(2)} <br>
+                                        </div>
+                                        <div>
+                                            <button class="btn btn-primary btn-sm" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
+                                            <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <button class="btn btn-primary btn-sm" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
-                                        <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
-                                    </div>
-                                </div>
-                            </li>
-                        `).join('')}
-                    </ul>
-                `;
+                                </li>
+                            `).join('')}
+                        </ul>
+                    `;
             portfolioList.appendChild(portfolioDiv);
             renderChart(portfolio);
         });
@@ -176,7 +176,7 @@
     }
 
     async function showEditPortfolioItemModal(itemId) {
-        const response = await fetch(`/api/PortfolioItem/${itemId}`);
+        const response = await fetch(`/api/PortfolioItem/item/${itemId}`);
         const item = await response.json();
 
         if (response.ok) {
@@ -205,7 +205,7 @@
         });
 
         if (response.ok) {
-            new bootstrap.Modal(document.getElementById('addPortfolioItemModal')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('addPortfolioItemModal')).hide();
             loadPortfolios();
         } else {
             alert('Failed to save portfolio item');
@@ -255,7 +255,7 @@
         });
 
         if (response.ok) {
-            new bootstrap.Modal(document.getElementById('addPortfolioModal')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('addPortfolioModal')).hide();
             loadPortfolios();
         } else {
             alert('Failed to add portfolio');
@@ -276,7 +276,7 @@
         });
 
         if (response.ok) {
-            new bootstrap.Modal(document.getElementById('editPortfolioModal')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('editPortfolioModal')).hide();
             loadPortfolios();
         } else {
             alert('Failed to edit portfolio');
@@ -299,7 +299,7 @@
         });
 
         if (response.ok) {
-            new bootstrap.Modal(document.getElementById('addPortfolioItemModal')).hide();
+            bootstrap.Modal.getInstance(document.getElementById('addPortfolioItemModal')).hide();
             loadPortfolios();
         } else {
             alert('Failed to add portfolio item');

@@ -47,6 +47,7 @@ public class PortfolioController : Controller
   [HttpPut("{id}")]
   public async Task<IActionResult> UpdatePortfolio(int id, [FromBody] Portfolio portfolio)
   {
+    portfolio.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     if (id != portfolio.Id)
     {
       return BadRequest();

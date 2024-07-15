@@ -1,97 +1,61 @@
 using AspnetCoreMvcFull.Models.Portfolio;
+using AspnetCoreMvcFull.Services;
 using MarketAnalyticHub.Models;
-using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 
-namespace MarketAnalyticHub.Controllers
+[Route("api/[controller]")]
+[Authorize]
+public class PortfolioItemController : Controller
 {
-  [Route("api/[controller]")]
-  [Authorize]
-  public class PortfolioItemController : Controller
+  private readonly PortfolioItemService _portfolioItemService;
+
+  public PortfolioItemController(PortfolioItemService portfolioItemService)
   {
-    private readonly ApplicationDbContext _context;
+    _portfolioItemService = portfolioItemService;
+  }
 
-    public PortfolioItemController(ApplicationDbContext context)
+  [HttpGet("{portfolioId}")]
+  public async Task<IActionResult> GetItems(int portfolioId)
+  {
+    var items = await _portfolioItemService.GetItemsByPortfolioAsync(portfolioId);
+    return Ok(items);
+  }
+
+  [HttpGet("item/{id}")]
+  public async Task<IActionResult> GetItem(int id)
+  {
+    var item = await _portfolioItemService.GetItemByIdAsync(id);
+    if (item == null)
     {
-      _context = context;
+      return NotFound();
     }
+    return Ok(item);
+  }
 
-    // GET: api/PortfolioItem/5
-    [HttpGet("{id}")]
-    public async Task<ActionResult<PortfolioItem>> GetPortfolioItem(int id)
+  [HttpPost]
+  public async Task<IActionResult> AddItem([FromBody] PortfolioItem item)
+  {
+    await _portfolioItemService.AddItemAsync(item);
+    return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
+  }
+
+  [HttpPut("{id}")]
+  public async Task<IActionResult> UpdateItem(int id, [FromBody] PortfolioItem item)
+  {
+    if (id != item.Id)
     {
-      var portfolioItem = await _context.PortfolioItems.FindAsync(id);
-
-      if (portfolioItem == null)
-      {
-        return NotFound();
-      }
-
-      return portfolioItem;
+      return BadRequest();
     }
+    await _portfolioItemService.UpdateItemAsync(item);
+    return NoContent();
+  }
 
-    // POST: api/PortfolioItem
-    [HttpPost]
-    public async Task<ActionResult<PortfolioItem>> PostPortfolioItem(PortfolioItem portfolioItem)
-    {
-      _context.PortfolioItems.Add(portfolioItem);
-      await _context.SaveChangesAsync();
-
-      return CreatedAtAction("GetPortfolioItem", new { id = portfolioItem.Id }, portfolioItem);
-    }
-
-    // PUT: api/PortfolioItem/5
-    [HttpPut("{id}")]
-    public async Task<IActionResult> PutPortfolioItem(int id, PortfolioItem portfolioItem)
-    {
-      if (id != portfolioItem.Id)
-      {
-        return BadRequest();
-      }
-
-      _context.Entry(portfolioItem).State = EntityState.Modified;
-
-      try
-      {
-        await _context.SaveChangesAsync();
-      }
-      catch (DbUpdateConcurrencyException)
-      {
-        if (!PortfolioItemExists(id))
-        {
-          return NotFound();
-        }
-        else
-        {
-          throw;
-        }
-      }
-
-      return NoContent();
-    }
-
-    // DELETE: api/PortfolioItem/5
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeletePortfolioItem(int id)
-    {
-      var portfolioItem = await _context.PortfolioItems.FindAsync(id);
-      if (portfolioItem == null)
-      {
-        return NotFound();
-      }
-
-      _context.PortfolioItems.Remove(portfolioItem);
-      await _context.SaveChangesAsync();
-
-      return NoContent();
-    }
-
-    private bool PortfolioItemExists(int id)
-    {
-      return _context.PortfolioItems.Any(e => e.Id == id);
-    }
+  [HttpDelete("{id}")]
+  public async Task<IActionResult> DeleteItem(int id)
+  {
+    await _portfolioItemService.DeleteItemAsync(id);
+    return NoContent();
   }
 }
