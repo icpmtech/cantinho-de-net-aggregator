@@ -65,11 +65,11 @@ namespace AspnetCoreMvcFull.Controllers
       return View(model);
     }
 
-    [HttpPost]
+    [HttpGet]
     public async Task<IActionResult> Logout()
     {
       await _signInManager.SignOutAsync();
-      return RedirectToAction("Index", "Home");
+      return RedirectToAction("Login", "Account");
     }
   }
 }
