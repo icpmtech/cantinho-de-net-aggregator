@@ -66,29 +66,27 @@ Please visit our [installation guide](https://cantinhodonet.com/docs/installatio
 | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | [Demo](https://cantinhodonet.com/demo/free)                                              | [Demo](https://cantinhodonet.com/demo/premium)                                                                                     |
 | [Download](https://cantinhodonet.com/download/free)                                      | [Purchase](https://cantinhodonet.com/purchase/premium)                                                                              |
-| Single vertical Menu                                                                     | Vertical Menu + Horizontal Menu                                                                                                    |
-| Simple Light Style                                                                       | Light & Dark Style                                                                                                                 |
-| Default Theme                                                                            | Default, Semi Dark & Bordered Themes                                                                                               |
-| Fixed Layout(Menu)                                                                       | Fixed & Static Layout(Menu)                                                                                                        |
-| 1 Simple Dashboard                                                                       | 5 Niche Dashboards                                                                                                                 |
-| -                                                                                        | Multiple Ready Applications like Calendar, Invoice, Users List, Users View, Roles and Permission, Transactions(CRUD) etc.           |
-| Simple Form Elements                                                                     | Advanced form elements, validation & form wizard                                                                                    |
-| Basic Cards                                                                              | Basic, Advanced, Statistics, Analytics, Gamification, and Actions Cards                                                              |
-| Basic User Interface(Components)                                                         | Advanced and Custom User Interfaces(Components)                                                                                     |
-| Two Extended Components                                                                  | Twelve Ready to use Extended Components                                                                                            |
-| -                                                                                        | Quick Search - Quickly navigate between pages (w/ hotkey support)                                                                  |
-| Basic Pages                                                                              | Authentication Pages in 2 Variants + Ready-to-use pages like User Profile, Account Settings, FAQ, Help Center, Pricing, Misc, etc. |
-| -                                                                                        | 3D Characters + Illustrations                                                                                                      |
-| Basic tables                                                                             | Advanced tables                                                                                                                    |
-| -                                                                                        | Quick customization using theme config file                                                                                        |
-| -                                                                                        | Leaflet Maps                                                                                                                       |
-| 1 Chart Library                                                                          | 2 Chart Libraries                                                                                                                  |
-| -                                                                                        | Multiple Navbar & Menu Options                                                                                                     |
-| -                                                                                        | Starter-kit                                                                                                                        |
-| -                                                                                        | Internationalization support, Docker support                                                                                                       |
-| -                                                                                        | RTL Support                                                                                                                        |
-| Regular Support                                                                          | Priority Support                                                                                                                   |
-| Detailed Documentation                                                                   | Detailed Documentation                                                                                                             |
+MarketAnalyticHub/
+|-- Controllers/
+|   |-- UserProfileController.cs
+|   |-- NewsController.cs
+|   |-- SymbolsController.cs
+|-- Models/
+|   |-- ApplicationUser.cs
+|   |-- Company.cs
+|   |-- FinancialRatios.cs
+|   |-- Investment.cs
+|-- Services/
+|   |-- MarketAnalysisService.cs
+|   |-- SentimentAnalysisService.cs
+|   |-- NewsService.cs
+|-- Views/
+|   |-- UserProfile/
+|       |-- Index.cshtml
+|-- wwwroot/
+|-- Program.cs
+|-- Startup.cs
+                                                                  | Detailed Documentation                                                                                                             |
 
 ## Documentation 📜
 
