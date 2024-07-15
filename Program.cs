@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using System.Globalization;
 using AspnetCoreMvcFull.Services;
 using AspnetCoreMvcFull.Controllers;
+using AspnetCoreMvcFull.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,9 +70,10 @@ builder.Services.AddTransient<NewsScraper>();
 builder.Services.AddScoped<AppNewsService>();
 builder.Services.AddScoped<PortfolioService>();
 builder.Services.AddScoped<PortfolioItemService>();
-builder.Services.AddScoped<ISymbolService, SymbolService>();
+builder.Services.AddScoped<AspnetCoreMvcFull.Services.ISymbolService, AspnetCoreMvcFull.Services.SymbolService>();
 builder.Services.AddScoped<IQualitativeEventService, QualitativeEventService>();
-builder.Services.AddScoped<ISymbolService, SymbolService>();
+builder.Services.AddScoped<ISymbolRepository, SymbolRepository>();
+builder.Services.AddScoped<SymbolService>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration

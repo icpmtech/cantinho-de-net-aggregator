@@ -1,6 +1,4 @@
-﻿using AspnetCoreMvcFull.Models;
-
-namespace AspnetCoreMvcFull.Controllers
+namespace AspnetCoreMvcFull.Models
 {
   public interface IQualitativeEventService
   {

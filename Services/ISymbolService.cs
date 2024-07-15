@@ -1,4 +1,4 @@
-namespace AspnetCoreMvcFull.Controllers
+namespace AspnetCoreMvcFull.Services
 {
   public interface ISymbolService
   {
