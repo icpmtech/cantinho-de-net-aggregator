@@ -17,6 +17,11 @@ namespace MarketAnalyticHub.Services.News
     {
       _context = context;
     }
+
+    public async Task<IEnumerable<NewsItem>> Get()
+    {
+      return await _context.News.ToListAsync();
+    }
     public async Task<NewsItem> GetNewsByIdAsync(int id)
     {
       return await _context.News.FindAsync(id);

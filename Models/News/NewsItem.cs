@@ -9,6 +9,8 @@ namespace MarketAnalyticHub.Models.News
     public string? Date { get; set; }
     public string Link { get;  set; }
     public string? Author { get; internal set; }
+    public string? Content { get; set; }
+    public DateTime? PublishedDate { get; set; }
     public double? Sentiment { get; set; }
   }
 }

@@ -46,6 +46,12 @@
                         <label for="eventDate">Event Date</label>
                         <input type="date" name="eventDate" class="form-control" id="eventDate" required>
                     </div>
+                    <div class="form-group">
+                        <label for="eventNews">Associated News</label>
+                        <select multiple class="form-control" name="eventNews" id="eventNews">
+                            <option value="" disabled>Select news articles</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </form>
             </div>
@@ -78,6 +84,12 @@
                         <label for="editEventDate">Event Date</label>
                         <input type="date" class="form-control" id="editEventDate" required>
                     </div>
+                    <div class="form-group">
+                        <label for="editEventNews">Associated News</label>
+                        <select multiple class="form-control" id="editEventNews">
+                            <option value="" disabled>Select news articles</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </form>
             </div>
@@ -85,14 +97,11 @@
     </div>
 </div>
 
-<!-- Error and Success Alerts -->
-<div class="alert alert-danger" id="errorAlert" role="alert" style="display: none;"></div>
-<div class="alert alert-success" id="successAlert" role="alert" style="display: none;"></div>
-
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         loadQualitativeEvents();
         loadSymbols();
+        loadNews();
     });
 
     async function loadQualitativeEvents() {
@@ -143,6 +152,34 @@
         }
     }
 
+    async function loadNews() {
+        try {
+            const response = await fetch('/news/get', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const news = await response.json();
+                const newsSelect = document.getElementById('eventNews');
+                const editNewsSelect = document.getElementById('editEventNews');
+                news.forEach(newsItem => {
+                    const option = document.createElement('option');
+                    option.value = newsItem.id;
+                    option.text = newsItem.title;
+                    newsSelect.appendChild(option);
+                    editNewsSelect.appendChild(option.cloneNode(true));
+                });
+            } else {
+                throw new Error('Failed to load news');
+            }
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
     function renderQualitativeEventsList(events) {
         const qualitativeEventsList = document.getElementById('qualitativeEventsList');
         qualitativeEventsList.innerHTML = '';
@@ -156,6 +193,10 @@
                         <p>${new Date(event.eventDate).toLocaleDateString()}</p>
                         <button class="btn btn-primary" onclick="showEditQualitativeEventModal(${event.id})">Edit</button>
                         <button class="btn btn-danger" onclick="deleteQualitativeEvent(${event.id})">Delete</button>
+                        <h6>Associated News:</h6>
+                        <ul>
+                            ${event.news.map(news => `<li>${news.title}</li>`).join('')}
+                        </ul>
                     </div>
                 `;
             qualitativeEventsList.appendChild(eventDiv);
@@ -167,18 +208,24 @@
         bootstrap.Modal.getOrCreateInstance(document.getElementById('addQualitativeEventModal')).show();
     }
 
-    function showEditQualitativeEventModal(eventId) {
-        // Load event data and show the modal
-        fetch(`/api/QualitativeEvents/${eventId}`)
-            .then(response => response.json())
-            .then(event => {
-                document.getElementById('editEventId').value = event.id;
-                document.getElementById('editEventSymbol').value = event.symbol;
-                document.getElementById('editEventDescription').value = event.eventDescription;
-                document.getElementById('editEventDate').value = event.eventDate.split('T')[0];
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('editQualitativeEventModal')).show();
-            })
-            .catch(error => showError('Failed to load qualitative event'));
+    async function showEditQualitativeEventModal(eventId) {
+        try {
+            const response = await fetch(`/api/QualitativeEvents/${eventId}`);
+            if (!response.ok) throw new Error('Failed to load qualitative event');
+            const event = await response.json();
+
+            document.getElementById('editEventId').value = event.id;
+            document.getElementById('editEventSymbol').value = event.symbol;
+            document.getElementById('editEventDescription').value = event.eventDescription;
+            document.getElementById('editEventDate').value = event.eventDate.split('T')[0];
+            const editNewsSelect = document.getElementById('editEventNews');
+            Array.from(editNewsSelect.options).forEach(option => {
+                option.selected = event.news.some(news => news.id == option.value);
+            });
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('editQualitativeEventModal')).show();
+        } catch (error) {
+            showError(error.message);
+        }
     }
 
     async function saveQualitativeEvent() {
@@ -187,7 +234,8 @@
             const jsonData = {
                 symbol: form.eventSymbol.value,
                 eventDescription: form.eventDescription.value,
-                eventDate: form.eventDate.value
+                eventDate: form.eventDate.value,
+                newsIds: Array.from(form.eventNews.selectedOptions).map(option => parseInt(option.value))
             };
 
             const response = await fetch('/api/QualitativeEvents', {
@@ -217,7 +265,8 @@
                 id: form.editEventId.value,
                 symbol: form.editEventSymbol.value,
                 eventDescription: form.editEventDescription.value,
-                eventDate: form.editEventDate.value
+                eventDate: form.editEventDate.value,
+                newsIds: Array.from(form.editEventNews.selectedOptions).map(option => parseInt(option.value))
             };
 
             const response = await fetch(`/api/QualitativeEvents/${jsonData.id}`, {
@@ -239,7 +288,6 @@
             showError(error.message);
         }
     }
-
     async function deleteQualitativeEvent(eventId) {
         try {
             const response = await fetch(`/api/QualitativeEvents/${eventId}`, {

@@ -15,6 +15,17 @@ namespace MarketAnalyticHub.Controllers
       _newsService = newsService;
     }
 
+    [HttpGet("get")]
+    public async Task<IActionResult> Get()
+    {
+      var newsItem = await _newsService.Get();
+      if (newsItem == null)
+      {
+        return NotFound();
+      }
+      return Json(newsItem);
+    }
+
     [HttpGet("get/{id}")]
     public async Task<IActionResult> GetNewsItem(int id)
     {
