@@ -1,0 +1,471 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = "Portfolio Manager";
+}
+
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Dividends"]
+</h4>
+@section VendorStyles {
+    <link rel="stylesheet" href="~/vendor/libs/apex-charts/apex-charts.css" />
+}
+@section VendorScripts {
+    <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
+}
+@section PageScripts {
+    <script src="~/js/dashboards-analytics.js"></script>
+}
+@* ************** Content ************** *@
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-body" id="portfolioList">
+                <!-- Portfolio list will be rendered here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Portfolio Modal -->
+<div id="addPortfolioModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Portfolio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPortfolioForm">
+                    <div class="form-group">
+                        <label for="portfolioName">Name</label>
+                        <input type="text" class="form-control" id="portfolioName" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Portfolio Modal -->
+<div id="editPortfolioModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Portfolio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPortfolioForm">
+                    <input type="hidden" id="editPortfolioId">
+                    <div class="form-group">
+                        <label for="editPortfolioName">Name</label>
+                        <input type="text" class="form-control" id="editPortfolioName" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Dividends Modal -->
+<div id="addDividendModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Dividends</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDividendForm">
+                    <input type="hidden" id="portfolioId" name="portfolioId">
+                    <div class="form-group">
+                        <label for="dividendSymbol">Symbol</label>
+                        <select class="form-control" id="dividendSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dividendAmount">Dividend Amount</label>
+                        <input type="number" class="form-control" id="dividendAmount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dividendExDate">Ex Date</label>
+                        <input type="date" class="form-control" id="dividendExDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="dividendPaymentDate">Payment Date</label>
+                        <input type="date" class="form-control" id="dividendPaymentDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Dividend Modal -->
+<div id="editDividendModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Dividend</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editDividendForm">
+                    <input type="hidden" id="editDividendId">
+                    <div class="form-group">
+                        <label for="editDividendSymbol">Symbol</label>
+                        <select class="form-control" id="editDividendSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDividendAmount">Dividend Amount</label>
+                        <input type="number" class="form-control" id="editDividendAmount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDividendExDate">Ex Date</label>
+                        <input type="date" class="form-control" id="editDividendExDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDividendPaymentDate">Payment Date</label>
+                        <input type="date" class="form-control" id="editDividendPaymentDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadPortfolios();
+        loadSymbols();
+    });
+
+    async function loadPortfolios() {
+        const response = await fetch('/api/Portfolio', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const portfolios = await response.json();
+            renderPortfolioList(portfolios);
+        } else {
+            alert('Failed to load portfolios');
+        }
+    }
+
+    async function loadSymbols() {
+        const response = await fetch('/api/Symbols', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const symbols = await response.json();
+            const symbolSelect = document.getElementById('dividendSymbol');
+            const editSymbolSelect = document.getElementById('editDividendSymbol');
+            symbols.forEach(symbol => {
+                const option = document.createElement('option');
+                option.value = symbol;
+                option.text = symbol;
+                symbolSelect.appendChild(option);
+
+                const editOption = document.createElement('option');
+                editOption.value = symbol;
+                editOption.text = symbol;
+                editSymbolSelect.appendChild(editOption);
+            });
+        } else {
+            alert('Failed to load symbols');
+        }
+    }
+
+    function renderPortfolioList(portfolios) {
+        const portfolioList = document.getElementById('portfolioList');
+        portfolioList.innerHTML = '';
+        portfolios.forEach(portfolio => {
+            const portfolioDiv = document.createElement('div');
+
+            portfolioDiv.innerHTML = `  <h3 class="card-title">${portfolio.name}</h3>
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12 order-1">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-12 col-6 mb-4">
+                                        <div class="card">
+
+                                            <div class="card-body">
+                                                <div class="card-title d-flex align-items-start justify-content-between">
+                                                    <div class="avatar flex-shrink-0">
+                                                        <img src="/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
+                                                    </div>
+                                                    <div class="dropdown">
+                                                        <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
+                                                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                                             <a class="dropdown-item" href="javascript:showAddDividendModal(${portfolio.id});">Add Dividends</a>
+                                                                      <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name}');">Edit Portfolio</a>
+
+                                                             <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                    <span class="fw-medium d-block mb-1">Total Investment</span>
+                                                    <h3 class="card-title mb-2"> € ${portfolio.totalInvestment.toFixed(3)}</h3>
+                                                <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
+                                                 <canvas id="chart-${portfolio.id}"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-6 mb-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="card-title d-flex align-items-start justify-content-between">
+                                                    <div class="avatar flex-shrink-0">
+                                                        <img src="/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
+                                                    </div>
+                                                    <div class="dropdown">
+                                                        <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
+                                                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                    <span>Current Market Value</span>
+                                                    <h3 class="card-title text-nowrap mb-1"> €${portfolio.currentMarketValue.toFixed(3)}</h3>
+                                                <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
+                                                <ul class="list-group list-group-flush">
+                                                    ${portfolio.dividends?.map(dividend => `
+                                                        <li class="list-group-item">
+                                                            <div class="d-flex justify-content-between">
+                                                                <div>
+                                                                    <strong>Symbol:</strong> ${dividend.symbol} <br>
+                                                                    <strong>Dividend Amount:</strong> ${dividend.amount.toFixed(2)} <br>
+                                                                    <strong>Ex Date:</strong> ${dividend.exDate} <br>
+                                                                    <strong>Payment Date:</strong> ${dividend.paymentDate} <br>
+                                                                </div>
+                                                                <div>
+                                                                    <button class="btn btn-primary btn-sm" onclick="showEditDividendModal(${dividend.id})">Edit</button>
+                                                                    <button class="btn btn-danger btn-sm" onclick="deleteDividend(${dividend.id})">Delete</button>
+                                                                </div>
+                                                            </div>
+                                                        </li>
+                                                    `).join('')}
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+            portfolioList.appendChild(portfolioDiv);
+            renderChart(portfolio);
+        });
+    }
+
+    function showAddPortfolioModal() {
+        document.getElementById('addPortfolioForm').reset();
+        new bootstrap.Modal(document.getElementById('addPortfolioModal')).show();
+    }
+
+    function showEditPortfolioModal(id, name) {
+        document.getElementById('editPortfolioId').value = id;
+        document.getElementById('editPortfolioName').value = name;
+        new bootstrap.Modal(document.getElementById('editPortfolioModal')).show();
+    }
+
+    function showAddDividendModal(portfolioId) {
+        document.getElementById('addDividendForm').reset();
+        document.getElementById('portfolioId').value = portfolioId;
+        new bootstrap.Modal(document.getElementById('addDividendModal')).show();
+    }
+
+    async function showEditDividendModal(dividendId) {
+        const response = await fetch(`/api/Dividend/${dividendId}`);
+        const dividend = await response.json();
+
+        if (response.ok) {
+            document.getElementById('editDividendId').value = dividend.id;
+            document.getElementById('editDividendSymbol').value = dividend.symbol;
+            document.getElementById('editDividendAmount').value = dividend.amount;
+            document.getElementById('editDividendExDate').value = new Date(dividend.exDate).toISOString().substring(0, 10);
+            document.getElementById('editDividendPaymentDate').value = new Date(dividend.paymentDate).toISOString().substring(0, 10);
+            new bootstrap.Modal(document.getElementById('editDividendModal')).show();
+        } else {
+            alert('Failed to load dividend');
+        }
+    }
+
+    async function saveDividend() {
+        const portfolioId = document.getElementById('portfolioId').value;
+        const symbol = document.getElementById('dividendSymbol').value;
+        const amount = document.getElementById('dividendAmount').value;
+        const exDate = document.getElementById('dividendExDate').value;
+        const paymentDate = document.getElementById('dividendPaymentDate').value;
+        const response = await fetch('/api/Dividend', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ portfolioId, symbol, amount, exDate, paymentDate })
+        });
+
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('addDividendModal')).hide();
+            loadPortfolios();
+        } else {
+            alert('Failed to save dividend');
+        }
+    }
+
+    async function deleteDividend(id) {
+        const response = await fetch(`/api/Dividend/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            loadPortfolios();
+        } else {
+            alert('Failed to delete dividend');
+        }
+    }
+
+    async function deletePortfolio(id) {
+        const response = await fetch(`/api/Portfolio/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            loadPortfolios();
+        } else {
+            alert('Failed to delete portfolio');
+        }
+    }
+
+    document.getElementById('addPortfolioForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const name = document.getElementById('portfolioName').value;
+
+        const response = await fetch('/api/Portfolio', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name })
+        });
+
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('addPortfolioModal')).hide();
+            loadPortfolios();
+        } else {
+            alert('Failed to add portfolio');
+        }
+    });
+
+    document.getElementById('editPortfolioForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const id = document.getElementById('editPortfolioId').value;
+        const name = document.getElementById('editPortfolioName').value;
+
+        const response = await fetch(`/api/Portfolio/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, name })
+        });
+
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('editPortfolioModal')).hide();
+            loadPortfolios();
+        } else {
+            alert('Failed to edit portfolio');
+        }
+    });
+
+    document.getElementById('addDividendForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        await saveDividend();
+    });
+
+    document.getElementById('editDividendForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const id = document.getElementById('editDividendId').value;
+        const symbol = document.getElementById('editDividendSymbol').value;
+        const amount = document.getElementById('editDividendAmount').value;
+        const exDate = document.getElementById('editDividendExDate').value;
+        const paymentDate = document.getElementById('editDividendPaymentDate').value;
+
+        const response = await fetch(`/api/Dividend/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ id, symbol, amount, exDate, paymentDate })
+        });
+
+        if (response.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('editDividendModal')).hide();
+            loadPortfolios();
+        } else {
+            alert('Failed to edit dividend');
+        }
+    });
+
+    function renderChart(portfolio) {
+        const ctx = document.getElementById(`chart-${portfolio.id}`).getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: portfolio.items.map(item => item.symbol),
+                datasets: [{
+                    label: 'Current Market Value',
+                    data: portfolio.items.map(item => item.currentMarketValue),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }, {
+                    label: 'Total Investment',
+                    data: portfolio.items.map(item => item.totalInvestment),
+                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                    borderColor: 'rgba(153, 102, 255, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+</script>

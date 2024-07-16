@@ -148,9 +148,19 @@
                         <div>Symbols</div>
                     </a>
                 </li>
+                <li class='menu-item@(currentPage == "/Companies/Index" ? " active" : "")'>
+                    <a asp-controller="Companies" asp-action="Index" class="menu-link">
+                        <div>Companies</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Sectors/Index" ? " active" : "")'>
+                    <a asp-controller="Sectors" asp-action="Index" class="menu-link">
+                        <div>Sectors</div>
+                    </a>
+                </li>
             </ul>
         </li>
-        <!-- Sources -->
+        <!-- Portfolio -->
         <li class='menu-item@(currentPage.StartsWith("/Portfolio") ? " active" : "")'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx bx-archive"></i>
@@ -170,6 +180,11 @@
                 <li class='menu-item@(currentPage == "/Portfolio/Qualitatives" ? " active" : "")'>
                     <a asp-controller="Portfolio" asp-action="Qualitatives" class="menu-link">
                         <div>Qualitatives</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Portfolio/Dividends" ? " active" : "")'>
+                    <a asp-controller="Portfolio" asp-action="Dividends" class="menu-link">
+                        <div>Dividends</div>
                     </a>
                 </li>
             </ul>

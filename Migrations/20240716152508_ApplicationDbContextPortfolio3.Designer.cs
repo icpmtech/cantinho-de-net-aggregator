@@ -4,6 +4,7 @@ using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketAnalyticHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240716152508_ApplicationDbContextPortfolio3")]
+    partial class ApplicationDbContextPortfolio3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -235,7 +238,7 @@ namespace MarketAnalyticHub.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("SymbolId")
+                    b.Property<int>("SymbolId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -430,7 +433,9 @@ namespace MarketAnalyticHub.Migrations
                 {
                     b.HasOne("MarketAnalyticHub.Models.SymbolItem", "Symbol")
                         .WithMany()
-                        .HasForeignKey("SymbolId");
+                        .HasForeignKey("SymbolId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Symbol");
                 });

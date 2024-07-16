@@ -22,9 +22,8 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     }
     public IActionResult Index()
     {
-      var news = _context.NewsScrapingItem.ToList();
 
-      return View(news);
+      return View();
     }
     [HttpGet("GetPortfolioStatistics")]
     public IActionResult GetPortfolioStatistics()
@@ -34,16 +33,18 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     }
     public IActionResult Fundamentals()
     {
-      var news = _context.NewsScrapingItem.ToList();
 
-      return View(news);
+      return View();
     }
 
     public IActionResult Qualitatives()
     {
-      var news = _context.NewsScrapingItem.ToList();
 
-      return View(news);
+      return View();
+    }
+    public IActionResult Dividends()
+    {
+      return View();
     }
   }
 }

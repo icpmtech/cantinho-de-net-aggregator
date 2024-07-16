@@ -13,8 +13,12 @@ namespace MarketAnalyticHub.Models.SetupDb
     : base(options)
     {
     }
-
+    public DbSet<Dividend> Dividends { get; set; }
     public DbSet<NewsItem> News { get; set; }
+    public DbSet<Sector> Sectors { get; set; }
+
+    public DbSet<Company> Companies { get; set; }
+
     public DbSet<Portfolio> Portfolios { get; set; }
     public DbSet<PortfolioItem> PortfolioItems { get; set; }
 
