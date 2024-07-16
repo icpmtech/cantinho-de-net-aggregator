@@ -167,8 +167,6 @@
                     </div>
                 </div>
             </div>
-            <!-- </div>
-            <div class="row"> -->
             <div class="col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
@@ -273,6 +271,47 @@
                         <label for="itemPurchasePrice">Purchase Price</label>
                         <input type="number" class="form-control" id="itemPurchasePrice" step="0.01" required>
                     </div>
+                    <div class="form-group">
+                        <label for="itemPurchaseDate">Purchase Date</label>
+                        <input type="date" class="form-control" id="itemPurchaseDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Portfolio Item Modal -->
+<div id="editPortfolioItemModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Portfolio Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPortfolioItemForm">
+                    <input type="text" id="portfolioeditPortfolioItemId" name="portfolioeditPortfolioItemId">
+                    <input type="hidden" id="editPortfolioItemId" name="editPortfolioItemId">
+                    <div class="form-group">
+                        <label for="editItemSymbol">Symbol</label>
+                        <select class="form-control" id="editItemSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemQuantity">Quantity</label>
+                        <input type="number" class="form-control" id="editItemQuantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemPurchasePrice">Purchase Price</label>
+                        <input type="number" class="form-control" id="editItemPurchasePrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemPurchaseDate">Purchase Date</label>
+                        <input type="date" class="form-control" id="editItemPurchaseDate" required>
+                    </div>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </form>
             </div>
@@ -316,11 +355,17 @@
         if (response.ok) {
             const symbols = await response.json();
             const symbolSelect = document.getElementById('itemSymbol');
+            const editSymbolSelect = document.getElementById('editItemSymbol');
             symbols.forEach(symbol => {
                 const option = document.createElement('option');
                 option.value = symbol;
                 option.text = symbol;
                 symbolSelect.appendChild(option);
+
+                const editOption = document.createElement('option');
+                editOption.value = symbol;
+                editOption.text = symbol;
+                editSymbolSelect.appendChild(editOption);
             });
         } else {
             alert('Failed to load symbols');
@@ -334,33 +379,34 @@
             const portfolioDiv = document.createElement('div');
             portfolioDiv.classList.add('card', 'mb-3');
             portfolioDiv.innerHTML = `
-                            <div class="card-body">
-                                <h3 class="card-title">${portfolio.name}</h3>
-                                <p>Total Investment: ${portfolio.totalInvestment.toFixed(2)}</p>
-                                <p>Current Market Value: ${portfolio.currentMarketValue.toFixed(2)}</p>
-                                <button class="btn btn-secondary" onclick="showAddPortfolioItemModal(${portfolio.id})">Add Operations</button>
-                                <button class="btn btn-danger" onclick="deletePortfolio(${portfolio.id})">Delete Portfolio</button>
-                                <button class="btn btn-primary" onclick="showEditPortfolioModal(${portfolio.id}, '${portfolio.name}')">Edit Portfolio</button>
-                                <canvas id="chart-${portfolio.id}"></canvas>
-                            </div>
-                            <ul class="list-group list-group-flush">
-                                ${portfolio.items.map(item => `
-                                    <li class="list-group-item">
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <strong>Symbol:</strong> ${item.symbol} <br>
-                                                <strong>Quantity:</strong> ${item.quantity} <br>
-                                                <strong>Purchase Price:</strong> ${item.purchasePrice.toFixed(2)} <br>
-                                            </div>
-                                            <div>
-                                                <button class="btn btn-primary btn-sm" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
-                                                <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
-                                            </div>
-                                        </div>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        `;
+                    <div class="card-body">
+                        <h3 class="card-title">${portfolio.name}</h3>
+                        <p>Total Investment: ${portfolio.totalInvestment.toFixed(2)}</p>
+                        <p>Current Market Value: ${portfolio.currentMarketValue.toFixed(2)}</p>
+                        <button class="btn btn-secondary" onclick="showAddPortfolioItemModal(${portfolio.id})">Add Operations</button>
+                        <button class="btn btn-danger" onclick="deletePortfolio(${portfolio.id})">Delete Portfolio</button>
+                        <button class="btn btn-primary" onclick="showEditPortfolioModal(${portfolio.id}, '${portfolio.name}')">Edit Portfolio</button>
+                        <canvas id="chart-${portfolio.id}"></canvas>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        ${portfolio.items.map(item => `
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between">
+                                    <div>
+                                        <strong>Symbol:</strong> ${item.symbol} <br>
+                                        <strong>Quantity:</strong> ${item.quantity} <br>
+                                        <strong>Purchase Price:</strong> ${item.purchasePrice.toFixed(2)} <br>
+                                        <strong>Purchase Date:</strong> ${item.purchaseDate} <br>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-primary btn-sm" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
+                                        <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
+                                    </div>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
             portfolioList.appendChild(portfolioDiv);
             renderChart(portfolio);
         });
@@ -388,11 +434,15 @@
         const item = await response.json();
 
         if (response.ok) {
-            document.getElementById('portfolioId').value = item.portfolioId;
-            document.getElementById('itemSymbol').value = item.symbol;
-            document.getElementById('itemQuantity').value = item.quantity;
-            document.getElementById('itemPurchasePrice').value = item.purchasePrice;
-            new bootstrap.Modal(document.getElementById('addPortfolioItemModal')).show();
+            document.getElementById('editPortfolioItemId').value = item.id;
+            document.getElementById('portfolioeditPortfolioItemId').value = item.portfolioId;
+            document.getElementById('editItemSymbol').value = item.symbol;
+            document.getElementById('editItemQuantity').value = item.quantity;
+            document.getElementById('editItemPurchasePrice').value = item.purchasePrice;
+            const purchaseDate = new Date(item.purchaseDate);
+            const formattedDate = purchaseDate.toISOString().substring(0, 10);
+            document.getElementById('editItemPurchaseDate').value = formattedDate;
+            new bootstrap.Modal(document.getElementById('editPortfolioItemModal')).show();
         } else {
             alert('Failed to load portfolio item');
         }
@@ -403,13 +453,13 @@
         const symbol = document.getElementById('itemSymbol').value;
         const quantity = document.getElementById('itemQuantity').value;
         const purchasePrice = document.getElementById('itemPurchasePrice').value;
-
+        const purchaseDate = document.getElementById('itemPurchaseDate').value;
         const response = await fetch('/api/PortfolioItem', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice })
+            body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate })
         });
 
         if (response.ok) {
@@ -497,13 +547,13 @@
         const symbol = document.getElementById('itemSymbol').value;
         const quantity = document.getElementById('itemQuantity').value;
         const purchasePrice = document.getElementById('itemPurchasePrice').value;
-
+        const purchaseDate = document.getElementById('itemPurchaseDate').value;
         const response = await fetch('/api/PortfolioItem', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice })
+            body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate })
         });
 
         if (response.ok) {
@@ -513,6 +563,47 @@
             alert('Failed to add portfolio item');
         }
     });
+    document.getElementById('editPortfolioItemForm').addEventListener('submit', async function (event) {
+        event.preventDefault();
+        const id = document.getElementById('editPortfolioItemId').value;
+        const portfolioId = document.getElementById('portfolioeditPortfolioItemId').value;
+        const symbol = document.getElementById('editItemSymbol').value; // Changed to editItemSymbol
+        const quantity = document.getElementById('editItemQuantity').value;
+        const purchasePrice = document.getElementById('editItemPurchasePrice').value;
+        const purchaseDate = document.getElementById('editItemPurchaseDate').value;
+
+        try {
+            const response = await fetch(`/api/PortfolioItem/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, id })
+            });
+
+            if (response.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('editPortfolioItemModal')).hide();
+                loadPortfolios();
+            } else {
+                const errorData = await response.json();
+                showError(errorData.message || 'Failed to edit portfolio item');
+            }
+        } catch (error) {
+            showError('An error occurred while editing the portfolio item');
+        }
+    });
+
+    function showError(message) {
+        const errorElement = document.createElement('div');
+        errorElement.className = 'alert alert-danger';
+        errorElement.textContent = message;
+        document.getElementById('editPortfolioItemForm').prepend(errorElement);
+
+        setTimeout(() => {
+            errorElement.remove();
+        }, 5000);
+    }
+
 
     function renderChart(portfolio) {
         const ctx = document.getElementById(`chart-${portfolio.id}`).getContext('2d');
