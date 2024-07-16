@@ -37,7 +37,7 @@ namespace AspnetCoreMvcFull.Areas.Admin.Controllers
     {
       return new List<string>(await _userManager.GetRolesAsync(user));
     }
-
+    [HttpGet]
     public async Task<IActionResult> Manage(string userId)
     {
       ViewBag.userId = userId;
@@ -48,25 +48,23 @@ namespace AspnetCoreMvcFull.Areas.Admin.Controllers
         return View("NotFound");
       }
       ViewBag.UserName = user.UserName;
+
+      var roles = _roleManager.Roles.ToList();
+      var userRoles = await _userManager.GetRolesAsync(user);
+
       var model = new List<ManageUserRolesViewModel>();
-      foreach (var role in _roleManager.Roles)
+      foreach (var role in roles)
       {
         var userRolesViewModel = new ManageUserRolesViewModel
         {
           RoleId = role.Id,
-          RoleName = role.Name
+          RoleName = role.Name,
+          Selected = userRoles.Contains(role.Name)
         };
-        if (await _userManager.IsInRoleAsync(user, role.Name))
-        {
-          userRolesViewModel.Selected = true;
-        }
-        else
-        {
-          userRolesViewModel.Selected = false;
-        }
         model.Add(userRolesViewModel);
       }
-      return View(model);
+
+      return PartialView("_ManageUserRolesPartial", model);
     }
     [HttpPost]
     public async Task<IActionResult> Manage(List<ManageUserRolesViewModel> model, string userId)

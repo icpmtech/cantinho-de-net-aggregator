@@ -28,9 +28,83 @@
                 <td>@user.Email</td>
                 <td>@string.Join(" , ", user.Roles.ToList())</td>
                 <td>
-                    <a class="btn btn-primary" asp-controller="UserRoles" asp-action="Manage" asp-route-userId="@user.UserId">Manage Roles</a>
+                    <button class="btn btn-primary manage-roles" data-user-id="@user.UserId" data-user-name="@user.UserName">Manage Roles</button>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+
+<!-- Modal -->
+<div class="modal fade" id="manageRolesModal" tabindex="-1" role="dialog" aria-labelledby="manageRolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="manageRolesModalLabel">Manage Roles for <span id="modalUserName"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="roleForm">
+                    <input type="hidden" id="modalUserId" />
+                    <div id="rolesContainer"></div>
+                    <button type="button" class="btn btn-primary" onclick="updateRoles()">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('.manage-roles').click(function () {
+            var userId = $(this).data('user-id');
+            var userName = $(this).data('user-name');
+            $('#modalUserId').val(userId);
+            $('#modalUserName').text(userName);
+
+            $.ajax({
+                url: '/Admin/UserRoles/Manage',
+                type: 'GET',
+                data: { userId: userId },
+                success: function (response) {
+                    $('#rolesContainer').html(response);
+                    $('#manageRolesModal').modal('show');
+                },
+                error: function () {
+                    alert('An error occurred while loading the roles.');
+                }
+            });
+        });
+    });
+
+    function updateRoles() {
+        var userId = $('#modalUserId').val();
+        var selectedRoles = [];
+        $('input[name="roles"]:checked').each(function () {
+            selectedRoles.push($(this).val());
+        });
+
+        $.ajax({
+            url: '/Admin/UserRoles/Manage',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ userId: userId, roles: selectedRoles }),
+            success: function (response) {
+                if (response.success) {
+                    alert('Roles updated successfully');
+                    $('#manageRolesModal').modal('hide');
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function () {
+                alert('An error occurred while updating the roles.');
+            }
+        });
+    }
+</script>
