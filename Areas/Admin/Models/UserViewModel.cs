@@ -1,6 +1,6 @@
-﻿namespace AspnetCoreMvcFull.Areas.Admin.Models
+namespace AspnetCoreMvcFull.Areas.Admin.Models
 {
-  internal class UserViewModel : UserRolesViewModel
+  public class UserViewModel : UserRolesViewModel
   {
   }
 }

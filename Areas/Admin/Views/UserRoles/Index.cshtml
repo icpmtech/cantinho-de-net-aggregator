@@ -1,9 +1,10 @@
 @using AspnetCoreMvcFull.Areas.Admin.Models
 @model IEnumerable<UserRolesViewModel>
-
 @{
     ViewData["Title"] = "Index";
-    Layout = "~/Views/Shared/_BlankLayout.cshtml";
+    Layout = "~/Areas/Admin/Views/Shared/_CommonMasterLayout.cshtml"; // Adjust to your layout file
+    ViewData["container"] = (ViewData["container"] ?? "container-fluid");
+    ViewData["containerNav"] = (ViewData["containerNav"] ?? "container-fluid");
 }
 
 <h1>User Roles</h1>

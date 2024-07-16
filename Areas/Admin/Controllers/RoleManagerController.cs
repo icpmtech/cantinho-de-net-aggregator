@@ -20,11 +20,16 @@ namespace AspnetCoreMvcFull.Areas.Admin.Controllers
     [HttpPost]
     public async Task<IActionResult> AddRole(string roleName)
     {
-      if (roleName != null)
+      if (!string.IsNullOrEmpty(roleName))
       {
-        await _roleManager.CreateAsync(new IdentityRole(roleName.Trim()));
+        var role = new IdentityRole { Name = roleName.Trim() };
+        var result = await _roleManager.CreateAsync(role);
+        if (result.Succeeded)
+        {
+          return Json(new { id = role.Id, name = role.Name });
+        }
       }
-      return RedirectToAction("Index");
+      return BadRequest();
     }
   }
 }

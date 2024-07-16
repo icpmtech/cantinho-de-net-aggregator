@@ -2,7 +2,9 @@
 @model List<ManageUserRolesViewModel>
 @{
     ViewData["Title"] = "Manage";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = "~/Areas/Admin/Views/Shared/_CommonMasterLayout.cshtml"; // Adjust to your layout file
+    ViewData["container"] = (ViewData["container"] ?? "container-fluid");
+    ViewData["containerNav"] = (ViewData["containerNav"] ?? "container-fluid");
 }
 <form method="post">
     <div class="card">
