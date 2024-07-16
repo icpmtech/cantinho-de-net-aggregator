@@ -66,11 +66,14 @@ builder.Services.AddHttpClient<NewsService>(client =>
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+//builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<AppIdentityDbContext>();
+
 builder.Services.AddDbContext<AppIdentityDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<AppIdentityDbContext>();
+    .AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultUI()
+            .AddDefaultTokenProviders(); ;
 
 
 
@@ -144,5 +147,13 @@ app.UseEndpoints(endpoints =>
 {
   endpoints.MapHub<ChatHub>("/chathub");
 });
+app.UseEndpoints(endpoints =>
+{
+  endpoints.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+  );
+});
+
 
 app.Run();

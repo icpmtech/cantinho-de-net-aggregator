@@ -1,41 +1,62 @@
-﻿@model IEnumerable<MarketAnalyticHub.Models.SetupDb.Sector>
+@model IEnumerable<MarketAnalyticHub.Models.SetupDb.Sector>
 
 @{
     ViewData["Title"] = "Index";
 }
 
-<h1>Index</h1>
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">Sectors /</span>Sectors
+</h4>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Name)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Description)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+<div class="row">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-3">
+            <li class="nav-item"> <a class="btn btn-primary" asp-action="Create">Create New</a></li>
+        </ul>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="table-responsive text-nowrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Name)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.Description)
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Name)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Description)
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
+                                            <div class="dropdown-menu">
+                                                <a asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-2"></i>Edit</a>
+                                                <a asp-action="Details" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-2"></i>Details</a>
+                                                <a asp-action="Delete" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-trash me-2"></i>Delete</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
