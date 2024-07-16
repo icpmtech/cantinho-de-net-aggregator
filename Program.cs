@@ -56,11 +56,11 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
+ var baseEndpoint= builder.Configuration.GetSection("NewsScrapingEndpoints")["BaseEndpoint"];
 // Add services to the container.
 builder.Services.AddHttpClient<NewsService>(client =>
 {
-  client.BaseAddress = new Uri("https://aspnetcoremvcfull20240716095327.azurewebsites.net/"); // Replace with your actual base address
+  client.BaseAddress = new Uri(baseEndpoint); // Replace with your actual base address
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>

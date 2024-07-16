@@ -220,8 +220,8 @@
                 document.getElementById('saveSymbolButton').disabled = !isValid;
             });
         });
-
         function saveSymbol() {
+         
             const form = document.getElementById('symbolForm');
             if (!form.checkValidity()) {
                 form.classList.add('was-validated');
@@ -234,19 +234,18 @@
             const description = document.getElementById('symbolDescription').value;
             const link = document.getElementById('symbolLink').value;
             const date = document.getElementById('symbolDate').value;
-
+           
+            const url = id ? `/api/symbols/${id}` : '/api/symbols';
+            const method = id ? 'PUT' : 'POST';
+            const idTemp = id ? id : null;
             const formData = {
-                id: id,
+                id: idTemp,
                 category: category,
                 title: title,
                 description: description,
                 link: link,
                 date: date
             };
-
-            const url = id ? `/api/symbols/${id}` : '/api/symbols';
-            const method = id ? 'PUT' : 'POST';
-
             fetch(url, {
                 method: method,
                 headers: {

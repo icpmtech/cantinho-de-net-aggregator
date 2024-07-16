@@ -45,7 +45,6 @@ namespace AspnetCoreMvcFull.Controllers
     [HttpPost]
     public async Task<IActionResult> AddSymbol([FromBody] SymbolItem symbol)
     {
-      symbol.Id = _context.Symbols.Any() ? _context.Symbols.Max(s => s.Id) + 1 : 1;
       _context.Symbols.Add(symbol);
       await _context.SaveChangesAsync();
       var symbols = await _context.Symbols.ToListAsync();
