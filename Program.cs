@@ -161,7 +161,7 @@ using (var scope = app.Services.CreateScope())
   recurringJobManager.AddOrUpdate(
       "scrape-news",
       () => serviceProvider.GetService<NewsScraper>().ScrapeNewsAsync(),
-      Cron.Hourly); // or any cron expression
+      Cron.Daily); // or any cron expression
 }
 
 app.MapControllerRoute(
