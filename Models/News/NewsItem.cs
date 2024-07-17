@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+
 namespace MarketAnalyticHub.Models.News
 {
   public class NewsItem
@@ -12,5 +14,6 @@ namespace MarketAnalyticHub.Models.News
     public string? Content { get; set; }
     public DateTime? PublishedDate { get; set; }
     public double? Sentiment { get; set; }
+    public List<string>? Keywords { get; internal set; }
   }
 }

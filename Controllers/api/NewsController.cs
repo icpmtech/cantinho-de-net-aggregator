@@ -19,10 +19,14 @@ namespace MarketAnalyticHub.Controllers.api
     private readonly ILogger<NewsController> _logger;
     private readonly ApplicationDbContext _context;
     private readonly SentimentAnalysisService _sentimentAnalysisService;
-    public NewsController(ApplicationDbContext context, SentimentAnalysisService sentimentAnalysisService, HttpClient httpClient, ILogger<NewsController> logger)
+    private readonly OpenAIService _openAIService;
+
+    public NewsController(ApplicationDbContext context, SentimentAnalysisService sentimentAnalysisService,
+      OpenAIService openAIService, HttpClient httpClient, ILogger<NewsController> logger)
     {
       _context = context;
       _sentimentAnalysisService = sentimentAnalysisService;
+      _openAIService = openAIService;
       _httpClient = httpClient;
       _logger = logger;
     }
@@ -34,6 +38,12 @@ namespace MarketAnalyticHub.Controllers.api
       return Ok(result);
     }
 
+    [HttpPost("generate-keywords")]
+    public async Task<IActionResult> GenerateKeywords([FromBody] string description)
+    {
+      var keywords = await _openAIService.GenerateKeywordsAsync(description);
+      return Ok(keywords);
+    }
 
     [HttpGet("scraped")]
     public async Task<IEnumerable<NewsItem>> GetScrapedNewsAsync()
@@ -104,13 +114,14 @@ namespace MarketAnalyticHub.Controllers.api
         // Analyze sentiment of the news title or description
         var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
         newsItem.Sentiment = sentimentResult.Compound;
+        var keywords =  await _openAIService.GenerateKeywordsAsync(newsItem.Description);
+        newsItem.Keywords= keywords.ToList();
         newsItems.Add(newsItem);
       }
       _context.News.AddRange(newsItems);
       _context.SaveChanges();
       return newsItems;
     }
-
 
     [HttpGet("scraped-dynamic")]
     public async Task<IEnumerable<NewsItem>> GetScrapedNewsDynamicAsync()
@@ -186,7 +197,8 @@ namespace MarketAnalyticHub.Controllers.api
           // Analyze sentiment of the news title or description
           var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
           newsItem.Sentiment = sentimentResult.Compound;
-
+          var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
+          newsItem.Keywords = keywords.ToList();
           newsItems.Add(newsItem);
         }
       }
@@ -194,6 +206,7 @@ namespace MarketAnalyticHub.Controllers.api
       _context.SaveChanges();
       return newsItems;
     }
+
     [HttpGet("scraped-env")]
     public async Task<IEnumerable<NewsItem>> GetScrapedNewsEnvAsync()
     {
@@ -227,32 +240,31 @@ namespace MarketAnalyticHub.Controllers.api
       var newsItems = new List<NewsItem>();
 
       foreach (var node in newsNodes)
+      {
+        var titleNode = node.SelectSingleNode(".//h3[contains(@class, 'css-1j88qqx')]");
+        var linkNode = node.SelectSingleNode(".//a[contains(@class, 'css-8hzhxf')]");
+        var descriptionNode = node.SelectSingleNode(".//p[contains(@class, 'css-1pga48a')]");
+        var authorNode = node.SelectSingleNode(".//div[contains(@class, 'css-1i4y2t3')]//span[contains(@class, 'css-1n7hynb')]");
+        var dateNode = node.SelectSingleNode(".//div[contains(@class, 'css-e0xall')]//span[@data-testid='todays-date']");
+
+        if (titleNode == null || linkNode == null)
         {
-          var titleNode = node.SelectSingleNode(".//h3[contains(@class, 'css-1j88qqx')]");
-          var linkNode = node.SelectSingleNode(".//a[contains(@class, 'css-8hzhxf')]");
-          var descriptionNode = node.SelectSingleNode(".//p[contains(@class, 'css-1pga48a')]");
-          var authorNode = node.SelectSingleNode(".//div[contains(@class, 'css-1i4y2t3')]//span[contains(@class, 'css-1n7hynb')]");
-          var dateNode = node.SelectSingleNode(".//div[contains(@class, 'css-e0xall')]//span[@data-testid='todays-date']");
+          continue;
+        }
 
-          if (titleNode == null || linkNode == null)
-          {
-            continue;
-          }
+        var title = titleNode.InnerText.Trim();
+        var link = linkNode.GetAttributeValue("href", string.Empty);
+        var description = descriptionNode?.InnerText.Trim();
+        var author = authorNode?.InnerText.Trim();
+        var date = dateNode?.InnerText.Trim();
 
-          var title = titleNode.InnerText.Trim();
-          var link = linkNode.GetAttributeValue("href", string.Empty);
-          var description = descriptionNode?.InnerText.Trim();
-          var author = authorNode?.InnerText.Trim();
-          var date = dateNode?.InnerText.Trim();
-
-          // Ensure the link is well-formed
-          if (!link.StartsWith("http"))
-          {
-            link = "https://www.nytimes.com" + link;
-          }
+        // Ensure the link is well-formed
+        if (!link.StartsWith("http"))
+        {
+          link = "https://www.nytimes.com" + link;
+        }
         var newsItem = new NewsItem
         {
-          
           Title = title,
           Link = link,
           Description = description,
@@ -264,15 +276,14 @@ namespace MarketAnalyticHub.Controllers.api
         // Analyze sentiment of the news title or description
         var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
         newsItem.Sentiment = sentimentResult.Compound;
+        var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
+        newsItem.Keywords = keywords.ToList();
         newsItems.Add(newsItem);
       }
       _context.News.AddRange(newsItems);
       _context.SaveChanges();
       return newsItems;
-
-      
     }
-
 
     [HttpPut("editnews/{id}")]
     public async Task<IActionResult> EditNews(int id, [FromBody] NewsItem newsItem)
@@ -291,7 +302,6 @@ namespace MarketAnalyticHub.Controllers.api
 
       return BadRequest(new { success = false, message = "Invalid data received.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
     }
-
 
     [HttpGet("hardcoded")]
     public ActionResult<IEnumerable<NewsItem>> GetHardcodedNews()

@@ -53,13 +53,13 @@
                             <span class="fw-bold sentiment-label" data-sentiment="@news.Sentiment"></span>
                         </td>
                         <td>
-                            <span class="title-display">@news.Title</span>
+                            <span class="title-display text-wrap">@news.Title</span>
                         </td>
                         <td>
-                            <span class="description-display">@news.Description</span>
+                            <span class="description-display text-wrap">@news.Description</span>
                         </td>
                         <td>
-                            <span class="link-display"><a href="@news.Link" target="_blank">@news.Link</a></span>
+                            <span class="link-display  text-wrap"><a href="@news.Link" target="_blank">@news.Link</a></span>
                         </td>
                         <td>
                             <span class="date-display">@news.Date</span>
@@ -88,50 +88,50 @@
 <div class="card">
     <h5 class="card-header">Pagination</h5>
 
-<!-- Pagination Controls -->
-<nav aria-label="Page navigation example">
-    <ul class="pagination">
-        @if (Model.HasPreviousPage)
-        {
-            <li class="page-item">
-                    <a class="page-link" href="@Url.Action("News", new { pageNumber = Model.PageIndex - 1, pageSize = ViewBag.PageSize, searchQuery = ViewBag.SearchQuery })">Previous</a>
-            </li>
-        }
-        else
-        {
-            <li class="page-item disabled">
-                <span class="page-link">Previous</span>
-            </li>
-        }
-
-        @for (int i = 1; i <= Model.TotalPages; i++)
-        {
-            if (i == Model.PageIndex)
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            @if (Model.HasPreviousPage)
             {
-                <li class="page-item active" aria-current="page">
-                    <span class="page-link">@i</span>
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("News", new { pageNumber = Model.PageIndex - 1, pageSize = ViewBag.PageSize, searchQuery = ViewBag.SearchQuery })">Previous</a>
                 </li>
             }
             else
             {
-                <li class="page-item">
-                        <a class="page-link" href="@Url.Action("News", new { pageNumber = i, pageSize = ViewBag.PageSize , searchQuery = ViewBag.SearchQuery})">@i</a>
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
                 </li>
             }
-        }
 
-        @if (Model.HasNextPage)
-        {
-            <li class="page-item">
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                if (i == Model.PageIndex)
+                {
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">@i</span>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("News", new { pageNumber = i, pageSize = ViewBag.PageSize , searchQuery = ViewBag.SearchQuery})">@i</a>
+                    </li>
+                }
+            }
+
+            @if (Model.HasNextPage)
+            {
+                <li class="page-item">
                     <a class="page-link" href="@Url.Action("News", new { pageNumber = Model.PageIndex + 1, pageSize = ViewBag.PageSize, searchQuery = ViewBag.SearchQuery })">Next</a>
-            </li>
-        }
-        else
-        {
-            <li class="page-item disabled">
-                <span class="page-link">Next</span>
-            </li>
-        }
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+            }
             <li class="page-item">
                 <div class="mb-4" style="margin-left: 1rem;">
                     <select id="pageSizeSelect" class="form-select" onchange="setPageSize()">
@@ -141,10 +141,9 @@
                     </select>
                 </div>
             </li>
-    </ul>
-</nav>
+        </ul>
+    </nav>
 </div>
-<!-- Edit News Modal -->
 <!-- Edit News Modal -->
 <div class="modal fade" id="editNewsModal" tabindex="-1" aria-labelledby="editNewsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -370,5 +369,9 @@
 <style>
     .stars {
         font-size: 1.5rem;
+    }
+
+    .text-wrap {
+        white-space: normal;
     }
 </style>

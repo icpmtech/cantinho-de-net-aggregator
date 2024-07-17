@@ -91,6 +91,7 @@ builder.Services.AddScoped<AspnetCoreMvcFull.Services.ISymbolService, AspnetCore
 builder.Services.AddScoped<IQualitativeEventService, QualitativeEventService>();
 builder.Services.AddScoped<ISymbolRepository, SymbolRepository>();
 builder.Services.AddScoped<SymbolService>();
+builder.Services.AddSingleton<OpenAIService>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration
