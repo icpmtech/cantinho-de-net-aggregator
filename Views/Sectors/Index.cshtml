@@ -7,7 +7,60 @@
 <h4 class="py-3 mb-4">
     <span class="text-muted fw-light">Sectors /</span>Sectors
 </h4>
+<script>
+    async function uploadCsv() {
+        const formData = new FormData();
+        const fileInput = document.querySelector('#csvFile');
+        formData.append('file', fileInput.files[0]);
 
+        const response = await fetch('/api/Importer/import-sectors-csv', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            alert('CSV imported successfully');
+            location.reload();  // Reload the page to show updated data
+        } else {
+            alert('Error importing CSV');
+        }
+    }
+
+    async function downloadCsv() {
+        const response = await fetch('/api/Importer/export-sectors-csv');
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sectors.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } else {
+            alert('Error downloading CSV');
+        }
+    }
+</script>
+<div class="card">
+    <h5 class="card-header">File input</h5>
+    <div class="card-body">
+        <div class="col-md-12">
+
+            <div class="mb-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary" onclick="uploadCsv()">Upload CSV</button>
+                <button type="button" class="btn btn-success" onclick="downloadCsv()">Download CSV</button>
+            </div>
+            <form>
+                <div class="mb-3">
+                    <input class="form-control" type="file" id="csvFile" accept=".csv" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<br />
 <div class="row">
     <div class="col-md-12">
         <ul class="nav nav-pills flex-column flex-md-row mb-3">

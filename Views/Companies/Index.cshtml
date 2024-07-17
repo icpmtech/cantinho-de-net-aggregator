@@ -7,52 +7,105 @@
 <h4 class="py-3 mb-4">
     <span class="text-muted fw-light">Companies /</span>Companies
 </h4>
+<script>
+    async function uploadCsv() {
+        const formData = new FormData();
+        const fileInput = document.querySelector('#csvFile');
+        formData.append('file', fileInput.files[0]);
 
+        const response = await fetch('/api/Importer/import-csv', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            alert('CSV imported successfully');
+            location.reload();  // Reload the page to show updated data
+        } else {
+            alert('Error importing CSV');
+        }
+    }
+
+    async function downloadCsv() {
+        const response = await fetch('/api/Importer/export-csv');
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'companies.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        } else {
+            alert('Error downloading CSV');
+        }
+    }
+</script>
+<div class="card">
+    <h5 class="card-header">File input</h5>
+    <div class="card-body">
+        <div class="col-md-12">
+
+            <div class="mb-4 d-flex justify-content-between">
+               <button type="button" class="btn btn-secondary" onclick="uploadCsv()">Upload CSV</button>
+                <button type="button" class="btn btn-success" onclick="downloadCsv()">Download CSV</button>
+            </div>
+            <form>
+                <div class="mb-3">
+                    <input class="form-control" type="file" id="csvFile" accept=".csv" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<br />
 <div class="row">
     <div class="col-md-12">
         <ul class="nav nav-pills flex-column flex-md-row mb-3">
             <li class="nav-item"> <a class="btn btn-primary" asp-action="Create">Create New</a></li>
         </ul>
         <div class="card mb-4">
-            <div class="card-body" >
-                    <div class="table-responsive text-nowrap">
-                        <table class="table">
-                            <thead>
+            <div class="card-body">
+                <div class="table-responsive text-nowrap">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.First().Name)
+                                </th>
+                                <th>
+                                    @Html.DisplayNameFor(model => model.First().Description)
+                                </th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
                                 <tr>
-                                    <th>
-                                        @Html.DisplayNameFor(model => model.Name)
-                                    </th>
-                                    <th>
-                                        @Html.DisplayNameFor(model => model.Description)
-                                    </th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model)
-                                {
-                                    <tr>
-                                        <td>
-                                            @Html.DisplayFor(modelItem => item.Name)
-                                        </td>
-                                        <td>
-                                            @Html.DisplayFor(modelItem => item.Description)
-                                        </td>
-                                        <td>
-                                            <div class="dropdown">
-                                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
-                                                <div class="dropdown-menu">
-                                                    <a asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-2"></i>Edit</a>
-                                                    <a asp-action="Details" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-2"></i>Details</a>
-                                                    <a asp-action="Delete" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-trash me-2"></i>Delete</a>
-                                                </div>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Name)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(modelItem => item.Description)
+                                    </td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
+                                            <div class="dropdown-menu">
+                                                <a asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-2"></i>Edit</a>
+                                                <a asp-action="Details" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-2"></i>Details</a>
+                                                <a asp-action="Delete" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-trash me-2"></i>Delete</a>
                                             </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
 
             </div>
         </div>
