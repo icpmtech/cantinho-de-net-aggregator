@@ -1,5 +1,6 @@
 namespace AspnetCoreMvcFull.Services
 {
+  using AspnetCoreMvcFull.Models.Dashboard;
   using AspnetCoreMvcFull.Models.Portfolio;
   using MarketAnalyticHub.Models;
   using MarketAnalyticHub.Models.SetupDb;
@@ -42,6 +43,34 @@ namespace AspnetCoreMvcFull.Services
         ChartData = chartData
       };
     }
+
+    public async Task<DashboardData> GetDashboardDataAsync(string userId)
+    {
+      var portfolios = await GetPortfoliosByUserAsync(userId);
+
+      decimal totalInvestment = portfolios.Sum(p => p.TotalInvestment);
+      decimal currentMarketValue = portfolios.Sum(p => p.CurrentMarketValue);
+      decimal dividends = portfolios.Sum(p => p.Items.Sum(i => i.Dividends.Sum(d => d.Amount)));
+      decimal profit = currentMarketValue - totalInvestment;
+      decimal payments = 2456; // This should be replaced with actual payments data
+      decimal operations = 14857; // This should be replaced with actual operations data
+      decimal yearlyReport = 84686; // This should be replaced with actual yearly report data
+      decimal growth = totalInvestment > 0 ? (profit / totalInvestment) * 100 : 0;
+      decimal portfolioGrowth = totalInvestment > 0 ? (currentMarketValue / totalInvestment) * 100 : 0;
+
+      return new DashboardData
+      {
+        Profit = profit,
+        Dividends = dividends,
+        Payments = payments,
+        Operations = operations,
+        TotalRevenue = currentMarketValue, // Example data
+        Growth = growth,
+        PortfolioGrowth = portfolioGrowth,
+        YearlyReport = yearlyReport
+      };
+    }
+
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
     {
       var portfolios = await _context.Portfolios

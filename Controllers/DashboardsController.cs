@@ -1,12 +1,29 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Models.SetupDb;
+using AspnetCoreMvcFull.Models.Portfolio;
+using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
+using AspnetCoreMvcFull.Services;
 
-namespace MarketAnalyticHub.Controllers;
-
-
-public class DashboardsController : Controller
+namespace MarketAnalyticHub.Controllers
 {
-  public IActionResult Index() => View();
+  [Authorize]
+  public class DashboardsController : Controller
+  {
+
+    public DashboardsController()
+    {
+    }
+
+    public async Task<IActionResult> Index()
+    {
+     
+      return View();
+    }
+
+    
+  }
 }

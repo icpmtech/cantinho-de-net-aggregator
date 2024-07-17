@@ -1,5 +1,7 @@
 @* _Chat.cshtml *@
 <!-- Chat Window -->
+@if(User.Identity.IsAuthenticated)
+{
 <div id="chatWindow" class="card chat-window minimized">
     <div class="card-header">
         <h5 class="d-inline">AI-Pilot</h5>
@@ -296,3 +298,4 @@
         cursor: help;
     }
 </style>
+}

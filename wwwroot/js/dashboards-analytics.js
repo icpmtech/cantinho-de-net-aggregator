@@ -12,18 +12,29 @@
   axisColor = config.colors.axisColor;
   borderColor = config.colors.borderColor;
 
-  // Total Revenue Report Chart - Bar Chart
-  // --------------------------------------------------------------------
-  const totalRevenueChartEl = document.querySelector('#totalRevenueChart'),
-    totalRevenueChartOptions = {
+  // Define a function to load the revenue data from the backend
+  async function loadRevenueData() {
+    try {
+      const data = await fetchData('/api/Dashboards/revenue');
+      updateRevenueChart(data);
+    } catch (error) {
+      alert('Failed to load revenue data: ' + error.message);
+    }
+  }
+
+  // Function to update the revenue chart with the fetched data
+  function updateRevenueChart(data) {
+    const totalRevenueChartEl = document.querySelector('#totalRevenueChart');
+
+    const totalRevenueChartOptions = {
       series: [
         {
           name: '2021',
-          data: [18, 7, 15, 29, 18, 12, 9]
+          data: data.Series2021
         },
         {
           name: '2020',
-          data: [-13, -18, -9, -14, -5, -17, -15]
+          data: data.Series2020
         }
       ],
       chart: {
@@ -41,7 +52,7 @@
           endingShape: 'rounded'
         }
       },
-      colors: [config.colors.primary, config.colors.info],
+      colors: ['#7367F0', '#00CFDD'],
       dataLabels: {
         enabled: false
       },
@@ -49,7 +60,7 @@
         curve: 'smooth',
         width: 6,
         lineCap: 'round',
-        colors: [cardColor]
+        colors: ['#FFFFFF']
       },
       legend: {
         show: true,
@@ -62,14 +73,14 @@
           offsetX: -3
         },
         labels: {
-          colors: axisColor
+          colors: '#6e6b7b'
         },
         itemMargin: {
           horizontal: 10
         }
       },
       grid: {
-        borderColor: borderColor,
+        borderColor: '#e9ecef',
         padding: {
           top: 0,
           bottom: -8,
@@ -82,7 +93,7 @@
         labels: {
           style: {
             fontSize: '13px',
-            colors: axisColor
+            colors: '#6e6b7b'
           }
         },
         axisTicks: {
@@ -96,7 +107,7 @@
         labels: {
           style: {
             fontSize: '13px',
-            colors: axisColor
+            colors: '#6e6b7b'
           }
         }
       },
@@ -269,16 +280,39 @@
         }
       }
     };
-  if (typeof totalRevenueChartEl !== undefined && totalRevenueChartEl !== null) {
-    const totalRevenueChart = new ApexCharts(totalRevenueChartEl, totalRevenueChartOptions);
-    totalRevenueChart.render();
+
+    if (totalRevenueChartEl !== null) {
+      const totalRevenueChart = new ApexCharts(totalRevenueChartEl, totalRevenueChartOptions);
+      totalRevenueChart.render();
+    }
   }
 
-  // Growth Chart - Radial Bar Chart
-  // --------------------------------------------------------------------
-  const growthChartEl = document.querySelector('#growthChart'),
-    growthChartOptions = {
-      series: [78],
+  // Load the revenue data when the document is ready
+  document.addEventListener('DOMContentLoaded', function () {
+    loadRevenueData();
+    loadGrowthData();
+    loadProfitData();
+    loadOrderStatisticsData();
+    loadIncomeData();
+    loadExpensesData();
+  });
+
+  // Define a function to load the growth data from the backend
+  async function loadGrowthData() {
+    try {
+      const data = await fetchData('/api/Dashboards/growth');
+      updateGrowthChart(data);
+    } catch (error) {
+      alert('Failed to load growth data: ' + error.message);
+    }
+  }
+
+  // Function to update the growth chart with the fetched data
+  function updateGrowthChart(data) {
+    const growthChartEl = document.querySelector('#growthChart');
+
+    const growthChartOptions = {
+      series: [data.Growth],
       labels: ['Growth'],
       chart: {
         height: 240,
@@ -294,20 +328,20 @@
             size: '55%'
           },
           track: {
-            background: cardColor,
+            background: '#e7e7e7',
             strokeWidth: '100%'
           },
           dataLabels: {
             name: {
               offsetY: 15,
-              color: headingColor,
+              color: '#5e5873',
               fontSize: '15px',
               fontWeight: '500',
               fontFamily: 'Public Sans'
             },
             value: {
               offsetY: -25,
-              color: headingColor,
+              color: '#5e5873',
               fontSize: '22px',
               fontWeight: '500',
               fontFamily: 'Public Sans'
@@ -315,13 +349,13 @@
           }
         }
       },
-      colors: [config.colors.primary],
+      colors: ['#7367F0'],
       fill: {
         type: 'gradient',
         gradient: {
           shade: 'dark',
           shadeIntensity: 0.5,
-          gradientToColors: [config.colors.primary],
+          gradientToColors: ['#7367F0'],
           inverseColors: true,
           opacityFrom: 1,
           opacityTo: 0.6,
@@ -350,15 +384,29 @@
         }
       }
     };
-  if (typeof growthChartEl !== undefined && growthChartEl !== null) {
-    const growthChart = new ApexCharts(growthChartEl, growthChartOptions);
-    growthChart.render();
+
+    if (growthChartEl !== null) {
+      const growthChart = new ApexCharts(growthChartEl, growthChartOptions);
+      growthChart.render();
+    }
   }
 
   // Profit Report Line Chart
-  // --------------------------------------------------------------------
-  const profileReportChartEl = document.querySelector('#profileReportChart'),
-    profileReportChartConfig = {
+  // Define a function to load the profit data from the backend
+  async function loadProfitData() {
+    try {
+      const data = await fetchData('/api/Dashboards/profit');
+      updateProfitChart(data);
+    } catch (error) {
+      alert('Failed to load profit data: ' + error.message);
+    }
+  }
+
+  // Function to update the profit chart with the fetched data
+  function updateProfitChart(data) {
+    const profileReportChartEl = document.querySelector('#profileReportChart');
+
+    const profileReportChartConfig = {
       chart: {
         height: 80,
         // width: 175,
@@ -371,7 +419,7 @@
           top: 10,
           left: 5,
           blur: 3,
-          color: config.colors.warning,
+          color: '#FF9F43', // replace with config.colors.warning
           opacity: 0.15
         },
         sparkline: {
@@ -384,7 +432,7 @@
           right: 8
         }
       },
-      colors: [config.colors.warning],
+      colors: ['#FF9F43'], // replace with config.colors.warning
       dataLabels: {
         enabled: false
       },
@@ -394,7 +442,7 @@
       },
       series: [
         {
-          data: [110, 270, 145, 245, 205, 285]
+          data: data.Data
         }
       ],
       xaxis: {
@@ -413,26 +461,41 @@
         show: false
       }
     };
-  if (typeof profileReportChartEl !== undefined && profileReportChartEl !== null) {
-    const profileReportChart = new ApexCharts(profileReportChartEl, profileReportChartConfig);
-    profileReportChart.render();
+
+    if (profileReportChartEl !== null) {
+      const profileReportChart = new ApexCharts(profileReportChartEl, profileReportChartConfig);
+      profileReportChart.render();
+    }
   }
 
-  // Order Statistics Chart
+  // Symbols Statistics Chart
   // --------------------------------------------------------------------
-  const chartOrderStatistics = document.querySelector('#orderStatisticsChart'),
-    orderChartConfig = {
+  // Define a function to load the order statistics data from the backend
+  async function loadOrderStatisticsData() {
+    try {
+      const data = await fetchData('/api/Dashboards/symbols-statistics');
+      updateOrderStatisticsChart(data);
+    } catch (error) {
+      alert('Failed to load order statistics data: ' + error.message);
+    }
+  }
+
+  // Function to update the order statistics chart with the fetched data
+  function updateOrderStatisticsChart(data) {
+    const chartOrderStatistics = document.querySelector('#orderStatisticsChart');
+
+    const orderChartConfig = {
       chart: {
         height: 165,
         width: 130,
         type: 'donut'
       },
-      labels: ['Electronic', 'Sports', 'Decor', 'Fashion'],
-      series: [85, 15, 50, 50],
-      colors: [config.colors.primary, config.colors.secondary, config.colors.info, config.colors.success],
+      labels: data.Labels,
+      series: data.Series,
+      colors: ['#696CFF', '#AFB8E3', '#FFC4B1', '#B8E0D2'], // replace with actual colors
       stroke: {
         width: 5,
-        colors: [cardColor]
+        colors: ['#fff'] // replace with actual card color
       },
       dataLabels: {
         enabled: false,
@@ -467,7 +530,7 @@
               value: {
                 fontSize: '1.5rem',
                 fontFamily: 'Public Sans',
-                color: headingColor,
+                color: '#5E5873', // replace with heading color
                 offsetY: -15,
                 formatter: function (val) {
                   return parseInt(val) + '%';
@@ -480,7 +543,7 @@
               total: {
                 show: true,
                 fontSize: '0.8125rem',
-                color: axisColor,
+                color: '#b9c3cd', // replace with axis color
                 label: 'Weekly',
                 formatter: function (w) {
                   return '38%';
@@ -491,18 +554,31 @@
         }
       }
     };
-  if (typeof chartOrderStatistics !== undefined && chartOrderStatistics !== null) {
-    const statisticsChart = new ApexCharts(chartOrderStatistics, orderChartConfig);
-    statisticsChart.render();
+
+    if (typeof chartOrderStatistics !== undefined && chartOrderStatistics !== null) {
+      const statisticsChart = new ApexCharts(chartOrderStatistics, orderChartConfig);
+      statisticsChart.render();
+    }
   }
 
-  // Income Chart - Area chart
-  // --------------------------------------------------------------------
-  const incomeChartEl = document.querySelector('#incomeChart'),
-    incomeChartConfig = {
+  // Define a function to load the income data from the backend
+  async function loadIncomeData() {
+    try {
+      const data = await fetchData('/api/Dashboards/income');
+      updateIncomeChart(data);
+    } catch (error) {
+      alert('Failed to load income data: ' + error.message);
+    }
+  }
+
+  // Function to update the income chart with the fetched data
+  function updateIncomeChart(data) {
+    const incomeChartEl = document.querySelector('#incomeChart');
+
+    const incomeChartConfig = {
       series: [
         {
-          data: [24, 21, 30, 22, 42, 26, 35, 29]
+          data: data.Series
         }
       ],
       chart: {
@@ -531,10 +607,10 @@
         strokeWidth: 4,
         discrete: [
           {
-            fillColor: config.colors.white,
+            fillColor: '#ffffff',
             seriesIndex: 0,
             dataPointIndex: 7,
-            strokeColor: config.colors.primary,
+            strokeColor: '#696CFF', // replace with config.colors.primary
             strokeWidth: 2,
             size: 6,
             radius: 8
@@ -544,11 +620,11 @@
           size: 7
         }
       },
-      colors: [config.colors.primary],
+      colors: ['#696CFF'], // replace with config.colors.primary
       fill: {
         type: 'gradient',
         gradient: {
-          shade: shadeColor,
+          shade: 'dark', // replace with shadeColor
           shadeIntensity: 0.6,
           opacityFrom: 0.5,
           opacityTo: 0.25,
@@ -556,7 +632,7 @@
         }
       },
       grid: {
-        borderColor: borderColor,
+        borderColor: '#EBEBEB', // replace with borderColor
         strokeDashArray: 3,
         padding: {
           top: -20,
@@ -566,7 +642,7 @@
         }
       },
       xaxis: {
-        categories: ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        categories: data.Categories,
         axisBorder: {
           show: false
         },
@@ -577,7 +653,7 @@
           show: true,
           style: {
             fontSize: '13px',
-            colors: axisColor
+            colors: '#A1A1A1' // replace with axisColor
           }
         }
       },
@@ -590,16 +666,29 @@
         tickAmount: 4
       }
     };
-  if (typeof incomeChartEl !== undefined && incomeChartEl !== null) {
-    const incomeChart = new ApexCharts(incomeChartEl, incomeChartConfig);
-    incomeChart.render();
+
+    if (typeof incomeChartEl !== undefined && incomeChartEl !== null) {
+      const incomeChart = new ApexCharts(incomeChartEl, incomeChartConfig);
+      incomeChart.render();
+    }
   }
 
-  // Expenses Mini Chart - Radial Chart
-  // --------------------------------------------------------------------
-  const weeklyExpensesEl = document.querySelector('#expensesOfWeek'),
-    weeklyExpensesConfig = {
-      series: [65],
+
+  // Define a function to load the expenses data from the backend
+  async function loadExpensesData() {
+    try {
+      const data = await fetchData('/api/Dashboards/expenses');
+      updateExpensesChart(data);
+    } catch (error) {
+      alert('Failed to load expenses data: ' + error.message);
+    }
+  }
+
+  // Function to update the expenses chart with the fetched data
+  function updateExpensesChart(data) {
+    const weeklyExpensesEl = document.querySelector('#expensesOfWeek');
+    const weeklyExpensesConfig = {
+      series: [data.Series],
       chart: {
         width: 60,
         height: 60,
@@ -616,7 +705,7 @@
           },
           track: {
             strokeWidth: '50%',
-            background: borderColor
+            background: '#EBEBEB' // replace with borderColor
           },
           dataLabels: {
             show: true,
@@ -637,7 +726,7 @@
       },
       fill: {
         type: 'solid',
-        colors: config.colors.primary
+        colors: ['#696CFF'] // replace with config.colors.primary
       },
       stroke: {
         lineCap: 'round'
@@ -663,8 +752,9 @@
         }
       }
     };
-  if (typeof weeklyExpensesEl !== undefined && weeklyExpensesEl !== null) {
-    const weeklyExpenses = new ApexCharts(weeklyExpensesEl, weeklyExpensesConfig);
-    weeklyExpenses.render();
+    if (typeof weeklyExpensesEl !== undefined && weeklyExpensesEl !== null) {
+      const weeklyExpenses = new ApexCharts(weeklyExpensesEl, weeklyExpensesConfig);
+      weeklyExpenses.render();
+    }
   }
 })();
