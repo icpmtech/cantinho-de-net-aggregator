@@ -22,33 +22,37 @@ using AspnetCoreMvcFull.Controllers;
 using AspnetCoreMvcFull.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Identity.Web;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
+using System.IO;
+using AspnetCoreMvcFull;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
-        .EnableTokenAcquisitionToCallDownstreamApi()
-            .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
-            .AddInMemoryTokenCaches()
-            .AddDownstreamApi("DownstreamApi", builder.Configuration.GetSection("DownstreamApi"))
-            .AddInMemoryTokenCaches();
+    .EnableTokenAcquisitionToCallDownstreamApi()
+    .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
+    .AddInMemoryTokenCaches()
+    .AddDownstreamApi("DownstreamApi", builder.Configuration.GetSection("DownstreamApi"))
+    .AddInMemoryTokenCaches();
 
 // Add services to localization.
 builder.Services.AddControllersWithViews()
-            .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
-            .AddDataAnnotationsLocalization();
+    .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix)
+    .AddDataAnnotationsLocalization();
 
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
   var supportedCultures = new List<CultureInfo>
-            {
-                new CultureInfo("en"),
-                new CultureInfo("fr"),
-                new CultureInfo("de"),
-                new CultureInfo("pt")
-            };
+    {
+        new CultureInfo("en"),
+        new CultureInfo("fr"),
+        new CultureInfo("de"),
+        new CultureInfo("pt")
+    };
 
   options.DefaultRequestCulture = new RequestCulture("en");
   options.SupportedCultures = supportedCultures;
@@ -56,26 +60,22 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 });
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
- var baseEndpoint= builder.Configuration.GetSection("NewsScrapingEndpoints")["BaseEndpoint"];
-// Add services to the container.
+var baseEndpoint = builder.Configuration.GetSection("NewsScrapingEndpoints")["BaseEndpoint"];
+
 builder.Services.AddHttpClient<NewsService>(client =>
 {
-  client.BaseAddress = new Uri(baseEndpoint); // Replace with your actual base address
+  client.BaseAddress = new Uri(baseEndpoint);
 });
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-//builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true).AddEntityFrameworkStores<AppIdentityDbContext>();
 
 builder.Services.AddDbContext<AppIdentityDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultUI()
-            .AddDefaultTokenProviders(); ;
-
-
+    .AddDefaultTokenProviders();
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<SentimentAnalysisService>();
@@ -104,16 +104,26 @@ builder.Services.AddHangfire(configuration => configuration
     }));
 
 builder.Services.AddAuthorization();
-// Add the processing server as IHostedService
 builder.Services.AddHangfireServer();
+
+// Register the Swagger generator, defining one or more Swagger documents
+builder.Services.AddSwaggerGen(c =>
+{
+  c.SwaggerDoc("v1", new OpenApiInfo { Title = "Markets Analytics Hub API", Version = "v1" });
+  c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+  
+});
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+  app.UseDeveloperExceptionPage();
+}
+else
 {
   app.UseExceptionHandler("/Home/Error");
-  // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
   app.UseHsts();
 }
 
@@ -123,6 +133,17 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Enable middleware to serve generated Swagger as a JSON endpoint.
+app.UseSwagger();
+
+// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.),
+// specifying the Swagger JSON endpoint.
+app.UseSwaggerUI(c =>
+{
+  c.SwaggerEndpoint("/swagger/v1/swagger.json", "Markets Analytics Hub API");
+  c.RoutePrefix = "api-docs"; // Set Swagger UI at the app's root
+});
 
 // Hangfire Dashboard
 app.UseHangfireDashboard();
@@ -146,14 +167,10 @@ app.MapControllerRoute(
 app.UseEndpoints(endpoints =>
 {
   endpoints.MapHub<ChatHub>("/chathub");
-});
-app.UseEndpoints(endpoints =>
-{
   endpoints.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+      name: "areas",
+      pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
   );
 });
-
 
 app.Run();

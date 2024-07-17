@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using AspnetCoreMvcFull;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -32,27 +33,27 @@ public class ChatController : ControllerBase
   }
 
   [HttpPost("UploadFile")]
-  public async Task<IActionResult> UploadFile([FromForm] IFormFile file)
+  public async Task<IActionResult> UploadFile([FromForm] FileUploadRequest model)
   {
-    if (file == null || file.Length == 0)
+    if (model.File == null || model.File.Length == 0)
     {
       return BadRequest(new { success = false, message = "Please upload a valid file." });
     }
 
-    var filePath = Path.Combine(Path.GetTempPath(), file.FileName);
+    var filePath = Path.Combine(Path.GetTempPath(), model.File.FileName);
 
     try
     {
       // Save the uploaded file to a temporary path
       using (var stream = new FileStream(filePath, FileMode.Create))
       {
-        await file.CopyToAsync(stream);
+        await model.File.CopyToAsync(stream);
       }
 
       // Encode the file to base64
       var base64File = EncodeFileToBase64(filePath);
 
-      string fileType = file.ContentType.Split('/')[0];
+      string fileType = model.File.ContentType.Split('/')[0];
 
       // Prepare the payload for OpenAI API
       var payload = new
@@ -66,7 +67,7 @@ public class ChatController : ControllerBase
                         content = new object[]
                         {
                             new { type = "text", text = "What’s in this file?" },
-                            new { type = "image_url", image_url  = new { url = $"data:{file.ContentType};base64,{base64File}" } }
+                            new { type = "image_url", image_url  = new { url = $"data:{model.File.ContentType};base64,{base64File}" } }
                         }
                     }
                 },
