@@ -226,7 +226,7 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
                                                 <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                                <a class="dropdown-item" href="javascript:showAddDividendModal(${portfolio.id});">Add Dividends</a>
+                                               
                                                 <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name}');">Edit Portfolio</a>
                                                 <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
                                             </div>
@@ -269,7 +269,9 @@
                                                         <strong>Total Investment:</strong> ${item.totalInvestment.toFixed(2)} <br>
                                                         <strong>Current Market Value:</strong> ${item.currentMarketValue.toFixed(2)} <br>
                                                         <strong>Total Dividend Income:</strong> ${item.totalDividendIncome.toFixed(2)} <br>
-                                                        <ul class="list-group list-group-flush">
+                                                                <a class="btn btn-primary btn-sm" href="javascript:showAddDividendModal(${item.id});">Add Dividends</a>
+
+                                                            <ul class="list-group list-group-flush">
                                                             ${item.dividends?.map(dividend => `
                                                                 <li class="list-group-item">
                                                                     <div class="d-flex justify-content-between">
