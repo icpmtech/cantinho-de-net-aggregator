@@ -33,6 +33,19 @@ namespace MarketAnalyticHub.Controllers
         var result = await _userManager.CreateAsync(user, model.Password);
         if (result.Succeeded)
         {
+          // Add user to the role
+          var roleResult = await _userManager.AddToRoleAsync(user, "Standard");
+          if (!roleResult.Succeeded)
+          {
+            foreach (var error in roleResult.Errors)
+            {
+              ModelState.AddModelError(string.Empty, error.Description);
+            }
+            // Optionally, you might want to delete the user if role assignment fails
+            await _userManager.DeleteAsync(user);
+            return View(model);
+          }
+
           await _signInManager.SignInAsync(user, isPersistent: false);
           return RedirectToAction("Index", "Dashboards");
         }
