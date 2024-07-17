@@ -24,15 +24,14 @@
 
 ## Introduction 🚀
 
-Welcome to [Cantinho de .NET](https://cantinhodonet.com), the most comprehensive resource hub for .NET developers. Whether you are looking for tutorials, tools, or community support, Cantinho de .NET has you covered. Our portal is built to provide the best resources, making it easy and efficient for developers to find what they need to build high-quality .NET applications.
+Welcome to MarketAnalyticHub, your ultimate resource hub for developing high-quality market analytics applications. Whether you need tutorials, tools, or community support, MarketAnalyticHub has you covered. Our solution is designed to provide the best resources, making it easy and efficient for developers to create robust and feature-rich market analytic applications.
 
-Build exceptional applications effortlessly with our extensive collection of [ASP.NET Core MVC resources](https://cantinhodonet.com/category/aspnet-core-mvc/). Ensure your applications are responsive and functional across all devices with our curated resources.
-
-[View Demo](https://cantinhodonet.com/demo)
+Build exceptional applications effortlessly with our extensive collection of market analysis tools and resources. Ensure your applications are responsive, scalable, and functional across all devices with our curated selection of ASP.NET Core MVC resources. MarketAnalyticHub is your go-to solution for transforming data into actionable insights and enhancing your market analysis capabilities.
+[View Demo](https://cantinhode.net/demo)
 
 ## Installation ⚒️
 
-Please visit our [installation guide](https://cantinhodonet.com/docs/installation) for detailed instructions.
+Please visit our [installation guide](https://cantinhode.com/docs/installation) for detailed instructions.
 
 ## What's Included 📦
 
