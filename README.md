@@ -118,7 +118,7 @@ For free resources, enjoy community support via GitHub issues. Upgrade to Premiu
 
 ## License &copy;
 
-- Copyright © [Cantinho de .NET](https://cantinhodonet.com/)
+- Copyright © [Cantinho de .NET](https://cantinhode.net/)
 - Licensed under [MIT](LICENSE)
 - All our free resources are Open Source and licensed under MIT. You can use our free resources for personal and commercial purposes with attribution. Include the following link in your footer:
   ```html
