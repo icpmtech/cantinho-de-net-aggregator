@@ -44,8 +44,10 @@ namespace AspnetCoreMvcFull.Services
     }
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
     {
-      var portfolios = await _context.Portfolios.Include(p => p.Items)
-                                                .Where(p => p.UserId == userId)
+      var portfolios = await _context.Portfolios
+                                   .Include(p => p.Items)
+                                   .ThenInclude(pi => pi.Dividends)
+                                    .Where(p => p.UserId == userId)
                                                 .ToListAsync();
 
       // Update current prices and calculate fields
@@ -62,7 +64,9 @@ namespace AspnetCoreMvcFull.Services
 
     public async Task<Portfolio> GetPortfolioByIdAsync(int id)
     {
-      var portfolio = await _context.Portfolios.Include(p => p.Items)
+      var portfolio = await _context.Portfolios
+                                   .Include(p => p.Items)
+                                   .ThenInclude(pi => pi.Dividends)
                                                 .FirstOrDefaultAsync(p => p.Id == id);
 
       if (portfolio != null)

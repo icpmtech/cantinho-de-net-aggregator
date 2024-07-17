@@ -4,6 +4,7 @@ using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketAnalyticHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240717123912_ApplicationDbContextPortfolio4")]
+    partial class ApplicationDbContextPortfolio4
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,11 +99,14 @@ namespace MarketAnalyticHub.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTime?>("ExDate")
+                    b.Property<DateTime>("ExDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("PaymentDate")
+                    b.Property<DateTime>("PaymentDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<int?>("PortfolioId")
+                        .HasColumnType("int");
 
                     b.Property<int>("PortfolioItemId")
                         .HasColumnType("int");
@@ -110,6 +116,8 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PortfolioId");
 
                     b.HasIndex("PortfolioItemId");
 
@@ -417,6 +425,10 @@ namespace MarketAnalyticHub.Migrations
 
             modelBuilder.Entity("Dividend", b =>
                 {
+                    b.HasOne("Portfolio", null)
+                        .WithMany("Dividends")
+                        .HasForeignKey("PortfolioId");
+
                     b.HasOne("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", "PortfolioItem")
                         .WithMany("Dividends")
                         .HasForeignKey("PortfolioItemId")
@@ -474,6 +486,8 @@ namespace MarketAnalyticHub.Migrations
 
             modelBuilder.Entity("Portfolio", b =>
                 {
+                    b.Navigation("Dividends");
+
                     b.Navigation("Items");
                 });
 #pragma warning restore 612, 618

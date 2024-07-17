@@ -28,7 +28,11 @@ using System.IO;
 using AspnetCoreMvcFull;
 
 var builder = WebApplication.CreateBuilder(args);
-
+builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                  options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
     .EnableTokenAcquisitionToCallDownstreamApi()

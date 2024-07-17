@@ -1,6 +1,9 @@
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace AspnetCoreMvcFull.Controllers.api
 {
@@ -28,8 +31,29 @@ namespace AspnetCoreMvcFull.Controllers.api
     }
 
     [HttpPost]
-    public async Task<ActionResult<Dividend>> PostDividend(Dividend dividend)
+    public async Task<ActionResult<Dividend>> PostDividend(DividendViewModel dividendViewModel)
     {
+      if (dividendViewModel == null)
+      {
+        return BadRequest("Dividend data is null.");
+      }
+
+      var portfolioItem = await _context.PortfolioItems.FindAsync(dividendViewModel.PortfolioItemId);
+      if (portfolioItem == null)
+      {
+        return BadRequest("Invalid PortfolioItemId.");
+      }
+
+      // Map the ViewModel to the entity
+      var dividend = new Dividend
+      {
+        PortfolioItemId = dividendViewModel.PortfolioItemId,
+        Symbol = dividendViewModel.Symbol,
+        Amount = dividendViewModel.Amount,
+        ExDate = dividendViewModel.ExDate,
+        PaymentDate = dividendViewModel.PaymentDate
+      };
+
       _context.Dividends.Add(dividend);
       await _context.SaveChangesAsync();
 
@@ -37,12 +61,31 @@ namespace AspnetCoreMvcFull.Controllers.api
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutDividend(int id, Dividend dividend)
+    public async Task<IActionResult> PutDividend(int id, DividendViewModel dividendViewModel)
     {
-      if (id != dividend.Id)
+      if (dividendViewModel == null || id != dividendViewModel.Id) // Ensure the ID matches
       {
-        return BadRequest();
+        return BadRequest("Invalid data.");
       }
+
+      var dividend = await _context.Dividends.FindAsync(id);
+      if (dividend == null)
+      {
+        return NotFound();
+      }
+
+      var portfolioItem = await _context.PortfolioItems.FindAsync(dividendViewModel.PortfolioItemId);
+      if (portfolioItem == null)
+      {
+        return BadRequest("Invalid PortfolioItemId.");
+      }
+
+      // Update the entity with the ViewModel data
+      dividend.PortfolioItemId = dividendViewModel.PortfolioItemId;
+      dividend.Symbol = dividendViewModel.Symbol;
+      dividend.Amount = dividendViewModel.Amount;
+      dividend.ExDate = dividendViewModel.ExDate;
+      dividend.PaymentDate = dividendViewModel.PaymentDate;
 
       _context.Entry(dividend).State = EntityState.Modified;
 
@@ -84,6 +127,20 @@ namespace AspnetCoreMvcFull.Controllers.api
     {
       return _context.Dividends.Any(e => e.Id == id);
     }
-  }
 
+    [HttpGet("ByPortfolioItem/{portfolioItemId}")]
+    public async Task<ActionResult<IEnumerable<Dividend>>> GetDividendsByPortfolioItem(int portfolioItemId)
+    {
+      var dividends = await _context.Dividends
+                                    .Where(d => d.PortfolioItemId == portfolioItemId)
+                                    .ToListAsync();
+
+      if (dividends == null || dividends.Count == 0)
+      {
+        return NotFound("No dividends found for the specified portfolio item.");
+      }
+
+      return Ok(dividends);
+    }
+  }
 }
