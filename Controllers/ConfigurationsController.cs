@@ -36,6 +36,11 @@ public class ConfigurationsController : Controller
   [HttpPost("addnews")]
   public IActionResult Add([FromBody] NewsScrapingItem news)
   {
+    news.AuthorSelector = news.AuthorSelector ?? "EMPTY";
+    news.TitleSelector = news.TitleSelector ?? "EMPTY";
+    news.LinkSelector = news.LinkSelector ?? "EMPTY";
+    news.DescriptionSelector = news.DescriptionSelector ?? "EMPTY";
+    news.DateSelector = news.DateSelector ?? "EMPTY";
     if (ModelState.IsValid)
     {
       _context.NewsScrapingItem.Add(news);
@@ -74,6 +79,11 @@ public class ConfigurationsController : Controller
   [HttpPut("editnews/{id}")]
   public IActionResult EditNews(int id, [FromBody] NewsScrapingItem news)
   {
+    news.AuthorSelector = news.AuthorSelector ?? "EMPTY";
+    news.TitleSelector = news.TitleSelector ?? "EMPTY";
+    news.LinkSelector = news.LinkSelector ?? "EMPTY";
+    news.DescriptionSelector = news.DescriptionSelector ?? "EMPTY";
+    news.DateSelector = news.DateSelector ?? "EMPTY";
     if (id != news.Id)
     {
       return BadRequest(new { success = false, message = "ID mismatch." });

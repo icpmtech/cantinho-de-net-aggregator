@@ -164,9 +164,14 @@
             const descriptionSelector = document.getElementById('descriptionSelector').value;
             const authorSelector = document.getElementById('authorSelector').value;
             const dateSelector = document.getElementById('dateSelector').value;
+            
+          
 
+            const url = id ? `/editnews/${id}` : '/addnews';
+            const method = id ? 'PUT' : 'POST';
+            const idFlag = id ? id : null;
             const formData = {
-                id: id,
+                id: idFlag,
                 category: category,
                 title: title,
                 description: description,
@@ -177,12 +182,9 @@
                 linkSelector: linkSelector,
                 descriptionSelector: descriptionSelector,
                 authorSelector: authorSelector,
-                dateSelector: dateSelector
+                dateSelector: dateSelector,
+                news: null
             };
-
-            const url = id ? `/editnews/${id}` : '/addnews';
-            const method = id ? 'PUT' : 'POST';
-
             fetch(url, {
                 method: method,
                 headers: {
