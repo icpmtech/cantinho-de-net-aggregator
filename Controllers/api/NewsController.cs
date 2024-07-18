@@ -188,7 +188,7 @@ namespace MarketAnalyticHub.Controllers.api
           {
             Title = title,
             Link = link,
-            Description = description,
+            Description = description??"EMPTY",
             Author = author,
             Date = date,
             Category = itemNews.Category // Use the category from the itemNews

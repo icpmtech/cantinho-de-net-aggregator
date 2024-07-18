@@ -8,12 +8,12 @@ namespace MarketAnalyticHub.Models.Configurations.News
     public string Description { get; set; }
     public string? Date { get; set; }
     public string Link { get; set; }
-    public string? Author { get; internal set; }
+    public string? Author { get;  set; }
     public string? TemplateScraping { get; set; }
-    public string? TitleSelector { get; internal set; }
-    public string? LinkSelector { get; internal set; }
-    public string? DescriptionSelector { get; internal set; }
-    public string? AuthorSelector { get; internal set; }
-    public string? DateSelector { get; internal set; }
+    public string? TitleSelector { get;  set; }
+    public string? LinkSelector { get;  set; }
+    public string? DescriptionSelector { get;  set; }
+    public string? AuthorSelector { get;  set; }
+    public string? DateSelector { get;  set; }
   }
 }
