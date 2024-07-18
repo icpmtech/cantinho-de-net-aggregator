@@ -59,7 +59,7 @@ namespace AspnetCoreMvcFull.Services
       return new List<CandlestickData>();
     }
 
-    public async Task<StockData> GetRealTimePriceAsync(string symbol)
+    public async Task<StockDataFinHub> GetRealTimePriceAsync(string symbol)
     {
       string url = $"https://finnhub.io/api/v1/quote?symbol={symbol}&token={_apiKey}";
 
@@ -69,7 +69,7 @@ namespace AspnetCoreMvcFull.Services
       var content = await response.Content.ReadAsStringAsync();
       var json = JObject.Parse(content);
 
-      var stockData = new StockData
+      var stockData = new StockDataFinHub
       {
         CurrentPrice = decimal.TryParse(json["c"]?.ToString(), out decimal currentPrice) ? currentPrice : 0m,
         Change = decimal.TryParse(json["d"]?.ToString(), out decimal change) ? change : 0m,

@@ -98,13 +98,13 @@ namespace AspnetCoreMvcFull.Services
           foreach (var item in portfolio.Items)
           {
             var stockData = await GetCurrentPriceAsync(item.Symbol);
-            item.CurrentPrice = stockData.CurrentPrice;
-            item.Change = stockData.Change;
-            item.PercentChange = stockData.PercentChange;
-            item.HighPrice = stockData.HighPrice;
-            item.LowPrice = stockData.LowPrice;
-            item.OpenPrice = stockData.OpenPrice;
-            item.PreviousClosePrice = stockData.PreviousClosePrice;
+            item.CurrentPrice = (decimal)stockData.CurrentPrice;
+            item.Change = (decimal)stockData.Change;
+            item.PercentChange = (decimal)stockData.PercentChange;
+            item.HighPrice = (decimal)stockData.HighPrice;
+            item.LowPrice = (decimal)stockData.LowPrice;
+            item.OpenPrice = (decimal)stockData.OpenPrice;
+            item.PreviousClosePrice = (decimal)stockData.PreviousClosePrice;
           } // Implement this method to fetch the current price
         
       }
@@ -124,19 +124,19 @@ namespace AspnetCoreMvcFull.Services
         foreach (var item in portfolio.Items)
         {
           var stockData = await GetCurrentPriceAsync(item.Symbol);
-          item.CurrentPrice = stockData.CurrentPrice;
-          item.Change = stockData.Change;
-          item.PercentChange = stockData.PercentChange;
-          item.HighPrice = stockData.HighPrice;
-          item.LowPrice = stockData.LowPrice;
-          item.OpenPrice = stockData.OpenPrice;
-          item.PreviousClosePrice = stockData.PreviousClosePrice;
+          item.CurrentPrice = (decimal)stockData.CurrentPrice;
+          item.Change = (decimal)stockData.Change;
+          item.PercentChange = (decimal)stockData.PercentChange;
+          item.HighPrice = (decimal)stockData.HighPrice;
+          item.LowPrice = (decimal)stockData.LowPrice;
+          item.OpenPrice = (decimal)stockData.OpenPrice;
+          item.PreviousClosePrice = (decimal)stockData.PreviousClosePrice;
         }
       }
 
       return portfolio;
     }
-    private async Task<StockData> GetCurrentPriceAsync(string symbol)
+    private async Task<StockDataFinHub> GetCurrentPriceAsync(string symbol)
     {
       try
       {
@@ -147,7 +147,7 @@ namespace AspnetCoreMvcFull.Services
       {
         // Log the exception (optional)
         _logger.LogError(ex, $"Failed to get current price for symbol: {symbol}");
-        return new StockData
+        return new StockDataFinHub
         {
           CurrentPrice = 0,
           Change = 0,

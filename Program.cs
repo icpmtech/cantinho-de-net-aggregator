@@ -95,7 +95,7 @@ builder.Services.AddScoped<SymbolService>();
 builder.Services.AddHttpClient<AlphaVantageService>();
 builder.Services.AddHttpClient<FinnhubService>();
 builder.Services.AddHttpClient<BarchartService>();
-
+builder.Services.AddScoped<IYahooFinanceService, YahooFinanceService>();
 builder.Services.AddSingleton<OpenAIService>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();

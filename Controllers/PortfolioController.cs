@@ -15,12 +15,41 @@ public class PortfolioController : Controller
 {
   private readonly PortfolioService _portfolioService;
   private readonly UserManager<ApplicationUser> _userManager;
-  public PortfolioController(PortfolioService portfolioService, UserManager<ApplicationUser> userManager)
+  private readonly IYahooFinanceService _yahooFinanceService;
+
+
+  public PortfolioController(PortfolioService portfolioService, UserManager<ApplicationUser> userManager, IYahooFinanceService yahooFinanceService)
   {
     _portfolioService = portfolioService;
     _userManager = userManager;
+    _yahooFinanceService = yahooFinanceService;
   }
 
+  [HttpGet("historical-data")]
+  public async Task<IActionResult> GetHistoricalData([FromQuery] string symbol, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+  {
+    if (string.IsNullOrEmpty(symbol))
+    {
+      return BadRequest("Symbol is required.");
+    }
+
+    var data = await _yahooFinanceService.GetHistoricalDataAsync(symbol, startDate, endDate);
+
+    return Ok(data);
+  }
+
+  [HttpGet("stock-price")]
+  public async Task<IActionResult> GetRealTimePrice([FromQuery] string symbol)
+  {
+    if (string.IsNullOrEmpty(symbol))
+    {
+      return BadRequest("Symbol is required.");
+    }
+
+    var data = await _yahooFinanceService.GetRealTimePriceAsync(symbol);
+
+    return Ok(data);
+  }
   [HttpGet("Export")]
   public async Task<IActionResult> Export([FromQuery] string fileType)
   {
@@ -108,6 +137,9 @@ public class PortfolioController : Controller
     await _portfolioService.AddPortfolioAsync(portfolio);
     return CreatedAtAction(nameof(GetPortfolio), new { id = portfolio.Id }, portfolio);
   }
+
+
+
 
   [HttpPut("{id}")]
   public async Task<IActionResult> UpdatePortfolio(int id, [FromBody] Portfolio portfolio)
