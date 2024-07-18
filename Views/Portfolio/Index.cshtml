@@ -75,7 +75,7 @@
                 <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
                     <option value="bar" selected>Bar</option>
                     <option value="line">Line</option>
-                    <option value="pie">Pie</option>
+                    <option value="candlestick">Candlestick</option>
                 </select>
             </li>
         </ul>
@@ -381,28 +381,35 @@
                     `;
             portfolioList.appendChild(portfolioDiv);
             renderChart(portfolio, chartType);
-            portfolio.items.forEach(item => renderCandlestickChart(item.id, item.symbol));
+            portfolio.items.forEach(item => renderCandlestickChart(item.id, item.symbol, chartType));
         });
     }
-    async function renderCandlestickChart(itemId, symbol) {
+    async function renderCandlestickChart(itemId, symbol, chartType = 'candlestick') {
         const apiUrl = `/api/Portfolio/stock-candlestick-data?symbol=${symbol}`;
 
         const response = await fetch(apiUrl);
         if (response.ok) {
             const data = await response.json();
-            const seriesData = data.map(item => {
-                return {
+            let seriesData;
+
+            if (chartType === 'candlestick') {
+                seriesData = data.map(item => ({
                     x: new Date(item.date),
                     y: [item.open, item.high, item.low, item.close]
-                };
-            });
+                }));
+            } else {
+                seriesData = data.map(item => ({
+                    x: new Date(item.date),
+                    y: item.close
+                }));
+            }
 
-            var options = {
+            let options = {
                 series: [{
                     data: seriesData
                 }],
                 chart: {
-                    type: 'candlestick',
+                    type: chartType,
                     height: 350
                 },
                 title: {
@@ -419,42 +426,91 @@
                 }
             };
 
+            // Adjust options for bar and line charts
+            if (chartType === 'bar') {
+                options.plotOptions = {
+                    bar: {
+                        horizontal: false,
+                    }
+                };
+                options.dataLabels = {
+                    enabled: false
+                };
+            } else if (chartType === 'line') {
+                options.stroke = {
+                    curve: 'smooth'
+                };
+                options.dataLabels = {
+                    enabled: false
+                };
+            }
+
             var chart = new ApexCharts(document.querySelector(`#candlestick-chart-${itemId}`), options);
             chart.render();
         } else {
             console.error('Error fetching data:', response.statusText);
         }
     }
-
     function renderChart(portfolio, chartType) {
         const ctx = document.getElementById(`chart-${portfolio.id}`).getContext('2d');
-        new Chart(ctx, {
-            type: chartType,
-            data: {
-                labels: portfolio.items.map(item => item.symbol),
-                datasets: [{
-                    label: 'Current Market Value',
-                    data: portfolio.items.map(item => item.currentMarketValue),
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }, {
-                    label: 'Total Investment',
-                    data: portfolio.items.map(item => item.totalInvestment),
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+
+        if (chartType === 'candlestick') {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: portfolio.items.map(item => item.symbol),
+                    datasets: [{
+                        label: 'Current Market Value',
+                        data: portfolio.items.map(item => item.currentMarketValue),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Total Investment',
+                        data: portfolio.items.map(item => item.totalInvestment),
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: portfolio.items.map(item => item.symbol),
+                    datasets: [{
+                        label: 'Current Market Value',
+                        data: portfolio.items.map(item => item.currentMarketValue),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Total Investment',
+                        data: portfolio.items.map(item => item.totalInvestment),
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
     }
+
 
     async function exportPortfolios(fileType) {
         const response = await fetch(`/api/Portfolio/Export?fileType=${fileType}`, {

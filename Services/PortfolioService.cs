@@ -301,5 +301,22 @@ namespace AspnetCoreMvcFull.Services
         await _context.SaveChangesAsync();
       }
     }
+
+    public async Task<List<CandlestickData>> GetCandlestickDataAsync(string symbol, string resolution, int count)
+    {
+      try
+      {
+        return await _FinnhubService.GetCandlestickDataAsync(symbol, resolution, count);
+      }
+      catch (Exception ex)
+      {
+        // Log the exception
+        _logger.LogError(ex, $"Failed to get candlestick data for symbol: {symbol}");
+
+        // Return an empty list or handle the error as needed
+        return new List<CandlestickData>();
+      }
+    }
+
   }
 }

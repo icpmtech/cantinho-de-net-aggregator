@@ -1,9 +1,9 @@
-﻿
-internal class CandlestickData
+
+public class CandlestickData
 {
-  public DateTime Date { get; internal set; }
-  public int Open { get; internal set; }
-  public int High { get; internal set; }
-  public int Low { get; internal set; }
-  public int Close { get; internal set; }
+  public DateTime Date { get;  set; }
+  public decimal Open { get;  set; }
+  public decimal High { get;  set; }
+  public decimal Low { get;  set; }
+  public decimal Close { get;  set; }
 }

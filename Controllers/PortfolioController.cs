@@ -120,34 +120,18 @@ public class PortfolioController : Controller
     await _portfolioService.UpdatePortfolioAsync(portfolio);
     return NoContent();
   }
-  // New endpoint for fetching candlestick data
   [HttpGet("stock-candlestick-data")]
-  public IActionResult GetCandlestickData([FromQuery] string symbol)
+  public async Task<IActionResult> GetCandlestickData([FromQuery] string symbol, [FromQuery] string resolution = "D", [FromQuery] int count = 5)
   {
     if (string.IsNullOrEmpty(symbol))
     {
       return BadRequest("Symbol is required.");
     }
 
-    // Replace with actual data retrieval logic
-    var data = GetMockCandlestickData(symbol);
+    var data = await _portfolioService.GetCandlestickDataAsync(symbol, resolution, count);
 
     return Ok(data);
   }
-
-  // Mock data method, replace with actual data retrieval logic
-  private List<CandlestickData> GetMockCandlestickData(string symbol)
-  {
-    return new List<CandlestickData>
-            {
-                new CandlestickData { Date = DateTime.UtcNow.AddDays(-5), Open = 100, High = 105, Low = 95, Close = 102 },
-                new CandlestickData { Date = DateTime.UtcNow.AddDays(-4), Open = 102, High = 108, Low = 101, Close = 107 },
-                new CandlestickData { Date = DateTime.UtcNow.AddDays(-3), Open = 107, High = 110, Low = 106, Close = 109 },
-                new CandlestickData { Date = DateTime.UtcNow.AddDays(-2), Open = 109, High = 112, Low = 108, Close = 111 },
-                new CandlestickData { Date = DateTime.UtcNow.AddDays(-1), Open = 111, High = 115, Low = 110, Close = 114 }
-            };
-  }
-
   [HttpDelete("{id}")]
   public async Task<IActionResult> DeletePortfolio(int id)
   {

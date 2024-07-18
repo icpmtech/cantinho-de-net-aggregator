@@ -17,7 +17,47 @@ namespace AspnetCoreMvcFull.Services
       _apiKey = configuration["MarketRealTimeAPIs:Finnhub"];
     }
 
-  
+    public async Task<List<CandlestickData>> GetCandlestickDataAsync(string symbol, string resolution, int count)
+    {
+      var to = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+      var from = DateTimeOffset.UtcNow.AddDays(-count).ToUnixTimeSeconds();
+      var url = $"https://finnhub.io/api/v1/stock/candle?symbol={symbol}&resolution={resolution}&from={from}&to={to}&token={_apiKey}";
+
+      var response = await _httpClient.GetAsync(url);
+
+      if (response.IsSuccessStatusCode)
+      {
+        var content = await response.Content.ReadAsStringAsync();
+        var json = JObject.Parse(content);
+
+        if (json["s"]?.ToString() == "ok")
+        {
+          var timestamps = json["t"].ToObject<List<long>>();
+          var opens = json["o"].ToObject<List<decimal>>();
+          var highs = json["h"].ToObject<List<decimal>>();
+          var lows = json["l"].ToObject<List<decimal>>();
+          var closes = json["c"].ToObject<List<decimal>>();
+
+          var candlestickData = new List<CandlestickData>();
+
+          for (int i = 0; i < timestamps.Count; i++)
+          {
+            candlestickData.Add(new CandlestickData
+            {
+              Date = DateTimeOffset.FromUnixTimeSeconds(timestamps[i]).UtcDateTime,
+              Open = (int)opens[i],
+              High = (int)highs[i],
+              Low = (int)lows[i],
+              Close = (int)closes[i]
+            });
+          }
+
+          return candlestickData;
+        }
+      }
+
+      return new List<CandlestickData>();
+    }
 
     public async Task<StockData> GetRealTimePriceAsync(string symbol)
     {
