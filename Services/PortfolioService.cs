@@ -1,5 +1,6 @@
 namespace AspnetCoreMvcFull.Services
 {
+  using AspnetCoreMvcFull.Models;
   using AspnetCoreMvcFull.Models.Dashboard;
   using AspnetCoreMvcFull.Models.Portfolio;
   using ClosedXML.Excel;
@@ -93,10 +94,19 @@ namespace AspnetCoreMvcFull.Services
       // Update current prices and calculate fields
       foreach (var portfolio in portfolios)
       {
-        foreach (var item in portfolio.Items)
-        {
-          item.CurrentPrice = await GetCurrentPriceAsync(item.Symbol); // Implement this method to fetch the current price
-        }
+        
+          foreach (var item in portfolio.Items)
+          {
+            var stockData = await GetCurrentPriceAsync(item.Symbol);
+            item.CurrentPrice = stockData.CurrentPrice;
+            item.Change = stockData.Change;
+            item.PercentChange = stockData.PercentChange;
+            item.HighPrice = stockData.HighPrice;
+            item.LowPrice = stockData.LowPrice;
+            item.OpenPrice = stockData.OpenPrice;
+            item.PreviousClosePrice = stockData.PreviousClosePrice;
+          } // Implement this method to fetch the current price
+        
       }
 
       return portfolios;
@@ -113,26 +123,41 @@ namespace AspnetCoreMvcFull.Services
       {
         foreach (var item in portfolio.Items)
         {
-          item.CurrentPrice = await GetCurrentPriceAsync(item.Symbol); // Implement this method to fetch the current price
+          var stockData = await GetCurrentPriceAsync(item.Symbol);
+          item.CurrentPrice = stockData.CurrentPrice;
+          item.Change = stockData.Change;
+          item.PercentChange = stockData.PercentChange;
+          item.HighPrice = stockData.HighPrice;
+          item.LowPrice = stockData.LowPrice;
+          item.OpenPrice = stockData.OpenPrice;
+          item.PreviousClosePrice = stockData.PreviousClosePrice;
         }
       }
 
       return portfolio;
     }
-    private async Task<decimal> GetCurrentPriceAsync(string symbol)
+    private async Task<StockData> GetCurrentPriceAsync(string symbol)
     {
       try
       {
-        return await _FinnhubService.GetRealTimePriceAsync(symbol);
-
+        var stockData = await _FinnhubService.GetRealTimePriceAsync(symbol);
+        return stockData;
       }
       catch (Exception ex)
       {
         // Log the exception (optional)
-         _logger.LogError(ex, $"Failed to get current price for symbol: {symbol}");
-        return 0;
+        _logger.LogError(ex, $"Failed to get current price for symbol: {symbol}");
+        return new StockData
+        {
+          CurrentPrice = 0,
+          Change = 0,
+          PercentChange = 0,
+          HighPrice = 0,
+          LowPrice = 0,
+          OpenPrice = 0,
+          PreviousClosePrice = 0
+        };
       }
-
     }
     public async Task AddPortfolioAsync(Portfolio portfolio)
     {

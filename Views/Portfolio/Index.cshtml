@@ -326,21 +326,31 @@
                                         <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
                                         <ul class="list-group list-group-flush">
                                             ${portfolio.items.map(item => `
-                                                <li class="list-group-item">
-                                                    <div class="d-flex justify-content-between">
-                                                        <div>
-                                                            <strong>Symbol:</strong> ${item.symbol} <br>
-                                                            <strong>Quantity:</strong> ${item.quantity} <br>
-                                                                 <strong>CurrentPrice:</strong> ${item.currentPrice} <br>
-                                                            <strong>Purchase Price:</strong> ${item.purchasePrice.toFixed(2)} <br>
-                                                            <strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)} <br>
-                                                        </div>
-                                                        <div>
-                                                            <button class="btn btn-primary btn-sm" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
-                                                            <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
-                                                        </div>
-                                                    </div>
-                                                </li>
+                                                   <li class="list-group-item">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <p><strong>Symbol:</strong> ${item.symbol}</p>
+                <p><strong>Quantity:</strong> ${item.quantity}</p>
+                <p><strong>Current Price:</strong> ${item.currentPrice}</p>
+                <p><strong>Change:</strong> ${item.change}</p>
+                <p>
+                    <strong>Percent Change:</strong>
+                    <small class="${item.percentChange > 0 ? 'text-success' : 'text-danger'} fw-medium">
+                        <i class='bx ${item.percentChange > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${item.percentChange}%
+                    </small>
+                </p>
+                <p><strong>High Price:</strong> ${item.highPrice}</p>
+                <p><strong>Low Price:</strong> ${item.lowPrice}</p>
+                <p><strong>Open Price:</strong> ${item.openPrice}</p>
+                <p><strong>Previous Close Price:</strong> ${item.previousClosePrice}</p>
+                <p><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
+            </div>
+            <div class="d-flex flex-column justify-content-start">
+                <button class="btn btn-primary btn-sm mb-1" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
+            </div>
+        </div>
+    </li>
                                             `).join('')}
                                         </ul>
                                     </div>
