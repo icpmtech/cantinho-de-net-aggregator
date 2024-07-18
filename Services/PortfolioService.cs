@@ -2,11 +2,16 @@ namespace AspnetCoreMvcFull.Services
 {
   using AspnetCoreMvcFull.Models.Dashboard;
   using AspnetCoreMvcFull.Models.Portfolio;
+  using ClosedXML.Excel;
   using MarketAnalyticHub.Models;
   using MarketAnalyticHub.Models.SetupDb;
   using Microsoft.EntityFrameworkCore;
+  using Microsoft.Graph;
+  using System;
   using System.Collections.Generic;
+  using System.IO;
   using System.Linq;
+  using System.Text;
   using System.Threading.Tasks;
 
   public class PortfolioService
@@ -132,6 +137,128 @@ namespace AspnetCoreMvcFull.Services
     {
       // Implement logic to fetch the current price of the symbol from a market data API
       return await Task.FromResult(100m); // Dummy implementation
+    }
+
+    public async Task<IEnumerable<Portfolio>> GetPortfoliosAsync()
+    {
+      return await _context.Portfolios.Include(p => p.Items).ToListAsync();
+    }
+
+    public string ExportToCsv(IEnumerable<Portfolio> portfolios)
+    {
+      var csvBuilder = new StringBuilder();
+      csvBuilder.AppendLine("PortfolioName,ItemSymbol,ItemQuantity,ItemPurchasePrice,ItemPurchaseDate");
+
+      foreach (var portfolio in portfolios)
+      {
+        foreach (var item in portfolio.Items)
+        {
+          csvBuilder.AppendLine($"{portfolio.Name},{item.Symbol},{item.Quantity},{item.PurchasePrice},{item.PurchaseDate}");
+        }
+      }
+
+      return csvBuilder.ToString();
+    }
+
+    public XLWorkbook ExportToExcel(IEnumerable<Portfolio> portfolios)
+    {
+      var workbook = new XLWorkbook();
+      var worksheet = workbook.Worksheets.Add("Portfolios");
+
+      worksheet.Cell(1, 1).Value = "PortfolioName";
+      worksheet.Cell(1, 2).Value = "ItemSymbol";
+      worksheet.Cell(1, 3).Value = "ItemQuantity";
+      worksheet.Cell(1, 4).Value = "ItemPurchasePrice";
+      worksheet.Cell(1, 5).Value = "ItemPurchaseDate";
+
+      var currentRow = 2;
+      foreach (var portfolio in portfolios)
+      {
+        foreach (var item in portfolio.Items)
+        {
+          worksheet.Cell(currentRow, 1).Value = portfolio.Name;
+          worksheet.Cell(currentRow, 2).Value = item.Symbol;
+          worksheet.Cell(currentRow, 3).Value = item.Quantity;
+          worksheet.Cell(currentRow, 4).Value = item.PurchasePrice;
+          worksheet.Cell(currentRow, 5).Value = item.PurchaseDate;
+          currentRow++;
+        }
+      }
+
+      return workbook;
+    }
+
+    public async Task ImportFromCsv(string csvData, string userId)
+    {
+      var lines = csvData.Split('\n').Skip(1); // Skip header line
+
+      foreach (var line in lines)
+      {
+        if (string.IsNullOrWhiteSpace(line)) continue;
+
+        var parts = line.Split(',');
+        var portfolioName = parts[0].Trim();
+        var itemSymbol = parts[1].Trim();
+        var itemQuantity = int.Parse(parts[2].Trim());
+        var itemPurchasePrice = decimal.Parse(parts[3].Trim());
+        var itemPurchaseDate = DateTime.Parse(parts[4].Trim());
+
+        var portfolio = await _context.Portfolios.Include(p => p.Items)
+                                                 .FirstOrDefaultAsync(p => p.Name == portfolioName && p.UserId == userId);
+
+        if (portfolio == null)
+        {
+          portfolio = new Portfolio { Name = portfolioName, UserId = userId, Items = new List<PortfolioItem>() };
+          _context.Portfolios.Add(portfolio);
+        }
+
+        portfolio.Items.Add(new PortfolioItem
+        {
+          Symbol = itemSymbol,
+          Quantity = itemQuantity,
+          PurchasePrice = itemPurchasePrice,
+          PurchaseDate = itemPurchaseDate
+        });
+      }
+
+      await _context.SaveChangesAsync();
+    }
+
+    public async Task ImportFromExcel(Stream stream, string userId)
+    {
+      using (var workbook = new XLWorkbook(stream))
+      {
+        var worksheet = workbook.Worksheets.First();
+        var rows = worksheet.RowsUsed().Skip(1); // Skip header row
+
+        foreach (var row in rows)
+        {
+          var portfolioName = row.Cell(1).GetString().Trim();
+          var itemSymbol = row.Cell(2).GetString().Trim();
+          var itemQuantity = row.Cell(3).GetValue<int>();
+          var itemPurchasePrice = row.Cell(4).GetValue<decimal>();
+          var itemPurchaseDate = row.Cell(5).GetDateTime();
+
+          var portfolio = await _context.Portfolios.Include(p => p.Items)
+                                                   .FirstOrDefaultAsync(p => p.Name == portfolioName && p.UserId == userId);
+
+          if (portfolio == null)
+          {
+            portfolio = new Portfolio { Name = portfolioName, UserId = userId, Items = new List<PortfolioItem>() };
+            _context.Portfolios.Add(portfolio);
+          }
+
+          portfolio.Items.Add(new PortfolioItem
+          {
+            Symbol = itemSymbol,
+            Quantity = itemQuantity,
+            PurchasePrice = itemPurchasePrice,
+            PurchaseDate = itemPurchaseDate
+          });
+        }
+
+        await _context.SaveChangesAsync();
+      }
     }
   }
 }

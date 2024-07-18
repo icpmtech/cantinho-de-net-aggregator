@@ -64,8 +64,14 @@
 </div>
 <div class="row">
     <div class="col-md-12">
-        <ul class="nav nav-pills flex-column flex-md-row mb-3">
+        <ul class="nav nav-pills d-flex  justify-content-between flex-md-row mb-3">
             <li class="nav-item"><button class="btn btn-primary" onclick="showAddPortfolioModal()">Add a new Portfolio</button></li>
+            <li class="nav-item"><button class="btn btn-success" onclick="exportPortfolios('xlsx')">Export Portfolios (Excel)</button></li>
+            <li class="nav-item"><button class="btn btn-success" onclick="exportPortfolios('csv')">Export Portfolios (CSV)</button></li>
+            <li class="nav-item">
+                <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
+                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
+            </li>
         </ul>
         <div class="card mb-4">
             <div class="card-body" id="portfolioList">
@@ -74,6 +80,8 @@
         </div>
     </div>
 </div>
+
+
 
 <!-- Add Portfolio Modal -->
 <div id="addPortfolioModal" class="modal fade" tabindex="-1" role="dialog">
@@ -243,20 +251,19 @@
             alert('Failed to load symbols');
         }
     }
-
     function renderPortfolioList(portfolios) {
         const portfolioList = document.getElementById('portfolioList');
         portfolioList.innerHTML = '';
         portfolios.forEach(portfolio => {
             const portfolioDiv = document.createElement('div');
-           
-            portfolioDiv.innerHTML = `  <h3 class="card-title">${portfolio.name}</h3>
+
+            portfolioDiv.innerHTML = `
+                <h3 class="card-title">${portfolio.name}</h3>
                 <div class="row">
                     <div class="col-lg-12 col-md-12 order-1">
                         <div class="row">
                             <div class="col-lg-6 col-md-12 col-6 mb-4">
                                 <div class="card">
-                                   
                                     <div class="card-body">
                                         <div class="card-title d-flex align-items-start justify-content-between">
                                             <div class="avatar flex-shrink-0">
@@ -268,17 +275,16 @@
                                                 </button>
                                                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
                                                     <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                                     <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Operations</a>
-                                                              <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name}');">Edit Portfolio</a>
-
-                                                     <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
+                                                    <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Operations</a>
+                                                    <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name}');">Edit Portfolio</a>
+                                                    <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
                                                 </div>
                                             </div>
                                         </div>
-                                            <span class="fw-medium d-block mb-1">Total Investment</span>
-                                            <h3 class="card-title mb-2"> € ${portfolio.totalInvestment.toFixed(3)}</h3>
+                                        <span class="fw-medium d-block mb-1">Total Investment</span>
+                                        <h3 class="card-title mb-2">€${portfolio.totalInvestment.toFixed(3)}</h3>
                                         <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
-                                         <canvas id="chart-${portfolio.id}"></canvas>
+                                        <canvas id="chart-${portfolio.id}"></canvas>
                                     </div>
                                 </div>
                             </div>
@@ -299,8 +305,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                            <span>Current Market Value</span>
-                                            <h3 class="card-title text-nowrap mb-1"> €${portfolio.currentMarketValue.toFixed(3)}</h3>
+                                        <span>Current Market Value</span>
+                                        <h3 class="card-title text-nowrap mb-1">€${portfolio.currentMarketValue.toFixed(3)}</h3>
                                         <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
                                         <ul class="list-group list-group-flush">
                                             ${portfolio.items.map(item => `
@@ -310,7 +316,7 @@
                                                             <strong>Symbol:</strong> ${item.symbol} <br>
                                                             <strong>Quantity:</strong> ${item.quantity} <br>
                                                             <strong>Purchase Price:</strong> ${item.purchasePrice.toFixed(2)} <br>
-                                                            <strong>Purchase Date:</strong> ${item.purchaseDate} <br>
+                                                            <strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)} <br>
                                                         </div>
                                                         <div>
                                                             <button class="btn btn-primary btn-sm" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
@@ -332,7 +338,10 @@
         });
     }
 
-
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
 
     function showAddPortfolioModal() {
         document.getElementById('addPortfolioForm').reset();
@@ -556,4 +565,48 @@
             }
         });
     }
+
+    async function exportPortfolios(fileType) {
+        const response = await fetch(`/api/Portfolio/Export?fileType=${fileType}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileType === 'xlsx' ? 'portfolios.xlsx' : 'portfolios.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('Failed to export portfolios');
+        }
+    }
+
+    async function importPortfolios(event) {
+        const file = event.target.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/Portfolio/Import', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            loadPortfolios();
+        } else {
+            alert('Failed to import portfolios');
+        }
+    }
+
+
+
+
 </script>
