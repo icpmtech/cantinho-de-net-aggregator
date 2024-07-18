@@ -8,7 +8,6 @@
     <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Portfolios"]
 </h4>
 
-@* ************** Content ************** *@
 <div class="row">
     <div class="col-lg-12 col-md-12 order-1">
         <div class="row">
@@ -71,6 +70,13 @@
             <li class="nav-item">
                 <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
                 <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
+            </li>
+            <li class="nav-item">
+                <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
+                    <option value="bar" selected>Bar</option>
+                    <option value="line">Line</option>
+                    <option value="pie">Pie</option>
+                </select>
             </li>
         </ul>
         <div class="card mb-4">
@@ -208,13 +214,22 @@
 
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         loadPortfolios();
         loadSymbols();
     });
-
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
+    function changeChartType(event) {
+        const chartType = event.target.value;
+        const portfolios = JSON.parse(document.getElementById('portfolioList').dataset.portfolios);
+        renderPortfolioList(portfolios, chartType);
+    }
     async function loadPortfolios() {
         // Show the loading spinner
         document.getElementById('loadingSpinner').style.display = 'block';
@@ -267,306 +282,154 @@
         }
     }
 
-    function renderPortfolioList(portfolios) {
+    function renderPortfolioList(portfolios, chartType = 'bar') {
         const portfolioList = document.getElementById('portfolioList');
+        portfolioList.dataset.portfolios = JSON.stringify(portfolios); // Save portfolios data for re-rendering
         portfolioList.innerHTML = '';
         portfolios.forEach(portfolio => {
             const portfolioDiv = document.createElement('div');
 
             portfolioDiv.innerHTML = `
-                <h3 class="card-title">${portfolio.name}</h3>
-                <div class="row">
-                    <div class="col-lg-12 col-md-12 order-1">
+                        <h3 class="card-title">${portfolio.name}</h3>
                         <div class="row">
-                            <div class="col-lg-6 col-md-12 col-6 mb-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="card-title d-flex align-items-start justify-content-between">
-                                            <div class="avatar flex-shrink-0">
-                                                <img src="/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                                                    <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                                    <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Operations</a>
-                                                    <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name}');">Edit Portfolio</a>
-                                                    <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
+                            <div class="col-lg-12 col-md-12 order-1">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-12 col-6 mb-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="card-title d-flex align-items-start justify-content-between">
+                                                    <div class="avatar flex-shrink-0">
+                                                        <img src="/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
+                                                    </div>
+                                                    <div class="dropdown">
+                                                        <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
+                                                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                                            <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Operations</a>
+                                                            <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name}');">Edit Portfolio</a>
+                                                            <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                                <span class="fw-medium d-block mb-1">Total Investment</span>
+                                                <h3 class="card-title mb-2">€${portfolio.totalInvestment.toFixed(3)}</h3>
+                                                <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
+                                                <canvas id="chart-${portfolio.id}"></canvas>
                                             </div>
                                         </div>
-                                        <span class="fw-medium d-block mb-1">Total Investment</span>
-                                        <h3 class="card-title mb-2">€${portfolio.totalInvestment.toFixed(3)}</h3>
-                                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
-                                        <canvas id="chart-${portfolio.id}"></canvas>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6 col-md-12 col-6 mb-4">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="card-title d-flex align-items-start justify-content-between">
-                                            <div class="avatar flex-shrink-0">
-                                                <img src="/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
-                                                    <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                                    <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                                    <div class="col-lg-6 col-md-12 col-6 mb-4">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <div class="card-title d-flex align-items-start justify-content-between">
+                                                    <div class="avatar flex-shrink-0">
+                                                        <img src="/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
+                                                    </div>
+                                                    <div class="dropdown">
+                                                        <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            <i class="bx bx-dots-vertical-rounded"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
+                                                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                                                        </div>
+                                                    </div>
                                                 </div>
+                                                <span>Current Market Value</span>
+                                                <h3 class="card-title text-nowrap mb-1">€${portfolio.currentMarketValue.toFixed(3)}</h3>
+                                                <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
+                                                <ul class="list-group list-group-flush">
+                                                    ${portfolio.items.map(item => `
+                                                           <li class="list-group-item">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p><strong>Symbol:</strong> ${item.symbol}</p>
+                        <p><strong>Quantity:</strong> ${item.quantity}</p>
+                        <p><strong>Current Price:</strong> ${item.currentPrice}</p>
+                        <p><strong>Change:</strong> ${item.change}</p>
+                        <p>
+                            <strong>Percent Change:</strong>
+                            <small class="${item.percentChange > 0 ? 'text-success' : 'text-danger'} fw-medium">
+                                <i class='bx ${item.percentChange > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${item.percentChange}%
+                            </small>
+                        </p>
+                        <p><strong>High Price:</strong> ${item.highPrice}</p>
+                        <p><strong>Low Price:</strong> ${item.lowPrice}</p>
+                        <p><strong>Open Price:</strong> ${item.openPrice}</p>
+                        <p><strong>Previous Close Price:</strong> ${item.previousClosePrice}</p>
+                        <p><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
+                    </div>
+                    <div class="d-flex flex-column justify-content-start">
+                        <button class="btn btn-primary btn-sm mb-1" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
+                    </div>
+                  <div class="mt-3">
+                                                        <div id="candlestick-chart-${item.id}" class="img-fluid"></div>
+                                                    </div>
+                </div>
+            </li>
+                                                    `).join('')}
+                                                </ul>
                                             </div>
                                         </div>
-                                        <span>Current Market Value</span>
-                                        <h3 class="card-title text-nowrap mb-1">€${portfolio.currentMarketValue.toFixed(3)}</h3>
-                                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
-                                        <ul class="list-group list-group-flush">
-                                            ${portfolio.items.map(item => `
-                                                   <li class="list-group-item">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <p><strong>Symbol:</strong> ${item.symbol}</p>
-                <p><strong>Quantity:</strong> ${item.quantity}</p>
-                <p><strong>Current Price:</strong> ${item.currentPrice}</p>
-                <p><strong>Change:</strong> ${item.change}</p>
-                <p>
-                    <strong>Percent Change:</strong>
-                    <small class="${item.percentChange > 0 ? 'text-success' : 'text-danger'} fw-medium">
-                        <i class='bx ${item.percentChange > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${item.percentChange}%
-                    </small>
-                </p>
-                <p><strong>High Price:</strong> ${item.highPrice}</p>
-                <p><strong>Low Price:</strong> ${item.lowPrice}</p>
-                <p><strong>Open Price:</strong> ${item.openPrice}</p>
-                <p><strong>Previous Close Price:</strong> ${item.previousClosePrice}</p>
-                <p><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
-            </div>
-            <div class="d-flex flex-column justify-content-start">
-                <button class="btn btn-primary btn-sm mb-1" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
-            </div>
-        </div>
-    </li>
-                                            `).join('')}
-                                        </ul>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-            `;
+                    `;
             portfolioList.appendChild(portfolioDiv);
-            renderChart(portfolio);
+            renderChart(portfolio, chartType);
+            portfolio.items.forEach(item => renderCandlestickChart(item.id, item.symbol));
         });
     }
+    async function renderCandlestickChart(itemId, symbol) {
+        const apiUrl = `/api/Portfolio/stock-candlestick-data?symbol=${symbol}`;
 
-    function formatDate(dateString) {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-    }
-
-    function showAddPortfolioModal() {
-        document.getElementById('addPortfolioForm').reset();
-        new bootstrap.Modal(document.getElementById('addPortfolioModal')).show();
-    }
-
-    function showEditPortfolioModal(id, name) {
-        document.getElementById('editPortfolioId').value = id;
-        document.getElementById('editPortfolioName').value = name;
-        new bootstrap.Modal(document.getElementById('editPortfolioModal')).show();
-    }
-
-    function showAddPortfolioItemModal(portfolioId) {
-        document.getElementById('addPortfolioItemForm').reset();
-        document.getElementById('portfolioId').value = portfolioId;
-        new bootstrap.Modal(document.getElementById('addPortfolioItemModal')).show();
-    }
-
-    async function showEditPortfolioItemModal(itemId) {
-        const response = await fetch(`/api/PortfolioItem/item/${itemId}`);
-        const item = await response.json();
-
+        const response = await fetch(apiUrl);
         if (response.ok) {
-            document.getElementById('editPortfolioItemId').value = item.id;
-            document.getElementById('portfolioeditPortfolioItemId').value = item.portfolioId;
-            document.getElementById('editItemSymbol').value = item.symbol;
-            document.getElementById('editItemQuantity').value = item.quantity;
-            document.getElementById('editItemPurchasePrice').value = item.purchasePrice;
-            const purchaseDate = new Date(item.purchaseDate);
-            const formattedDate = purchaseDate.toISOString().substring(0, 10);
-            document.getElementById('editItemPurchaseDate').value = formattedDate;
-            new bootstrap.Modal(document.getElementById('editPortfolioItemModal')).show();
-        } else {
-            alert('Failed to load portfolio item');
-        }
-    }
-
-    async function savePortfolioItem() {
-        const portfolioId = document.getElementById('portfolioId').value;
-        const symbol = document.getElementById('itemSymbol').value;
-        const quantity = document.getElementById('itemQuantity').value;
-        const purchasePrice = document.getElementById('itemPurchasePrice').value;
-        const purchaseDate = document.getElementById('itemPurchaseDate').value;
-        const response = await fetch('/api/PortfolioItem', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate })
-        });
-
-        if (response.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('addPortfolioItemModal')).hide();
-            loadPortfolios();
-        } else {
-            alert('Failed to save portfolio item');
-        }
-    }
-
-    async function deletePortfolioItem(id) {
-        const response = await fetch(`/api/PortfolioItem/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            loadPortfolios();
-        } else {
-            alert('Failed to delete portfolio item');
-        }
-    }
-
-    async function deletePortfolio(id) {
-        const response = await fetch(`/api/Portfolio/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (response.ok) {
-            loadPortfolios();
-        } else {
-            alert('Failed to delete portfolio');
-        }
-    }
-
-    document.getElementById('addPortfolioForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const name = document.getElementById('portfolioName').value;
-
-        const response = await fetch('/api/Portfolio', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name })
-        });
-
-        if (response.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('addPortfolioModal')).hide();
-            loadPortfolios();
-        } else {
-            alert('Failed to add portfolio');
-        }
-    });
-
-    document.getElementById('editPortfolioForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const id = document.getElementById('editPortfolioId').value;
-        const name = document.getElementById('editPortfolioName').value;
-
-        const response = await fetch(`/api/Portfolio/${id}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id, name })
-        });
-
-        if (response.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('editPortfolioModal')).hide();
-            loadPortfolios();
-        } else {
-            alert('Failed to edit portfolio');
-        }
-    });
-
-    document.getElementById('addPortfolioItemForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const portfolioId = document.getElementById('portfolioId').value;
-        const symbol = document.getElementById('itemSymbol').value;
-        const quantity = document.getElementById('itemQuantity').value;
-        const purchasePrice = document.getElementById('itemPurchasePrice').value;
-        const purchaseDate = document.getElementById('itemPurchaseDate').value;
-        const response = await fetch('/api/PortfolioItem', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate })
-        });
-
-        if (response.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('addPortfolioItemModal')).hide();
-            loadPortfolios();
-        } else {
-            alert('Failed to add portfolio item');
-        }
-    });
-
-    document.getElementById('editPortfolioItemForm').addEventListener('submit', async function (event) {
-        event.preventDefault();
-        const id = document.getElementById('editPortfolioItemId').value;
-        const portfolioId = document.getElementById('portfolioeditPortfolioItemId').value;
-        const symbol = document.getElementById('editItemSymbol').value; // Changed to editItemSymbol
-        const quantity = document.getElementById('editItemQuantity').value;
-        const purchasePrice = document.getElementById('editItemPurchasePrice').value;
-        const purchaseDate = document.getElementById('editItemPurchaseDate').value;
-
-        try {
-            const response = await fetch(`/api/PortfolioItem/${id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, id })
+            const data = await response.json();
+            const seriesData = data.map(item => {
+                return {
+                    x: new Date(item.date),
+                    y: [item.open, item.high, item.low, item.close]
+                };
             });
 
-            if (response.ok) {
-                bootstrap.Modal.getInstance(document.getElementById('editPortfolioItemModal')).hide();
-                loadPortfolios();
-            } else {
-                const errorData = await response.json();
-                showError(errorData.message || 'Failed to edit portfolio item');
-            }
-        } catch (error) {
-            showError('An error occurred while editing the portfolio item');
+            var options = {
+                series: [{
+                    data: seriesData
+                }],
+                chart: {
+                    type: 'candlestick',
+                    height: 350
+                },
+                title: {
+                    text: symbol,
+                    align: 'left'
+                },
+                xaxis: {
+                    type: 'datetime'
+                },
+                yaxis: {
+                    tooltip: {
+                        enabled: true
+                    }
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector(`#candlestick-chart-${itemId}`), options);
+            chart.render();
+        } else {
+            console.error('Error fetching data:', response.statusText);
         }
-    });
-
-    function showError(message) {
-        const errorElement = document.createElement('div');
-        errorElement.className = 'alert alert-danger';
-        errorElement.textContent = message;
-        document.getElementById('editPortfolioItemForm').prepend(errorElement);
-
-        setTimeout(() => {
-            errorElement.remove();
-        }, 5000);
     }
 
-    function renderChart(portfolio) {
+    function renderChart(portfolio, chartType) {
         const ctx = document.getElementById(`chart-${portfolio.id}`).getContext('2d');
         new Chart(ctx, {
-            type: 'bar',
+            type: chartType,
             data: {
                 labels: portfolio.items.map(item => item.symbol),
                 datasets: [{
