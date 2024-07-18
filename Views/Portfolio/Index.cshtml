@@ -11,7 +11,7 @@
 <div class="row">
     <div class="col-lg-12 col-md-12 order-1">
         <div class="row">
-            <div class="col-lg-6 col-md-12 col-6 mb-4">
+            <div class="col-lg-6 col-md-12 col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title d-flex align-items-start justify-content-between">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 col-md-12 col-6 mb-4">
+            <div class="col-lg-6 col-md-12 col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title d-flex align-items-start justify-content-between">
@@ -63,22 +63,22 @@
 
 <div class="row">
     <div class="col-md-12">
-        <ul class="nav nav-pills d-flex  justify-content-between flex-md-row mb-3">
-            <li class="nav-item"><button class="btn btn-primary" onclick="showAddPortfolioModal()">Add a new Portfolio</button></li>
-            <li class="nav-item"><button class="btn btn-success" onclick="exportPortfolios('xlsx')">Export Portfolios (Excel)</button></li>
-            <li class="nav-item"><button class="btn btn-success" onclick="exportPortfolios('csv')">Export Portfolios (CSV)</button></li>
-            <li class="nav-item">
+        <div class="row mb-3">
+            <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex flex-column flex-md-row justify-content-start">
+                <button class="btn btn-primary mb-2 mb-md-0 me-md-2" onclick="showAddPortfolioModal()">Add a new Portfolio</button>
+                <button class="btn btn-success mb-2 mb-md-0 me-md-2 " onclick="exportPortfolios('xlsx')">Export Portfolios (Excel)</button>
+                <button class="btn btn-success mb-2 mb-md-0" onclick="exportPortfolios('csv')">Export Portfolios (CSV)</button>
+            </div>
+            <div class="col-12 col-md-6 d-flex flex-column flex-md-row justify-content-end">
                 <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
-                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
-            </li>
-            <li class="nav-item">
-                <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
+                <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
+                <select id="chartTypeSelect" class="form-select">
                     <option value="bar" selected>Bar</option>
                     <option value="line">Line</option>
                     <option value="candlestick">Candlestick</option>
                 </select>
-            </li>
-        </ul>
+            </div>
+        </div>
         <!-- Date Range Selector -->
         <div class="d-flex justify-content-between mb-3">
             <div class="btn-group" role="group" aria-label="Date Range">
@@ -230,6 +230,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     loadPortfolios();
     loadSymbols();
+    loadDashboardData();
 });
 
 function formatDate(dateString) {
@@ -237,6 +238,45 @@ function formatDate(dateString) {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
+    async function fetchData(url, method = 'GET', body = null) {
+        const options = {
+            method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        if (body) {
+            options.body = JSON.stringify(body);
+        }
+
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
+    async function loadDashboardData() {
+        try {
+            const data = await fetchData('/api/Dashboards/data');
+            updateDashboard(data);
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    function updateDashboard(data) {
+        document.getElementById('profit').innerText = `€${data.profit?.toFixed(2)}`;
+        document.getElementById('dividends').innerText = `€${data.dividends?.toFixed(2)}`;
+         // document.getElementById('totalRevenue').innerText = `$${data.totalRevenue?.toFixed(2)}`;
+        // document.getElementById('growth').innerText = `${data.growth}%`;
+        // document.getElementById('portfolioGrowth').innerText = `${data.portfolioGrowth}% Portfolio Growth`;
+        //  document.getElementById('yearlyReport').innerText = `$${data.yearlyReport?.toFixed(2)}`;
+
+
+    }
 
 
 function changeChartType(event) {
@@ -342,9 +382,9 @@ function renderPortfolioList(portfolios, chartType = 'bar', dateRange = 'all') {
         portfolioDiv.innerHTML = `
 <h3 class="card-title">${portfolio.name}</h3>
 <div class="row">
-    <div class="col-lg-12 col-md-12 order-1">
+           <div class="col-12 order-1 mb-3">
         <div class="row">
-            <div class="col-lg-6 col-md-12 col-6 mb-4">
+                 <div class="col-lg-6 col-md-12 col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title d-flex align-items-start justify-content-between">
@@ -370,7 +410,7 @@ function renderPortfolioList(portfolios, chartType = 'bar', dateRange = 'all') {
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 col-md-12 col-6 mb-4">
+                <div class="col-lg-6 col-md-12 col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title d-flex align-items-start justify-content-between">
@@ -414,7 +454,7 @@ function renderPortfolioList(portfolios, chartType = 'bar', dateRange = 'all') {
                                   
                                     <div class="mt-3">
                                         <div id="candlestick-chart-${item.id}" class="img-fluid"></div>
-                                             <div class="btn-group mb-3" role="group" aria-label="Date Range">
+                                                 <div class="btn-group  mb-3" role="group" aria-label="Date Range">
                                                         <button type="button" class="btn btn-outline-primary btn-sm " onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', '1d')">1 Day</button>
                                                         <button type="button" class="btn btn-outline-primary btn-sm" onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', '5d')">5 Days</button>
                                                         <button type="button" class="btn btn-outline-primary btn-sm " onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', '1m')">1 Month</button>
