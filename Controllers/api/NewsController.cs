@@ -316,5 +316,28 @@ namespace MarketAnalyticHub.Controllers.api
 
       return Ok(news);
     }
+
+    [HttpPost("get-associated-companies")]
+    public async Task<IActionResult> GetAssociatedCompanies([FromBody] string[] keywords)
+    {
+      var companies = await _openAIService.GetAssociatedCompaniesAsync(keywords);
+      var parsedCompanies = ParseResponse(companies);
+      return Ok(new { companies = parsedCompanies });
+    }
+    private static object ParseResponse(string responseText)
+    {
+      var lines = responseText.Split('\n').Where(line => !string.IsNullOrWhiteSpace(line));
+      return lines.Select(line =>
+      {
+        var parts = line.Split('|').Select(part => part.Trim()).ToArray();
+        return new
+        {
+          Name = parts.ElementAtOrDefault(0),
+          Association = parts.ElementAtOrDefault(1),
+          Sector = parts.ElementAtOrDefault(2),
+          Market = parts.ElementAtOrDefault(3)
+        };
+      }).ToList();
+    }
   }
 }

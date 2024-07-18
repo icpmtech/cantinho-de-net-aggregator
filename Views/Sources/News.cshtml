@@ -36,6 +36,7 @@
                     <th>Title</th>
                     <th>Short Description</th>
                     <th>Link</th>
+                    <th>Keywords</th>
                     <th>Date</th>
                     <th>Actions</th>
                 </tr>
@@ -59,7 +60,10 @@
                             <span class="description-display text-wrap">@news.Description</span>
                         </td>
                         <td>
-                            <span class="link-display  text-wrap"><a href="@news.Link" target="_blank">@news.Link</a></span>
+                            <span class="link-display text-wrap"><a href="@news.Link" target="_blank">@news.Link</a></span>
+                        </td>
+                        <td>
+                            <span class="keywords-display text-wrap"> @(news.Keywords != null ? string.Join(", ", news.Keywords) : string.Empty)</span>
                         </td>
                         <td>
                             <span class="date-display">@news.Date</span>
@@ -76,6 +80,9 @@
                                     <a class="dropdown-item" href="javascript:void(0);" onclick="deleteNews(@news.Id)">
                                         <i class="bx bx-trash me-1"></i> Delete
                                     </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="openAssociateCompaniesModal(@news.Id)">
+                                        <i class="bx bx-link me-1"></i> Associate Companies
+                                    </a>
                                 </div>
                             </div>
                         </td>
@@ -85,6 +92,7 @@
         </table>
     </div>
 </div>
+
 <div class="card">
     <h5 class="card-header">Pagination</h5>
 
@@ -144,46 +152,20 @@
         </ul>
     </nav>
 </div>
-<!-- Edit News Modal -->
-<div class="modal fade" id="editNewsModal" tabindex="-1" aria-labelledby="editNewsModalLabel" aria-hidden="true">
+
+<!-- Associate Companies Modal -->
+<div class="modal fade" id="associateCompaniesModal" tabindex="-1" aria-labelledby="associateCompaniesModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editNewsModalLabel">Edit News</h5>
+                <h5 class="modal-title" id="associateCompaniesModalLabel">Associate Companies</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <input type="hidden" id="editNewsId">
-                <div class="mb-3">
-                    <label for="editNewsCategory" class="form-label">Category</label>
-                    <select id="editNewsCategory" class="form-select">
-                        <option value="Economy">Economy</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Energy and Environment">Energy and Environment</option>
-                        <!-- Add other categories as needed -->
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label for="editNewsTitle" class="form-label">Title</label>
-                    <input type="text" class="form-control" id="editNewsTitle" required>
-                </div>
-                <div class="mb-3">
-                    <label for="editNewsDescription" class="form-label">Description</label>
-                    <textarea class="form-control" id="editNewsDescription" required></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="editNewsLink" class="form-label">Link</label>
-                    <input type="url" class="form-control" id="editNewsLink" required>
-                </div>
-                <div class="mb-3">
-                    <label for="editNewsDate" class="form-label">Date</label>
-                    <input type="date" class="form-control" id="editNewsDate" required>
-                </div>
+                <!-- Table will be dynamically inserted here -->
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="saveNews()">Save changes</button>
             </div>
         </div>
     </div>
@@ -227,6 +209,7 @@
                 if (!isNaN(sentiment)) {
                     element.innerHTML = getStars(sentiment); // Use innerHTML to insert HTML content
                 } else {
+
                     console.error(`Invalid sentiment value: ${sentimentText}`);
                 }
             });
@@ -290,20 +273,6 @@
                 })
                 .catch(error => console.error('Error fetching news item:', error));
         }
-        // Function to handle search input enter key press
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                searchNews();
-            }
-        }
-
-        // Function to search news items
-        function searchNews() {
-            var searchQuery = document.getElementById("searchInput").value;
-            var url = new URL(window.location.href);
-            url.searchParams.set('searchQuery', searchQuery);
-            window.location.href = url.toString();
-        }
 
         // Function to save the news item
         function saveNews() {
@@ -363,6 +332,81 @@
                     .catch(error => console.error('Error deleting news item:', error));
             }
         }
+
+        function markdownTableToHtml(markdown) {
+            // Split the markdown input into lines
+            const lines = markdown.trim().split('\n');
+
+            // Extract the header row
+            const headerLine = lines[0].trim();
+            const headers = headerLine.split('|').map(header => header.trim()).filter(header => header);
+
+            // Extract the separator row
+            const separatorLine = lines[1].trim();
+
+            // Extract the data rows
+            const dataLines = lines.slice(2);
+
+            // Create the HTML table elements
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
+
+            // Populate the table header
+            const headerRow = document.createElement('tr');
+            headers.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+
+            // Populate the table body
+            dataLines.forEach(line => {
+                const row = document.createElement('tr');
+                const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell);
+
+                cells.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    row.appendChild(td);
+                });
+                tbody.appendChild(row);
+            });
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+
+            return table;
+        }
+
+        function openAssociateCompaniesModal(newsId) {
+
+            fetch(`/api/analizer/get-associated-companies/${newsId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+                .then(response => response.json())
+                .then(data => {
+                    const markdownTable = data.markdownTable; // Assuming API returns a markdown table string
+                    const modalBody = document.querySelector('#associateCompaniesModal .modal-body');
+
+                    // Convert markdown table to HTML
+                    const htmlTable = markdownTableToHtml(markdownTable);
+
+                    // Clear existing content and append the new table
+                    modalBody.innerHTML = '';
+                    modalBody.appendChild(htmlTable);
+
+                    // Show the modal
+                    var associateCompaniesModal = new bootstrap.Modal(document.getElementById('associateCompaniesModal'));
+                    associateCompaniesModal.show();
+                })
+                .catch(error => console.error('Error fetching associated companies:', error));
+        }
+
     </script>
 }
 
