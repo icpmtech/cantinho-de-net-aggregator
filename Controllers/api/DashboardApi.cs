@@ -93,9 +93,9 @@ namespace MarketAnalyticHub.Controllers.api
 
       return Ok(profitData);
     }
-    // GET: api/Dashboards/order-statistics
-    [HttpGet("symbol-statistics")]
-    public async Task<IActionResult> GetSymbolsStatistics()
+    // GET: api/Dashboards/symbols-statistics
+    [HttpGet("symbols-statistics")]
+    public async Task<IActionResult> GetSymbolsV1Statistics()
     {
       // Replace the hardcoded data with actual data retrieval logic
       var orderStatistics = new

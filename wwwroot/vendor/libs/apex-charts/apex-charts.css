@@ -754,8 +754,8 @@
   filter: drop-shadow(0 2px 4px rgba(161, 172, 184, 0.4));
 }
 
-#orderStatisticsChart .apexcharts-xcrosshairs.apexcharts-active,
-#orderStatisticsChart .apexcharts-ycrosshairs.apexcharts-active,
+#symbolStatisticsChart .apexcharts-xcrosshairs.apexcharts-active,
+#symbolStatisticsChart .apexcharts-ycrosshairs.apexcharts-active,
 #totalRevenueChart .apexcharts-xcrosshairs.apexcharts-active,
 #totalRevenueChart .apexcharts-ycrosshairs.apexcharts-active,
 #expensesBarChart .apexcharts-xcrosshairs.apexcharts-active,

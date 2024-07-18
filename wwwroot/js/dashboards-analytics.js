@@ -30,11 +30,11 @@
       series: [
         {
           name: '2021',
-          data: data.Series2021
+          data: data.series2021
         },
         {
           name: '2020',
-          data: data.Series2020
+          data: data.series2020
         }
       ],
       chart: {
@@ -292,7 +292,7 @@
     loadRevenueData();
     loadGrowthData();
     loadProfitData();
-    loadOrderStatisticsData();
+    loadSymbolsStatisticsData();
     loadIncomeData();
     loadExpensesData();
   });
@@ -312,7 +312,7 @@
     const growthChartEl = document.querySelector('#growthChart');
 
     const growthChartOptions = {
-      series: [data.Growth],
+      series: [data.growth],
       labels: ['Growth'],
       chart: {
         height: 240,
@@ -442,7 +442,7 @@
       },
       series: [
         {
-          data: data.Data
+          data: data.data
         }
       ],
       xaxis: {
@@ -471,18 +471,18 @@
   // Symbols Statistics Chart
   // --------------------------------------------------------------------
   // Define a function to load the order statistics data from the backend
-  async function loadOrderStatisticsData() {
+  async function loadSymbolsStatisticsData() {
     try {
       const data = await fetchData('/api/Dashboards/symbols-statistics');
-      updateOrderStatisticsChart(data);
+      updatesymbolStatisticsChart(data);
     } catch (error) {
       alert('Failed to load order statistics data: ' + error.message);
     }
   }
 
   // Function to update the order statistics chart with the fetched data
-  function updateOrderStatisticsChart(data) {
-    const chartOrderStatistics = document.querySelector('#orderStatisticsChart');
+  function updatesymbolStatisticsChart(data) {
+    const chartOrderStatistics = document.querySelector('#symbolStatisticsChart');
 
     const orderChartConfig = {
       chart: {
@@ -490,8 +490,8 @@
         width: 130,
         type: 'donut'
       },
-      labels: data.Labels,
-      series: data.Series,
+      labels: data.labels,
+      series: data.series,
       colors: ['#696CFF', '#AFB8E3', '#FFC4B1', '#B8E0D2'], // replace with actual colors
       stroke: {
         width: 5,
@@ -578,7 +578,7 @@
     const incomeChartConfig = {
       series: [
         {
-          data: data.Series
+          data: data.series
         }
       ],
       chart: {
@@ -642,7 +642,7 @@
         }
       },
       xaxis: {
-        categories: data.Categories,
+        categories: data.categories,
         axisBorder: {
           show: false
         },
@@ -688,7 +688,7 @@
   function updateExpensesChart(data) {
     const weeklyExpensesEl = document.querySelector('#expensesOfWeek');
     const weeklyExpensesConfig = {
-      series: [data.Series],
+      series: [data.series],
       chart: {
         width: 60,
         height: 60,
