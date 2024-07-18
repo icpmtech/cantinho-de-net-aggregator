@@ -8,7 +8,6 @@
     <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Portfolios"]
 </h4>
 
-
 @* ************** Content ************** *@
 <div class="row">
     <div class="col-lg-12 col-md-12 order-1">
@@ -62,6 +61,7 @@
         </div>
     </div>
 </div>
+
 <div class="row">
     <div class="col-md-12">
         <ul class="nav nav-pills d-flex  justify-content-between flex-md-row mb-3">
@@ -74,14 +74,21 @@
             </li>
         </ul>
         <div class="card mb-4">
-            <div class="card-body" id="portfolioList">
-                <!-- Portfolio list will be rendered here -->
+            <div class="card-body">
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <!-- Portfolio List -->
+                <div id="portfolioList" style="display: none;">
+                    <!-- Portfolio list will be rendered here -->
+                </div>
             </div>
         </div>
     </div>
 </div>
-
-
 
 <!-- Add Portfolio Modal -->
 <div id="addPortfolioModal" class="modal fade" tabindex="-1" role="dialog">
@@ -209,6 +216,10 @@
     });
 
     async function loadPortfolios() {
+        // Show the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('portfolioList').style.display = 'none';
+
         const response = await fetch('/api/Portfolio', {
             method: 'GET',
             headers: {
@@ -222,6 +233,10 @@
         } else {
             alert('Failed to load portfolios');
         }
+
+        // Hide the loading spinner and show the portfolio list
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('portfolioList').style.display = 'block';
     }
 
     async function loadSymbols() {
@@ -251,6 +266,7 @@
             alert('Failed to load symbols');
         }
     }
+
     function renderPortfolioList(portfolios) {
         const portfolioList = document.getElementById('portfolioList');
         portfolioList.innerHTML = '';
@@ -495,6 +511,7 @@
             alert('Failed to add portfolio item');
         }
     });
+
     document.getElementById('editPortfolioItemForm').addEventListener('submit', async function (event) {
         event.preventDefault();
         const id = document.getElementById('editPortfolioItemId').value;
@@ -535,7 +552,6 @@
             errorElement.remove();
         }, 5000);
     }
-
 
     function renderChart(portfolio) {
         const ctx = document.getElementById(`chart-${portfolio.id}`).getContext('2d');
@@ -606,8 +622,4 @@
             alert('Failed to import portfolios');
         }
     }
-
-
-
-
 </script>
