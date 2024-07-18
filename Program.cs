@@ -26,6 +26,7 @@ using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.IO;
 using AspnetCoreMvcFull;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
@@ -91,6 +92,10 @@ builder.Services.AddScoped<AspnetCoreMvcFull.Services.ISymbolService, AspnetCore
 builder.Services.AddScoped<IQualitativeEventService, QualitativeEventService>();
 builder.Services.AddScoped<ISymbolRepository, SymbolRepository>();
 builder.Services.AddScoped<SymbolService>();
+builder.Services.AddHttpClient<AlphaVantageService>();
+builder.Services.AddHttpClient<FinnhubService>();
+builder.Services.AddHttpClient<BarchartService>();
+
 builder.Services.AddSingleton<OpenAIService>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();

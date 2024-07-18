@@ -3,6 +3,7 @@ namespace AspnetCoreMvcFull.Services
   using AspnetCoreMvcFull.Models.Dashboard;
   using AspnetCoreMvcFull.Models.Portfolio;
   using ClosedXML.Excel;
+  using MarketAnalyticHub.Controllers;
   using MarketAnalyticHub.Models;
   using MarketAnalyticHub.Models.SetupDb;
   using Microsoft.EntityFrameworkCore;
@@ -18,9 +19,14 @@ namespace AspnetCoreMvcFull.Services
   {
     private readonly ApplicationDbContext _context;
 
-    public PortfolioService(ApplicationDbContext context)
+    private readonly FinnhubService _FinnhubService;
+    private readonly ILogger<PortfolioService> _logger;
+
+    public PortfolioService(ApplicationDbContext context, FinnhubService finnhubService, ILogger<PortfolioService> logger)
     {
       _context = context;
+      _FinnhubService = finnhubService;
+      _logger = logger;
     }
     public PortfolioStatisticsDto GetPortfolioStatistics()
     {
@@ -113,7 +119,21 @@ namespace AspnetCoreMvcFull.Services
 
       return portfolio;
     }
+    private async Task<decimal> GetCurrentPriceAsync(string symbol)
+    {
+      try
+      {
+        return await _FinnhubService.GetRealTimePriceAsync(symbol);
 
+      }
+      catch (Exception ex)
+      {
+        // Log the exception (optional)
+         _logger.LogError(ex, $"Failed to get current price for symbol: {symbol}");
+        return 0;
+      }
+
+    }
     public async Task AddPortfolioAsync(Portfolio portfolio)
     {
       _context.Portfolios.Add(portfolio);
@@ -133,11 +153,7 @@ namespace AspnetCoreMvcFull.Services
       await _context.SaveChangesAsync();
     }
 
-    private async Task<decimal> GetCurrentPriceAsync(string symbol)
-    {
-      // Implement logic to fetch the current price of the symbol from a market data API
-      return await Task.FromResult(100m); // Dummy implementation
-    }
+    
 
     public async Task<IEnumerable<Portfolio>> GetPortfoliosAsync()
     {
