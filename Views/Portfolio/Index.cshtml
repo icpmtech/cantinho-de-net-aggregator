@@ -11,7 +11,7 @@
 <div class="row">
     <div class="col-lg-12 col-md-12 order-1">
         <div class="row">
-            <div class="col-lg-6 col-md-12 col-12 mb-4">
+            <div class="col-lg-4 col-md-6 col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title d-flex align-items-start justify-content-between">
@@ -34,7 +34,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-6 col-md-12 col-12 mb-4">
+            <div class="col-lg-4 col-md-6 col-12 mb-4">
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title d-flex align-items-start justify-content-between">
@@ -57,6 +57,28 @@
                     </div>
                 </div>
             </div>
+            <div class="col-lg-4 col-md-12 col-12 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="card-title d-flex align-items-start justify-content-between">
+                            <div class="avatar flex-shrink-0">
+                                <img src="~/img/icons/unicons/chart.png" alt="chart" class="rounded">
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn p-0" type="button" id="cardOpt9" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt9">
+                                    <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                    <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="fw-medium d-block mb-1">Total Portfolio Percentage</span>
+                        <h3 id="totalPortfolioPercentage" class="card-title mb-2">0%</h3>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -72,14 +94,14 @@
             <div class="col-12 col-md-6 d-flex flex-column flex-md-row justify-content-end">
                 <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
                 <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
-                <select id="chartTypeSelect" class="form-select">
+                <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
                     <option value="bar" selected>Bar</option>
                     <option value="line">Line</option>
                     <option value="candlestick">Candlestick</option>
                 </select>
             </div>
         </div>
-    
+
         <div class="card mb-4">
             <div class="card-body">
                 <!-- Loading Spinner -->
@@ -217,16 +239,17 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    loadPortfolios();
-    loadSymbols();
-    loadDashboardData();
-});
+    document.addEventListener('DOMContentLoaded', function () {
+        loadPortfolios();
+        loadSymbols();
+        loadDashboardData();
+        loadTotalPortfolioPercentage();
+    });
 
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
-}
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    }
 
     async function fetchData(url, method = 'GET', body = null) {
         const options = {
@@ -257,109 +280,111 @@ function formatDate(dateString) {
         }
     }
 
+    async function loadTotalPortfolioPercentage() {
+        try {
+            const data = await fetchData('/api/Portfolio/total-percentage');
+            document.getElementById('totalPortfolioPercentage').innerText = `${data.totalPercentage?.toFixed(2)}%`;
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
     function updateDashboard(data) {
-        document.getElementById('profit').innerText = `€${data.profit?.toFixed(2)}`;
-        document.getElementById('dividends').innerText = `€${data.dividends?.toFixed(2)}`;
-         // document.getElementById('totalRevenue').innerText = `$${data.totalRevenue?.toFixed(2)}`;
-        // document.getElementById('growth').innerText = `${data.growth}%`;
-        // document.getElementById('portfolioGrowth').innerText = `${data.portfolioGrowth}% Portfolio Growth`;
-        //  document.getElementById('yearlyReport').innerText = `$${data.yearlyReport?.toFixed(2)}`;
-
-
+        document.getElementById('profit').innerText = `$${data.profit?.toFixed(2)}`;
+        document.getElementById('dividends').innerText = `$${data.dividends?.toFixed(2)}`;
     }
 
-
-function changeChartType(event) {
-    const chartType = event.target.value;
-    const portfolios = JSON.parse(document.getElementById('portfolioList').dataset.portfolios);
-    const dateRange = document.getElementById('portfolioList').dataset.dateRange;
-    renderPortfolioList(portfolios, chartType, dateRange);
-}
-
-async function loadPortfolios(dateRange = '1y') {
-    // Show the loading spinner
-    document.getElementById('loadingSpinner').style.display = 'block';
-    document.getElementById('portfolioList').style.display = 'none';
-    
-    const { startDate, endDate } = getDateRange(dateRange);
-
-    const response = await fetch(`/api/Portfolio?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-
-    if (response.ok) {
-        const portfolios = await response.json();
-        renderPortfolioList(portfolios, 'bar', dateRange); // Pass dateRange to renderPortfolioList
-    } else {
-        alert('Failed to load portfolios');
+    function changeChartType(event) {
+        const chartType = event.target.value;
+        const portfolios = JSON.parse(document.getElementById('portfolioList').dataset.portfolios);
+        const dateRange = document.getElementById('portfolioList').dataset.dateRange;
+        renderPortfolioList(portfolios, chartType, dateRange);
     }
 
-    // Hide the loading spinner and show the portfolio list
-    document.getElementById('loadingSpinner').style.display = 'none';
-    document.getElementById('portfolioList').style.display = 'block';
-}
+    async function loadPortfolios(dateRange = '1y') {
+        // Show the loading spinner
+        document.getElementById('loadingSpinner').style.display = 'block';
+        document.getElementById('portfolioList').style.display = 'none';
 
-function getDateRange(range) {
-    const endDate = new Date();
-    const startDate = new Date();
+        const { startDate, endDate } = getDateRange(dateRange);
 
-    switch (range) {
-        case '1d':
-            startDate.setDate(endDate.getDate() - 1);
-            break;
-        case '5d':
-            startDate.setDate(endDate.getDate() - 5);
-            break;
-        case '1m':
-            startDate.setMonth(endDate.getMonth() - 1);
-            break;
-        case '1y':
-            startDate.setFullYear(endDate.getFullYear() - 1);
-            break;
-        case '5y':
-            startDate.setFullYear(endDate.getFullYear() - 5);
-            break;
-        case 'all':
-                startDate.setFullYear(1900);
-                break
-        default:
-            startDate.setFullYear(2000); // Or any default start date
-            break;
-    }
-
-    return { startDate, endDate };
-}
-
-async function loadSymbols() {
-    const response = await fetch('/api/Symbols', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
-
-    if (response.ok) {
-        const symbols = await response.json();
-        const symbolSelect = document.getElementById('itemSymbol');
-        const editSymbolSelect = document.getElementById('editItemSymbol');
-        symbols.forEach(symbol => {
-            const option = document.createElement('option');
-            option.value = symbol;
-            option.text = symbol;
-            symbolSelect.appendChild(option);
-
-            const editOption = document.createElement('option');
-            editOption.value = symbol;
-            editOption.text = symbol;
-            editSymbolSelect.appendChild(editOption);
+        const response = await fetch(`/api/Portfolio?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
-    } else {
-        alert('Failed to load symbols');
+
+        if (response.ok) {
+            const portfolios = await response.json();
+            renderPortfolioList(portfolios, 'bar', dateRange); // Pass dateRange to renderPortfolioList
+        } else {
+            alert('Failed to load portfolios');
+        }
+
+        // Hide the loading spinner and show the portfolio list
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('portfolioList').style.display = 'block';
     }
-}
+
+    function getDateRange(range) {
+        const endDate = new Date();
+        const startDate = new Date();
+
+        switch (range) {
+            case '1d':
+                startDate.setDate(endDate.getDate() - 1);
+                break;
+            case '5d':
+                startDate.setDate(endDate.getDate() - 5);
+                break;
+            case '1m':
+                startDate.setMonth(endDate.getMonth() - 1);
+                break;
+            case '1y':
+                startDate.setFullYear(endDate.getFullYear() - 1);
+                break;
+            case '5y':
+                startDate.setFullYear(endDate.getFullYear() - 5);
+                break;
+            case 'all':
+                startDate.setFullYear(1900);
+                break;
+            default:
+                startDate.setFullYear(2000); // Or any default start date
+                break;
+        }
+
+        return { startDate, endDate };
+    }
+
+    async function loadSymbols() {
+        const response = await fetch('/api/Symbols', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const symbols = await response.json();
+            const symbolSelect = document.getElementById('itemSymbol');
+            const editSymbolSelect = document.getElementById('editItemSymbol');
+            symbols.forEach(symbol => {
+                const option = document.createElement('option');
+                option.value = symbol;
+                option.text = symbol;
+                symbolSelect.appendChild(option);
+
+                const editOption = document.createElement('option');
+                editOption.value = symbol;
+                editOption.text = symbol;
+                editSymbolSelect.appendChild(editOption);
+            });
+        } else {
+            alert('Failed to load symbols');
+        }
+    }
 
     function renderPortfolioList(portfolios, chartType = 'bar', dateRange = 'all') {
         const portfolioList = document.getElementById('portfolioList');
@@ -409,8 +434,8 @@ async function loadSymbols() {
                                     </div>
                                     <div class="ms-3">
                                         <span>Current Market Value</span>
-                                        <h3>€${portfolio.currentMarketValue.toFixed(3)}</h3>
-                                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
+                                        <h3>€${portfolio.currentMarketValue?.toFixed(3)}</h3>
+                                                <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> ${portfolio.portfolioPercentage}%</small>
                                     </div>
                                 </div>
                                 <button class="btn btn-outline-primary btn-sm mt-3" data-bs-toggle="collapse" data-bs-target="#details-${portfolio.id}" aria-expanded="false" aria-controls="details-${portfolio.id}">
@@ -477,191 +502,176 @@ async function loadSymbols() {
         chart.style.display = chart.style.display === 'none' ? 'block' : 'none';
     }
 
+    function renderCandlestickChart(itemId, symbol, chartType = 'candlestick', dateRange = '1y') {
+        const { startDate, endDate } = getDateRange(dateRange);
 
-    // Function to hide chart
-    function showMore(portfolioItemId) {
-        const detailsCanvas = document.getElementById(`details-${portfolioItemId}`);
-        if (detailsCanvas) {
-            detailsCanvas.style.display = detailsCanvas.style.display === 'none' ? 'block' : 'none';
-        }
+        const apiUrl = `/api/Portfolio/historical-data?symbol=${symbol}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`;
+
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                let seriesData;
+
+                if (chartType === 'candlestick') {
+                    seriesData = data.map(item => ({
+                        x: new Date(item.date),
+                        y: [item.open, item.high, item.low, item.close]
+                    }));
+                } else {
+                    seriesData = data.map(item => ({
+                        x: new Date(item.date),
+                        y: item.close
+                    }));
+                }
+
+                let options = {
+                    series: [{
+                        data: seriesData
+                    }],
+                    chart: {
+                        type: chartType,
+                        height: 350
+                    },
+                    title: {
+                        text: symbol,
+                        align: 'left'
+                    },
+                    xaxis: {
+                        type: 'datetime'
+                    },
+                    yaxis: {
+                        tooltip: {
+                            enabled: true
+                        }
+                    }
+                };
+
+                // Adjust options for bar and line charts
+                if (chartType === 'bar') {
+                    options.plotOptions = {
+                        bar: {
+                            horizontal: false,
+                        }
+                    };
+                    options.dataLabels = {
+                        enabled: false
+                    };
+                } else if (chartType === 'line') {
+                    options.stroke = {
+                        curve: 'smooth'
+                    };
+                    options.dataLabels = {
+                        enabled: false
+                    };
+                }
+
+                const chart = new ApexCharts(document.querySelector(`#candlestick-chart-${itemId}`), options);
+                chart.render();
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
     }
 
-    // Function to hide chart
-    function hideChart(portfolioId) {
-        const chartCanvas = document.getElementById(`chart-${portfolioId}`);
-        if (chartCanvas) {
-            chartCanvas.style.display = chartCanvas.style.display === 'none' ? 'block' : 'none';
-        }
-    }
-async function renderCandlestickChart(itemId, symbol, chartType = 'candlestick', dateRange = '1y') {
-    const { startDate, endDate } = getDateRange(dateRange);
-
-    const apiUrl = `/api/Portfolio/historical-data?symbol=${symbol}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`;
-
-    const response = await fetch(apiUrl);
-    if (response.ok) {
-        const data = await response.json();
-        let seriesData;
+    function renderChart(portfolio, chartType) {
+        const ctx = document.getElementById(`chart-${portfolio.id}`).getContext('2d');
 
         if (chartType === 'candlestick') {
-            seriesData = data?.map(item => ({
-                x: new Date(item.date),
-                y: [item.open, item.high, item.low, item.close]
-            }));
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: portfolio.items.map(item => item.symbol),
+                    datasets: [{
+                        label: 'Current Market Value',
+                        data: portfolio.items.map(item => item.currentMarketValue),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Total Investment',
+                        data: portfolio.items.map(item => item.totalInvestment),
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
         } else {
-            seriesData = data?.map(item => ({
-                x: new Date(item.date),
-                y: item.close
-            }));
-        }
-
-        let options = {
-            series: [{
-                data: seriesData
-            }],
-            chart: {
+            new Chart(ctx, {
                 type: chartType,
-                height: 350
-            },
-            title: {
-                text: symbol,
-                align: 'left'
-            },
-            xaxis: {
-                type: 'datetime'
-            },
-            yaxis: {
-                tooltip: {
-                    enabled: true
-                }
-            }
-        };
-
-        // Adjust options for bar and line charts
-        if (chartType === 'bar') {
-            options.plotOptions = {
-                bar: {
-                    horizontal: false,
-                }
-            };
-            options.dataLabels = {
-                enabled: false
-            };
-        } else if (chartType === 'line') {
-            options.stroke = {
-                curve: 'smooth'
-            };
-            options.dataLabels = {
-                enabled: false
-            };
-        }
-
-        var chart = new ApexCharts(document.querySelector(`#candlestick-chart-${itemId}`), options);
-        chart.render();
-    } else {
-        console.error('Error fetching data:', response.statusText);
-    }
-}
-
-function renderChart(portfolio, chartType) {
-    const ctx = document.getElementById(`chart-${portfolio.id}`).getContext('2d');
-
-    if (chartType === 'candlestick') {
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: portfolio.items.map(item => item.symbol),
-                datasets: [{
-                    label: 'Current Market Value',
-                    data: portfolio.items.map(item => item.currentMarketValue),
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }, {
-                    label: 'Total Investment',
-                    data: portfolio.items.map(item => item.totalInvestment),
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+                data: {
+                    labels: portfolio.items.map(item => item.symbol),
+                    datasets: [{
+                        label: 'Current Market Value',
+                        data: portfolio.items.map(item => item.currentMarketValue),
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }, {
+                        label: 'Total Investment',
+                        data: portfolio.items.map(item => item.totalInvestment),
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
                     }
                 }
-            }
-        });
-    } else {
-        new Chart(ctx, {
-            type: chartType,
-            data: {
-                labels: portfolio.items.map(item => item.symbol),
-                datasets: [{
-                    label: 'Current Market Value',
-                    data: portfolio.items.map(item => item.currentMarketValue),
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }, {
-                    label: 'Total Investment',
-                    data: portfolio.items.map(item => item.totalInvestment),
-                    backgroundColor: 'rgba(153, 102, 255, 0.2)',
-                    borderColor: 'rgba(153, 102, 255, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-}
-
-async function exportPortfolios(fileType) {
-    const response = await fetch(`/api/Portfolio/Export?fileType=${fileType}`, {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json'
+            });
         }
-    });
-
-    if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.style.display = 'none';
-        a.href = url;
-        a.download = fileType === 'xlsx' ? 'portfolios.xlsx' : 'portfolios.csv';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-    } else {
-        alert('Failed to export portfolios');
     }
-}
 
-async function importPortfolios(event) {
-    const file = event.target.files[0];
-    const formData = new FormData();
-    formData.append('file', file);
+    async function exportPortfolios(fileType) {
+        const response = await fetch(`/api/Portfolio/Export?fileType=${fileType}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
 
-    const response = await fetch('/api/Portfolio/Import', {
-        method: 'POST',
-        body: formData
-    });
-
-    if (response.ok) {
-        loadPortfolios();
-    } else {
-        alert('Failed to import portfolios');
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = fileType === 'xlsx' ? 'portfolios.xlsx' : 'portfolios.csv';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        } else {
+            alert('Failed to export portfolios');
+        }
     }
-}
+
+    async function importPortfolios(event) {
+        const file = event.target.files[0];
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch('/api/Portfolio/Import', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (response.ok) {
+            loadPortfolios();
+        } else {
+            alert('Failed to import portfolios');
+        }
+    }
 
     function showAddPortfolioModal() {
         document.getElementById('addPortfolioForm').reset();
@@ -819,7 +829,7 @@ async function importPortfolios(event) {
         event.preventDefault();
         const id = document.getElementById('editPortfolioItemId').value;
         const portfolioId = document.getElementById('portfolioeditPortfolioItemId').value;
-        const symbol = document.getElementById('editItemSymbol').value; // Changed to editItemSymbol
+        const symbol = document.getElementById('editItemSymbol').value;
         const quantity = document.getElementById('editItemQuantity').value;
         const purchasePrice = document.getElementById('editItemPurchasePrice').value;
         const purchaseDate = document.getElementById('editItemPurchaseDate').value;
@@ -855,6 +865,4 @@ async function importPortfolios(event) {
             errorElement.remove();
         }, 5000);
     }
-
-
 </script>

@@ -1,4 +1,6 @@
+using AspnetCoreMvcFull.Models;
 using AspnetCoreMvcFull.Models.Portfolio;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class Portfolio
 {
@@ -14,4 +16,8 @@ public class Portfolio
 
   // Total Dividend Income for the entire portfolio
   public decimal TotalDividendIncome => Items?.Sum(item => item.TotalDividendIncome) ?? 0;
+  [NotMapped]
+  public PortfolioPercentageResponse PortfolioPercentageResponse { get; internal set; }
+  [NotMapped]
+  public double PortfolioPercentage { get; internal set; }
 }

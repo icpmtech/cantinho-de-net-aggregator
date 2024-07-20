@@ -1,6 +1,6 @@
+using AspnetCoreMvcFull.Models;
 using AspnetCoreMvcFull.Models.Portfolio;
 using AspnetCoreMvcFull.Services;
-using DocumentFormat.OpenXml.InkML;
 using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Authorization;
@@ -9,165 +9,223 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-[Route("api/[controller]")]
-[Authorize]
-public class PortfolioController : Controller
+namespace AspnetCoreMvcFull.Controllers
 {
-  private readonly PortfolioService _portfolioService;
-  private readonly UserManager<ApplicationUser> _userManager;
-  private readonly IYahooFinanceService _yahooFinanceService;
-
-
-  public PortfolioController(PortfolioService portfolioService, UserManager<ApplicationUser> userManager, IYahooFinanceService yahooFinanceService)
+  [Route("api/[controller]")]
+  [Authorize]
+  public class PortfolioController : Controller
   {
-    _portfolioService = portfolioService;
-    _userManager = userManager;
-    _yahooFinanceService = yahooFinanceService;
-  }
+    private readonly PortfolioService _portfolioService;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IYahooFinanceService _yahooFinanceService;
 
-  [HttpGet("historical-data")]
-  public async Task<IActionResult> GetHistoricalData([FromQuery] string symbol, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
-  {
-    if (string.IsNullOrEmpty(symbol))
+    public PortfolioController(PortfolioService portfolioService, UserManager<ApplicationUser> userManager, IYahooFinanceService yahooFinanceService)
     {
-      return BadRequest("Symbol is required.");
+      _portfolioService = portfolioService;
+      _userManager = userManager;
+      _yahooFinanceService = yahooFinanceService;
     }
 
-    var data = await _yahooFinanceService.GetHistoricalDataAsync(symbol, startDate, endDate);
-
-    return Ok(data);
-  }
-
-  [HttpGet("stock-price")]
-  public async Task<IActionResult> GetRealTimePrice([FromQuery] string symbol)
-  {
-    if (string.IsNullOrEmpty(symbol))
+    [HttpGet("historical-data")]
+    public async Task<IActionResult> GetHistoricalData([FromQuery] string symbol, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
-      return BadRequest("Symbol is required.");
-    }
-
-    var data = await _yahooFinanceService.GetRealTimePriceAsync(symbol);
-
-    return Ok(data);
-  }
-  [HttpGet("Export")]
-  public async Task<IActionResult> Export([FromQuery] string fileType)
-  {
-    var userId = _userManager.GetUserId(User);
-    var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
-
-    if (fileType == "csv")
-    {
-      var csvData = _portfolioService.ExportToCsv(portfolios);
-      var bytes = System.Text.Encoding.UTF8.GetBytes(csvData);
-      return File(bytes, "text/csv", "portfolios.csv");
-    }
-    else
-    {
-      using (var workbook = _portfolioService.ExportToExcel(portfolios))
+      if (string.IsNullOrEmpty(symbol))
       {
-        using (var stream = new MemoryStream())
-        {
-          workbook.SaveAs(stream);
-          var content = stream.ToArray();
-          return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "portfolios.xlsx");
-        }
+        return BadRequest("Symbol is required.");
       }
+
+      var data = await _yahooFinanceService.GetHistoricalDataAsync(symbol, startDate, endDate);
+
+      return Ok(data);
     }
-  }
 
-  [HttpPost("Import")]
-  public async Task<IActionResult> Import([FromForm] IFormFile file)
-  {
-    if (file == null || file.Length == 0)
-      return BadRequest("File is empty");
-
-    var userId = _userManager.GetUserId(User);
-    var extension = Path.GetExtension(file.FileName).ToLower();
-
-    using (var stream = new MemoryStream())
+    [HttpGet("stock-price")]
+    public async Task<IActionResult> GetRealTimePrice([FromQuery] string symbol)
     {
-      await file.CopyToAsync(stream);
-      stream.Position = 0;
-
-      if (extension == ".csv")
+      if (string.IsNullOrEmpty(symbol))
       {
-        using (var reader = new StreamReader(stream))
-        {
-          var csvData = await reader.ReadToEndAsync();
-          await _portfolioService.ImportFromCsv(csvData, userId);
-        }
+        return BadRequest("Symbol is required.");
       }
-      else if (extension == ".xlsx")
+
+      var data = await _yahooFinanceService.GetRealTimePriceAsync(symbol);
+
+      return Ok(data);
+    }
+
+    [HttpGet("Export")]
+    public async Task<IActionResult> Export([FromQuery] string fileType)
+    {
+      var userId = _userManager.GetUserId(User);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+      if (fileType == "csv")
       {
-        await _portfolioService.ImportFromExcel(stream, userId);
+        var csvData = _portfolioService.ExportToCsv(portfolios);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(csvData);
+        return File(bytes, "text/csv", "portfolios.csv");
       }
       else
       {
-        return BadRequest("Unsupported file format");
+        using (var workbook = _portfolioService.ExportToExcel(portfolios))
+        {
+          using (var stream = new MemoryStream())
+          {
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "portfolios.xlsx");
+          }
+        }
       }
     }
 
-    return Ok();
-  }
-
-  [HttpGet]
-  public async Task<IActionResult> GetPortfolios()
-  {
-    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
-    return Ok(portfolios);
-  }
-
-  [HttpGet("{id}")]
-  public async Task<IActionResult> GetPortfolio(int id)
-  {
-    var portfolio = await _portfolioService.GetPortfolioByIdAsync(id);
-    if (portfolio == null)
+    [HttpPost("Import")]
+    public async Task<IActionResult> Import([FromForm] IFormFile file)
     {
-      return NotFound();
-    }
-    return Ok(portfolio);
-  }
+      if (file == null || file.Length == 0)
+        return BadRequest("File is empty");
 
-  [HttpPost]
-  public async Task<IActionResult> AddPortfolio([FromBody] Portfolio portfolio)
-  {
-    portfolio.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    await _portfolioService.AddPortfolioAsync(portfolio);
-    return CreatedAtAction(nameof(GetPortfolio), new { id = portfolio.Id }, portfolio);
-  }
+      var userId = _userManager.GetUserId(User);
+      var extension = Path.GetExtension(file.FileName).ToLower();
 
+      using (var stream = new MemoryStream())
+      {
+        await file.CopyToAsync(stream);
+        stream.Position = 0;
 
+        if (extension == ".csv")
+        {
+          using (var reader = new StreamReader(stream))
+          {
+            var csvData = await reader.ReadToEndAsync();
+            await _portfolioService.ImportFromCsv(csvData, userId);
+          }
+        }
+        else if (extension == ".xlsx")
+        {
+          await _portfolioService.ImportFromExcel(stream, userId);
+        }
+        else
+        {
+          return BadRequest("Unsupported file format");
+        }
+      }
 
-
-  [HttpPut("{id}")]
-  public async Task<IActionResult> UpdatePortfolio(int id, [FromBody] Portfolio portfolio)
-  {
-    portfolio.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    if (id != portfolio.Id)
-    {
-      return BadRequest();
-    }
-    await _portfolioService.UpdatePortfolioAsync(portfolio);
-    return NoContent();
-  }
-  [HttpGet("stock-candlestick-data")]
-  public async Task<IActionResult> GetCandlestickData([FromQuery] string symbol, [FromQuery] string resolution = "D", [FromQuery] int count = 5)
-  {
-    if (string.IsNullOrEmpty(symbol))
-    {
-      return BadRequest("Symbol is required.");
+      return Ok();
     }
 
-    var data = await _portfolioService.GetCandlestickDataAsync(symbol, resolution, count);
+    [HttpGet]
+    public async Task<IActionResult> GetPortfolios()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+      foreach (var portfolio in portfolios)
+      {
+        var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
+        portfolio.PortfolioPercentage += portfolioPercentageResponse.ItemPercentages.Sum(ip => ip.Percentage);
+      }
+      return Ok(portfolios);
+    }
 
-    return Ok(data);
-  }
-  [HttpDelete("{id}")]
-  public async Task<IActionResult> DeletePortfolio(int id)
-  {
-    await _portfolioService.DeletePortfolioAsync(id);
-    return NoContent();
+    [HttpPost("CalculateOriginalMarketValue")]
+    public ActionResult<MarketValueResponse> CalculateOriginalMarketValue([FromBody] MarketValueRequest request)
+    {
+      if (request == null)
+      {
+        return BadRequest("Invalid request");
+      }
+
+      var originalMarketValue = _portfolioService.CalculateOriginalMarketValue(request.CurrentMarketValue, request.PercentageIncrease);
+      return Ok(new MarketValueResponse { OriginalMarketValue = originalMarketValue });
+    }
+
+    [HttpPost("CalculatePercentageChange")]
+    public ActionResult<PercentageChangeResponse> CalculatePercentageChange([FromBody] PercentageChangeRequest request)
+    {
+      if (request == null)
+      {
+        return BadRequest("Invalid request");
+      }
+
+      var percentageChange = _portfolioService.CalculatePercentageChange(request.OriginalMarketValue, request.CurrentMarketValue);
+      return Ok(new PercentageChangeResponse { PercentageChange = percentageChange });
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetPortfolio(int id)
+    {
+      var portfolio = await _portfolioService.GetPortfolioByIdAsync(id);
+      if (portfolio == null)
+      {
+        return NotFound();
+      }
+      return Ok(portfolio);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> AddPortfolio([FromBody] Portfolio portfolio)
+    {
+      portfolio.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      await _portfolioService.AddPortfolioAsync(portfolio);
+      return CreatedAtAction(nameof(GetPortfolio), new { id = portfolio.Id }, portfolio);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdatePortfolio(int id, [FromBody] Portfolio portfolio)
+    {
+      portfolio.UserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (id != portfolio.Id)
+      {
+        return BadRequest();
+      }
+      await _portfolioService.UpdatePortfolioAsync(portfolio);
+      return NoContent();
+    }
+
+    [HttpGet("stock-candlestick-data")]
+    public async Task<IActionResult> GetCandlestickData([FromQuery] string symbol, [FromQuery] string resolution = "D", [FromQuery] int count = 5)
+    {
+      if (string.IsNullOrEmpty(symbol))
+      {
+        return BadRequest("Symbol is required.");
+      }
+
+      var data = await _portfolioService.GetCandlestickDataAsync(symbol, resolution, count);
+
+      return Ok(data);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeletePortfolio(int id)
+    {
+      await _portfolioService.DeletePortfolioAsync(id);
+      return NoContent();
+    }
+    [HttpPost("calculateportfoliopercentages")]
+    public async Task<ActionResult<PortfolioPercentageResponse>> CalculatePortfolioPercentages([FromBody] int portfolioId)
+    {
+      var portfolio = await _portfolioService.GetPortfolioByIdAsync(portfolioId);
+      if (portfolio == null)
+      {
+        return NotFound("Portfolio not found");
+      }
+
+      var response = _portfolioService.CalculatePortfolioPercentages(portfolio);
+      return Ok(response);
+    }
+    [HttpGet("total-percentage")]
+    public async Task<IActionResult> GetTotalPortfolioPercentage()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+      double totalPercentage = 0;
+      foreach (var portfolio in portfolios)
+      {
+        var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
+        totalPercentage += portfolioPercentageResponse.ItemPercentages.Sum(ip => ip.Percentage);
+      }
+
+      return Ok(new { TotalPercentage = totalPercentage });
+    }
   }
 }

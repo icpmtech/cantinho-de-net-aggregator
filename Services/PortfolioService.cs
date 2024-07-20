@@ -8,7 +8,7 @@ namespace AspnetCoreMvcFull.Services
   using MarketAnalyticHub.Models;
   using MarketAnalyticHub.Models.SetupDb;
   using Microsoft.EntityFrameworkCore;
-  using Microsoft.Graph;
+  using Microsoft.Extensions.Logging;
   using System;
   using System.Collections.Generic;
   using System.IO;
@@ -19,7 +19,6 @@ namespace AspnetCoreMvcFull.Services
   public class PortfolioService
   {
     private readonly ApplicationDbContext _context;
-
     private readonly FinnhubService _FinnhubService;
     private readonly ILogger<PortfolioService> _logger;
 
@@ -29,18 +28,21 @@ namespace AspnetCoreMvcFull.Services
       _FinnhubService = finnhubService;
       _logger = logger;
     }
+
+    // Existing methods
+
     public PortfolioStatisticsDto GetPortfolioStatistics()
     {
       // Fetch and calculate portfolio statistics
       var totalValue = 42820.00;
       var totalSymbols = 8258;
       var items = new List<PortfolioItemDto>
-        {
-            new PortfolioItemDto { Category = "Electronic", Description = "Mobile, Earbuds, TV", Value = 82500.00 },
-            new PortfolioItemDto { Category = "Fashion", Description = "T-shirt, Jeans, Shoes", Value = 23800.00 },
-            new PortfolioItemDto { Category = "Decor", Description = "Fine Art, Dining", Value = 849000.00 },
-            new PortfolioItemDto { Category = "Sports", Description = "Football, Cricket Kit", Value = 9900.00 }
-        };
+            {
+                new PortfolioItemDto { Category = "Electronic", Description = "Mobile, Earbuds, TV", Value = 82500.00 },
+                new PortfolioItemDto { Category = "Fashion", Description = "T-shirt, Jeans, Shoes", Value = 23800.00 },
+                new PortfolioItemDto { Category = "Decor", Description = "Fine Art, Dining", Value = 849000.00 },
+                new PortfolioItemDto { Category = "Sports", Description = "Football, Cricket Kit", Value = 9900.00 }
+            };
       var chartData = new ChartDataDto
       {
         Labels = items.Select(i => i.Category).ToList(),
@@ -86,38 +88,36 @@ namespace AspnetCoreMvcFull.Services
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
     {
       var portfolios = await _context.Portfolios
-                                   .Include(p => p.Items)
-                                   .ThenInclude(pi => pi.Dividends)
-                                    .Where(p => p.UserId == userId)
-                                                .ToListAsync();
+                                     .Include(p => p.Items)
+                                     .ThenInclude(pi => pi.Dividends)
+                                     .Where(p => p.UserId == userId)
+                                     .ToListAsync();
 
       // Update current prices and calculate fields
       foreach (var portfolio in portfolios)
       {
-        
-          foreach (var item in portfolio.Items)
-          {
-            var stockData = await GetCurrentPriceAsync(item.Symbol);
-            item.CurrentPrice = (decimal)stockData.CurrentPrice;
-            item.Change = (decimal)stockData.Change;
-            item.PercentChange = (decimal)stockData.PercentChange;
-            item.HighPrice = (decimal)stockData.HighPrice;
-            item.LowPrice = (decimal)stockData.LowPrice;
-            item.OpenPrice = (decimal)stockData.OpenPrice;
-            item.PreviousClosePrice = (decimal)stockData.PreviousClosePrice;
-          } // Implement this method to fetch the current price
-        
+        foreach (var item in portfolio.Items)
+        {
+          var stockData = await GetCurrentPriceAsync(item.Symbol);
+          item.CurrentPrice = (decimal)stockData.CurrentPrice;
+          item.Change = (decimal)stockData.Change;
+          item.PercentChange = (decimal)stockData.PercentChange;
+          item.HighPrice = (decimal)stockData.HighPrice;
+          item.LowPrice = (decimal)stockData.LowPrice;
+          item.OpenPrice = (decimal)stockData.OpenPrice;
+          item.PreviousClosePrice = (decimal)stockData.PreviousClosePrice;
+        }
       }
-     
+
       return portfolios;
     }
-  
+
     public async Task<Portfolio> GetPortfolioByIdAsync(int id)
     {
       var portfolio = await _context.Portfolios
-                                   .Include(p => p.Items)
-                                   .ThenInclude(pi => pi.Dividends)
-                                                .FirstOrDefaultAsync(p => p.Id == id);
+                                    .Include(p => p.Items)
+                                    .ThenInclude(pi => pi.Dividends)
+                                    .FirstOrDefaultAsync(p => p.Id == id);
 
       if (portfolio != null)
       {
@@ -136,6 +136,7 @@ namespace AspnetCoreMvcFull.Services
 
       return portfolio;
     }
+
     private async Task<StockDataFinHub> GetCurrentPriceAsync(string symbol)
     {
       try
@@ -159,6 +160,7 @@ namespace AspnetCoreMvcFull.Services
         };
       }
     }
+
     public async Task AddPortfolioAsync(Portfolio portfolio)
     {
       _context.Portfolios.Add(portfolio);
@@ -177,8 +179,6 @@ namespace AspnetCoreMvcFull.Services
       _context.Portfolios.Remove(portfolio);
       await _context.SaveChangesAsync();
     }
-
-    
 
     public async Task<IEnumerable<Portfolio>> GetPortfoliosAsync()
     {
@@ -318,6 +318,37 @@ namespace AspnetCoreMvcFull.Services
       }
     }
 
-  }
+    // New Method to Calculate Original Market Value
+    public double CalculateOriginalMarketValue(double currentMarketValue, double percentageIncrease)
+    {
+      return currentMarketValue / (1 + (percentageIncrease / 100));
+    }
 
+    // New Method to Calculate Percentage Change
+    public double CalculatePercentageChange(double originalMarketValue, double currentMarketValue)
+    {
+      return ((currentMarketValue - originalMarketValue) / originalMarketValue) * 100;
+    }
+    // New Method to Calculate Portfolio Item Percentages
+    public PortfolioPercentageResponse CalculatePortfolioPercentages(Portfolio portfolio)
+    {
+      if (portfolio == null || portfolio.Items == null || !portfolio.Items.Any())
+        throw new ArgumentException("Invalid portfolio");
+
+      var totalMarketValue = portfolio.Items.Sum(item => item.CurrentPrice * item.Quantity);
+
+      var itemPercentages = portfolio.Items.Select(item => new PortfolioItemPercentage
+      {
+        Symbol = item.Symbol,
+        Percentage = (double)(((item.CurrentPrice * item.Quantity) / totalMarketValue) * 100)
+      }).ToList();
+
+      return new PortfolioPercentageResponse
+      {
+        PortfolioId = portfolio.Id,
+        TotalMarketValue = (double)totalMarketValue,
+        ItemPercentages = itemPercentages
+      };
+    }
+  }
 }
