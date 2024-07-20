@@ -8,7 +8,30 @@
     <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Portfolios"]
 </h4>
 <div class="row">
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
+    <div class="col-lg-6 col-md-6 col-12 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <div class="card-title d-flex align-items-start justify-content-between">
+                    <div class="avatar flex-shrink-0">
+                        <img src="~/img/icons/unicons/chart-success.png" alt="chart" class="rounded">
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn p-0" type="button" id="cardOpt9" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bx bx-dots-vertical-rounded"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt9">
+                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+                        </div>
+                    </div>
+                </div>
+                <span class="fw-medium d-block mb-1">@Localizer["Profit"]</span>
+                <h3 id="totalDifferenceValue" class="card-title mb-2">$0</h3>
+                <small class="fw-medium"><i id="totalDifferenceIcon" class='bx bx-up-arrow-alt'></i> <span id="totalDifferencePercentage">€0</span></small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-12 mb-4">
         <div class="card">
             <div class="card-body">
                 <div class="card-title d-flex align-items-start justify-content-between">
@@ -27,79 +50,38 @@
                 </div>
                 <span class="fw-medium d-block mb-1">@Localizer["Total Market Value"]</span>
                 <h3 id="totalMarketValue" class="card-title mb-2">$0</h3>
+                <small class="fw-medium"><i class='bx bx-cube'></i> </small>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <div class="card-title d-flex align-items-start justify-content-between">
-                    <div class="avatar flex-shrink-0">
-                        <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
-                </div>
-                <span>@Localizer["Total Cust Market Value"]</span>
-                <h3 id="totalCustMarketValue" class="card-title text-nowrap mb-1">$0</h3>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-12 col-12 mb-4">
-        <div class="card">
-            <div class="card-body">
-                <div class="card-title d-flex align-items-start justify-content-between">
-                    <div class="avatar flex-shrink-0">
-                        <img src="~/img/icons/unicons/chart.png" alt="chart" class="rounded">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt9" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt9">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
-                </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Total Difference Value"]</span>
-                <h3 id="totalDifferenceValue" class="card-title mb-2">$0</h3>
-                <small class="fw-medium"><i id="totalDifferenceIcon" class='bx bx-up-arrow-alt'></i> <span id="totalDifferencePercentage">0%</span></small>
-            </div>
-        </div>
-    </div>
+  
+ 
 </div>
 
 <div class="row">
     <div class="col-lg-12 col-md-12 order-1">
         <div class="row">
-            <div class="col-lg-4 col-md-6 col-12 mb-4">
+            <div class="col-lg-4 col-md-12 col-12 mb-4">
+               
                 <div class="card">
                     <div class="card-body">
                         <div class="card-title d-flex align-items-start justify-content-between">
                             <div class="avatar flex-shrink-0">
-                                <img src="~/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
+                                <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
                             </div>
                             <div class="dropdown">
-                                <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     <i class="bx bx-dots-vertical-rounded"></i>
                                 </button>
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
+                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
                                     <a class="dropdown-item" href="javascript:void(0);">View More</a>
                                     <a class="dropdown-item" href="javascript:void(0);">Delete</a>
                                 </div>
                             </div>
                         </div>
-                        <span class="fw-medium d-block mb-1">Profit</span>
-                        <h3 id="profit" class="card-title mb-2">$12,628</h3>
-                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
+                        <span>@Localizer["Total Cust Market Value"]</span>
+                        <h3 id="totalCustMarketValue" class="card-title text-nowrap mb-1">€0</h3>
+                        <small class="fw-medium"><i class='bx bx-cube'></i> </small>
                     </div>
                 </div>
             </div>
@@ -121,8 +103,8 @@
                             </div>
                         </div>
                         <span>Dividends</span>
-                        <h3 id="dividends" class="card-title text-nowrap mb-1">$4,679</h3>
-                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
+                        <h3 id="dividends" class="card-title text-nowrap mb-1">€0</h3>
+                        <small class="text-success fw-medium"><i class='bx bx-cube'></i></small>
                     </div>
                 </div>
             </div>
@@ -144,7 +126,8 @@
                             </div>
                         </div>
                         <span class="fw-medium d-block mb-1">Total Portfolio Percentage</span>
-                        <h3 id="totalPortfolioPercentage" class="card-title mb-2">0%</h3>
+                        <h3 id="totalPortfolioPercentage" class="card-title mb-2">€0</h3>
+                          <small class="fw-medium"><i class='bx bx-cube'></i> </small>
                     </div>
                 </div>
             </div>
@@ -435,7 +418,7 @@
     }
 
     function updateDashboard(data) {
-        document.getElementById('profit').innerText = `$${data.profit?.toFixed(2)}`;
+        //document.getElementById('profit').innerText = `$${data.profit?.toFixed(2)}`;
         document.getElementById('dividends').innerText = `$${data.dividends?.toFixed(2)}`;
     }
 
@@ -566,7 +549,7 @@
                                     <div class="ms-3">
                                         <span class="fw-medium d-block">Total Investment</span>
                                         <h3>€${portfolio.totalInvestment.toFixed(3)}</h3>
-                                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
+                                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +€0</small>
                                     </div>
                                 </div>
                                 <button class="btn btn-outline-primary btn-sm mt-3" onclick="toggleChart(${portfolio.id})">Toggle Chart</button>
