@@ -121,7 +121,7 @@ namespace AspnetCoreMvcFull.Controllers
       foreach (var portfolio in portfolios)
       {
         var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
-        portfolio.PortfolioPercentage += portfolioPercentageResponse.ItemPercentages.Sum(ip => ip.Percentage);
+        portfolio.PortfolioPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
       }
       return Ok(portfolios);
     }
@@ -222,7 +222,7 @@ namespace AspnetCoreMvcFull.Controllers
       foreach (var portfolio in portfolios)
       {
         var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
-        totalPercentage += portfolioPercentageResponse.ItemPercentages.Sum(ip => ip.Percentage);
+        totalPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
       }
 
       return Ok(new { TotalPercentage = totalPercentage });

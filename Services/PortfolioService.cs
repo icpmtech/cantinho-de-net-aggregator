@@ -21,11 +21,13 @@ namespace AspnetCoreMvcFull.Services
     private readonly ApplicationDbContext _context;
     private readonly FinnhubService _FinnhubService;
     private readonly ILogger<PortfolioService> _logger;
+    private readonly IYahooFinanceService _yahooFinanceService;
 
-    public PortfolioService(ApplicationDbContext context, FinnhubService finnhubService, ILogger<PortfolioService> logger)
+    public PortfolioService(ApplicationDbContext context, FinnhubService finnhubService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger)
     {
       _context = context;
       _FinnhubService = finnhubService;
+      _yahooFinanceService = yahooFinanceService;
       _logger = logger;
     }
 
@@ -335,18 +337,36 @@ namespace AspnetCoreMvcFull.Services
       if (portfolio == null || portfolio.Items == null || !portfolio.Items.Any())
         throw new ArgumentException("Invalid portfolio");
 
-      var totalMarketValue = portfolio.Items.Sum(item => item.CurrentPrice * item.Quantity);
+      var totalCustMarketValue = portfolio.Items.Sum(item => item.PurchasePrice * item.Quantity);
+      var totalMarketValue = portfolio.Items.Sum(item => _yahooFinanceService.GetRealTimePriceAsync(item.Symbol).Result.CurrentPrice * item.Quantity);
 
-      var itemPercentages = portfolio.Items.Select(item => new PortfolioItemPercentage
-      {
-        Symbol = item.Symbol,
-        Percentage = (double)(((item.CurrentPrice * item.Quantity) / totalMarketValue) * 100)
+      var totalDifferenceValue = totalMarketValue - (double)totalCustMarketValue;
+      var totalDifferencePercentage = (totalDifferenceValue / (double)totalCustMarketValue) * 100;
+
+      var itemPercentages = portfolio.Items.Select(item => {
+        var currentPrice = _yahooFinanceService.GetRealTimePriceAsync(item.Symbol).Result.CurrentPrice;
+        var currentMarketValue = currentPrice * item.Quantity;
+        var customMarketValue = item.PurchasePrice * item.Quantity;
+        var differenceValue = currentMarketValue - (double)customMarketValue;
+        var differencePercentage = ((currentMarketValue - (double)customMarketValue) / (double)customMarketValue) * 100;
+
+        return new PortfolioItemPercentage
+        {
+          Symbol = item.Symbol,
+          CurrentPercentage = (currentMarketValue / totalMarketValue) * 100,
+          CustomPercentage = (double)((customMarketValue / totalCustMarketValue) * 100),
+          DifferenceValue = differenceValue,
+          DifferencePercentage = differencePercentage
+        };
       }).ToList();
 
       return new PortfolioPercentageResponse
       {
         PortfolioId = portfolio.Id,
         TotalMarketValue = (double)totalMarketValue,
+        TotalCustMarketValue = (double)totalCustMarketValue,
+        TotalDifferenceValue = (double)totalDifferenceValue,
+        TotalDifferencePercentage = (double)totalDifferencePercentage,
         ItemPercentages = itemPercentages
       };
     }
