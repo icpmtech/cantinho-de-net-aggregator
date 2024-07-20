@@ -108,10 +108,10 @@ namespace AspnetCoreMvcFull.Services
           } // Implement this method to fetch the current price
         
       }
-
+     
       return portfolios;
     }
-
+  
     public async Task<Portfolio> GetPortfolioByIdAsync(int id)
     {
       var portfolio = await _context.Portfolios
@@ -319,4 +319,5 @@ namespace AspnetCoreMvcFull.Services
     }
 
   }
+
 }
