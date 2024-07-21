@@ -35,7 +35,6 @@
                     <th>Sentiment</th>
                     <th>Title</th>
                     <th>Short Description</th>
-                    <th>Link</th>
                     <th>Keywords</th>
                     <th>Date</th>
                     <th>Actions</th>
@@ -44,8 +43,9 @@
             <tbody class="table-border-bottom-0">
                 @foreach (var news in Model)
                 {
-                    <tr id="row-@news.Id">
+                    <tr id="row-@news.Id" >
                         <td>
+
                             <i class="bx bx-news bx-sm text-primary me-3"></i>
                             <span class="fw-medium category-display">@news.Category</span>
                         </td>
@@ -57,33 +57,46 @@
                             <span class="title-display text-wrap">@news.Title</span>
                         </td>
                         <td>
-                            <span class="description-display text-wrap">@news.Description</span>
-                        </td>
-                        <td>
-                            <span class="link-display text-wrap"><a href="@news.Link" target="_blank">@news.Link</a></span>
-                        </td>
-                        <td>
-                            <span class="keywords-display text-wrap"> @(news.Keywords != null ? string.Join(", ", news.Keywords) : string.Empty)</span>
-                        </td>
-                        <td>
-                            <span class="date-display">@news.Date</span>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu">
-                                    <a class="dropdown-item edit-btn" href="javascript:void(0);" onclick="editRow(@news.Id)">
-                                        <i class="bx bx-edit-alt me-1"></i> Edit
+                            <span class="description-display text-wrap">@news.Description.Substring(0, 100)...</span>
+                    </td>
+                   
+                    <td>
+                        <span class="keywords-display text-wrap"> @(news.Keywords != null ? string.Join(", ", news.Keywords) : string.Empty)</span>
+                    </td>
+                    <td>
+                        <span class="date-display">@news.Date</span>
+                    </td>
+                    <td>
+                        <div class="dropdown">
+                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                <i class="bx bx-dots-vertical-rounded"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item edit-btn" href="javascript:void(0);" onclick="editRow(@news.Id)">
+                                    <i class="bx bx-edit-alt me-1"></i> Edit
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0);" onclick="deleteNews(@news.Id)">
+                                    <i class="bx bx-trash me-1"></i> Delete
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0);" onclick="openAssociateCompaniesModal(@news.Id)">
+                                    <i class="bx bx-link me-1"></i> Associate Companies
+                                </a>
+                                <a class="dropdown-item" href="javascript:void(0);" onclick="analyzeSentiment(@news.Id)">
+                                    <i class="bx bx-analyze me-1"></i> Analyze Sentiment
+                                </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="toggleDetails(@news.Id)">
+                                        <i class="bx bx-analyze me-1"></i> View More
                                     </a>
-                                    <a class="dropdown-item" href="javascript:void(0);" onclick="deleteNews(@news.Id)">
-                                        <i class="bx bx-trash me-1"></i> Delete
-                                    </a>
-                                    <a class="dropdown-item" href="javascript:void(0);" onclick="openAssociateCompaniesModal(@news.Id)">
-                                        <i class="bx bx-link me-1"></i> Associate Companies
-                                    </a>
-                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                    <tr id="details-@news.Id" class="details-row" style="display: none;">
+                        <td colspan="8">
+                            <div class="details-content">
+                                <p><strong>Description:</strong> @news.Description</p>
+                                <p><strong>Link:</strong> <a href="@news.Link" target="_blank">@news.Link</a></p>
+                                <p><strong>Keywords:</strong> @(news.Keywords != null ? string.Join(", ", news.Keywords) : string.Empty)</p>
                             </div>
                         </td>
                     </tr>
@@ -93,7 +106,7 @@
     </div>
 </div>
 
-<div class="card">
+<div class="card mt-4">
     <h5 class="card-header">Pagination</h5>
 
     <!-- Pagination Controls -->
@@ -171,8 +184,124 @@
     </div>
 </div>
 
+<!-- Sentiment Impact Modal -->
+<div class="modal fade" id="sentimentImpactModal" tabindex="-1" aria-labelledby="sentimentImpactModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sentimentImpactModalLabel">Sentiment Impact on Portfolio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Sentiment impact details will be dynamically inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit News Modal -->
+<div class="modal fade" id="editNewsModal" tabindex="-1" aria-labelledby="editNewsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editNewsModalLabel">Edit News</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editNewsId">
+                <div class="mb-3">
+                    <label for="editNewsCategory" class="form-label">Category</label>
+                    <select id="editNewsCategory" class="form-select">
+                        <option value="Economy">Economy</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Energy and Environment">Energy and Environment</option>
+                        <!-- Add other categories as needed -->
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="editNewsTitle" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="editNewsTitle" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsDescription" class="form-label">Description</label>
+                    <textarea class="form-control" id="editNewsDescription" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsLink" class="form-label">Link</label>
+                    <input type="url" class="form-control" id="editNewsLink" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsDate" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="editNewsDate" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveNews()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @section PageScripts {
+    <script>
+        function toggleDetails(newsId) {
+            var detailsRow = document.getElementById(`details-${newsId}`);
+            if (detailsRow.style.display === 'none') {
+                detailsRow.style.display = 'table-row';
+            } else {
+                detailsRow.style.display = 'none';
+            }
+        }
+
+        function analyzeSentiment(newsId) {
+            fetch(`/api/analizer/analyze-sentimentToPortfolio?newsId=${newsId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    showSentimentImpact(data);
+                })
+                .catch(error => console.error('Error analyzing sentiment:', error));
+        }
+
+        function showSentimentImpact(data) {
+            const modalBody = document.querySelector('#sentimentImpactModal .modal-body');
+            modalBody.innerHTML = `
+                                <p>Total Market Value Before Impact: ${data.totalMarketValueBeforeImpact}</p>
+                                <p>Total Market Value After Impact: ${data.totalMarketValueAfterImpact}</p>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Symbol</th>
+                                            <th>Adjusted Price</th>
+                                            <th>Sentiment Impact</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.portfolioItems.map(item => `
+                                            <tr>
+                                                <td>${item.symbol}</td>
+                                                <td>${item.adjustedPrice}</td>
+                                                <td>${item.sentimentImpact}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            `;
+
+            var sentimentImpactModal = new bootstrap.Modal(document.getElementById('sentimentImpactModal'));
+            sentimentImpactModal.show();
+        }
+    </script>
     <script>
         // Function to convert sentiment to stars
         function getStars(sentiment) {
@@ -209,7 +338,6 @@
                 if (!isNaN(sentiment)) {
                     element.innerHTML = getStars(sentiment); // Use innerHTML to insert HTML content
                 } else {
-
                     console.error(`Invalid sentiment value: ${sentimentText}`);
                 }
             });
@@ -417,5 +545,13 @@
 
     .text-wrap {
         white-space: normal;
+    }
+
+    .details-row {
+        background-color: #f9f9f9;
+    }
+
+    .details-content {
+        padding: 10px;
     }
 </style>

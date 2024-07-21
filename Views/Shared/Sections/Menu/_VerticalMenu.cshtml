@@ -111,6 +111,23 @@
             </ul>
         </li>
 
+        <li class='menu-item@(currentPage.StartsWith("/SentimentAnalizer") ? " active open" : "")'>
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-cube-alt"></i>
+                <div>SentimentAnalizer</div>
+            </a>
+
+            <ul class="menu-sub">
+
+                <li class='menu-item@(currentPage == "/SentimentAnalizer/Index" ? " active" : "")'>
+                    <a asp-controller="SentimentAnalizer" asp-action="Index" class="menu-link">
+                        <div>SentimentAnalizer</div>
+                    </a>
+                </li>
+              
+
+            </ul>
+        </li>
 
         <!-- Configurations -->
     <li class="menu-header small text-uppercase">

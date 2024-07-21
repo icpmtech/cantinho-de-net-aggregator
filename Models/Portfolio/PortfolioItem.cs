@@ -39,5 +39,9 @@ namespace AspnetCoreMvcFull.Models.Portfolio
 
     [NotMapped]
     public decimal? Change { get; set; }
+    [NotMapped]
+    public double? SentimentImpact { get;  set; }
+    [NotMapped]
+    public decimal? AdjustedPrice { get;  set; }
   }
 }

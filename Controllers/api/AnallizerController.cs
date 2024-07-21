@@ -8,6 +8,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AspnetCoreMvcFull.Services;
+using Microsoft.AspNetCore.Identity;
+using MarketAnalyticHub.Models;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -20,15 +23,18 @@ namespace MarketAnalyticHub.Controllers.api
     private readonly ApplicationDbContext _context;
     private readonly SentimentAnalysisService _sentimentAnalysisService;
     private readonly OpenAIService _openAIService;
-
-    public AnallizerController(ApplicationDbContext context, SentimentAnalysisService sentimentAnalysisService,
-      OpenAIService openAIService,  HttpClient httpClient, ILogger<AnallizerController> logger)
+    private readonly PortfolioService _portfolioService;
+    private readonly UserManager<ApplicationUser> _userManager;
+    public AnallizerController(UserManager<ApplicationUser> userManager ,ApplicationDbContext context, SentimentAnalysisService sentimentAnalysisService,
+      OpenAIService openAIService, HttpClient httpClient, ILogger<AnallizerController> logger, PortfolioService portfolioService)
     {
+      _userManager = userManager;
       _context = context;
       _sentimentAnalysisService = sentimentAnalysisService;
       _openAIService = openAIService;
       _httpClient = httpClient;
       _logger = logger;
+      _portfolioService= portfolioService;
     }
 
     [HttpPost("analyze")]
@@ -53,24 +59,53 @@ namespace MarketAnalyticHub.Controllers.api
       var parsedCompanies = ParseResponse(companies);
       return Ok(new { companies = parsedCompanies });
     }
+
     [HttpGet("get-associated-companies/{newsId}")]
     public async Task<IActionResult> GetAssociatedCompanies(int newsId)
     {
-      // Fetch keywords for the newsId. This part is pseudo-code and needs to be replaced
-      // with actual logic to fetch keywords based on the newsId.
-      var keywords =  GetKeywordsByNewsId(newsId);
-
+      var keywords = GetKeywordsByNewsId(newsId);
       var table = await _openAIService.GetAssociatedCompaniesAsync(keywords.ToArray());
       return Ok(new { markdownTable = table });
     }
-    private  List<string> GetKeywordsByNewsId(int newsId)
-    {
-      // Replace this with your actual logic to fetch keywords by newsId
-      // Example:
-      var newsItem =  _context.News.Where(s=>s.Id==newsId).First();
-      return newsItem.Keywords;
 
-      
+    [HttpPost("apply-sentiment-to-symbol")]
+    public async Task<IActionResult> ApplySentimentToSymbol([FromBody] NewsSentimentRequest request)
+    {
+      // Step 1: Analyze sentiment
+      var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(request.NewsText);
+
+      // Step 2: Get associated symbols
+      var keywords = request.Keywords.Split(',');
+      var companiesResponse = await _openAIService.GetAssociatedCompaniesAsync(keywords);
+      var companies = ParseResponse(companiesResponse);
+
+      // Step 3: Create a mapping of symbols to sentiment
+      var symbolSentiments = companies.Select(c => new SymbolSentiment
+      {
+        Symbol = c.Name, // Assuming the company name is used as the symbol
+        Sentiment = sentimentResult.Score
+      }).ToList();
+
+      return Ok(symbolSentiments);
+    }
+    [HttpPost("analize-sentimentToPortfolio")]
+    public async Task<IActionResult> MapSentimentToPortfolio(int newsId)
+    {
+      var userId = _userManager.GetUserId(User);
+      // Assuming you have a method to get the news text by its ID
+      var newsItem = await _context.News.FindAsync(newsId);
+      if (newsItem == null)
+      {
+        return NotFound();
+      }
+
+      var response = await _portfolioService.MapSentimentToPortfolioAsync(userId, newsItem.Description);
+      return new JsonResult(response);
+    }
+    private List<string> GetKeywordsByNewsId(int newsId)
+    {
+      var newsItem = _context.News.Where(s => s.Id == newsId).First();
+      return newsItem.Keywords;
     }
 
     private static List<Company> ParseResponse(string responseText)
@@ -131,6 +166,18 @@ namespace MarketAnalyticHub.Controllers.api
       public string Association { get; set; }
       public string Sector { get; set; }
       public string Market { get; set; }
+    }
+
+    public class SymbolSentiment
+    {
+      public string Symbol { get; set; }
+      public double Sentiment { get; set; }
+    }
+
+    public class NewsSentimentRequest
+    {
+      public string NewsText { get; set; }
+      public string Keywords { get; set; }
     }
   }
 }

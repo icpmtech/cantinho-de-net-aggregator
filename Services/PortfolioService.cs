@@ -1,34 +1,38 @@
+using AspnetCoreMvcFull.Models;
+using AspnetCoreMvcFull.Models.Dashboard;
+using AspnetCoreMvcFull.Models.Portfolio;
+using ClosedXML.Excel;
+using MarketAnalyticHub.Controllers;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
 namespace AspnetCoreMvcFull.Services
 {
-  using AspnetCoreMvcFull.Models;
-  using AspnetCoreMvcFull.Models.Dashboard;
-  using AspnetCoreMvcFull.Models.Portfolio;
-  using ClosedXML.Excel;
-  using MarketAnalyticHub.Controllers;
-  using MarketAnalyticHub.Models;
-  using MarketAnalyticHub.Models.SetupDb;
-  using Microsoft.EntityFrameworkCore;
-  using Microsoft.Extensions.Logging;
-  using System;
-  using System.Collections.Generic;
-  using System.IO;
-  using System.Linq;
-  using System.Text;
-  using System.Threading.Tasks;
-
   public class PortfolioService
   {
     private readonly ApplicationDbContext _context;
     private readonly FinnhubService _FinnhubService;
     private readonly ILogger<PortfolioService> _logger;
     private readonly IYahooFinanceService _yahooFinanceService;
-
-    public PortfolioService(ApplicationDbContext context, FinnhubService finnhubService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger)
+    private readonly SentimentAnalysisService _sentimentAnalysisService;
+    private readonly OpenAIService _openAIService;
+    public PortfolioService(ApplicationDbContext context,   OpenAIService openAIService, FinnhubService finnhubService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
     {
       _context = context;
       _FinnhubService = finnhubService;
       _yahooFinanceService = yahooFinanceService;
       _logger = logger;
+      _sentimentAnalysisService = sentimentAnalysisService;
+      _openAIService = openAIService;
     }
 
     // Existing methods
@@ -331,6 +335,7 @@ namespace AspnetCoreMvcFull.Services
     {
       return ((currentMarketValue - originalMarketValue) / originalMarketValue) * 100;
     }
+
     // New Method to Calculate Portfolio Item Percentages
     public PortfolioPercentageResponse CalculatePortfolioPercentages(Portfolio portfolio)
     {
@@ -370,5 +375,51 @@ namespace AspnetCoreMvcFull.Services
         ItemPercentages = itemPercentages
       };
     }
+
+    // New Method to Map Sentiment to Portfolio
+    public async Task<PortfolioSentimentImpactResponse> MapSentimentToPortfolioAsync(string userId, string newsText)
+    {
+      // Step 1: Analyze sentiment
+      var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsText);
+
+      // Step 2: Get associated symbols (keywords) from sentiment analysis (assuming this functionality exists)
+      var keywords = await _openAIService.GenerateKeywordsAsync(newsText);
+
+      // Step 3: Get portfolios for the user
+      var portfolios = await GetPortfoliosByUserAsync(userId);
+
+      // Step 4: Map sentiment to relevant portfolio items
+      foreach (var portfolio in portfolios)
+      {
+        foreach (var item in portfolio.Items)
+        {
+          if (keywords.Contains(item.Symbol))
+          {
+            // Assuming the sentiment score is between -1 (negative) to 1 (positive)
+            item.SentimentImpact = sentimentResult.Score;
+            item.AdjustedPrice = item.CurrentPrice * (decimal?)(1 + item.SentimentImpact);
+          }
+        }
+      }
+
+      // Step 5: Calculate the overall impact on the portfolio
+      var totalMarketValueBeforeImpact = portfolios.Sum(p => p.Items.Sum(i => i.CurrentPrice * i.Quantity));
+      var totalMarketValueAfterImpact = portfolios.Sum(p => p.Items.Sum(i => (i.AdjustedPrice ?? i.CurrentPrice) * i.Quantity));
+
+      return new PortfolioSentimentImpactResponse
+      {
+        TotalMarketValueBeforeImpact = (double)totalMarketValueBeforeImpact,
+        TotalMarketValueAfterImpact = (double)totalMarketValueAfterImpact,
+        PortfolioItems = portfolios.SelectMany(p => p.Items).ToList()
+      };
+    }
+  }
+
+  // New DTOs
+  public class PortfolioSentimentImpactResponse
+  {
+    public double TotalMarketValueBeforeImpact { get; set; }
+    public double TotalMarketValueAfterImpact { get; set; }
+    public List<PortfolioItem> PortfolioItems { get; set; }
   }
 }
