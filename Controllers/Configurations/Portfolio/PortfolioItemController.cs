@@ -4,6 +4,7 @@ using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Security.Claims;
 
 [Route("api/[controller]")]
 [Authorize]
@@ -37,6 +38,8 @@ public class PortfolioItemController : Controller
   [HttpPost]
   public async Task<IActionResult> AddItem([FromBody] PortfolioItem item)
   {
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    item.UserId = userId;
     await _portfolioItemService.AddItemAsync(item);
     return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
   }
@@ -48,6 +51,8 @@ public class PortfolioItemController : Controller
     {
       return BadRequest();
     }
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    item.UserId = userId;
     await _portfolioItemService.UpdateItemAsync(item);
     return NoContent();
   }
