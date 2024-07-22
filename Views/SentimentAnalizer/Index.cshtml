@@ -18,7 +18,19 @@
         color: #dc3545;
     }
 
-    .chart-container, .table-container, .card {
+    .loading-spinner {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5em;
+        color: #000;
+        display: none; /* Hidden by default */
+    }
+
+    .chart-container,
+    .table-container,
+    .card {
         background: #ffffff;
         border-radius: 10px;
         padding: 20px;
@@ -38,6 +50,38 @@
         .collapse.show {
             display: block;
         }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+    }
+
+    .card-text {
+        font-size: 0.95rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-success, .btn-danger {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .table th,
+    .table td {
+        vertical-align: middle;
+    }
+
+    .table-responsive {
+        margin-top: 20px;
+    }
+
+    #chart {
+        margin-top: 20px;
+    }
 </style>
 
 <h4 class="py-3 mb-4"><span class="text-muted fw-light">Sentiment Analysis /</span> Sentiment Analyzer</h4>
@@ -104,7 +148,7 @@
                     <i class="fas fa-table"></i> Events Analyzer
                 </button>
             </h5>
-            <div id="events-table" class="collapse">
+            <div id="events-table" class="collapse show">
                 <div class="card-body">
                     <div class="table-responsive">
                         <table class="table table-striped">
@@ -116,6 +160,7 @@
                                     <th scope="col"><i class="fas fa-chart-line"></i> Impact</th>
                                     <th scope="col"><i class="fas fa-smile"></i> Sentiment</th>
                                     <th scope="col"><i class="fas fa-link"></i> Source</th>
+                                    <th scope="col"><i class="fas fa-ellipsis-v"></i> Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -132,6 +177,12 @@
                                                 <td class="@stockEvent.Impact.ToLower()">@stockEvent.Impact</td>
                                                 <td class="@stockEvent.Sentiment.ToLower()">@stockEvent.Sentiment</td>
                                                 <td><a href="@stockEvent.Source" class="@stockEvent.Sentiment.ToLower()">Link</a></td>
+                                                <td>
+                                                    <div class="btn-group" role="group">
+                                                        <a class="btn btn-secondary" href="/StockEvents/Details/@stockEvent.Id"><i class="fas fa-eye"></i> View More</a>
+                                                        <a class="btn btn-primary" href="/StockEvents/Edit/@stockEvent.Id"><i class="fas fa-edit"></i> Edit</a>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         }
                                     }
@@ -143,7 +194,7 @@
             </div>
         </div>
     </div>
-
+    <div id="loading" class="loading-spinner">Loading...</div>
     <div class="col-md-12 chart-container">
         <div id="chart"></div>
     </div>
@@ -162,31 +213,117 @@
     }
 
     function createChart(stockData) {
-        const series = stockData.map(stock => ({
-            name: stock.symbol,
-            data: stock.stockEvents.map(event => ({ x: new Date(event.date), y: event.price }))
-        }));
+        const { startDate, endDate } = getDateRange();
 
-        var options = {
-            chart: {
-                type: 'line',
-                height: 350
-            },
-            series: series,
-            xaxis: {
-                type: 'datetime'
-            },
-            yaxis: {
-                labels: {
-                    formatter: function (value) {
-                        return value.toFixed(2);
+        // Show the loading spinner
+        const loadingElement = document.getElementById('loading');
+        loadingElement.style.display = 'block';
+
+        const fetchPromises = stockData.map(stock => {
+            const apiUrl = `/api/Portfolio/historical-data?symbol=${stock.symbol}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`;
+
+            return fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const historicalData = data.map(item => ({
+                        x: new Date(item.date),
+                        y: item.close
+                    }));
+
+                    const eventData = stock.stockEvents.map(event => ({
+                        x: new Date(event.date),
+                        y: event.price,
+                        label: event.eventName
+                    }));
+
+                    // Combine historicalData and eventData into a single dataset
+                    const combinedData = [...historicalData, ...eventData].sort((a, b) => a.x - b.x);
+
+                    return {
+                        symbol: stock.symbol,
+                        combinedData: combinedData
+                    };
+                })
+                .catch(error => {
+                    console.error(`Error fetching data for ${stock.symbol}:`, error);
+                    return null;
+                });
+        });
+
+        Promise.all(fetchPromises).then(results => {
+            const series = results.filter(item => item !== null).map(item => ({
+                name: item.symbol,
+                data: item.combinedData
+            }));
+
+            const options = {
+                series: series,
+                chart: {
+                    type: 'line',
+                    height: 350
+                },
+                title: {
+                    text: 'Stock Data',
+                    align: 'left'
+                },
+                xaxis: {
+                    type: 'datetime'
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function (value) {
+                            return value.toFixed(2);
+                        }
                     }
+                },
+                tooltip: {
+                    enabled: true,
+                    shared: true,
+                    intersect: false,
+                    x: {
+                        format: 'dd MMM yyyy'
+                    },
+                    y: {
+                        formatter: function (value) {
+                            return value.toFixed(2);
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function (value, opts) {
+                        const dataPoint = opts.w.config.series[opts.seriesIndex].data[opts.dataPointIndex];
+                        return dataPoint?.label ? dataPoint.label : '';
+                    }
+                },
+            
+                markers: {
+                    size: 6,
+                    shape: "circle"
                 }
-            }
-        };
+            };
 
-        var chart = new ApexCharts(document.querySelector("#chart"), options);
-        chart.render();
+            const chartElement = document.querySelector('#chart');
+            if (chartElement) {
+                const chart = new ApexCharts(chartElement, options);
+                chart.render().then(() => {
+                    // Hide the loading spinner
+                    loadingElement.style.display = 'none';
+                });
+            } else {
+                console.error('Element with ID chart not found');
+                // Hide the loading spinner if there's an error
+                loadingElement.style.display = 'none';
+            }
+        });
+    }
+
+    // Helper function to get date range for the beginning of the year and the current date
+    function getDateRange() {
+        const currentYear = new Date().getFullYear();
+        const startDate = new Date(currentYear, 0, 1); // January 1st of the current year
+        const endDate = new Date(); // Today
+        return { startDate, endDate };
     }
 
     document.addEventListener('DOMContentLoaded', async () => {

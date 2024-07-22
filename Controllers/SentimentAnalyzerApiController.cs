@@ -30,7 +30,10 @@ namespace MarketAnalyticHub.Controllers
                                    StockEvents = s?.StockEvents?.OrderBy(e => e.Date).Select(e => new
                                    {
                                      e.Date,
-                                     e.Price
+                                     e.Price,
+                                     e.EventName,
+                                     e.Source,
+                                     e.PriceChange
                                    })
                                  });
 
