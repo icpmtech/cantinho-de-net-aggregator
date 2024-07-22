@@ -1,8 +1,8 @@
-using AspnetCoreMvcFull.Models;
+using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 
-namespace AspnetCoreMvcFull.Controllers
+namespace MarketAnalyticHub.Controllers
 {
   public class QualitativeEventService : IQualitativeEventService
   {

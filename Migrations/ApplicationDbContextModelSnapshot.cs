@@ -22,7 +22,7 @@ namespace MarketAnalyticHub.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -56,7 +56,7 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("PortfolioItems");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.QualitativeEvent", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.QualitativeEvent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -128,7 +128,6 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AuthorSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Category")
@@ -136,11 +135,9 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Date")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DateSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
@@ -148,7 +145,6 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DescriptionSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Link")
@@ -156,7 +152,6 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LinkSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TemplateScraping")
@@ -167,7 +162,6 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TitleSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -203,6 +197,9 @@ namespace MarketAnalyticHub.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("IndustriesImpact")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Keywords")
                         .HasColumnType("nvarchar(max)");
 
@@ -218,6 +215,9 @@ namespace MarketAnalyticHub.Migrations
 
                     b.Property<double?>("Sentiment")
                         .HasColumnType("float");
+
+                    b.Property<string>("SentimentImpact")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -402,7 +402,7 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("Portfolios");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
                     b.HasOne("Portfolio", null)
                         .WithMany("Items")
@@ -411,7 +411,7 @@ namespace MarketAnalyticHub.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.QualitativeEvent", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.QualitativeEvent", b =>
                 {
                     b.HasOne("MarketAnalyticHub.Models.SetupDb.Company", null)
                         .WithMany("QualitativeEvents")
@@ -420,7 +420,7 @@ namespace MarketAnalyticHub.Migrations
 
             modelBuilder.Entity("Dividend", b =>
                 {
-                    b.HasOne("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", "PortfolioItem")
+                    b.HasOne("MarketAnalyticHub.Models.Portfolio.PortfolioItem", "PortfolioItem")
                         .WithMany("Dividends")
                         .HasForeignKey("PortfolioItemId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -435,7 +435,7 @@ namespace MarketAnalyticHub.Migrations
                         .WithMany("News")
                         .HasForeignKey("CompanyId");
 
-                    b.HasOne("AspnetCoreMvcFull.Models.QualitativeEvent", null)
+                    b.HasOne("MarketAnalyticHub.Models.QualitativeEvent", null)
                         .WithMany("News")
                         .HasForeignKey("QualitativeEventId");
                 });
@@ -456,12 +456,12 @@ namespace MarketAnalyticHub.Migrations
                         .HasForeignKey("CompanyId");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
                     b.Navigation("Dividends");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.QualitativeEvent", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.QualitativeEvent", b =>
                 {
                     b.Navigation("News");
                 });

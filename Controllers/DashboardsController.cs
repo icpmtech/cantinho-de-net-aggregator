@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using MarketAnalyticHub.Models.SetupDb;
-using AspnetCoreMvcFull.Models.Portfolio;
+using MarketAnalyticHub.Models.Portfolio;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Services;
 
 namespace MarketAnalyticHub.Controllers
 {

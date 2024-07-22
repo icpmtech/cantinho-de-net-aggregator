@@ -1,4 +1,4 @@
-using AspnetCoreMvcFull.Models;
+using MarketAnalyticHub.Models;
 
 namespace MarketAnalyticHub.Models.SetupDb
 {

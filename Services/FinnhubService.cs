@@ -1,8 +1,8 @@
-namespace AspnetCoreMvcFull.Services
+namespace MarketAnalyticHub.Services
 {
   using System.Net.Http;
   using System.Threading.Tasks;
-  using AspnetCoreMvcFull.Models;
+  using MarketAnalyticHub.Models;
   using Microsoft.Extensions.Configuration;
   using Newtonsoft.Json.Linq;
 

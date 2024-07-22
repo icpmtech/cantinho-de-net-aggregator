@@ -8,5 +8,9 @@ namespace MarketAnalyticHub.Models
     public string Impact { get; set; }
     public string Sentiment { get; set; }
     public string Source { get; set; }
+
+    public decimal? Price { get; set; }
+    public decimal? PriceChange { get; set; }
+
   }
 }

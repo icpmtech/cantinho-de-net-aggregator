@@ -1,4 +1,4 @@
-namespace AspnetCoreMvcFull.Models.Dashboard
+namespace MarketAnalyticHub.Models.Dashboard
 {
   public class DashboardData
   {

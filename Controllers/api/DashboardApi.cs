@@ -8,9 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AspnetCoreMvcFull.Models.Dashboard;
+using MarketAnalyticHub.Models.Dashboard;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using MarketAnalyticHub.Models.Portfolio;
 
 namespace MarketAnalyticHub.Controllers.api
 {

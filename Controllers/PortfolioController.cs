@@ -1,6 +1,6 @@
-using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Models.Portfolio;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Models.Portfolio;
+using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Controllers
+namespace MarketAnalyticHub.Controllers
 {
   [Route("api/[controller]")]
   [Authorize]

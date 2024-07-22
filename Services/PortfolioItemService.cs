@@ -1,6 +1,6 @@
-namespace AspnetCoreMvcFull.Services
+namespace MarketAnalyticHub.Services
 {
-  using AspnetCoreMvcFull.Models.Portfolio;
+  using MarketAnalyticHub.Models.Portfolio;
   using MarketAnalyticHub.Models.SetupDb;
   using Microsoft.EntityFrameworkCore;
   using System.Collections.Generic;

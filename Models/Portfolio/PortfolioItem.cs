@@ -1,6 +1,8 @@
+using MarketAnalyticHub.Models;
 using System.ComponentModel.DataAnnotations.Schema;
+using static MarketAnalyticHub.Controllers.SocialSentimentService;
 
-namespace AspnetCoreMvcFull.Models.Portfolio
+namespace MarketAnalyticHub.Models.Portfolio
 {
   public class PortfolioItem
   {
@@ -43,5 +45,10 @@ namespace AspnetCoreMvcFull.Models.Portfolio
     public double? SentimentImpact { get;  set; }
     [NotMapped]
     public decimal? AdjustedPrice { get;  set; }
+
+    [NotMapped]
+    public SocialSentiment SocialSentiment { get;  set; }
+    [NotMapped]
+    public IEnumerable<StockEvent> StockEvents { get;  set; }
   }
 }

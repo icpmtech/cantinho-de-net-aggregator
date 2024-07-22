@@ -9,7 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
-using AspnetCoreMvcFull;
+using MarketAnalyticHub;
 
 [Route("api/[controller]")]
 [ApiController]

@@ -17,16 +17,17 @@ using ApplicationDbContext = MarketAnalyticHub.Models.SetupDb.ApplicationDbConte
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Razor;
 using System.Globalization;
-using AspnetCoreMvcFull.Services;
-using AspnetCoreMvcFull.Controllers;
-using AspnetCoreMvcFull.Models;
+using MarketAnalyticHub.Services;
+using MarketAnalyticHub.Controllers;
+using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 using System.IO;
-using AspnetCoreMvcFull;
+using MarketAnalyticHub;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using MarketAnalyticHub.Controllers;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
@@ -88,7 +89,7 @@ builder.Services.AddTransient<NewsScraper>();
 builder.Services.AddScoped<AppNewsService>();
 builder.Services.AddScoped<PortfolioService>();
 builder.Services.AddScoped<PortfolioItemService>();
-builder.Services.AddScoped<AspnetCoreMvcFull.Services.ISymbolService, AspnetCoreMvcFull.Services.SymbolService>();
+builder.Services.AddScoped<MarketAnalyticHub.Services.ISymbolService, MarketAnalyticHub.Services.SymbolService>();
 builder.Services.AddScoped<IQualitativeEventService, QualitativeEventService>();
 builder.Services.AddScoped<ISymbolRepository, SymbolRepository>();
 builder.Services.AddScoped<SymbolService>();
@@ -97,6 +98,7 @@ builder.Services.AddHttpClient<FinnhubService>();
 builder.Services.AddHttpClient<BarchartService>();
 builder.Services.AddScoped<IYahooFinanceService, YahooFinanceService>();
 builder.Services.AddSingleton<OpenAIService>();
+builder.Services.AddSingleton<SocialSentimentService>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration

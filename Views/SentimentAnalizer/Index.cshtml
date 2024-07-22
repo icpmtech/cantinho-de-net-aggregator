@@ -1,167 +1,235 @@
-@model IEnumerable<MarketAnalyticHub.Models.StockEvent>
-
+@model List<MarketAnalyticHub.Models.Portfolio.Portfolio>
 @{
     ViewData["Title"] = "Sentiment Analysis";
     ViewData["container"] = (ViewData["container"] ?? "container-fluid");
     ViewData["containerNav"] = (ViewData["containerNav"] ?? "container-fluid");
 }
 
+<!-- Include Moment.js and Chart.js Moment adapter -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.1/min/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/chartjs-adapter-date-fns.bundle.min.js"></script>
 
+<style>
+    body {
+        background-color: #f8f9fa;
+    }
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body {
-            background-color: #f8f9fa;
+    .card {
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .positive {
+        color: #28a745;
+    }
+
+    .negative {
+        color: #dc3545;
+    }
+
+    .card-title i {
+        margin-right: 10px;
+    }
+
+    .card-header {
+        font-size: 1.25rem;
+        font-weight: bold;
+    }
+
+    .chart-container {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    .table-container {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+    }
+
+    .card-header .btn {
+        font-size: 1rem;
+        font-weight: bold;
+        color: inherit;
+        text-decoration: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
+    .collapse {
+        display: none;
+    }
+
+        .collapse.show {
+            display: block;
         }
+</style>
 
-        .card {
-            margin-bottom: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+<div class="container mt-5">
+    <h2 class="mb-4">Sentiment Analysis</h2>
 
-        .positive {
-            color: #28a745;
-        }
-
-        .negative {
-            color: #dc3545;
-        }
-
-        .card-title i {
-            margin-right: 10px;
-        }
-
-        .card-header {
-            font-size: 1.25rem;
-            font-weight: bold;
-        }
-
-        .chart-container {
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-
-        .table-container {
-            background: #ffffff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-        }
-
-        .card-header .btn {
-            font-size: 1rem;
-            font-weight: bold;
-            color: inherit;
-            text-decoration: none;
-            width: 100%;
-            text-align: left;
-        }
-    </style>
-
-    <div class="container mt-5">
-        <h2 class="mb-4">Sentiment Analysis</h2>
-
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card border-success">
-                    <div class="card-header positive">
-                        <button class="btn" type="button" data-toggle="collapse" data-target="#intel-positive" aria-expanded="false" aria-controls="intel-positive">
-                            <i class="fas fa-arrow-up"></i><i class="fas fa-microchip"></i> Intel Positive Analysis
-                        </button>
-                    </div>
-                    <div id="intel-positive" class="collapse">
-                        <div class="card-body">
-                            <p class="card-text"><i class="fas fa-calendar-day"></i> <strong>Date:</strong> <span>July 21, 2024</span></p>
-                            <p class="card-text"><i class="fas fa-chart-line"></i> <strong>Price Change:</strong> <span class="positive">2.55%</span></p>
-                            <p class="card-text"><i class="fas fa-calendar-check"></i> <strong>Events:</strong> <a href="https://example.com/intel-events-10" class="text-success">10</a></p>
-                            <p class="card-text"><i class="fas fa-smile"></i> <strong>Sentiment:</strong> <span class="positive">Positive</span></p>
-                            <p class="card-text"><i class="fas fa-link"></i> <strong>Source:</strong> <a href="https://example.com/source" class="text-success">Example Source</a></p>
+    <div class="row">
+        @foreach (var portfolio in Model)
+        {
+            foreach (var stock in portfolio.Items)
+            {
+                <div class="col-md-6">
+                    <div class="card border-success">
+                        <div class="card-header positive">
+                            <button class="btn" onclick="toggleCollapse('@stock.Symbol-positive')">
+                                <i class="fas fa-arrow-up"></i><i class="fas fa-microchip"></i> @stock.Symbol Positive Analysis
+                            </button>
+                        </div>
+                        <div id="@stock.Symbol-positive" class="collapse">
+                            <div class="card-body">
+                                @foreach (var stockEvent in stock.StockEvents.Where(e => e.Sentiment == "Positive"))
+                                {
+                                    <p class="card-text"><i class="fas fa-calendar-day"></i> <strong>Date:</strong> <span>@stockEvent.Date</span></p>
+                                    <p class="card-text"><i class="fas fa-chart-line"></i> <strong>Price Change:</strong> <span class="positive">@stockEvent.PriceChange%</span></p>
+                                    <p class="card-text"><i class="fas fa-calendar-check"></i> <strong>Events:</strong> <a href="@stockEvent.Source" class="text-success">Link</a></p>
+                                    <p class="card-text"><i class="fas fa-smile"></i> <strong>Sentiment:</strong> <span class="positive">@stockEvent.Sentiment</span></p>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card border-danger">
-                    <div class="card-header negative">
-                        <button class="btn" type="button" data-toggle="collapse" data-target="#intel-negative" aria-expanded="false" aria-controls="intel-negative">
-                            <i class="fas fa-arrow-down"></i><i class="fas fa-microchip"></i> Intel Negative Analysis
-                        </button>
-                    </div>
-                    <div id="intel-negative" class="collapse">
-                        <div class="card-body">
-                            <p class="card-text"><i class="fas fa-calendar-day"></i> <strong>Date:</strong> <span>July 21, 2024</span></p>
-                            <p class="card-text"><i class="fas fa-chart-line"></i> <strong>Price Change:</strong> <span class="negative">-2.3%</span></p>
-                            <p class="card-text"><i class="fas fa-calendar-check"></i> <strong>Events:</strong> <a href="https://example.com/intel-events-8" class="text-danger">8</a></p>
-                            <p class="card-text"><i class="fas fa-frown"></i> <strong>Sentiment:</strong> <span class="negative">Negative</span></p>
-                            <p class="card-text"><i class="fas fa-link"></i> <strong>Source:</strong> <a href="https://example.com/source" class="text-danger">Example Source</a></p>
+                <div class="col-md-6">
+                    <div class="card border-danger">
+                        <div class="card-header negative">
+                            <button class="btn" onclick="toggleCollapse('@stock.Symbol-negative')">
+                                <i class="fas fa-arrow-down"></i><i class="fas fa-microchip"></i> @stock.Symbol Negative Analysis
+                            </button>
+                        </div>
+                        <div id="@stock.Symbol-negative" class="collapse">
+                            <div class="card-body">
+                                @foreach (var stockEvent in stock.StockEvents.Where(e => e.Sentiment == "Negative"))
+                                {
+                                    <p class="card-text"><i class="fas fa-calendar-day"></i> <strong>Date:</strong> <span>@stockEvent.Date</span></p>
+                                    <p class="card-text"><i class="fas fa-chart-line"></i> <strong>Price Change:</strong> <span class="negative">@stockEvent.PriceChange%</span></p>
+                                    <p class="card-text"><i class="fas fa-calendar-check"></i> <strong>Events:</strong> <a href="@stockEvent.Source" class="text-danger">Link</a></p>
+                                    <p class="card-text"><i class="fas fa-frown"></i> <strong>Sentiment:</strong> <span class="negative">@stockEvent.Sentiment</span></p>
+                                }
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            }
+        }
+    </div>
 
-        <div class="chart-container">
-            <canvas id="myChart"></canvas>
-        </div>
+    <div class="chart-container">
+        <canvas id="myChart"></canvas>
+    </div>
 
-        <div class="table-container card mt-5">
-            <div class="card-header">
-                <button class="btn" type="button" data-toggle="collapse" data-target="#events-table" aria-expanded="false" aria-controls="events-table">
-                    <i class="fas fa-table"></i> Events Analyzer
-                </button>
-            </div>
-            <div id="events-table" class="collapse">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col"><i class="fas fa-calendar-day"></i> Date</th>
-                                    <th scope="col"><i class="fas fa-info-circle"></i> Event Name</th>
-                                    <th scope="col"><i class="fas fa-file-alt"></i> Details</th>
-                                    <th scope="col"><i class="fas fa-chart-line"></i> Impact</th>
-                                    <th scope="col"><i class="fas fa-smile"></i> Sentiment</th>
-                                    <th scope="col"><i class="fas fa-link"></i> Source</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                               
-                            </tbody>
-                        </table>
-                    </div>
+    <div class="table-container card mt-5">
+        <div class="card-header">
+            <button class="btn" onclick="toggleCollapse('events-table')">
+                <i class="fas fa-table"></i> Events Analyzer
+            </button>
+        </div>
+        <div id="events-table" class="collapse">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col"><i class="fas fa-calendar-day"></i> Date</th>
+                                <th scope="col"><i class="fas fa-info-circle"></i> Event Name</th>
+                                <th scope="col"><i class="fas fa-file-alt"></i> Details</th>
+                                <th scope="col"><i class="fas fa-chart-line"></i> Impact</th>
+                                <th scope="col"><i class="fas fa-smile"></i> Sentiment</th>
+                                <th scope="col"><i class="fas fa-link"></i> Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var portfolio in Model)
+                            {
+                                foreach (var stock in portfolio.Items)
+                                {
+                                    foreach (var stockEvent in stock.StockEvents)
+                                    {
+                                        <tr>
+                                            <td>@stockEvent.Date</td>
+                                            <td>@stockEvent.EventName</td>
+                                            <td>@stockEvent.Details</td>
+                                            <td class="@stockEvent.Impact.ToLower()">@stockEvent.Impact</td>
+                                            <td class="@stockEvent.Sentiment.ToLower()">@stockEvent.Sentiment</td>
+                                            <td><a href="@stockEvent.Source" class="@stockEvent.Sentiment.ToLower()">Link</a></td>
+                                        </tr>
+                                    }
+                                }
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        var ctx = document.getElementById('myChart').getContext('2d');
-        var myChart = new Chart(ctx, {
+<script>
+    function toggleCollapse(id) {
+        var element = document.getElementById(id);
+        if (element.classList.contains('show')) {
+            element.classList.remove('show');
+        } else {
+            element.classList.add('show');
+        }
+    }
+
+    async function fetchStockData() {
+        const response = await fetch('/api/SentimentAnalyzerApi/GetStockData');
+        const stockData = await response.json();
+        return stockData;
+    }
+
+    function createChart(stockData) {
+        const ctx = document.getElementById('myChart').getContext('2d');
+
+        const datasets = stockData.map(stock => ({
+            label: stock.Symbol,
+            data: stock.StockEvents.map(event => ({ x: event.Date, y: event.Price })),
+            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderWidth: 2,
+            fill: true
+        }));
+
+        new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['D0', 'D1', 'D2', 'D3', 'D4'],
-                datasets: [{
-                    label: 'Intel',
-                    data: [10, 20, 30, 40, 50],
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderWidth: 2,
-                    fill: true
-                }]
+                datasets: datasets
             },
             options: {
                 scales: {
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'day'
                         }
-                    }]
+                    },
+                    y: {
+                        beginAtZero: true
+                    }
                 }
             }
         });
-    </script>
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const stockData = await fetchStockData();
+        createChart(stockData);
+    });
+</script>

@@ -25,7 +25,7 @@ namespace MarketAnalyticHub.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.Portfolio", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.Portfolio", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -46,7 +46,7 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("Portfolios");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,7 +80,7 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("PortfolioItems");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.QualitativeEvent", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.QualitativeEvent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -402,16 +402,16 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
-                    b.HasOne("AspnetCoreMvcFull.Models.Portfolio.Portfolio", null)
+                    b.HasOne("MarketAnalyticHub.Models.Portfolio.Portfolio", null)
                         .WithMany("Items")
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.QualitativeEvent", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.QualitativeEvent", b =>
                 {
                     b.HasOne("MarketAnalyticHub.Models.SetupDb.Company", null)
                         .WithMany("QualitativeEvents")
@@ -424,7 +424,7 @@ namespace MarketAnalyticHub.Migrations
                         .WithMany("News")
                         .HasForeignKey("CompanyId");
 
-                    b.HasOne("AspnetCoreMvcFull.Models.QualitativeEvent", null)
+                    b.HasOne("MarketAnalyticHub.Models.QualitativeEvent", null)
                         .WithMany("News")
                         .HasForeignKey("QualitativeEventId");
                 });
@@ -440,7 +440,7 @@ namespace MarketAnalyticHub.Migrations
 
             modelBuilder.Entity("MarketAnalyticHub.Models.SetupDb.Dividend", b =>
                 {
-                    b.HasOne("AspnetCoreMvcFull.Models.Portfolio.Portfolio", "Portfolio")
+                    b.HasOne("MarketAnalyticHub.Models.Portfolio.Portfolio", "Portfolio")
                         .WithMany()
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -456,12 +456,12 @@ namespace MarketAnalyticHub.Migrations
                         .HasForeignKey("CompanyId");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.Portfolio", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.Portfolio", b =>
                 {
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.QualitativeEvent", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.QualitativeEvent", b =>
                 {
                     b.Navigation("News");
                 });

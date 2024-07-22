@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Controllers.api
+namespace MarketAnalyticHub.Controllers.api
 {
   [ApiController]
   [Route("api/[controller]")]

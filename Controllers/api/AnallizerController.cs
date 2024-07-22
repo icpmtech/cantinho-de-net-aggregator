@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Identity;
 using MarketAnalyticHub.Models;
 

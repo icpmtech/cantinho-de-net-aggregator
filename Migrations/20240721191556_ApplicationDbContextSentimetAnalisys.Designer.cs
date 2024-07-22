@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketAnalyticHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240717222034_ApplicationDbContextKwywords")]
-    partial class ApplicationDbContextKwywords
+    [Migration("20240721191556_ApplicationDbContextSentimetAnalisys")]
+    partial class ApplicationDbContextSentimetAnalisys
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -131,7 +131,6 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("AuthorSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Category")
@@ -139,11 +138,9 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Date")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DateSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
@@ -151,7 +148,6 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DescriptionSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Link")
@@ -159,7 +155,6 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LinkSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TemplateScraping")
@@ -170,7 +165,6 @@ namespace MarketAnalyticHub.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TitleSelector")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -221,6 +215,9 @@ namespace MarketAnalyticHub.Migrations
 
                     b.Property<double?>("Sentiment")
                         .HasColumnType("float");
+
+                    b.Property<string>("SentimentImpact")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()

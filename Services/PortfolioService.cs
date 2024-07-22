@@ -1,6 +1,6 @@
-using AspnetCoreMvcFull.Models;
-using AspnetCoreMvcFull.Models.Dashboard;
-using AspnetCoreMvcFull.Models.Portfolio;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Models.Dashboard;
+using MarketAnalyticHub.Models.Portfolio;
 using ClosedXML.Excel;
 using MarketAnalyticHub.Controllers;
 using MarketAnalyticHub.Models;
@@ -15,7 +15,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Services
+namespace MarketAnalyticHub.Services
 {
   public class PortfolioService
   {
@@ -420,6 +420,6 @@ namespace AspnetCoreMvcFull.Services
   {
     public double TotalMarketValueBeforeImpact { get; set; }
     public double TotalMarketValueAfterImpact { get; set; }
-    public List<PortfolioItem> PortfolioItems { get; set; }
+    public List<Models.Portfolio.PortfolioItem> PortfolioItems { get; set; }
   }
 }

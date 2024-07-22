@@ -1,4 +1,4 @@
-﻿namespace AspnetCoreMvcFull.Controllers
+﻿namespace MarketAnalyticHub.Controllers
 {
   public partial class QualitativeEventsController
   {

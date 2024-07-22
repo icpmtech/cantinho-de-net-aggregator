@@ -1,4 +1,4 @@
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;

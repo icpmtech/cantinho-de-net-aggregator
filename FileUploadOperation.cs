@@ -1,5 +1,5 @@
 
-namespace AspnetCoreMvcFull
+namespace MarketAnalyticHub
 {
   using Microsoft.OpenApi.Models;
   using Swashbuckle.AspNetCore.SwaggerGen;

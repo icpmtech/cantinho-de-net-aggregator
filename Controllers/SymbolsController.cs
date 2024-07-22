@@ -1,4 +1,4 @@
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Mvc;
@@ -6,16 +6,16 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AspnetCoreMvcFull.Controllers
+namespace MarketAnalyticHub.Controllers
 {
   [ApiController]
   [Route("api/[controller]")]
-  public class SymbolsController : ControllerBase
+  public class SymbolsAPIController : ControllerBase
   {
     private readonly ISymbolService _symbolService;
     private readonly ApplicationDbContext _context;
 
-    public SymbolsController(ApplicationDbContext context, ISymbolService symbolService)
+    public SymbolsAPIController(ApplicationDbContext context, ISymbolService symbolService)
     {
       _symbolService = symbolService;
       _context = context;

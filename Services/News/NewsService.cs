@@ -69,6 +69,11 @@ namespace MarketAnalyticHub.Services.News
 
       return await PaginatedList<NewsItem>.CreateAsync(query.AsNoTracking(), pageNumber, pageSize);
     }
+
+    public async Task<IEnumerable<StockEvent>> GetStockEventsAsync(string ticker)
+    {
+      return new List<StockEvent>();
+    }
   }
 }
   

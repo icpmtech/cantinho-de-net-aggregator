@@ -1,10 +1,10 @@
-using AspnetCoreMvcFull.Areas.Admin.Models;
+using MarketAnalyticHub.Areas.Admin.Models;
 using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace AspnetCoreMvcFull.Areas.Admin.Controllers
+namespace MarketAnalyticHub.Areas.Admin.Controllers
 {
   [Area("Admin")]
   public class UsersController : Controller

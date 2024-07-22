@@ -25,7 +25,7 @@ namespace MarketAnalyticHub.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.Portfolio", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.Portfolio", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -46,7 +46,7 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("Portfolios");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -271,16 +271,16 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
-                    b.HasOne("AspnetCoreMvcFull.Models.Portfolio.Portfolio", null)
+                    b.HasOne("MarketAnalyticHub.Models.Portfolio.Portfolio", null)
                         .WithMany("Items")
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.Portfolio", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.Portfolio", b =>
                 {
                     b.Navigation("Items");
                 });

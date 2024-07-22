@@ -1,5 +1,5 @@
-using AspnetCoreMvcFull.Models.Portfolio;
-using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models.Portfolio;
+using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

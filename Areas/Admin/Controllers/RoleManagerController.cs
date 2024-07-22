@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace AspnetCoreMvcFull.Areas.Admin.Controllers
+namespace MarketAnalyticHub.Areas.Admin.Controllers
 {
   [Area("Admin")]
   public class RoleManagerController : Controller

@@ -1,4 +1,4 @@
-namespace AspnetCoreMvcFull.Areas.Admin.Models
+namespace MarketAnalyticHub.Areas.Admin.Models
 {
  
     public class UserRolesViewModel

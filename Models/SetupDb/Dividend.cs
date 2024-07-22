@@ -1,4 +1,4 @@
-using AspnetCoreMvcFull.Models.Portfolio;
+using MarketAnalyticHub.Models.Portfolio;
 
 public class Dividend
 {

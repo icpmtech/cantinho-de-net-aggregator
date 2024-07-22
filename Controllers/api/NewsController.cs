@@ -115,7 +115,12 @@ namespace MarketAnalyticHub.Controllers.api
         var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
         newsItem.Sentiment = sentimentResult.Compound;
         var keywords =  await _openAIService.GenerateKeywordsAsync(newsItem.Description);
+
         newsItem.Keywords= keywords.ToList();
+        var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
+        newsItem.SentimentImpact= impact;
+        var IndustriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
+        newsItem.IndustriesImpact = IndustriesImpact;
         newsItems.Add(newsItem);
       }
       _context.News.AddRange(newsItems);
@@ -199,6 +204,10 @@ namespace MarketAnalyticHub.Controllers.api
           newsItem.Sentiment = sentimentResult.Compound;
           var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
           newsItem.Keywords = keywords.ToList();
+          var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
+          newsItem.SentimentImpact = impact;
+          var IndustriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
+          newsItem.IndustriesImpact = IndustriesImpact;
           newsItems.Add(newsItem);
         }
       }
@@ -278,6 +287,10 @@ namespace MarketAnalyticHub.Controllers.api
         newsItem.Sentiment = sentimentResult.Compound;
         var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
         newsItem.Keywords = keywords.ToList();
+        var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
+        newsItem.SentimentImpact = impact;
+        var IndustriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
+        newsItem.IndustriesImpact = IndustriesImpact;
         newsItems.Add(newsItem);
       }
       _context.News.AddRange(newsItems);

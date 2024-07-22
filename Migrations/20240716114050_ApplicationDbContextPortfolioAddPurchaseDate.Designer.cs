@@ -25,7 +25,7 @@ namespace MarketAnalyticHub.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.Portfolio", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.Portfolio", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -46,7 +46,7 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("Portfolios");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,7 +80,7 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("PortfolioItems");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.QualitativeEvent", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.QualitativeEvent", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -309,9 +309,9 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("UserProfiles");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.PortfolioItem", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.PortfolioItem", b =>
                 {
-                    b.HasOne("AspnetCoreMvcFull.Models.Portfolio.Portfolio", null)
+                    b.HasOne("MarketAnalyticHub.Models.Portfolio.Portfolio", null)
                         .WithMany("Items")
                         .HasForeignKey("PortfolioId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -320,17 +320,17 @@ namespace MarketAnalyticHub.Migrations
 
             modelBuilder.Entity("MarketAnalyticHub.Models.News.NewsItem", b =>
                 {
-                    b.HasOne("AspnetCoreMvcFull.Models.QualitativeEvent", null)
+                    b.HasOne("MarketAnalyticHub.Models.QualitativeEvent", null)
                         .WithMany("News")
                         .HasForeignKey("QualitativeEventId");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.Portfolio.Portfolio", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.Portfolio", b =>
                 {
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("AspnetCoreMvcFull.Models.QualitativeEvent", b =>
+            modelBuilder.Entity("MarketAnalyticHub.Models.QualitativeEvent", b =>
                 {
                     b.Navigation("News");
                 });

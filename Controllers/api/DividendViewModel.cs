@@ -1,4 +1,4 @@
-namespace AspnetCoreMvcFull.Controllers.api
+namespace MarketAnalyticHub.Controllers.api
 {
   public class DividendViewModel
   {

@@ -1,5 +1,5 @@
 
-namespace AspnetCoreMvcFull
+namespace MarketAnalyticHub
 {
 
   public class FileUploadRequest

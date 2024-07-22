@@ -1,6 +1,6 @@
-namespace AspnetCoreMvcFull.Services.Utils
+namespace MarketAnalyticHub.Services.Utils
 {
-  using AspnetCoreMvcFull.Models.Portfolio;
+  using MarketAnalyticHub.Models.Portfolio;
   using System.Collections.Generic;
 
   public class PortfolioItemSymbolEqualityComparer : IEqualityComparer<PortfolioItem>

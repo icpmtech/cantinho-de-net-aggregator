@@ -5,7 +5,7 @@ using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 
-namespace AspnetCoreMvcFull.Models
+namespace MarketAnalyticHub.Models
 {
   public interface ISymbolRepository
   {

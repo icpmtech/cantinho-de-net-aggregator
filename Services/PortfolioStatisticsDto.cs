@@ -1,4 +1,4 @@
-﻿namespace AspnetCoreMvcFull.Services
+﻿namespace MarketAnalyticHub.Services
 {
   using System.Collections.Generic;
 

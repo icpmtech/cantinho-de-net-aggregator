@@ -1,6 +1,6 @@
-using AspnetCoreMvcFull.Models;
+using MarketAnalyticHub.Models;
 
-namespace AspnetCoreMvcFull.Services
+namespace MarketAnalyticHub.Services
 {
   public class SymbolService : ISymbolService
   {

@@ -1,4 +1,4 @@
-namespace AspnetCoreMvcFull.Models
+namespace MarketAnalyticHub.Models
 {
   
     public class StockData
