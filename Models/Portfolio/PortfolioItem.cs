@@ -7,6 +7,8 @@ namespace MarketAnalyticHub.Models.Portfolio
   public class PortfolioItem
   {
     public int Id { get; set; }
+
+    public string UserId { get; set; }
     public int PortfolioId { get; set; }
     public string Symbol { get; set; }
     public DateTime PurchaseDate { get; set; }
@@ -48,7 +50,9 @@ namespace MarketAnalyticHub.Models.Portfolio
 
     [NotMapped]
     public SocialSentiment SocialSentiment { get;  set; }
-    [NotMapped]
     public IEnumerable<StockEvent> StockEvents { get;  set; }
+
+    // Foreign key relationship to Portfolio
+    public Portfolio Portfolio { get; set; }
   }
 }

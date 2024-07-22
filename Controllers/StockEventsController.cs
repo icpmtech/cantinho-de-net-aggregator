@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Services;
+using System.Security.Claims;
 
 namespace AspnetCoreMvcFull.Controllers
 {
@@ -22,7 +24,12 @@ namespace AspnetCoreMvcFull.Controllers
         // GET: StockEvents
         public async Task<IActionResult> Index()
         {
-            var applicationDbContext = _context.StockEvents.Include(s => s.PortfolioItem);
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var applicationDbContext = _context.StockEvents
+                                       .Include(s => s.PortfolioItem)
+                                       .Where(s => s.PortfolioItem.Portfolio.UserId == userId); // Adjust this if UserId is directly in PortfolioItem
+
+      
             return View(await applicationDbContext.ToListAsync());
         }
 
@@ -48,7 +55,7 @@ namespace AspnetCoreMvcFull.Controllers
         // GET: StockEvents/Create
         public IActionResult Create()
         {
-            ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems, "Id", "Id");
+            ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems, "Id", "Symbol");
             return View();
         }
 
@@ -65,8 +72,9 @@ namespace AspnetCoreMvcFull.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems, "Id", "Id", stockEvent.PortfolioItemId);
-            return View(stockEvent);
+      ViewBag.PortfolioItemId = new SelectList(_context.PortfolioItems, "Id", "Symbol", stockEvent.PortfolioItemId);
+
+      return View(stockEvent);
         }
 
         // GET: StockEvents/Edit/5

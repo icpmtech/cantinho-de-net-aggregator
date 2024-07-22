@@ -96,6 +96,8 @@ namespace MarketAnalyticHub.Services
       var portfolios = await _context.Portfolios
                                      .Include(p => p.Items)
                                      .ThenInclude(pi => pi.Dividends)
+                                     .Include(p => p.Items)
+                                     .ThenInclude(pi => pi.StockEvents)
                                      .Where(p => p.UserId == userId)
                                      .ToListAsync();
 

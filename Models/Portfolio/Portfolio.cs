@@ -25,5 +25,7 @@ namespace MarketAnalyticHub.Models.Portfolio
     [NotMapped]
     public double PortfolioPercentage { get; internal set; }
    
+
+
   }
 }

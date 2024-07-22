@@ -27,7 +27,7 @@ namespace MarketAnalyticHub.Controllers
                                  .Select(s => new
                                  {
                                    s.Symbol,
-                                   StockEvents = s?.StockEvents.OrderBy(e => e.Date).Select(e => new
+                                   StockEvents = s?.StockEvents?.OrderBy(e => e.Date).Select(e => new
                                    {
                                      e.Date,
                                      e.Price
