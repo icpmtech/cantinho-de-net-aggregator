@@ -15,28 +15,30 @@ namespace AspnetCoreMvcFull.Controllers
     public class StockEventsController : Controller
     {
         private readonly ApplicationDbContext _context;
-
-        public StockEventsController(ApplicationDbContext context)
+    public StockEventsController(ApplicationDbContext context)
         {
-            _context = context;
+     
+      _context = context;
         }
 
         // GET: StockEvents
         public async Task<IActionResult> Index()
         {
-      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       var applicationDbContext = _context.StockEvents
                                        .Include(s => s.PortfolioItem)
-                                       .Where(s => s.PortfolioItem.Portfolio.UserId == userId); // Adjust this if UserId is directly in PortfolioItem
+                                       .Where(s => s.PortfolioItem.Portfolio.UserId == userId);
+                                       // Adjust this if UserId is directly in PortfolioItem
 
-      
+
             return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: StockEvents/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (id == null)
             {
                 return NotFound();
             }
@@ -55,7 +57,8 @@ namespace AspnetCoreMvcFull.Controllers
         // GET: StockEvents/Create
         public IActionResult Create()
         {
-            ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems, "Id", "Symbol");
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems.Where(s => s.Portfolio.UserId == userId) , "Id", "Symbol");
             return View();
         }
 
@@ -66,13 +69,15 @@ namespace AspnetCoreMvcFull.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Date,EventName,Details,Impact,Sentiment,Source,Price,PriceChange,PortfolioItemId")] StockEvent stockEvent)
         {
-            if (ModelState.IsValid)
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (ModelState.IsValid)
             {
                 _context.Add(stockEvent);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-      ViewBag.PortfolioItemId = new SelectList(_context.PortfolioItems, "Id", "Symbol", stockEvent.PortfolioItemId);
+
+      ViewBag.PortfolioItemId = new SelectList(_context.PortfolioItems.Where(s => s.Portfolio.UserId == userId), "Id", "Symbol", stockEvent.PortfolioItemId);
 
       return View(stockEvent);
         }
@@ -80,7 +85,8 @@ namespace AspnetCoreMvcFull.Controllers
         // GET: StockEvents/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (id == null)
             {
                 return NotFound();
             }
@@ -90,7 +96,7 @@ namespace AspnetCoreMvcFull.Controllers
             {
                 return NotFound();
             }
-            ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems, "Id", "Id", stockEvent.PortfolioItemId);
+            ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems.Where(s => s.Portfolio.UserId == userId), "Id", "Symbol", stockEvent.PortfolioItemId);
             return View(stockEvent);
         }
 
@@ -101,7 +107,8 @@ namespace AspnetCoreMvcFull.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Date,EventName,Details,Impact,Sentiment,Source,Price,PriceChange,PortfolioItemId")] StockEvent stockEvent)
         {
-            if (id != stockEvent.Id)
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (id != stockEvent.Id)
             {
                 return NotFound();
             }
@@ -126,14 +133,15 @@ namespace AspnetCoreMvcFull.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems, "Id", "Id", stockEvent.PortfolioItemId);
+            ViewData["PortfolioItemId"] = new SelectList(_context.PortfolioItems.Where(s => s.Portfolio.UserId == userId), "Id", "Symbol", stockEvent.PortfolioItemId);
             return View(stockEvent);
         }
 
         // GET: StockEvents/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (id == null)
             {
                 return NotFound();
             }
