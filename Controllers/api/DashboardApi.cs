@@ -119,7 +119,7 @@ namespace MarketAnalyticHub.Controllers.api
 
       return Ok(growthData);
     }
-
+    [HttpGet("GetPortfoliosByUserAsync")]
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
     {
       var portfolios = await _context.Portfolios

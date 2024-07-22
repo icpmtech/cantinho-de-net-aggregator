@@ -234,8 +234,8 @@
             const description = document.getElementById('symbolDescription').value;
             const link = document.getElementById('symbolLink').value;
             const date = document.getElementById('symbolDate').value;
-           
-            const url = id ? `/api/symbols/${id}` : '/api/symbols';
+
+            const url = id ? `/api/SymbolsAPI/${id}` : '/api/SymbolsAPI';
             const method = id ? 'PUT' : 'POST';
             const idTemp = id ? id : null;
             const formData = {
@@ -271,7 +271,7 @@
 
         function deleteSymbol(id) {
             if (confirm('Are you sure you want to delete this symbol?')) {
-                fetch(`/api/symbols/${id}`, {
+                fetch(`/api/SymbolsAPI/${id}`, {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json'
@@ -292,7 +292,7 @@
         }
 
         function editSymbol(id) {
-            fetch(`/api/symbols/${id}`, {
+            fetch(`/api/SymbolsAPI/${id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
