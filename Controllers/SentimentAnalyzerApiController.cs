@@ -1,13 +1,11 @@
+using Microsoft.AspNetCore.Mvc;
+using MarketAnalyticHub.Services;
+using MarketAnalyticHub.Models;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace MarketAnalyticHub.Controllers
 {
-  using Microsoft.AspNetCore.Mvc;
-  using MarketAnalyticHub.Services;
-  using MarketAnalyticHub.Models;
-  using System.Security.Claims;
-  using System.Threading.Tasks;
-  using MarketAnalyticHub.Services;
-
   [ApiController]
   [Route("api/[controller]")]
   public class SentimentAnalyzerApiController : ControllerBase
@@ -29,7 +27,7 @@ namespace MarketAnalyticHub.Controllers
                                  .Select(s => new
                                  {
                                    s.Symbol,
-                                   StockEvents = s?.StockEvents?.OrderBy(e => e.Date).Select(e => new
+                                   StockEvents = s?.StockEvents.OrderBy(e => e.Date).Select(e => new
                                    {
                                      e.Date,
                                      e.Price

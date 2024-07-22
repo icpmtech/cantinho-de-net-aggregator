@@ -26,5 +26,19 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<NewsScrapingItem> NewsScrapingItem { get; set; }
     public DbSet<UserProfile> UserProfiles { get;  set; }
     public DbSet<QualitativeEvent> QualitativeEvents { get; internal set; }
+
+    public DbSet<StockEvent> StockEvents { get; set; }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+      base.OnModelCreating(modelBuilder);
+
+      modelBuilder.Entity<PortfolioItem>()
+          .HasMany(p => p.StockEvents)
+          .WithOne(e => e.PortfolioItem)
+          .HasForeignKey(e => e.PortfolioItemId);
+    }
+
+
   }
 }

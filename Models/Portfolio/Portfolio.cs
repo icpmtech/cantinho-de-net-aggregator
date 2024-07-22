@@ -24,7 +24,6 @@ namespace MarketAnalyticHub.Models.Portfolio
     public PortfolioPercentageResponse PortfolioPercentageResponse { get; internal set; }
     [NotMapped]
     public double PortfolioPercentage { get; internal set; }
-    [NotMapped]
-    public List<StockEvent> StockEvents { get; internal set; }
+   
   }
 }

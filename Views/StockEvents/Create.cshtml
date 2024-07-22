@@ -1,0 +1,70 @@
+﻿@model MarketAnalyticHub.Models.StockEvent
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Areas/Admin/Views/Shared/_ContentNavbarLayout.cshtml";
+}
+
+<h1>Create</h1>
+
+<h4>StockEvent</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Date" class="control-label"></label>
+                <input asp-for="Date" class="form-control" />
+                <span asp-validation-for="Date" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EventName" class="control-label"></label>
+                <input asp-for="EventName" class="form-control" />
+                <span asp-validation-for="EventName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Details" class="control-label"></label>
+                <input asp-for="Details" class="form-control" />
+                <span asp-validation-for="Details" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Impact" class="control-label"></label>
+                <input asp-for="Impact" class="form-control" />
+                <span asp-validation-for="Impact" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Sentiment" class="control-label"></label>
+                <input asp-for="Sentiment" class="form-control" />
+                <span asp-validation-for="Sentiment" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Source" class="control-label"></label>
+                <input asp-for="Source" class="form-control" />
+                <span asp-validation-for="Source" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Price" class="control-label"></label>
+                <input asp-for="Price" class="form-control" />
+                <span asp-validation-for="Price" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PriceChange" class="control-label"></label>
+                <input asp-for="PriceChange" class="form-control" />
+                <span asp-validation-for="PriceChange" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="PortfolioItemId" class="control-label"></label>
+                <select asp-for="PortfolioItemId" class ="form-control" asp-items="ViewBag.PortfolioItemId"></select>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
