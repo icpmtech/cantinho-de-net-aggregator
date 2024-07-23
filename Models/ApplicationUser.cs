@@ -16,6 +16,7 @@ namespace MarketAnalyticHub.Models
     public string? TimeZone { get; set; }
     public string? Currency { get; set; }
     public string? AvatarUrl { get; set; }
+    public bool? AIPilot { get; internal set; }
   }
 
 }

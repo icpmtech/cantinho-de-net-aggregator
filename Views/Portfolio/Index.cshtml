@@ -26,7 +26,7 @@
                     </div>
                 </div>
                 <span class="fw-medium d-block mb-1">@Localizer["Profit"]</span>
-                <h3 id="totalDifferenceValue" class="card-title mb-2">$0</h3>
+                <h3 id="totalDifferenceValue" class="card-title mb-2">€0</h3>
                 <small class="fw-medium"><i id="totalDifferenceIcon" class='bx bx-up-arrow-alt'></i> <span id="totalDifferencePercentage">€0</span></small>
             </div>
         </div>
@@ -49,7 +49,7 @@
                     </div>
                 </div>
                 <span class="fw-medium d-block mb-1">@Localizer["Total Market Value"]</span>
-                <h3 id="totalMarketValue" class="card-title mb-2">$0</h3>
+                <h3 id="totalMarketValue" class="card-title mb-2">€0</h3>
                 <small class="fw-medium"><i class='bx bx-cube'></i> </small>
             </div>
         </div>
@@ -304,13 +304,13 @@
             const data = await response.json();
 
             // Update total market value
-            document.getElementById('totalMarketValue').innerText = `$${data.totalMarketValue.toFixed(2)}`;
+            document.getElementById('totalMarketValue').innerText = `€${data.totalMarketValue.toFixed(2)}`;
 
             // Update total custom market value
-            document.getElementById('totalCustMarketValue').innerText = `$${data.totalCustMarketValue.toFixed(2)}`;
+            document.getElementById('totalCustMarketValue').innerText = `€${data.totalCustMarketValue.toFixed(2)}`;
 
             // Update total difference value
-            document.getElementById('totalDifferenceValue').innerText = `$${data.totalDifferenceValue.toFixed(2)}`;
+            document.getElementById('totalDifferenceValue').innerText = `€${data.totalDifferenceValue.toFixed(2)}`;
 
             // Update total difference percentage with conditional styling
             const totalDifferencePercentageElement = document.getElementById('totalDifferencePercentage');
@@ -339,13 +339,13 @@
             const data = await response.json();
 
             // Update total market value
-            document.getElementById('totalMarketValue').innerText = `$${data.totalMarketValue.toFixed(2)}`;
+            document.getElementById('totalMarketValue').innerText = `€${data.totalMarketValue.toFixed(2)}`;
 
             // Update total custom market value
-            document.getElementById('totalCustMarketValue').innerText = `$${data.totalCustMarketValue.toFixed(2)}`;
+            document.getElementById('totalCustMarketValue').innerText = `€${data.totalCustMarketValue.toFixed(2)}`;
 
             // Update total difference value
-            document.getElementById('totalDifferenceValue').innerText = `$${data.totalDifferenceValue.toFixed(2)}`;
+            document.getElementById('totalDifferenceValue').innerText = `€${data.totalDifferenceValue.toFixed(2)}`;
 
             // Update total difference percentage with conditional styling
             const totalDifferencePercentageElement = document.getElementById('totalDifferencePercentage');
@@ -369,9 +369,9 @@
         }
     }
     function updateDashboardDataOverAllPortfolio(data) {
-        document.getElementById('totalMarketValue').innerText = `$${data.totalMarketValue.toFixed(2)}`;
-        document.getElementById('totalCustMarketValue').innerText = `$${data.totalCustMarketValue.toFixed(2)}`;
-        document.getElementById('totalDifferenceValue').innerText = `$${data.totalDifferenceValue.toFixed(2)}`;
+        document.getElementById('totalMarketValue').innerText = `€${data.totalMarketValue.toFixed(2)}`;
+        document.getElementById('totalCustMarketValue').innerText = `€${data.totalCustMarketValue.toFixed(2)}`;
+        document.getElementById('totalDifferenceValue').innerText = `€${data.totalDifferenceValue.toFixed(2)}`;
         document.getElementById('totalDifferencePercentage').innerText = `${data.totalDifferencePercentage.toFixed(2)}%`;
     }
     function formatDate(dateString) {
@@ -418,8 +418,8 @@
     }
 
     function updateDashboard(data) {
-        //document.getElementById('profit').innerText = `$${data.profit?.toFixed(2)}`;
-        document.getElementById('dividends').innerText = `$${data.dividends?.toFixed(2)}`;
+        //document.getElementById('profit').innerText = `€${data.profit?.toFixed(2)}`;
+        document.getElementById('dividends').innerText = `€${data.dividends?.toFixed(2)}`;
     }
 
     function changeChartType(event) {
@@ -436,7 +436,7 @@
 
         const { startDate, endDate } = getDateRange(dateRange);
 
-        const response = await fetch(`/api/Portfolio?startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`, {
+        const response = await fetch(`/api/Portfolio`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -563,7 +563,7 @@
                                     <div class="ms-3">
                                         <span>Current Market Value</span>
                                         <h3>€${portfolio.currentMarketValue?.toFixed(3)}</h3>
-                                                <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> ${portfolio.portfolioPercentage}%</small>
+                                                    <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> ${portfolio.portfolioPercentage.toFixed(3)}%</small>
                                     </div>
                                 </div>
                                 <button class="btn btn-outline-primary btn-sm mt-3" data-bs-toggle="collapse" data-bs-target="#details-${portfolio.id}" aria-expanded="false" aria-controls="details-${portfolio.id}">

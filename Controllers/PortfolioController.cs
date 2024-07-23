@@ -121,6 +121,7 @@ namespace MarketAnalyticHub.Controllers
       foreach (var portfolio in portfolios)
       {
         var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
+        if(portfolioPercentageResponse is not null)
         portfolio.PortfolioPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
       }
       return Ok(portfolios);
@@ -222,6 +223,7 @@ namespace MarketAnalyticHub.Controllers
       foreach (var portfolio in portfolios)
       {
         var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
+        if(portfolioPercentageResponse is not null)
         totalPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
       }
 
@@ -231,31 +233,10 @@ namespace MarketAnalyticHub.Controllers
     public async Task<IActionResult> GetTotalPortfolioOverallStats()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
-
-      double totalMarketValue = 0;
-      double totalCustMarketValue = 0;
-      double totalDifferenceValue = 0;
-
-      foreach (var portfolio in portfolios)
-      {
-        var portfolioStats = _portfolioService.CalculatePortfolioPercentages(portfolio);
-        totalMarketValue += portfolioStats.TotalMarketValue;
-        totalCustMarketValue += portfolioStats.TotalCustMarketValue;
-        totalDifferenceValue += portfolioStats.TotalDifferenceValue;
-      }
-
-      double totalDifferencePercentage = (totalCustMarketValue != 0) ? (totalDifferenceValue / totalCustMarketValue) * 100 : 0;
-
-      var overallStats = new
-      {
-        TotalMarketValue = totalMarketValue,
-        TotalCustMarketValue = totalCustMarketValue,
-        TotalDifferenceValue = totalDifferenceValue,
-        TotalDifferencePercentage = totalDifferencePercentage
-      };
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
 
       return Ok(overallStats);
     }
-  }
+
+      }
 }

@@ -14,6 +14,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Graph;
+using System.Security.Claims;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace MarketAnalyticHub.Services
 {
@@ -36,6 +39,37 @@ namespace MarketAnalyticHub.Services
     }
 
     // Existing methods
+    public async Task<PortfolioOveralStatsDto> GetTotalPortfolioOverall(string userId)
+    {
+      var portfolios = await GetPortfoliosByUserAsync(userId);
+
+      double totalMarketValue = 0;
+      double totalCustMarketValue = 0;
+      double totalDifferenceValue = 0;
+
+      foreach (var portfolio in portfolios)
+      {
+        var portfolioStats = CalculatePortfolioPercentages(portfolio);
+        if (portfolioStats is not null)
+        {
+          totalMarketValue += portfolioStats.TotalMarketValue;
+          totalCustMarketValue += portfolioStats.TotalCustMarketValue;
+          totalDifferenceValue += portfolioStats.TotalDifferenceValue;
+        }
+
+      }
+
+      double totalDifferencePercentage = (totalCustMarketValue != 0) ? (totalDifferenceValue / totalCustMarketValue) * 100 : 0;
+
+      var overallStats = new PortfolioOveralStatsDto
+      {
+        TotalMarketValue = totalMarketValue,
+        TotalCustMarketValue = totalCustMarketValue,
+        TotalDifferenceValue = totalDifferenceValue,
+        TotalDifferencePercentage = Math.Round(totalDifferencePercentage, 3)
+      };
+      return overallStats;
+    }
 
     public PortfolioStatisticsDto GetPortfolioStatistics()
     {
@@ -342,7 +376,7 @@ namespace MarketAnalyticHub.Services
     public PortfolioPercentageResponse CalculatePortfolioPercentages(Portfolio portfolio)
     {
       if (portfolio == null || portfolio.Items == null || !portfolio.Items.Any())
-        throw new ArgumentException("Invalid portfolio");
+        return null;
 
       var totalCustMarketValue = portfolio.Items.Sum(item => item.PurchasePrice * item.Quantity);
       var totalMarketValue = portfolio.Items.Sum(item => _yahooFinanceService.GetRealTimePriceAsync(item.Symbol).Result.CurrentPrice * item.Quantity);

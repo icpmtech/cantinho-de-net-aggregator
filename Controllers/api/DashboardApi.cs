@@ -21,10 +21,11 @@ namespace MarketAnalyticHub.Controllers.api
   public class DashboardsController : ControllerBase
   {
     private readonly ApplicationDbContext _context;
-
-    public DashboardsController(ApplicationDbContext context)
+    private readonly PortfolioService _portfolioService;
+    public DashboardsController(ApplicationDbContext context, PortfolioService portfolioService)
     {
       _context = context;
+      _portfolioService = portfolioService;
     }
 
     [HttpGet("data")]
@@ -144,6 +145,7 @@ namespace MarketAnalyticHub.Controllers.api
     {
       // Replace with actual user ID from your authentication context
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
       var portfolios = await _context.Portfolios
                                         .Include(p => p.Items)
                                         .ThenInclude(pi => pi.Dividends)
@@ -153,8 +155,8 @@ namespace MarketAnalyticHub.Controllers.api
       var portfolioStatistics = portfolios.Select(p => new PortfolioStatistic
       {
         Name = p.Name,
-        TotalInvestment = p.TotalInvestment,
-        CurrentMarketValue = p.CurrentMarketValue,
+        TotalInvestment = (decimal)overallStats.TotalCustMarketValue,
+        CurrentMarketValue = (decimal)overallStats.TotalMarketValue,
         Items = p.Items.Select(i => new PortfolioItemDetail
         {
           Symbol = i.Symbol,
@@ -170,24 +172,25 @@ namespace MarketAnalyticHub.Controllers.api
     private async Task<DashboardData> GetDashboardDataAsync(string userId)
     {
       var portfolios = await GetPortfoliosByUserAsync(userId);
-
-      decimal totalInvestment = portfolios.Sum(p => p.TotalInvestment);
-      decimal currentMarketValue = portfolios.Sum(p => p.CurrentMarketValue);
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
+      decimal totalInvestment = (decimal)overallStats.TotalCustMarketValue;
+      decimal currentMarketValue = (decimal)overallStats.TotalMarketValue;
       decimal dividends = portfolios.Sum(p => p.Items.Sum(i => i.Dividends.Sum(d => d.Amount)));
       decimal profit = currentMarketValue - totalInvestment;
       decimal payments = 2456; // This should be replaced with actual payments data
       decimal operations = 14857; // This should be replaced with actual operations data
       decimal yearlyReport = 84686; // This should be replaced with actual yearly report data
       decimal growth = totalInvestment > 0 ? (profit / totalInvestment) * 100 : 0;
-      decimal portfolioGrowth = totalInvestment > 0 ? (currentMarketValue / totalInvestment) * 100 : 0;
-
+      
+      decimal portfolioGrowth = currentMarketValue > 0 ? ((decimal)overallStats.TotalMarketValue / currentMarketValue) * 100 : 0;
       return new DashboardData
       {
         Profit = profit,
+        ProfitPercentage= overallStats.TotalDifferencePercentage,
         Dividends = dividends,
         Payments = payments,
         Operations = operations,
-        TotalRevenue = currentMarketValue, // Example data
+        TotalRevenue = (decimal)overallStats.TotalMarketValue, // Example data
         Growth = growth,
         PortfolioGrowth = portfolioGrowth,
         YearlyReport = yearlyReport

@@ -1,5 +1,6 @@
 namespace MarketAnalyticHub.Controllers
 {
+  using AspnetCoreMvcFull.Models;
   using MarketAnalyticHub.Models;
   using MarketAnalyticHub.Models.SetupDb;
   using Microsoft.AspNetCore.Authorization;
@@ -75,6 +76,33 @@ namespace MarketAnalyticHub.Controllers
 
       return NoContent();
     }
+
+    // POST: api/UserProfile/AIPilotActivation
+    [HttpPost("AIPilotActivation")]
+    public async Task<IActionResult> AIPilotActivation([FromBody] AIPilotActivation accountAIPilotActivation)
+    {
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(ModelState);
+      }
+
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var user = await _userManager.FindByIdAsync(userId);
+
+      if (user == null)
+      {
+        return NotFound();
+      }
+      user.AIPilot = accountAIPilotActivation.AccountAIPilotActivation=="on"?true:false;
+      var result = await _userManager.UpdateAsync(user);
+
+      if (!result.Succeeded)
+      {
+        return BadRequest(result.Errors);
+      }
+
+      return NoContent();
+    }
   }
 
   public class UpdateUserProfileDto
@@ -91,5 +119,6 @@ namespace MarketAnalyticHub.Controllers
     public string TimeZone { get; set; }
     public string Currency { get; set; }
     public string AvatarUrl { get; set; }
+    public bool? AIPilot { get; set; }
   }
 }

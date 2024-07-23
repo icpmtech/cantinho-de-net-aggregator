@@ -92,6 +92,9 @@
                                     <a class="dropdown-item" href="javascript:void(0);" onclick="toggleDetails(@news.Id)">
                                         <i class="bx bx-analyze me-1"></i> View More
                                     </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="openAddStockEventModal(@news.Id)">
+                                        <i class="bx bx-analyze me-1"></i> Add Stock Event
+                                    </a>
                                 </div>
                             </div>
                         </td>
@@ -278,6 +281,47 @@
     </div>
 </div>
 
+<!-- Add Stock Event Modal -->
+<div class="modal fade" id="addStockEventModal" tabindex="-1" aria-labelledby="addStockEventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addStockEventModalLabel">Add Stock Event</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="addEventNewsId">
+                <div class="mb-3">
+                    <label for="addEventSymbol" class="form-label">Symbol</label>
+                    <input type="text" class="form-control" id="addEventSymbol" required>
+                </div>
+                <div class="mb-3">
+                    <label for="addEventDate" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="addEventDate" required>
+                </div>
+                <div class="mb-3">
+                    <label for="addEventPriceChange" class="form-label">Price Change (%)</label>
+                    <input type="number" class="form-control" id="addEventPriceChange" required>
+                </div>
+                <div class="mb-3">
+                    <label for="addEventSentiment" class="form-label">Sentiment</label>
+                    <select id="addEventSentiment" class="form-select" required>
+                        <option value="Positive">Positive</option>
+                        <option value="Negative">Negative</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="addEventSource" class="form-label">Source</label>
+                    <input type="url" class="form-control" id="addEventSource" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveStockEvent()">Save Event</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section PageScripts {
     <script>
@@ -307,27 +351,27 @@
         function showSentimentImpact(data) {
             const modalBody = document.querySelector('#sentimentImpactModal .modal-body');
             modalBody.innerHTML = `
-                                        <p>Total Market Value Before Impact: ${data.totalMarketValueBeforeImpact}</p>
-                                        <p>Total Market Value After Impact: ${data.totalMarketValueAfterImpact}</p>
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Symbol</th>
-                                                    <th>Adjusted Price</th>
-                                                    <th>Sentiment Impact</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                ${data.portfolioItems.map(item => `
-                                                    <tr>
-                                                        <td>${item.symbol}</td>
-                                                        <td>${item.adjustedPrice}</td>
-                                                        <td>${item.sentimentImpact}</td>
-                                                    </tr>
-                                                `).join('')}
-                                            </tbody>
-                                        </table>
-                                    `;
+                        <p>Total Market Value Before Impact: ${data.totalMarketValueBeforeImpact}</p>
+                        <p>Total Market Value After Impact: ${data.totalMarketValueAfterImpact}</p>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Symbol</th>
+                                    <th>Adjusted Price</th>
+                                    <th>Sentiment Impact</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.portfolioItems.map(item => `
+                                    <tr>
+                                        <td>${item.symbol}</td>
+                                        <td>${item.adjustedPrice}</td>
+                                        <td>${item.sentimentImpact}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
 
             var sentimentImpactModal = new bootstrap.Modal(document.getElementById('sentimentImpactModal'));
             sentimentImpactModal.show();
@@ -541,6 +585,52 @@
                     associateCompaniesModal.show();
                 })
                 .catch(error => console.error('Error fetching associated companies:', error));
+        }
+
+        function openAddStockEventModal(newsId) {
+            document.getElementById('addEventNewsId').value = newsId;
+            var addStockEventModal = new bootstrap.Modal(document.getElementById('addStockEventModal'));
+            addStockEventModal.show();
+        }
+
+        async function saveStockEvent() {
+            const newsId = document.getElementById('addEventNewsId').value;
+            const symbol = document.getElementById('addEventSymbol').value;
+            const date = document.getElementById('addEventDate').value;
+            const priceChange = document.getElementById('addEventPriceChange').value;
+            const sentiment = document.getElementById('addEventSentiment').value;
+            const source = document.getElementById('addEventSource').value;
+
+            const newStockEvent = {
+                newsId,
+                symbol,
+                date,
+                priceChange,
+                sentiment,
+                source
+            };
+
+            try {
+                const response = await fetch('/api/stockevents', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newStockEvent)
+                });
+
+                if (response.ok) {
+                    alert('Stock event added successfully');
+                    var addStockEventModal = bootstrap.Modal.getInstance(document.getElementById('addStockEventModal'));
+                    addStockEventModal.hide();
+                    location.reload();
+                } else {
+                    const errorData = await response.json();
+                    alert('Error adding stock event: ' + errorData.message);
+                }
+            } catch (error) {
+                console.error('Error adding stock event:', error);
+            }
         }
     </script>
 }

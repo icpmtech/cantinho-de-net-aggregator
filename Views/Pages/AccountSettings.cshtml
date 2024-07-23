@@ -13,7 +13,9 @@
         const localizedStrings = {
             failedToLoadUserProfile: '@Localizer["Failed to load user profile"]',
             profileSavedSuccessfully: '@Localizer["Profile saved successfully"]',
-            failedToSaveProfile: '@Localizer["Failed to save profile"]'
+            failedToSaveProfile: '@Localizer["Failed to save profile"]',
+            aiPilotActivatedSuccessfully: '@Localizer["AI Pilot activated successfully"]',
+            failedToActivateAIPilot: '@Localizer["Failed to activate AI Pilot"]'
         };
 
         async function loadUserProfile() {
@@ -67,6 +69,28 @@
             return false;
         }
 
+        async function activateAIPilot() {
+            const form = document.getElementById('formAccountAIPilotActivation');
+            const formData = new FormData(form);
+            const jsonData = Object.fromEntries(formData.entries());
+
+            const response = await fetch('/api/UserProfile/AIPilotActivation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(jsonData)
+            });
+
+            if (response.ok) {
+                showSuccess(localizedStrings.aiPilotActivatedSuccessfully);
+            } else {
+                showError(localizedStrings.failedToActivateAIPilot);
+            }
+
+            return false;
+        }
+
         function showSuccess(message) {
             const successAlert = document.getElementById('successAlert');
             successAlert.innerText = message;
@@ -100,8 +124,6 @@
             }, false);
         })();
     </script>
-
-
 }
 
 @* ************** Content ************** *@
@@ -275,7 +297,7 @@
             </div>
             <!-- /Account -->
         </div>
-        <div class="card">
+        <div class="card mb-4">
             <h5 class="card-header">@Localizer["Delete Account"]</h5>
             <div class="card-body">
                 <div class="mb-3 col-12 mb-0">
@@ -293,6 +315,23 @@
                 </form>
             </div>
         </div>
+        <div class="card">
+            <h5 class="card-header">@Localizer["AI-Pilot Activate"]</h5>
+            <div class="card-body">
+                <div class="mb-3 col-12 mb-0">
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading mb-1">@Localizer["Are you sure you want to delete your account?"]</h6>
+                        <p class="mb-0">@Localizer["Once you delete your account, there is no going back. Please be certain."]</p>
+                    </div>
+                </div>
+                <form id="formAccountAIPilotActivation" method="POST" onsubmit="return activateAIPilot()" class="needs-validation" novalidate>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="accountAIPilotActivation" id="accountAIPilotActivation" />
+                        <label class="form-check-label" for="accountAIPilotActivation">@Localizer["I confirm my AI Pilot activation"]</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary deactivate-account">@Localizer["AIPilot Activation"]</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
-

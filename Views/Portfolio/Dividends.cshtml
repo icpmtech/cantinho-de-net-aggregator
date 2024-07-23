@@ -20,6 +20,9 @@
     <script src="~/js/dashboards-analytics.js"></script>
 }
 
+
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+
 <div class="row">
     <div class="col-md-12">
         <div class="card mb-4">
@@ -174,22 +177,41 @@
         return response.json();
     }
 
+    function showToast(message, type = 'primary') {
+        const toastContainer = document.getElementById('toastContainer');
+        const toastId = `toast-${Date.now()}`;
+        const toastHTML = `
+                <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `;
+        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+        const toastElement = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+    }
+
     async function loadPortfolios() {
         try {
             const portfolios = await fetchData('/api/Portfolio');
             renderPortfolioList(portfolios);
         } catch (error) {
-            alert(error.message);
+            showToast(error.message, 'danger');
         }
     }
 
     async function loadSymbols() {
         try {
-            const symbols = await fetchData('/api/Symbols');
+            const symbols = await fetchData('/api/SymbolsAPI');
             populateSelectOptions('dividendSymbol', symbols);
             populateSelectOptions('editDividendSymbol', symbols);
         } catch (error) {
-            alert(error.message);
+            showToast(error.message, 'danger');
         }
     }
 
@@ -203,6 +225,7 @@
             selectElement.appendChild(optionElement);
         });
     }
+
     function formatDate(date) {
         const d = new Date(date);
         let month = '' + (d.getMonth() + 1);
@@ -214,6 +237,7 @@
 
         return [year, month, day].join('/');
     }
+
     function renderPortfolioList(portfolios) {
         const portfolioList = document.getElementById('portfolioList');
         portfolioList.innerHTML = '';
@@ -236,7 +260,6 @@
                                             </button>
                                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
                                                 <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                               
                                                 <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name}');">Edit Portfolio</a>
                                                 <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
                                             </div>
@@ -279,9 +302,8 @@
                                                         <strong>Total Investment:</strong> ${item.totalInvestment.toFixed(2)} <br>
                                                         <strong>Current Market Value:</strong> ${item.currentMarketValue.toFixed(2)} <br>
                                                         <strong>Total Dividend Income:</strong> ${item.totalDividendIncome.toFixed(2)} <br>
-                                                                <a class="btn btn-primary btn-sm" href="javascript:showAddDividendModal(${item.id});">Add Dividends</a>
-
-                                                            <ul class="list-group list-group-flush">
+                                                        <a class="btn btn-primary btn-sm" href="javascript:showAddDividendModal(${item.id});">Add Dividends</a>
+                                                        <ul class="list-group list-group-flush">
                                                             ${item.dividends?.map(dividend => `
                                                                 <li class="list-group-item">
                                                                     <div class="d-flex justify-content-between">
@@ -289,9 +311,8 @@
                                                                             <strong>Symbol:</strong> ${dividend.symbol} <br>
                                                                             <strong>Dividend Amount:</strong> ${dividend.amount.toFixed(2)} <br>
                                                                             <strong>Ex Date:</strong> ${formatDate(dividend.exDate)} <br>
-                                                                               <strong>Payment Date:</strong> ${formatDate(dividend.paymentDate)} <br>
-
-                                                                            </div>
+                                                                            <strong>Payment Date:</strong> ${formatDate(dividend.paymentDate)} <br>
+                                                                        </div>
                                                                         <div>
                                                                             <button class="btn btn-primary btn-sm" onclick="showEditDividendModal(${dividend.id})">Edit</button>
                                                                             <button class="btn btn-danger btn-sm" onclick="deleteDividend(${dividend.id})">Delete</button>
@@ -342,7 +363,7 @@
             document.getElementById('editDividendPaymentDate').value = new Date(dividend.paymentDate).toISOString().substring(0, 10);
             new bootstrap.Modal(document.getElementById('editDividendModal')).show();
         } catch (error) {
-            alert('Failed to load dividend');
+            showToast('Failed to load dividend', 'danger');
         }
     }
 
@@ -357,9 +378,10 @@
         try {
             await fetchData('/api/Dividend', 'POST', { portfolioItemId, symbol, amount, exDate, paymentDate });
             bootstrap.Modal.getInstance(document.getElementById('addDividendModal')).hide();
+            showToast('Dividend added successfully', 'success');
             loadPortfolios();
         } catch (error) {
-            alert(error.message);
+            showToast(error.message, 'danger');
         }
     }
 
@@ -374,27 +396,30 @@
         try {
             await fetchData(`/api/Dividend/${id}`, 'PUT', { id, symbol, amount, exDate, paymentDate });
             bootstrap.Modal.getInstance(document.getElementById('editDividendModal')).hide();
+            showToast('Dividend updated successfully', 'success');
             loadPortfolios();
         } catch (error) {
-            alert('Failed to edit dividend');
+            showToast('Failed to edit dividend', 'danger');
         }
     }
 
     async function deleteDividend(id) {
         try {
             await fetchData(`/api/Dividend/${id}`, 'DELETE');
+            showToast('Dividend deleted successfully', 'success');
             loadPortfolios();
         } catch (error) {
-            alert('Failed to delete dividend');
+            showToast('Failed to delete dividend', 'danger');
         }
     }
 
     async function deletePortfolio(id) {
         try {
             await fetchData(`/api/Portfolio/${id}`, 'DELETE');
+            showToast('Portfolio deleted successfully', 'success');
             loadPortfolios();
         } catch (error) {
-            alert('Failed to delete portfolio');
+            showToast('Failed to delete portfolio', 'danger');
         }
     }
 
@@ -405,9 +430,10 @@
         try {
             await fetchData('/api/Portfolio', 'POST', { name });
             bootstrap.Modal.getInstance(document.getElementById('addPortfolioModal')).hide();
+            showToast('Portfolio added successfully', 'success');
             loadPortfolios();
         } catch (error) {
-            alert('Failed to add portfolio');
+            showToast('Failed to add portfolio', 'danger');
         }
     }
 
@@ -419,9 +445,10 @@
         try {
             await fetchData(`/api/Portfolio/${id}`, 'PUT', { id, name });
             bootstrap.Modal.getInstance(document.getElementById('editPortfolioModal')).hide();
+            showToast('Portfolio updated successfully', 'success');
             loadPortfolios();
         } catch (error) {
-            alert('Failed to edit portfolio');
+            showToast('Failed to edit portfolio', 'danger');
         }
     }
 
@@ -430,7 +457,7 @@
             const dividends = await fetchData(`/api/Dividend/ByPortfolio/${portfolioId}`);
             renderDividends(dividends);
         } catch (error) {
-            alert('Failed to load dividends for portfolio');
+            showToast('Failed to load dividends for portfolio', 'danger');
         }
     }
 
