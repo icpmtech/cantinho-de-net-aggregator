@@ -1,6 +1,10 @@
 @* _Chat.cshtml *@
 <!-- Chat Window -->
-@if(User.Identity.IsAuthenticated)
+@{
+    var isAIPilotActivated = User.Claims.FirstOrDefault(c => c.Type == "AIPilot")?.Value == "true";
+}
+
+@if (User.Identity.IsAuthenticated && isAIPilotActivated)
 {
 <div id="chatWindow" class="card chat-window minimized">
     <div class="card-header">

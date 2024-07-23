@@ -42,6 +42,7 @@
                 document.getElementById('currency').value = userProfile.currency;
                 document.getElementById('uploadedAvatar').src = userProfile.avatarUrl;
                 document.getElementById('avatarUrl').value = userProfile.avatarUrl;
+                document.getElementById('accountAIPilotActivation').checked = userProfile.aiPilot;
             } else {
                 showError(localizedStrings.failedToLoadUserProfile);
             }
@@ -320,16 +321,16 @@
             <div class="card-body">
                 <div class="mb-3 col-12 mb-0">
                     <div class="alert alert-warning">
-                        <h6 class="alert-heading mb-1">@Localizer["Are you sure you want to delete your account?"]</h6>
-                        <p class="mb-0">@Localizer["Once you delete your account, there is no going back. Please be certain."]</p>
+                        <h6 class="alert-heading mb-1">@Localizer["Are you sure you want to activate AI Pilot?"]</h6>
+                        <p class="mb-0">@Localizer["Once you activate AI Pilot, it will start providing AI-driven insights."]</p>
                     </div>
                 </div>
                 <form id="formAccountAIPilotActivation" method="POST" onsubmit="return activateAIPilot()" class="needs-validation" novalidate>
                     <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="accountAIPilotActivation" id="accountAIPilotActivation" />
+                        <input class="form-check-input" type="checkbox" name="aiPilot" id="accountAIPilotActivation" />
                         <label class="form-check-label" for="accountAIPilotActivation">@Localizer["I confirm my AI Pilot activation"]</label>
                     </div>
-                    <button type="submit" class="btn btn-primary deactivate-account">@Localizer["AIPilot Activation"]</button>
+                    <button type="submit" class="btn btn-primary deactivate-account">@Localizer["Activate AI Pilot"]</button>
                 </form>
             </div>
         </div>
