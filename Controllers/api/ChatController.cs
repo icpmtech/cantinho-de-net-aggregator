@@ -15,6 +15,7 @@ using OpenAI_API;
 using OpenAI_API.Audio;
 using static OpenAI_API.Audio.TextToSpeechRequest;
 using OpenAI_API.Models;
+
 [Route("api/[controller]")]
 [ApiController]
 public class ChatController : ControllerBase
@@ -195,7 +196,13 @@ public class ChatController : ControllerBase
   [HttpPost("saveMessage")]
   public async Task<IActionResult> SaveMessage([FromBody] MessageContent content)
   {
-    var filePath = Path.Combine(_environment.WebRootPath, "savedMessages", $"{Guid.NewGuid()}.txt");
+    var uploadsFolder = Path.Combine(_environment.WebRootPath, "wwwroot", "uploads", "savedMessages");
+    if (!Directory.Exists(uploadsFolder))
+    {
+      Directory.CreateDirectory(uploadsFolder);
+    }
+
+    var filePath = Path.Combine(uploadsFolder, $"{Guid.NewGuid()}.txt");
     await System.IO.File.WriteAllTextAsync(filePath, content.Content);
 
     return Ok(new { filePath });

@@ -7,16 +7,17 @@
 @if (User.Identity.IsAuthenticated && isAIPilotActivated)
 {
     <div id="chatWindow" class="card chat-window minimized">
-        <div class="card-header">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h5 class="d-inline">AI-Pilot</h5>
-            <button class="btn btn-sm btn-primary float-end" onclick="toggleChat()">_</button>
-            <button class="btn btn-sm btn-primary float-end me-2" onclick="maximizeChat()">⬜</button>
-            <hr />
+            <div>
+                <button class="btn btn-sm btn-primary me-2" onclick="maximizeChat()">⬜</button>
+                <button class="btn btn-sm btn-danger" onclick="closeChat()">✕</button>
+            </div>
         </div>
         <div class="card-body">
             <div class="mb-3">
                 <div id="defaultFormControlHelp" class="form-text">We'll never share your details with anyone else.</div>
-                <input class="form-control mb-2" type="text" id="userInput" placeholder="User name" aria-describedby="defaultFormControlHelp" />
+                <input class="form-control mb-2" type="text" readonly value="@User.Identity.Name" id="userInput" placeholder="User name" aria-describedby="defaultFormControlHelp" />
                 <textarea class="form-control mb-2" id="messageInput" placeholder="Message"></textarea>
                 <button class="btn btn-primary w-100 mb-2" type="button" onclick="sendMessage()">
                     <i class="bx bx-send"></i> Send
@@ -62,11 +63,11 @@
                 const messageId = `msg-${Date.now()}`;
                 msg.setAttribute("id", messageId);
                 msg.innerHTML = `<strong>${user}:</strong> ${marked(message)}
-                                        <div class="btn-group mt-1" role="group">
-                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
-                                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>
-                                        </div>`;
+                                                <div class="btn-group mt-1" role="group">
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
+                                                    <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>
+                                                </div>`;
                 document.getElementById("messagesList").appendChild(msg);
                 // Convert the transcription to speech and play it
                 readAudio(message);
@@ -78,12 +79,12 @@
                 const messageId = `msg-${Date.now()}`;
                 msg.setAttribute("id", messageId);
                 msg.innerHTML = `<strong>${user}:</strong> <a href="${fileUrl}" target="_blank">${fileUrl}</a>
-                                        <p>Analysis: ${marked(analysis)}</p>
-                                        <div class="btn-group mt-1" role="group">
-                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
-                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
-                                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>
-                                        </div>`;
+                                                <p>Analysis: ${marked(analysis)}</p>
+                                                <div class="btn-group mt-1" role="group">
+                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
+                                                    <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>
+                                                </div>`;
                 document.getElementById("messagesList").appendChild(msg);
             });
 
@@ -160,12 +161,12 @@
                             const analysisId = `msg-analysis-${Date.now()}`;
                             analysisMsg.setAttribute("id", analysisId);
                             analysisMsg.innerHTML = `<strong>${user}:</strong> File analysis completed.
-                                                                     <p>Analysis: ${marked(data.analysis)}</p>
-                                                                     <div class="btn-group mt-1" role="group">
-                                                                         <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
-                                                                         <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
-                                                                         <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>
-                                                                     </div>`;
+                                                                             <p>Analysis: ${marked(data.analysis)}</p>
+                                                                             <div class="btn-group mt-1" role="group">
+                                                                                 <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
+                                                                                 <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
+                                                                                 <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>
+                                                                             </div>`;
                             document.getElementById("messagesList").appendChild(analysisMsg);
                         } else {
                             alert('File upload failed: ' + data.message);
@@ -178,14 +179,33 @@
 
             window.toggleChat = function () {
                 const chatWindow = document.getElementById("chatWindow");
+                const startRecordingButton = document.getElementById('startRecordingButton');
+                const stopRecordingButton = document.getElementById('stopRecordingButton');
+
+                // Toggle the minimized class
                 chatWindow.classList.toggle("minimized");
-                document.getElementById('startRecordingButton').style.display = 'block';
-                document.getElementById('stopRecordingButton').style.display = 'none';
+
+                // Toggle the display of the chat window based on the minimized state
+                if (chatWindow.classList.contains("minimized")) {
+                    chatWindow.style.display = 'none';
+                } else {
+                    chatWindow.style.display = 'block';
+                }
+
+                // Always show the start button and hide the stop button when the chat window is toggled
+                startRecordingButton.style.display = 'block';
+                stopRecordingButton.style.display = 'none';
             };
 
             window.maximizeChat = function () {
                 const chatWindow = document.getElementById("chatWindow");
                 chatWindow.classList.toggle("maximized");
+                chatWindow.style.display = 'block';
+            };
+
+            window.closeChat = function () {
+                const chatWindow = document.getElementById("chatWindow");
+                chatWindow.style.display = 'none';
             };
 
             window.copyMessage = function (messageId) {
@@ -274,12 +294,12 @@
                                         const analysisId = `msg-analysis-${Date.now()}`;
                                         analysisMsg.setAttribute("id", analysisId);
                                         analysisMsg.innerHTML = `<strong>${user}:</strong> Audio transcription completed.
-                                                                    <p>Transcription: ${marked(data.transcription)}</p>
-                                                                    <div class="btn-group mt-1" role="group">
-                                                                        <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
-                                                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
-                                                                        <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>
-                                                                    </div>`;
+                                                                            <p>Transcription: ${marked(data.transcription)}</p>
+                                                                            <div class="btn-group mt-1" role="group">
+                                                                                <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
+                                                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
+                                                                                <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>
+                                                                            </div>`;
                                         document.getElementById("messagesList").appendChild(analysisMsg);
 
                                     } else {
@@ -343,25 +363,31 @@
     <style>
         .chat-window {
             position: fixed;
+            display: none;
             bottom: 10px;
             right: 10px;
             width: 300px;
-            height: 80%;
+            height: 90%;
             max-height: 90%;
             overflow-y: auto;
             z-index: 1000;
             transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, max-height 0.3s ease-in-out;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            background-color: #fff;
         }
 
             .chat-window.minimized {
-                transform: translateY(calc(100% - 40px));
+                
             }
 
             .chat-window.maximized {
-                width: 50%;
+                width: 60%;
+                height: auto;
                 max-height: 90%;
                 bottom: 5%;
-                right: 0;
+                right: 20px;
+                
             }
 
         .ai-copilot-btn {
@@ -379,8 +405,9 @@
         }
 
         #messagesList {
-            max-height: 200px;
+            max-height: 300px;
             overflow-y: auto;
+            margin-bottom: 10px;
         }
 
         pre[class*="language-"], code[class*="language-"] {
@@ -465,6 +492,26 @@
         .btn-group {
             display: flex;
             justify-content: space-between;
+        }
+
+        .form-text {
+            font-size: 0.875rem;
+        }
+
+        .form-control {
+            margin-bottom: 0.5rem;
+        }
+
+        .btn {
+            margin-bottom: 0.5rem;
+        }
+
+        .card-header {
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .card-body {
+            padding-top: 0.5rem;
         }
     </style>
 }

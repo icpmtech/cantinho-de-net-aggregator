@@ -6,13 +6,12 @@ namespace MarketAnalyticHub.Controllers
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Identity;
   using Microsoft.AspNetCore.Mvc;
-  using Microsoft.Graph;
   using System.Security.Claims;
   using System.Threading.Tasks;
 
   [Route("api/[controller]")]
   [Authorize]
-  public class UserProfileController : ControllerBase
+  public partial class UserProfileController : ControllerBase
   {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _context;
@@ -69,7 +68,7 @@ namespace MarketAnalyticHub.Controllers
       user.AvatarUrl = updatedUser.AvatarUrl;
 
       var result = await _userManager.UpdateAsync(user);
-     
+
       if (!result.Succeeded)
       {
         return BadRequest(result.Errors);
@@ -94,7 +93,7 @@ namespace MarketAnalyticHub.Controllers
       {
         return NotFound();
       }
-      user.AIPilot = accountAIPilotActivation.AccountAIPilotActivation=="on"?true:false;
+      user.AIPilot = accountAIPilotActivation.AccountAIPilotActivation == "on" ? true : false;
       if ((bool)user.AIPilot)
       {
         var addRoleResult = await _userManager.AddToRoleAsync(user, "aiPilot");
@@ -112,7 +111,7 @@ namespace MarketAnalyticHub.Controllers
         }
       }
       var result = await _userManager.UpdateAsync(user);
-     
+
       if (!result.Succeeded)
       {
         return BadRequest(result.Errors);
@@ -120,38 +119,85 @@ namespace MarketAnalyticHub.Controllers
 
       return NoContent();
     }
-  
-  // GET: api/UserProfile/HasAIPilotActivation
-  [HttpGet("HasAIPilotActivation")]
-  public async Task<bool?> HasAIPilotActivation()
-  {
-   
-
-    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    var user = await _userManager.FindByIdAsync(userId);
-
-    if (user == null)
+    // POST: api/UserProfile/profile-avatar
+    [HttpPost("profile-avatar")]
+    public async Task<IActionResult> UploadAvatar([FromForm] ProfileAvatar profileAvatar)
     {
-      return false;
-    }
-      return user.AIPilot;
-  }
-}
+      if (!ModelState.IsValid)
+      {
+        return BadRequest(ModelState);
+      }
 
-public class UpdateUserProfileDto
-  {
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Organization { get; set; }
-    public string PhoneNumber { get; set; }
-    public string Address { get; set; }
-    public string State { get; set; }
-    public string ZipCode { get; set; }
-    public string Country { get; set; }
-    public string Language { get; set; }
-    public string TimeZone { get; set; }
-    public string Currency { get; set; }
-    public string AvatarUrl { get; set; }
-    public bool? AIPilot { get; set; }
+      if (profileAvatar.Avatar == null || profileAvatar.Avatar.Length == 0)
+      {
+        return BadRequest("File not found or empty.");
+      }
+
+      // Validate the file type (only allow specific file types)
+      var allowedFileTypes = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+      var extension = Path.GetExtension(profileAvatar.Avatar.FileName).ToLowerInvariant();
+      if (!allowedFileTypes.Contains(extension))
+      {
+        return BadRequest("Invalid file type. Allowed types are .jpg, .jpeg, .png, .gif.");
+      }
+
+      // Process and save the file
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var user = await _userManager.FindByIdAsync(userId);
+
+      if (user == null)
+      {
+        return NotFound();
+      }
+
+      var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+      if (!Directory.Exists(uploadsFolder))
+      {
+        Directory.CreateDirectory(uploadsFolder);
+      }
+
+      var filePath = Path.Combine(uploadsFolder, user.Id + extension);
+
+      try
+      {
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+          await profileAvatar.Avatar.CopyToAsync(stream);
+        }
+
+        var avatarUrl = $"/uploads/avatars/{user.Id}{extension}";
+        user.AvatarUrl = avatarUrl;
+
+        var result = await _userManager.UpdateAsync(user);
+
+        if (!result.Succeeded)
+        {
+          return BadRequest(result.Errors);
+        }
+
+        return Ok(avatarUrl); // Ensure the URL is returned as a plain string
+      }
+      catch (Exception ex)
+      {
+        // Log the exception
+        Console.Error.WriteLine($"File upload failed: {ex.Message}");
+        return StatusCode(500, "Internal server error");
+      }
+    }
+    // GET: api/UserProfile/HasAIPilotActivation
+    [HttpGet("HasAIPilotActivation")]
+    public async Task<bool?> HasAIPilotActivation()
+    {
+
+
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var user = await _userManager.FindByIdAsync(userId);
+
+      if (user == null)
+      {
+        return false;
+      }
+      return user.AIPilot;
+    }
   }
 }

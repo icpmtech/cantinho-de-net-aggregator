@@ -29,6 +29,7 @@ function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', 
       // Fetch purchase dates for the symbol
       const purchaseDates = await fetchPurchaseDates(symbol, startDate, endDate);
       let annotations = purchaseDates.map(purchase => ({
+        
         x: new Date(purchase.date).getTime(),
         borderColor: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560',
         label: {

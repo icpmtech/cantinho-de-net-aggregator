@@ -184,11 +184,17 @@ function generateGroupedItemsHTML(group, portfolioId) {
 }
 
 function generatePortfolioItemHTML(item) {
+  const roiValue = item.quantity * item.currentPrice - item.purchasePrice * item.quantity;
+  const roiPercentage = ((item.currentPrice - item.purchasePrice) / item.purchasePrice) * 100;
+
   return `
     <li class="list-group-item bg-info text-white d-flex justify-content-between align-items-center rounded mb-2">
       <div>
         <p class="mb-1"><strong>Quantity:</strong> ${item.quantity}</p>
         <p class="mb-1"><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
+        <p class="mb-1"><strong>Purchase Price:</strong> €${item.purchasePrice.toFixed(2)}</p>
+        <p class="mb-1"><strong>ROI (Value):</strong> €${roiValue.toFixed(2)}</p>
+        <p class="mb-1"><strong>ROI (Percentage):</strong> ${roiPercentage.toFixed(2)}%</p>
       </div>
       <div class="d-flex flex-column align-items-end">
         <button class="btn btn-primary btn-sm mb-1" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
@@ -197,6 +203,7 @@ function generatePortfolioItemHTML(item) {
     </li>
   `;
 }
+
 
 
 function toggleChart(portfolioId) {
