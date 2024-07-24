@@ -1,4 +1,4 @@
-function renderCandlestickChart(itemId, symbol, chartType = 'candlestick', dateRange = '1y') {
+function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', dateRange = '1y') {
   const { startDate, endDate } = getDateRange(dateRange);
 
   const apiUrl = `/api/Portfolio/historical-data?symbol=${symbol}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`;
@@ -61,12 +61,50 @@ function renderCandlestickChart(itemId, symbol, chartType = 'candlestick', dateR
         };
       }
 
-      const chart = new ApexCharts(document.querySelector(`#candlestick-chart-${itemId}`), options);
+      const chart = new ApexCharts(document.querySelector(`#${containerId}`), options);
       chart.render();
     })
     .catch(error => {
       console.error('Error fetching data:', error);
     });
+}
+
+function getDateRange(dateRange) {
+  const endDate = new Date();
+  let startDate;
+
+  switch (dateRange) {
+    case '1d':
+      startDate = new Date();
+      startDate.setDate(endDate.getDate() - 1);
+      break;
+    case '5d':
+      startDate = new Date();
+      startDate.setDate(endDate.getDate() - 5);
+      break;
+    case '1m':
+      startDate = new Date();
+      startDate.setMonth(endDate.getMonth() - 1);
+      break;
+    case '1y':
+      startDate = new Date();
+      startDate.setFullYear(endDate.getFullYear() - 1);
+      break;
+    case '5y':
+      startDate = new Date();
+      startDate.setFullYear(endDate.getFullYear() - 5);
+      break;
+    default:
+      startDate = new Date(0); // Default to all-time
+      break;
+  }
+
+  return { startDate, endDate };
+}
+
+function formatDate(date) {
+  const d = new Date(date);
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
 }
 
 function renderChart(portfolio, chartType) {

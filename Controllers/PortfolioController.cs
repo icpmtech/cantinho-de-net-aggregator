@@ -123,6 +123,20 @@ namespace MarketAnalyticHub.Controllers
         var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
         if(portfolioPercentageResponse is not null)
         portfolio.PortfolioPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
+        // Group portfolio items by symbol
+        var groupedItems = portfolio.Items
+            .GroupBy(item => item.Symbol)
+            .Select(group => new
+            {
+              Symbol = group.Key,
+
+              Items = group.Distinct().ToList()
+            });
+
+        // You can then replace portfolio.Items with the grouped items if needed
+        // Or perform further operations on the grouped items
+        portfolio.GroupedItems = groupedItems.ToList(); // Assuming GroupedItems is a new property in your portfolio model
+
       }
       return Ok(portfolios);
     }
@@ -220,14 +234,18 @@ namespace MarketAnalyticHub.Controllers
       var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
 
       double totalPercentage = 0;
+      double totalDifferenceWithDividendsPercentage = 0;
+      double totalProfit = 0;
       foreach (var portfolio in portfolios)
       {
         var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
         if(portfolioPercentageResponse is not null)
         totalPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
+        totalDifferenceWithDividendsPercentage += portfolioPercentageResponse.TotalDifferenceWithDividendsPercentage;
+        totalProfit += portfolioPercentageResponse.TotalPortfolioProfit;
       }
 
-      return Ok(new { TotalPercentage = totalPercentage });
+      return Ok(new { TotalPercentage = totalPercentage,TotalProfit= totalProfit, TotalWithDividendsPercentage = totalDifferenceWithDividendsPercentage });
     }
     [HttpGet("portfolio-overall-stats")]
     public async Task<IActionResult> GetTotalPortfolioOverallStats()

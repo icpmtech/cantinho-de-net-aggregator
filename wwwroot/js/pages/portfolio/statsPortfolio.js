@@ -1,3 +1,4 @@
+
 async function loadPortfolios(dateRange = '1y') {
   // Show the loading spinner
   document.getElementById('loadingSpinner').style.display = 'block';
@@ -52,6 +53,9 @@ async function loadSymbols() {
     alert('Failed to load symbols');
   }
 }
+function sanitizeSymbol(symbol) {
+  return symbol.replace(/[^a-zA-Z0-9-_]/g, '_');
+}
 
 function renderPortfolioList(portfolios, chartType = 'bar', dateRange = 'all') {
   const portfolioList = document.getElementById('portfolioList');
@@ -59,111 +63,157 @@ function renderPortfolioList(portfolios, chartType = 'bar', dateRange = 'all') {
   portfolioList.dataset.dateRange = dateRange; // Save date range for re-rendering
   portfolioList.innerHTML = '';
 
+  const renderedSymbols = new Set();
+
   portfolios.forEach(portfolio => {
     const portfolioDiv = document.createElement('div');
     portfolioDiv.classList.add('portfolio-card', 'mb-4');
+    portfolioDiv.innerHTML = generatePortfolioHTML(portfolio);
 
-    portfolioDiv.innerHTML = `
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-center justify-content-between">
-                            <h3>${portfolio.name}</h3>
-                            <div class="dropdown">
-                                <button class="btn p-0" type="button" id="portfolioActions-${portfolio.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="portfolioActions-${portfolio.id}">
-                                    <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Operations</a>
-                                    <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name.replace(/'/g, "\\'")}');">Edit Portfolio</a>
-                                    <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar flex-shrink-0">
-                                        <img src="/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
-                                    </div>
-                                    <div class="ms-3">
-                                        <span class="fw-medium d-block">Total Investment</span>
-                                        <h3>€${portfolio.totalInvestment.toFixed(3)}</h3>
-                                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +€0</small>
-                                    </div>
-                                </div>
-                                <button class="btn btn-outline-primary btn-sm mt-3" onclick="toggleChart(${portfolio.id})">Toggle Chart</button>
-                                <canvas id="chart-${portfolio.id}" style="display: none;"></canvas>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center">
-                                    <div class="avatar flex-shrink-0">
-                                        <img src="/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
-                                    </div>
-                                    <div class="ms-3">
-                                        <span>Current Market Value</span>
-                                        <h3>€${portfolio.currentMarketValue?.toFixed(3)}</h3>
-                                                    <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> ${portfolio.portfolioPercentage.toFixed(3)}%</small>
-                                    </div>
-                                </div>
-                                <button class="btn btn-outline-primary btn-sm mt-3" data-bs-toggle="collapse" data-bs-target="#details-${portfolio.id}" aria-expanded="false" aria-controls="details-${portfolio.id}">
-                                    ${portfolio.items.length > 0 ? 'View More' : 'No Items to Display'}
-                                </button>
-                                <div id="details-${portfolio.id}" class="collapse mt-3">
-                                    <ul class="list-group list-group-flush">
-                                        ${portfolio.items.map(item => `
-                                            <li class="list-group-item">
-                                                <div class="d-flex justify-content-between align-items-start">
-                                                    <div>
-                                                        <p><strong>Symbol:</strong> ${item.symbol}</p>
-                                                        <p><strong>Quantity:</strong> ${item.quantity}</p>
-                                                        <p><strong>Current Price:</strong> ${item.currentPrice}</p>
-                                                        <p><strong>Change:</strong> ${item.change}</p>
-                                                        <p>
-                                                            <strong>Percent Change:</strong>
-                                                            <small class="${item.percentChange > 0 ? 'text-success' : 'text-danger'} fw-medium">
-                                                                <i class='bx ${item.percentChange > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${item.percentChange}%
-                                                            </small>
-                                                            <div class="progress">
-                                                                <div class="progress-bar ${item.percentChange > 0 ? 'bg-success' : 'bg-danger'}" role="progressbar" style="width: ${Math.abs(item.percentChange)}%;" aria-valuenow="${item.percentChange}" aria-valuemin="0" aria-valuemax="100"></div>
-                                                            </div>
-                                                        </p>
-                                                        <p><strong>High Price:</strong> ${item.highPrice}</p>
-                                                        <p><strong>Low Price:</strong> ${item.lowPrice}</p>
-                                                        <p><strong>Open Price:</strong> ${item.openPrice}</p>
-                                                        <p><strong>Previous Close Price:</strong> ${item.previousClosePrice}</p>
-                                                        <p><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
-                                                    </div>
-                                                    <div class="mt-3">
-                                                        <div id="candlestick-chart-${item.id}" class="img-fluid"></div>
-                                                        <div class="btn-group mb-3" role="group" aria-label="Date Range">
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', '1d')">1 Day</button>
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', '5d')">5 Days</button>
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', '1m')">1 Month</button>
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', '1y')">1 Year</button>
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', '5y')">5 Years</button>
-                                                            <button type="button" class="btn btn-outline-primary btn-sm" onclick="renderCandlestickChart(${item.id}, '${item.symbol}', '${chartType}', 'all')">All</button>
-                                                        </div>
-                                                        <div class="d-flex flex-column justify-content-start">
-                                                            <button class="btn btn-primary btn-sm mb-1" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
-                                                             <button class="btn btn-primary btn-sm mb-1" onclick="showEditPortfolioItemTransactionModal(${item.id})">Edit Transaction</button>
-                                                            <button class="btn btn-primary btn-sm mb-1" onclick="showAddPortfolioItemTransactionModal(${item.id})">Add Transaction</button>
-                                                            <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </li>
-                                        `).join('')}
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
     portfolioList.appendChild(portfolioDiv);
     renderChart(portfolio, chartType);
-    portfolio.items.forEach(item => renderCandlestickChart(item.id, item.symbol, chartType, dateRange));
+    portfolio.groupedItems.forEach(group => {
+      const sanitizedSymbol = sanitizeSymbol(group.symbol);
+      if (!renderedSymbols.has(sanitizedSymbol)) {
+        renderCandlestickChart(`candlestick-chart-${sanitizedSymbol}`, group.symbol, chartType, dateRange);
+        renderedSymbols.add(sanitizedSymbol);
+      }
+    });
   });
 }
 
+function generatePortfolioHTML(portfolio) {
+  return `
+    <div class="card mb-4 shadow-sm border-0 rounded">
+      <div class="card-body">
+        <div class="card-title d-flex align-items-center justify-content-between">
+          <h3 class="mb-0">${portfolio.name}</h3>
+          <div class="dropdown">
+            <button class="btn p-0" type="button" id="portfolioActions-${portfolio.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="bx bx-dots-vertical-rounded"></i>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="portfolioActions-${portfolio.id}">
+              <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Operations</a>
+              <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name.replace(/'/g, "\\'")}');">Edit Portfolio</a>
+              <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="d-flex align-items-center justify-content-between">
+              <div class="d-flex align-items-center">
+                <div class="avatar flex-shrink-0">
+                  <img src="/img/icons/unicons/chart-success.png" alt="chart success" class="rounded" style="width: 40px; height: 40px;">
+                </div>
+                <div class="ms-3">
+                  <span class="fw-medium d-block text-muted">Total Investment</span>
+                  <h3 class="mb-0">€${portfolio.totalInvestment.toFixed(3)}</h3>
+                  <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +€0</small>
+                </div>
+              </div>
+              <button class="btn badge bg-primary text-white" onclick="toggleChart(${portfolio.id})">TOGGLE CHART</button>
+            </div>
+            <canvas id="chart-${portfolio.id}" style="display: none; width: 100%; height: 200px;" class="mt-3"></canvas>
+          </div>
+          <div class="col-12 mt-4">
+            <div class="d-flex align-items-center">
+              <div class="avatar flex-shrink-0">
+                <img src="/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded" style="width: 40px; height: 40px;">
+              </div>
+              <div class="ms-3">
+                <span class="fw-medium d-block text-muted">Current Market Value</span>
+                <h3 class="mb-0">€${portfolio.currentMarketValue?.toFixed(3)}</h3>
+                <small class="text-${portfolio.portfolioPercentage > 0 ? 'success' : 'danger'} fw-medium"><i class='bx ${portfolio.portfolioPercentage > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${portfolio.portfolioPercentage.toFixed(3)}%</small>
+              </div>
+            </div>
+            <div class="mt-3">
+              ${portfolio.groupedItems.map(group => generateGroupedItemsHTML(group, portfolio.id)).join('')}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
+function generateGroupedItemsHTML(group, portfolioId) {
+  const sanitizedSymbol = sanitizeSymbol(group.symbol);
+  return `
+    <div class="card mt-3 shadow-sm rounded border-0">
+      <div data-bs-toggle="collapse" data-bs-target="#group-${sanitizedSymbol}" aria-expanded="false" aria-controls="group-${sanitizedSymbol}" class="card-header bg-primary text-white d-flex justify-content-between align-items-center rounded" id="group-header-${sanitizedSymbol}">
+        <span class="badge bg-white text-primary">${group.symbol}</span>
+        <div class="d-flex align-items-center">
+          <span class="badge bg-white text-primary ms-1">${group.items.length}</span>
+          <button class="btn btn-link p-0 ms-1" type="button">
+            <span class="badge bg-white text-primary ms-1">
+              <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
+                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${group.items[0].change}%
+              </small>
+            </span>
+          </button>
+        </div>
+      </div>
+      <div id="group-${sanitizedSymbol}" class="collapse" aria-labelledby="group-header-${sanitizedSymbol}" data-parent="#details-${portfolioId}">
+        <div class="card-body">
+          <div>
+            <p><strong>Current Price:</strong> ${group.items[0].currentPrice}</p>
+            <p><strong>Change:</strong> ${group.items[0].change}</p>
+            <p>
+              <strong>Percent Change:</strong>
+              <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
+                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${group.items[0].change}%
+              </small>
+              <div class="progress mt-2">
+                <div class="progress-bar ${group.items[0].change > 0 ? 'bg-success' : 'bg-danger'}" role="progressbar" style="width: ${Math.abs(group.items[0].change)}%;" aria-valuenow="${group.items[0].change}" aria-valuemin="0" aria-valuemax="100"></div>
+              </div>
+            </p>
+            <p><strong>High Price:</strong> ${group.items[0].highPrice}</p>
+            <p><strong>Low Price:</strong> ${group.items[0].lowPrice}</p>
+            <p><strong>Open Price:</strong> ${group.items[0].openPrice}</p>
+            <p><strong>Previous Close Price:</strong> ${group.items[0].previousClosePrice}</p>
+          </div>
+          <div id="candlestick-chart-${sanitizedSymbol}" class="img-fluid mb-3"></div>
+          <ul class="list-group list-group-flush">
+            ${group.items.map(item => generatePortfolioItemHTML(item)).join('')}
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function generatePortfolioItemHTML(item) {
+  return `
+    <li class="list-group-item bg-info text-white d-flex justify-content-between align-items-center rounded mb-2">
+      <div>
+        <p class="mb-1"><strong>Quantity:</strong> ${item.quantity}</p>
+        <p class="mb-1"><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
+      </div>
+      <div class="d-flex flex-column align-items-end">
+        <button class="btn btn-primary btn-sm mb-1" onclick="showEditPortfolioItemModal(${item.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePortfolioItem(${item.id})">Delete</button>
+      </div>
+    </li>
+  `;
+}
+
+
+function toggleChart(portfolioId) {
+  const chartCanvas = document.getElementById(`chart-${portfolioId}`);
+  if (chartCanvas.style.display === 'none') {
+    chartCanvas.style.display = 'block';
+  } else {
+    chartCanvas.style.display = 'none';
+  }
+}
+
+
+function toggleChart(portfolioId) {
+  const chartCanvas = document.getElementById(`chart-${portfolioId}`);
+  if (chartCanvas.style.display === 'none') {
+    chartCanvas.style.display = 'block';
+  } else {
+    chartCanvas.style.display = 'none';
+  }
+}

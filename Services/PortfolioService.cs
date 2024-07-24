@@ -378,35 +378,69 @@ namespace MarketAnalyticHub.Services
       if (portfolio == null || portfolio.Items == null || !portfolio.Items.Any())
         return null;
 
-      var totalCustMarketValue = portfolio.Items.Sum(item => item.PurchasePrice * item.Quantity + (item.Commission ?? 0));
-      var totalMarketValue = portfolio.Items.Sum(item => (_yahooFinanceService.GetRealTimePriceAsync(item.Symbol).Result.CurrentPrice * item.Quantity));
+      // Create a dictionary to store the real-time prices
+      var symbolPrices = new Dictionary<string, double>();
 
+      // Fetch the real-time price for each unique symbol once
+      foreach (var symbol in portfolio.Items.Select(item => item.Symbol).Distinct())
+      {
+        var realTimePrice = _yahooFinanceService.GetRealTimePriceAsync(symbol).Result.CurrentPrice;
+        symbolPrices[symbol] = realTimePrice;
+      }
+
+      // Calculate total customer market value (initial investment cost including commissions)
+      var totalCustMarketValue = portfolio.Items.Sum(item => item.PurchasePrice * item.Quantity + (item.Commission ?? 0));
+
+      // Calculate total dividends
+      var totalDividends = portfolio.Items.Sum(item => (item.Dividends?.Sum(s => s.Amount)) ?? 0);
+
+      // Calculate total market value (current market value without dividends)
+      var totalMarketValue = portfolio.Items.Sum(item => symbolPrices[item.Symbol] * item.Quantity);
+
+      // Calculate total market value with dividends
+      var totalWithDividendsMarketValue = totalMarketValue + (double)totalDividends;
+
+      // Calculate total difference in value and percentage
       var totalDifferenceValue = totalMarketValue - (double)totalCustMarketValue;
       var totalDifferencePercentage = (totalDifferenceValue / (double)totalCustMarketValue) * 100;
 
+      // Calculate total difference in value dividends and percentage
+      var totalDifferenceDividendsValue = totalWithDividendsMarketValue - (double)totalCustMarketValue;
+      var totalDifferenceDividendsPercentage = (totalDifferenceDividendsValue / (double)totalCustMarketValue) * 100;
+
+      // Calculate item percentages
       var itemPercentages = portfolio.Items.Select(item => {
-        var currentPrice = _yahooFinanceService.GetRealTimePriceAsync(item.Symbol).Result.CurrentPrice;
+        var currentPrice = symbolPrices[item.Symbol];
         var currentMarketValue = currentPrice * item.Quantity;
-        var customMarketValue = item.PurchasePrice * item.Quantity;
+        var customMarketValue = item.PurchasePrice * item.Quantity + (item.Commission ?? 0);
         var differenceValue = currentMarketValue - (double)customMarketValue;
-        var differencePercentage = ((currentMarketValue - (double)customMarketValue) / (double)customMarketValue) * 100;
+        var differencePercentage = (differenceValue / (double)customMarketValue) * 100;
+        var itemDividends = (item.Dividends?.Sum(s => s.Amount)) ?? 0;
+        var currentMarketValueWithDividends = currentMarketValue + (double)itemDividends;
 
         return new PortfolioItemPercentage
         {
           Symbol = item.Symbol,
           CurrentPercentage = (currentMarketValue / totalMarketValue) * 100,
           CustomPercentage = (double)((customMarketValue / totalCustMarketValue) * 100),
+          CurrentWithDividendsPercentage = (currentMarketValueWithDividends / totalWithDividendsMarketValue) * 100,
+          CustomWithDividendsPercentage = (double)((customMarketValue / totalCustMarketValue) * 100),
           DifferenceValue = differenceValue,
-          DifferencePercentage = differencePercentage
+          DifferencePercentage = differencePercentage,
+          DifferenceWithDividendsValue = currentMarketValueWithDividends - (double)customMarketValue,
+          DifferenceWithDividendsPercentage = ((currentMarketValueWithDividends - (double)customMarketValue) / (double)customMarketValue) * 100
         };
       }).ToList();
 
+      // Return the portfolio percentage response
       return new PortfolioPercentageResponse
       {
         PortfolioId = portfolio.Id,
         TotalMarketValue = (double)totalMarketValue,
         TotalCustMarketValue = (double)totalCustMarketValue,
+        TotalPortfolioProfit = (double)totalDifferenceDividendsValue,
         TotalDifferenceValue = (double)totalDifferenceValue,
+        TotalDifferenceWithDividendsPercentage = (double)totalDifferenceDividendsPercentage,
         TotalDifferencePercentage = (double)totalDifferencePercentage,
         ItemPercentages = itemPercentages
       };
