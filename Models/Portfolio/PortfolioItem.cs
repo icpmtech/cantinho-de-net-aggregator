@@ -7,7 +7,7 @@ namespace MarketAnalyticHub.Models.Portfolio
   public class PortfolioItem
   {
     public int Id { get; set; }
-
+    public string OperationType { get; set; }
     public string UserId { get; set; }
     public int PortfolioId { get; set; }
     public string Symbol { get; set; }

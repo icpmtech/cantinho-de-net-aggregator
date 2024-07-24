@@ -31,6 +31,14 @@
                         <label for="itemCommission">Commission</label>
                         <input type="number" class="form-control" id="itemCommission" step="0.01" required>
                     </div>
+                    <div class="form-group">
+                        <label for="itemOperationType">Opeartion Type</label>
+                        <select class="form-control" id="itemOperationType" required>
+                            <option value="" disabled selected>Select a operation</option>
+                            <option value="Buy">Buy</option>
+                            <option value="Sell">Sell</option>
+                        </select>
+                    </div>
                     
                     <button type="submit" class="btn btn-primary">Save</button>
                 </form>

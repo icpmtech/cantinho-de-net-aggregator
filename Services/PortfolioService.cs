@@ -17,6 +17,7 @@ using Microsoft.Graph;
 using System.Security.Claims;
 using DocumentFormat.OpenXml.Spreadsheet;
 using AspnetCoreMvcFull.Services;
+using Microsoft.OpenApi.Models;
 
 namespace MarketAnalyticHub.Services
 {
@@ -124,7 +125,35 @@ namespace MarketAnalyticHub.Services
         YearlyReport = yearlyReport
       };
     }
+    public async Task<IEnumerable<PurchaseData>> GetPurchaseDatesForSymbol(string userId, string symbol, DateTime startDate, DateTime endDate)
+    {
+      var portfolios = await _context.Portfolios
+                                    .Include(p => p.Items)
+                                    .ThenInclude(pi => pi.Dividends)
+                                    .Include(p => p.Items)
+                                    .ThenInclude(pi => pi.StockEvents)
+                                    .Where(p => p.UserId == userId)
+                                    .ToListAsync();
 
+      var purchaseData = portfolios
+          .SelectMany(p => p.Items)
+          .Where(pi => pi.Symbol == symbol && pi.PurchaseDate >= startDate && pi.PurchaseDate <= endDate)
+          .Select(pi => new PurchaseData
+          {
+            OperationType=pi.OperationType,
+            Date = pi.PurchaseDate,
+            Quantity = pi.Quantity
+          });
+
+      return purchaseData;
+    }
+
+    public class PurchaseData
+    {
+      public DateTime Date { get; set; }
+      public int Quantity { get; set; }
+      public string OperationType { get; internal set; }
+    }
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
     {
       var portfolios = await _context.Portfolios

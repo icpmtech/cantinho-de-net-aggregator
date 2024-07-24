@@ -32,6 +32,14 @@
                         <label for="editItemPurchaseDate">Comission</label>
                         <input type="number" class="form-control" name="commission" id="editItemCommission" step="0.01" required>
                     </div>
+                    <div class="form-group">
+                        <label for="editItemOperationType">Opeartion Type</label>
+                        <select class="form-control" id="editItemOperationType" required>
+                            <option value="" disabled selected>Select a operation</option>
+                            <option value="Buy">Buy</option>
+                            <option value="Sell">Sell</option>
+                        </select>
+                    </div>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </form>
             </div>

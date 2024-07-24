@@ -26,6 +26,17 @@ namespace MarketAnalyticHub.Controllers
       _yahooFinanceService = yahooFinanceService;
     }
 
+    [HttpGet("purchase-dates-for-symbol")]
+    public async Task<IActionResult> GetPurchaseDatesForSymbol([FromQuery] string symbol, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var purchaseDates = await _portfolioService.GetPurchaseDatesForSymbol(userId, symbol, startDate, endDate);
+      if (purchaseDates == null || !purchaseDates.Any())
+      {
+        return NotFound("No purchase data found for the specified criteria.");
+      }
+      return Ok(purchaseDates);
+    }
     [HttpGet("historical-data")]
     public async Task<IActionResult> GetHistoricalData([FromQuery] string symbol, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {

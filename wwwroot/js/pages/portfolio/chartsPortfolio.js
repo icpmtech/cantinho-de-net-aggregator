@@ -1,3 +1,9 @@
+async function fetchPurchaseDates(symbol, startDate, endDate) {
+  const response = await fetch(`/api/Portfolio/purchase-dates-for-symbol?symbol=${symbol}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`);
+  const data = await response.json();
+  return data;
+}
+
 function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', dateRange = '1y') {
   const { startDate, endDate } = getDateRange(dateRange);
 
@@ -5,7 +11,7 @@ function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', 
 
   fetch(apiUrl)
     .then(response => response.json())
-    .then(data => {
+    .then(async data => {
       let seriesData;
 
       if (chartType === 'candlestick') {
@@ -19,6 +25,21 @@ function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', 
           y: item.close
         }));
       }
+
+      // Fetch purchase dates for the symbol
+      const purchaseDates = await fetchPurchaseDates(symbol, startDate, endDate);
+      let annotations = purchaseDates.map(purchase => ({
+        x: new Date(purchase.date).getTime(),
+        borderColor: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560',
+        label: {
+          borderColor: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560',
+          style: {
+            color: '#fff',
+            background: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560'
+          },
+          text: `Qty: ${purchase.quantity} - Op: ${purchase.operationType}`
+        }
+      }));
 
       let options = {
         series: [{
@@ -39,6 +60,9 @@ function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', 
           tooltip: {
             enabled: true
           }
+        },
+        annotations: {
+          xaxis: annotations
         }
       };
 
@@ -69,6 +93,82 @@ function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', 
     });
 }
 
+function getDateRange(dateRange) {
+  const endDate = new Date();
+  let startDate;
+
+  switch (dateRange) {
+    case '1d':
+      startDate = new Date();
+      startDate.setDate(endDate.getDate() - 1);
+      break;
+    case '5d':
+      startDate = new Date();
+      startDate.setDate(endDate.getDate() - 5);
+      break;
+    case '1m':
+      startDate = new Date();
+      startDate.setMonth(endDate.getMonth() - 1);
+      break;
+    case '1y':
+      startDate = new Date();
+      startDate.setFullYear(endDate.getFullYear() - 1);
+      break;
+    case '5y':
+      startDate = new Date();
+      startDate.setFullYear(endDate.getFullYear() - 5);
+      break;
+    default:
+      startDate = new Date(0); // Default to all-time
+      break;
+  }
+
+  return { startDate, endDate };
+}
+
+function formatDate(date) {
+  const d = new Date(date);
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+}
+
+
+function getDateRange(dateRange) {
+  const endDate = new Date();
+  let startDate;
+
+  switch (dateRange) {
+    case '1d':
+      startDate = new Date();
+      startDate.setDate(endDate.getDate() - 1);
+      break;
+    case '5d':
+      startDate = new Date();
+      startDate.setDate(endDate.getDate() - 5);
+      break;
+    case '1m':
+      startDate = new Date();
+      startDate.setMonth(endDate.getMonth() - 1);
+      break;
+    case '1y':
+      startDate = new Date();
+      startDate.setFullYear(endDate.getFullYear() - 1);
+      break;
+    case '5y':
+      startDate = new Date();
+      startDate.setFullYear(endDate.getFullYear() - 5);
+      break;
+    default:
+      startDate = new Date(0); // Default to all-time
+      break;
+  }
+
+  return { startDate, endDate };
+}
+
+function formatDate(date) {
+  const d = new Date(date);
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+}
 function getDateRange(dateRange) {
   const endDate = new Date();
   let startDate;
