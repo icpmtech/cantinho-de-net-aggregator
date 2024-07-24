@@ -21,7 +21,7 @@ namespace MarketAnalyticHub.Models.Portfolio
     public ICollection<Dividend>? Dividends { get; set; }
 
     // Calculated fields
-    public decimal TotalInvestment => Quantity * PurchasePrice;
+    public decimal TotalInvestment => Quantity * PurchasePrice + Commission??0;
     public decimal CurrentMarketValue => Quantity * CurrentPrice;
 
     // Total Dividend Income for this portfolio item

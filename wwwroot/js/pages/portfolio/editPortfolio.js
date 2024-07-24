@@ -17,6 +17,8 @@ async function savePortfolioItem() {
   const quantity = document.getElementById('itemQuantity').value;
   const purchasePrice = document.getElementById('itemPurchasePrice').value;
   const purchaseDate = document.getElementById('itemPurchaseDate').value;
+  
+  
   const response = await fetch('/api/PortfolioItem', {
     method: 'POST',
     headers: {

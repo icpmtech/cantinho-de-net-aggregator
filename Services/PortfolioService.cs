@@ -378,8 +378,8 @@ namespace MarketAnalyticHub.Services
       if (portfolio == null || portfolio.Items == null || !portfolio.Items.Any())
         return null;
 
-      var totalCustMarketValue = portfolio.Items.Sum(item => item.PurchasePrice * item.Quantity);
-      var totalMarketValue = portfolio.Items.Sum(item => _yahooFinanceService.GetRealTimePriceAsync(item.Symbol).Result.CurrentPrice * item.Quantity);
+      var totalCustMarketValue = portfolio.Items.Sum(item => item.PurchasePrice * item.Quantity + (item.Commission ?? 0));
+      var totalMarketValue = portfolio.Items.Sum(item => (_yahooFinanceService.GetRealTimePriceAsync(item.Symbol).Result.CurrentPrice * item.Quantity));
 
       var totalDifferenceValue = totalMarketValue - (double)totalCustMarketValue;
       var totalDifferencePercentage = (totalDifferenceValue / (double)totalCustMarketValue) * 100;

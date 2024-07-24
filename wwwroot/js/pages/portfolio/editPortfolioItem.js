@@ -14,6 +14,8 @@ async function showEditPortfolioItemModal(itemId) {
     document.getElementById('editItemSymbol').value = item.symbol;
     document.getElementById('editItemQuantity').value = item.quantity;
     document.getElementById('editItemPurchasePrice').value = item.purchasePrice;
+    document.getElementById('editItemCommission').value = item.commission;
+
     const purchaseDate = new Date(item.purchaseDate);
     const formattedDate = purchaseDate.toISOString().substring(0, 10);
     document.getElementById('editItemPurchaseDate').value = formattedDate;
@@ -31,12 +33,13 @@ document.getElementById('addPortfolioItemForm').addEventListener('submit', async
   const quantity = document.getElementById('itemQuantity').value;
   const purchasePrice = document.getElementById('itemPurchasePrice').value;
   const purchaseDate = document.getElementById('itemPurchaseDate').value;
+  const commission = document.getElementById('itemCommission').value;
   const response = await fetch('/api/PortfolioItem', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate })
+    body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, commission })
   });
 
   if (response.ok) {
@@ -55,14 +58,14 @@ document.getElementById('editPortfolioItemForm').addEventListener('submit', asyn
   const quantity = document.getElementById('editItemQuantity').value;
   const purchasePrice = document.getElementById('editItemPurchasePrice').value;
   const purchaseDate = document.getElementById('editItemPurchaseDate').value;
-
+  const commission = document.getElementById('editItemCommission').value;
   try {
     const response = await fetch(`/api/PortfolioItem/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, id })
+      body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, id, commission })
     });
 
     if (response.ok) {
