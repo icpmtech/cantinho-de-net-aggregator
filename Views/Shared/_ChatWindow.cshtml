@@ -1,10 +1,8 @@
-@* _Chat.cshtml *@
-<!-- Chat Window -->
 @{
-    var isAIPilotActivated = User.IsInRole("aiPilot");
+
 }
 
-@if (User.Identity.IsAuthenticated && isAIPilotActivated)
+@if (User.Identity.IsAuthenticated && User.IsInRole("AI-PILOT"))
 {
     <div id="chatWindow" class="card chat-window minimized">
         <div class="card-header">
@@ -24,15 +22,6 @@
                 <input class="form-control mb-2" type="file" id="fileInput" />
                 <button class="btn btn-secondary" type="button" onclick="sendFile()">
                     <i class="bx bx-upload"></i> Upload
-                </button>
-                <button class="btn btn-secondary" type="button" onclick="startRecording()">
-                    <i class="bx bx-microphone"></i> Record
-                </button>
-                <button class="btn btn-danger" type="button" onclick="stopRecording()" style="display:none;" id="stopRecordingButton">
-                    <i class="bx bx-stop"></i> Stop
-                </button>
-                <button class="btn btn-danger" type="button" onclick="stopAudio()" id="stopAudioButton" style="display:none;">
-                    <i class="bx bx-stop"></i> Stop Audio
                 </button>
             </div>
             <div id="messagesList" class="mt-3"></div>
@@ -55,8 +44,6 @@
                 .withUrl("/chathub")
                 .build();
 
-            let currentAudio = null;
-
             connection.on("ReceiveMessage", function (user, message) {
                 const msg = document.createElement("div");
                 const messageId = `msg-${Date.now()}`;
@@ -66,8 +53,6 @@
                                                     <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
                                                     <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>`;
                 document.getElementById("messagesList").appendChild(msg);
-                // Convert the transcription to speech and play it
-                readAudio(message);
                 Prism.highlightAllUnder(msg);
             });
 
@@ -89,17 +74,7 @@
 
             window.sendMessage = function () {
                 const user = document.getElementById("userInput").value;
-                if (!user) {
-                    alert('Please enter your user name.');
-                    return;
-                }
-
                 const message = document.getElementById("messageInput").value;
-                if (!message) {
-                    alert('Please enter a message.');
-                    return;
-                }
-
                 connection.invoke("SendMessage", user, message).catch(function (err) {
                     return console.error(err.toString());
                 });
@@ -107,22 +82,10 @@
 
             window.sendFile = function () {
                 const user = document.getElementById("userInput").value;
-                if (!user) {
-                    alert('Please enter your user name.');
-                    return;
-                }
-
                 const fileInput = document.getElementById("fileInput");
                 const file = fileInput.files[0];
-                if (!file) {
-                    alert('Please select a file to upload.');
-                    return;
-                }
-
                 const formData = new FormData();
-                formData.append("UploaderName", user);
-                formData.append("UploaderAddress", "Analyzer"); // Add an appropriate value or get it from an input field
-                formData.append("File", file);
+                formData.append("file", file);
 
                 // Add instructional message to chat
                 const msgInstruction = document.createElement("div");
@@ -155,11 +118,11 @@
                             const analysisMsg = document.createElement("div");
                             const analysisId = `msg-analysis-${Date.now()}`;
                             analysisMsg.setAttribute("id", analysisId);
-                            analysisMsg.innerHTML = `<strong>${user}:</strong> File analysis completed.
-                                                             <p>Analysis: ${marked(data.analysis)}</p>
-                                                             <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
-                                                             <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
-                                                             <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>`;
+                            analysisMsg.innerHTML = `<strong>${user}:</strong> File analysis completed. <a href="${data.fileUrl}" target="_blank">Download File</a>
+                                                <p>Analysis: ${marked(data.analysis)}</p>
+                                                <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
+                                                <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
+                                                <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>`;
                             document.getElementById("messagesList").appendChild(analysisMsg);
                         } else {
                             alert('File upload failed: ' + data.message);
@@ -212,124 +175,9 @@
                         console.error('Error saving message:', error);
                     });
             };
-
-            let mediaRecorder;
-            let audioChunks = [];
-
-            window.startRecording = function () {
-                const user = document.getElementById("userInput").value;
-                if (!user) {
-                    alert('Please enter your user name.');
-                    return;
-                }
-
-                navigator.mediaDevices.getUserMedia({ audio: true })
-                    .then(stream => {
-                        mediaRecorder = new MediaRecorder(stream);
-                        mediaRecorder.start();
-                        document.getElementById('stopRecordingButton').style.display = 'inline-block';
-
-                        mediaRecorder.addEventListener("dataavailable", event => {
-                            audioChunks.push(event.data);
-                        });
-
-                        mediaRecorder.addEventListener("stop", () => {
-                            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                            audioChunks = [];
-
-                            const formData = new FormData();
-                            formData.append("UploaderName", user);
-                            formData.append("UploaderAddress", "Analyzer Audio"); // Add an appropriate value or get it from an input field
-                            formData.append("File", audioBlob);
-
-                            // Show "Analyzing audio..." message
-                            const msg = document.createElement("div");
-                            const messageId = `msg-${Date.now()}`;
-                            msg.setAttribute("id", messageId);
-                            msg.innerHTML = `<strong>${user}:</strong> Analyzing audio...`;
-                            document.getElementById("messagesList").appendChild(msg);
-
-                            fetch('/api/Chat/UploadAudio', {
-                                method: 'POST',
-                                body: formData
-                            })
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        connection.invoke("SendMessage", user, data.transcription).catch(err => {
-                                            return console.error(err.toString());
-                                        });
-
-                                        // Update the "Analyzing audio..." message with the transcription result
-                                        const analysisMsg = document.createElement("div");
-                                        const analysisId = `msg-analysis-${Date.now()}`;
-                                        analysisMsg.setAttribute("id", analysisId);
-                                        analysisMsg.innerHTML = `<strong>${user}:</strong> Audio transcription completed.
-                                                            <p>Transcription: ${marked(data.transcription)}</p>
-                                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
-                                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
-                                                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>`;
-                                        document.getElementById("messagesList").appendChild(analysisMsg);
-
-                                       
-                                    } else {
-                                        alert('Audio upload failed: ' + data.message);
-                                    }
-                                })
-                                .catch(error => {
-                                    console.error('Error uploading audio:', error);
-                                });
-                        });
-
-                    })
-                    .catch(error => {
-                        console.error('Error accessing microphone:', error);
-                    });
-            };
-
-            window.stopRecording = function () {
-                mediaRecorder.stop();
-                document.getElementById('stopRecordingButton').style.display = 'none';
-            };
-
-            window.stopAudio = function () {
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                }
-                document.getElementById('stopAudioButton').style.display = 'none';
-            };
-
-            async function readAudio(content) {
-                // Stop the current audio if it's playing
-                if (currentAudio) {
-                    currentAudio.pause();
-                    currentAudio.currentTime = 0;
-                }
-
-                const response = await fetch('/api/Chat/ReadAudio', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ Content: content })
-                });
-
-                if (!response.ok) {
-                    console.error('Text to speech conversion failed:', await response.text());
-                    return;
-                }
-
-                const audioBlob = await response.blob();
-                const audioUrl = URL.createObjectURL(audioBlob);
-                currentAudio = new Audio(audioUrl);
-                currentAudio.play();
-                document.getElementById('stopAudioButton').style.display = 'inline-block';
-            }
         });
-
-
     </script>
+
     <style>
         .chat-window {
             position: fixed;

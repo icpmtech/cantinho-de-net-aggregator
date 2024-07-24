@@ -10,7 +10,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 using MarketAnalyticHub;
-
+using Microsoft.DotNet.Scaffolding.Shared.CodeModifier.CodeChange;
+using OpenAI_API;
+using OpenAI_API.Audio;
+using static OpenAI_API.Audio.TextToSpeechRequest;
+using OpenAI_API.Models;
 [Route("api/[controller]")]
 [ApiController]
 public class ChatController : ControllerBase
@@ -19,7 +23,7 @@ public class ChatController : ControllerBase
   private readonly IHttpClientFactory _clientFactory;
   private readonly IConfiguration _configuration;
   private readonly ILogger<ChatController> _logger;
-
+  private readonly OpenAIAPI _openAiApi;
   public ChatController(
       ILogger<ChatController> logger,
       IWebHostEnvironment environment,
@@ -30,6 +34,7 @@ public class ChatController : ControllerBase
     _logger = logger;
     _clientFactory = clientFactory;
     _configuration = configuration;
+    _openAiApi = new OpenAIAPI(_configuration["OpenAI:ApiKey"]);
   }
 
   [HttpPost("UploadFile")]
@@ -94,6 +99,90 @@ public class ChatController : ControllerBase
     {
       _logger.LogError(ex, "Error uploading or analyzing file.");
       return StatusCode(500, new { success = false, message = "Internal server error." });
+    }
+  }
+
+  [HttpPost("ReadAudio")]
+  public async Task<IActionResult> ReadAudio([FromBody] MessageContent content)
+  {
+    var request = new TextToSpeechRequest()
+    {
+      Input = content.Content,
+      ResponseFormat = ResponseFormats.AAC,
+      Model = Model.TTS_HD,
+      Voice = Voices.Nova,
+      Speed = 0.9
+    };
+
+    var filePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.aac");
+    await _openAiApi.TextToSpeech.SaveSpeechToFileAsync(request, filePath);
+
+    var fileInfo = new FileInfo(filePath);
+    if (!fileInfo.Exists)
+    {
+      return NotFound();
+    }
+
+    var memory = new MemoryStream();
+    using (var stream = new FileStream(filePath, FileMode.Open))
+    {
+      await stream.CopyToAsync(memory);
+    }
+    memory.Position = 0;
+
+    return File(memory, "audio/aac", fileInfo.Name);
+  }
+
+
+
+  [HttpPost("UploadAudio")]
+  public async Task<IActionResult> UploadAudio([FromForm] FileUploadRequest model)
+  {
+    if (model.File == null || model.File.Length == 0)
+    {
+      return BadRequest(new { success = false, message = "Please upload a valid file." });
+    }
+
+    var filePath = Path.Combine(Path.GetTempPath(), model.File.FileName+ ".wav");
+
+    try
+    {
+      // Save the uploaded file to a temporary path
+      using (var stream = new FileStream(filePath, FileMode.Create))
+      {
+        await model.File.CopyToAsync(stream);
+      }
+
+      // Transcribe the audio file using the OpenAI Whisper API
+      var transcription = await TranscribeAudio(filePath);
+
+      if (transcription == null)
+      {
+        return BadRequest(new { success = false, message = "Error transcribing audio file." });
+      }
+
+      return Ok(new { success = true, transcription });
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error uploading or transcribing audio.");
+      return StatusCode(500, new { success = false, message = "Internal server error." });
+    }
+  }
+
+  private async Task<string> TranscribeAudio(string filePath)
+  {
+    try
+    {
+      var transcription = await _openAiApi.Transcriptions.GetTextAsync(filePath);
+
+      return transcription;
+     
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error transcribing audio.");
+      return null;
     }
   }
 

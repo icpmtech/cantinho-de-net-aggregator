@@ -46,15 +46,25 @@
                 return;
             }
 
-            // Add a new row to the table
-            var newRoleRow = $('<tr>').append(
-                $('<td>').text('New'), // Temporary ID, could be replaced with actual ID after server response
-                $('<td>').text(roleName)
-            );
-            $('#roleTableBody').append(newRoleRow);
+            $.ajax({
+                url: '/Admin/RoleManager/AddRole',
+                type: 'POST',
+                data: { roleName: roleName },
+                success: function (response) {
+                    // Add a new row to the table with the returned data
+                    var newRoleRow = $('<tr>').append(
+                        $('<td>').text(response.id),
+                        $('<td>').text(response.name)
+                    );
+                    $('#roleTableBody').append(newRoleRow);
 
-            // Clear the input field
-            $('#roleName').val('');
+                    // Clear the input field
+                    $('#roleName').val('');
+                },
+                error: function () {
+                    alert('Error creating role');
+                }
+            });
         });
     });
 </script>

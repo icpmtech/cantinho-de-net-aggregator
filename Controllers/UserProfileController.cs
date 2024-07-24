@@ -6,6 +6,7 @@ namespace MarketAnalyticHub.Controllers
   using Microsoft.AspNetCore.Authorization;
   using Microsoft.AspNetCore.Identity;
   using Microsoft.AspNetCore.Mvc;
+  using Microsoft.Graph;
   using System.Security.Claims;
   using System.Threading.Tasks;
 
@@ -68,7 +69,7 @@ namespace MarketAnalyticHub.Controllers
       user.AvatarUrl = updatedUser.AvatarUrl;
 
       var result = await _userManager.UpdateAsync(user);
-
+     
       if (!result.Succeeded)
       {
         return BadRequest(result.Errors);
@@ -94,8 +95,24 @@ namespace MarketAnalyticHub.Controllers
         return NotFound();
       }
       user.AIPilot = accountAIPilotActivation.AccountAIPilotActivation=="on"?true:false;
+      if ((bool)user.AIPilot)
+      {
+        var addRoleResult = await _userManager.AddToRoleAsync(user, "aiPilot");
+        if (!addRoleResult.Succeeded)
+        {
+          return BadRequest(addRoleResult.Errors);
+        }
+      }
+      else
+      {
+        var removeRoleResult = await _userManager.RemoveFromRoleAsync(user, "aiPilot");
+        if (!removeRoleResult.Succeeded)
+        {
+          return BadRequest(removeRoleResult.Errors);
+        }
+      }
       var result = await _userManager.UpdateAsync(user);
-
+     
       if (!result.Succeeded)
       {
         return BadRequest(result.Errors);
@@ -103,9 +120,25 @@ namespace MarketAnalyticHub.Controllers
 
       return NoContent();
     }
-  }
+  
+  // GET: api/UserProfile/HasAIPilotActivation
+  [HttpGet("HasAIPilotActivation")]
+  public async Task<bool?> HasAIPilotActivation()
+  {
+   
 
-  public class UpdateUserProfileDto
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var user = await _userManager.FindByIdAsync(userId);
+
+    if (user == null)
+    {
+      return false;
+    }
+      return user.AIPilot;
+  }
+}
+
+public class UpdateUserProfileDto
   {
     public string FirstName { get; set; }
     public string LastName { get; set; }
