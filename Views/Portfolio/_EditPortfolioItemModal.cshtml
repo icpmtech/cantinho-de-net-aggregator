@@ -1,0 +1,40 @@
+<!-- Edit Portfolio Item Modal -->
+<div id="editPortfolioItemModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Portfolio Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPortfolioItemForm">
+                    <input type="hidden" id="portfolioeditPortfolioItemId" name="portfolioeditPortfolioItemId">
+                    <input type="hidden" id="editPortfolioItemId" name="editPortfolioItemId">
+                    <div class="form-group">
+                        <label for="editItemSymbol">Symbol</label>
+                        <select class="form-control" id="editItemSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemQuantity">Quantity</label>
+                        <input type="number" class="form-control" id="editItemQuantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemPurchasePrice">Purchase Price</label>
+                        <input type="number" class="form-control" id="editItemPurchasePrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemPurchaseDate">Purchase Date</label>
+                        <input type="date" class="form-control" id="editItemPurchaseDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editItemPurchaseDate">Comission</label>
+                        <input type="number" class="form-control" id="editItemCommission" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

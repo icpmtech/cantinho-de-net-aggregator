@@ -1,6 +1,6 @@
 using MarketAnalyticHub.Models.Portfolio;
 
-namespace AspnetCoreMvcFull.Models
+namespace MarketAnalyticHub.Models.Portfolio
 {
   public class Transaction
   {

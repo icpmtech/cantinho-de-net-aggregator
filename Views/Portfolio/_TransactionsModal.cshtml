@@ -1,0 +1,82 @@
+<!-- Add Transactions Modal -->
+<div id="addPortfolioItemTransactionModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Portfolio Item Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPortfolioItemTransactionForm">
+                    <input type="hidden" id="portfolioeditPortfolioItemId" name="portfolioeditPortfolioItemId">
+                    <input type="hidden" id="editPortfolioItemId" name="editPortfolioItemId">
+                    <div class="form-group">
+                        <label for="editTransactionSymbol">Symbol</label>
+                        <select class="form-control" id="editTransactionSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTransactionQuantity">Quantity</label>
+                        <input type="number" class="form-control" id="editTransactionQuantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTransactionPurchasePrice">Purchase Price</label>
+                        <input type="number" class="form-control" id="editTransactionPurchasePrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTransactionPurchaseDate">Purchase Date</label>
+                        <input type="date" class="form-control" id="editTransactionPurchaseDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTransactionPurchaseDate">Commission</label>
+                        <input type="number" class="form-control" id="editTransactionCommission" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Transactions Modal -->
+<div id="editPortfolioItemTransactionModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Portfolio Item Transaction</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPortfolioItemTransactionForm">
+                    <input type="hidden" id="portfolioeditPortfolioItemId" name="portfolioeditPortfolioItemId">
+                    <input type="hidden" id="editPortfolioItemId" name="editPortfolioItemId">
+                    <input type="hidden" id="editPortfolioItemTransactionId" name="editPortfolioItemTransactionId">
+                    <div class="form-group">
+                        <label for="editTransactionSymbol">Symbol</label>
+                        <select class="form-control" id="editTransactionSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTransactionQuantity">Quantity</label>
+                        <input type="number" class="form-control" id="editTransactionQuantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTransactionPurchasePrice">Purchase Price</label>
+                        <input type="number" class="form-control" id="editTransactionPurchasePrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTransactionPurchaseDate">Purchase Date</label>
+                        <input type="date" class="form-control" id="editTransactionPurchaseDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editTransactionPurchaseDate">Commission</label>
+                        <input type="number" class="form-control" id="editTransactionCommission" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

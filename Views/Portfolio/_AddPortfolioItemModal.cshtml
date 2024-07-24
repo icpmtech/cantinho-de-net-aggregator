@@ -1,0 +1,35 @@
+<!-- Add Portfolio Item Modal -->
+<div id="addPortfolioItemModal" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Portfolio Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPortfolioItemForm">
+                    <input type="hidden" id="portfolioId" name="portfolioId">
+                    <div class="form-group">
+                        <label for="itemSymbol">Symbol</label>
+                        <select class="form-control" id="itemSymbol" required>
+                            <option value="" disabled selected>Select a symbol</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemQuantity">Quantity</label>
+                        <input type="number" class="form-control" id="itemQuantity" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemPurchasePrice">Purchase Price</label>
+                        <input type="number" class="form-control" id="itemPurchasePrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemPurchaseDate">Purchase Date</label>
+                        <input type="date" class="form-control" id="itemPurchaseDate" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

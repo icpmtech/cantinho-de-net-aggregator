@@ -1,7 +1,9 @@
 namespace MarketAnalyticHub.Services
 {
   using MarketAnalyticHub.Models.Portfolio;
+  using MarketAnalyticHub.Models.Portfolio;
   using MarketAnalyticHub.Models.SetupDb;
+  using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
   using System.Collections.Generic;
   using System.Linq;
@@ -65,6 +67,31 @@ namespace MarketAnalyticHub.Services
       // Implement logic to fetch the current price of the symbol from a market data API
       return await Task.FromResult(100m); // Dummy implementation
     }
+
+    public async Task<ActionResult<Transaction>> SellPortfolioItemAsync(int id, Transaction transaction)
+    {
+      var portfolioItem = await _context.PortfolioItems.FindAsync(id);
+
+      if (portfolioItem == null)
+      {
+        return null;
+      }
+
+      // Assuming commission is stored per transaction and not per item
+      // Calculate the revenue
+      decimal grossProfit = transaction.Quantity * (transaction.SellPrice - portfolioItem.PurchasePrice);
+      decimal totalCommission = (decimal)(portfolioItem.Commission + transaction.Commission);
+      decimal revenue = grossProfit - totalCommission;
+
+      transaction.Revenue = revenue;
+      transaction.PortfolioItemId = id;
+
+      _context.Transactions.Add(transaction);
+      await _context.SaveChangesAsync();
+
+      return transaction;
+    }
+
   }
 
 }

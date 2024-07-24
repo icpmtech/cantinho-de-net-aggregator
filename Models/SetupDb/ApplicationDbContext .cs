@@ -4,6 +4,7 @@ using MarketAnalyticHub.Models.Configurations.News;
 using MarketAnalyticHub.Models.News;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using MarketAnalyticHub.Models.Portfolio;
 
 namespace MarketAnalyticHub.Models.SetupDb
 {
@@ -28,6 +29,8 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<QualitativeEvent> QualitativeEvents { get; internal set; }
 
     public DbSet<StockEvent> StockEvents { get; set; }
+
+    public DbSet<Transaction> Transactions { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
