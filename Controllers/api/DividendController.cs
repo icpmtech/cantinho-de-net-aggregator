@@ -1,3 +1,4 @@
+using AspnetCoreMvcFull.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;

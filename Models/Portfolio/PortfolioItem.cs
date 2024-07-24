@@ -15,6 +15,7 @@ namespace MarketAnalyticHub.Models.Portfolio
     public int Quantity { get; set; }
     public decimal PurchasePrice { get; set; }
     public decimal CurrentPrice { get; set; }
+    public decimal? Commission { get; set; }
 
     // Navigation property for dividends
     public ICollection<Dividend>? Dividends { get; set; }

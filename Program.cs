@@ -17,7 +17,6 @@ using ApplicationDbContext = MarketAnalyticHub.Models.SetupDb.ApplicationDbConte
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc.Razor;
 using System.Globalization;
-using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Controllers;
 using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -28,6 +27,7 @@ using System.IO;
 using MarketAnalyticHub;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using MarketAnalyticHub.Controllers;
+using AspnetCoreMvcFull.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()

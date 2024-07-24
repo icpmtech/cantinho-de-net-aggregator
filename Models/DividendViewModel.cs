@@ -1,4 +1,4 @@
-namespace MarketAnalyticHub.Controllers.api
+namespace AspnetCoreMvcFull.Models
 {
   public class DividendViewModel
   {
@@ -6,7 +6,7 @@ namespace MarketAnalyticHub.Controllers.api
     public decimal Amount { get; set; }
     public DateTime ExDate { get; set; }
     public DateTime PaymentDate { get; set; }
-    public int PortfolioItemId { get;  set; }
-    public int Id { get;  set; }
+    public int PortfolioItemId { get; set; }
+    public int Id { get; set; }
   }
 }

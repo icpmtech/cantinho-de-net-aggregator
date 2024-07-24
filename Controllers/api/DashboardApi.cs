@@ -12,6 +12,7 @@ using MarketAnalyticHub.Models.Dashboard;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using MarketAnalyticHub.Models.Portfolio;
+using AspnetCoreMvcFull.Models;
 
 namespace MarketAnalyticHub.Controllers.api
 {

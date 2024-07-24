@@ -5,7 +5,6 @@ using ClosedXML.Excel;
 using MarketAnalyticHub.Controllers;
 using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
-using MarketAnalyticHub.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,6 +16,7 @@ using System.Threading.Tasks;
 using Microsoft.Graph;
 using System.Security.Claims;
 using DocumentFormat.OpenXml.Spreadsheet;
+using AspnetCoreMvcFull.Services;
 
 namespace MarketAnalyticHub.Services
 {

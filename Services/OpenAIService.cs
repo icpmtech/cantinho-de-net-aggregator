@@ -9,7 +9,7 @@ using OpenAI_API.Chat;
 using OpenAI_API.Models;
 using Microsoft.Graph;
 
-namespace MarketAnalyticHub.Services
+namespace AspnetCoreMvcFull.Services
 {
   public class OpenAIService
   {
@@ -18,7 +18,7 @@ namespace MarketAnalyticHub.Services
 
     public OpenAIService(HttpClient httpClient, IConfiguration configuration)
     {
-      _httpClient= httpClient;
+      _httpClient = httpClient;
       _apiKey = configuration["OpenAI:ApiKey"];
     }
     public async Task<string> GetAssociatedCompaniesAsync(string[] keywords)
@@ -56,7 +56,7 @@ namespace MarketAnalyticHub.Services
       var result = await api.Completions.CreateCompletionAsync(completionRequest);
 
       var keywords = result.Completions[0].Text.Trim();
-      return keywords.Split(new[] { ", " }, System.StringSplitOptions.RemoveEmptyEntries);
+      return keywords.Split(new[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
     }
 
     public async Task<string> GenerateSentimentImpacts(string description)
@@ -101,7 +101,7 @@ namespace MarketAnalyticHub.Services
         Messages = new OpenAI_API.Chat.ChatMessage[] {
       new OpenAI_API.Chat.ChatMessage(ChatMessageRole.User,  $"{description} generate sector activity afected by that format as table." +
       $"Score that"
-      
+
 
     )
     }

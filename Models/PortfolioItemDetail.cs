@@ -1,4 +1,4 @@
-namespace MarketAnalyticHub.Controllers.api
+namespace AspnetCoreMvcFull.Models
 {
   public class PortfolioItemDetail
   {

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using AspnetCoreMvcFull.Services;
 
 namespace MarketAnalyticHub.Controllers.api
 {

@@ -1,3 +1,5 @@
+using AspnetCoreMvcFull.Models;
+
 namespace MarketAnalyticHub.Controllers.api
 {
   public class PortfolioStatistic
