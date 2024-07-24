@@ -18,20 +18,20 @@
                 <div id="defaultFormControlHelp" class="form-text">We'll never share your details with anyone else.</div>
                 <input class="form-control mb-2" type="text" id="userInput" placeholder="User name" aria-describedby="defaultFormControlHelp" />
                 <textarea class="form-control mb-2" id="messageInput" placeholder="Message"></textarea>
-                <button class="btn btn-primary" type="button" onclick="sendMessage()">
+                <button class="btn btn-primary w-100 mb-2" type="button" onclick="sendMessage()">
                     <i class="bx bx-send"></i> Send
                 </button>
                 <input class="form-control mb-2" type="file" id="fileInput" />
-                <button class="btn btn-secondary" type="button" onclick="sendFile()">
+                <button class="btn btn-secondary w-100 mb-2" type="button" onclick="sendFile()">
                     <i class="bx bx-upload"></i> Upload
                 </button>
-                <button class="btn btn-secondary" type="button" onclick="startRecording()">
+                <button class="btn btn-secondary w-100 mb-2" type="button" onclick="startRecording()" id="startRecordingButton">
                     <i class="bx bx-microphone"></i> Record
                 </button>
-                <button class="btn btn-danger" type="button" onclick="stopRecording()" style="display:none;" id="stopRecordingButton">
+                <button class="btn btn-danger w-100 mb-2" type="button" onclick="stopRecording()" style="display:none;" id="stopRecordingButton">
                     <i class="bx bx-stop"></i> Stop
                 </button>
-                <button class="btn btn-danger" type="button" onclick="stopAudio()" id="stopAudioButton" style="display:none;">
+                <button class="btn btn-danger w-100 mb-2" type="button" onclick="stopAudio()" id="stopAudioButton" style="display:none;">
                     <i class="bx bx-stop"></i> Stop Audio
                 </button>
             </div>
@@ -62,9 +62,11 @@
                 const messageId = `msg-${Date.now()}`;
                 msg.setAttribute("id", messageId);
                 msg.innerHTML = `<strong>${user}:</strong> ${marked(message)}
-                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
-                                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
-                                                    <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>`;
+                                        <div class="btn-group mt-1" role="group">
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>
+                                        </div>`;
                 document.getElementById("messagesList").appendChild(msg);
                 // Convert the transcription to speech and play it
                 readAudio(message);
@@ -76,10 +78,12 @@
                 const messageId = `msg-${Date.now()}`;
                 msg.setAttribute("id", messageId);
                 msg.innerHTML = `<strong>${user}:</strong> <a href="${fileUrl}" target="_blank">${fileUrl}</a>
-                                                    <p>Analysis: ${marked(analysis)}</p>
-                                                    <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
-                                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
-                                                    <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>`;
+                                        <p>Analysis: ${marked(analysis)}</p>
+                                        <div class="btn-group mt-1" role="group">
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
+                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
+                                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>
+                                        </div>`;
                 document.getElementById("messagesList").appendChild(msg);
             });
 
@@ -156,10 +160,12 @@
                             const analysisId = `msg-analysis-${Date.now()}`;
                             analysisMsg.setAttribute("id", analysisId);
                             analysisMsg.innerHTML = `<strong>${user}:</strong> File analysis completed.
-                                                             <p>Analysis: ${marked(data.analysis)}</p>
-                                                             <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
-                                                             <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
-                                                             <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>`;
+                                                                     <p>Analysis: ${marked(data.analysis)}</p>
+                                                                     <div class="btn-group mt-1" role="group">
+                                                                         <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
+                                                                         <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
+                                                                         <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>
+                                                                     </div>`;
                             document.getElementById("messagesList").appendChild(analysisMsg);
                         } else {
                             alert('File upload failed: ' + data.message);
@@ -173,6 +179,8 @@
             window.toggleChat = function () {
                 const chatWindow = document.getElementById("chatWindow");
                 chatWindow.classList.toggle("minimized");
+                document.getElementById('startRecordingButton').style.display = 'block';
+                document.getElementById('stopRecordingButton').style.display = 'none';
             };
 
             window.maximizeChat = function () {
@@ -227,7 +235,8 @@
                     .then(stream => {
                         mediaRecorder = new MediaRecorder(stream);
                         mediaRecorder.start();
-                        document.getElementById('stopRecordingButton').style.display = 'inline-block';
+                        document.getElementById('startRecordingButton').style.display = 'none';
+                        document.getElementById('stopRecordingButton').style.display = 'block';
 
                         mediaRecorder.addEventListener("dataavailable", event => {
                             audioChunks.push(event.data);
@@ -265,13 +274,14 @@
                                         const analysisId = `msg-analysis-${Date.now()}`;
                                         analysisMsg.setAttribute("id", analysisId);
                                         analysisMsg.innerHTML = `<strong>${user}:</strong> Audio transcription completed.
-                                                            <p>Transcription: ${marked(data.transcription)}</p>
-                                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
-                                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
-                                                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>`;
+                                                                    <p>Transcription: ${marked(data.transcription)}</p>
+                                                                    <div class="btn-group mt-1" role="group">
+                                                                        <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
+                                                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
+                                                                        <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>
+                                                                    </div>`;
                                         document.getElementById("messagesList").appendChild(analysisMsg);
 
-                                       
                                     } else {
                                         alert('Audio upload failed: ' + data.message);
                                     }
@@ -290,6 +300,7 @@
             window.stopRecording = function () {
                 mediaRecorder.stop();
                 document.getElementById('stopRecordingButton').style.display = 'none';
+                document.getElementById('startRecordingButton').style.display = 'block';
             };
 
             window.stopAudio = function () {
@@ -327,7 +338,6 @@
                 document.getElementById('stopAudioButton').style.display = 'inline-block';
             }
         });
-
 
     </script>
     <style>
@@ -450,6 +460,11 @@
 
         .token.entity {
             cursor: help;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
         }
     </style>
 }
