@@ -161,6 +161,8 @@
             <div class="col-12 col-md-6 d-flex flex-column flex-md-row justify-content-end">
                 <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
                 <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
+                <input type="file" id="importFileYhaoo" style="display: none;" accept=".xlsx,.csv" onchange="importPortfoliosYahoo(event)">
+                <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFileYhaoo').click()"> <i class="bx bxl-yahoo"></i>Import Portfolios Yhaoo</button>
                 <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
                     <option value="bar" selected>Bar</option>
                     <option value="line">Line</option>

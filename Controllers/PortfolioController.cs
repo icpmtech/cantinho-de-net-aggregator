@@ -88,10 +88,47 @@ namespace MarketAnalyticHub.Controllers
         }
       }
     }
+    [HttpPost("ImportYahoo")]
+    public async Task<IActionResult> ImportYahoo([FromForm] ImportYahooRequest importYahooRequest)
+    {
+      var file = importYahooRequest.File;
+      if (file == null || file.Length == 0)
+        return BadRequest("File is empty");
+
+      var userId = _userManager.GetUserId(User);
+      var extension = Path.GetExtension(file.FileName).ToLower();
+
+      using (var stream = new MemoryStream())
+      {
+        await file.CopyToAsync(stream);
+        stream.Position = 0;
+
+        if (extension == ".csv")
+        {
+          using (var reader = new StreamReader(stream))
+          {
+            var csvData = await reader.ReadToEndAsync();
+            await _portfolioService.ImportYahooFromCsv(csvData, userId);
+          }
+        }
+        else if (extension == ".xlsx")
+        {
+          await _portfolioService.ImportYahooFromExcel(stream, userId);
+        }
+        else
+        {
+          return BadRequest("Unsupported file format");
+        }
+      }
+
+      return Ok();
+    }
+
 
     [HttpPost("Import")]
-    public async Task<IActionResult> Import([FromForm] IFormFile file)
+    public async Task<IActionResult> Import([FromForm] ImportRequest importRequest)
     {
+      var file = importRequest.File;
       if (file == null || file.Length == 0)
         return BadRequest("File is empty");
 
@@ -220,6 +257,15 @@ namespace MarketAnalyticHub.Controllers
       return Ok(data);
     }
 
+
+    [HttpDelete()]
+    public async Task<IActionResult> DeleteAllPortfolios()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      await _portfolioService.DeletePortfolioAllAsync(userId);
+      return NoContent();
+    }
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeletePortfolio(int id)
     {
@@ -244,16 +290,16 @@ namespace MarketAnalyticHub.Controllers
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
 
-      double totalPercentage = 0;
-      double totalDifferenceWithDividendsPercentage = 0;
-      double totalProfit = 0;
+      decimal totalPercentage = 0;
+      decimal totalDifferenceWithDividendsPercentage = 0;
+      decimal totalProfit = 0;
       foreach (var portfolio in portfolios)
       {
         var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
         if(portfolioPercentageResponse is not null)
         totalPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
-        totalDifferenceWithDividendsPercentage += portfolioPercentageResponse.TotalDifferenceWithDividendsPercentage;
-        totalProfit += portfolioPercentageResponse.TotalPortfolioProfit;
+        totalDifferenceWithDividendsPercentage += portfolioPercentageResponse?.TotalDifferenceWithDividendsPercentage??0;
+        totalProfit += portfolioPercentageResponse?.TotalPortfolioProfit??0;
       }
 
       return Ok(new { TotalPercentage = totalPercentage,TotalProfit= totalProfit, TotalWithDividendsPercentage = totalDifferenceWithDividendsPercentage });

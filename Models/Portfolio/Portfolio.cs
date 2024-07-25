@@ -33,7 +33,7 @@ namespace MarketAnalyticHub.Models.Portfolio
     [NotMapped]
     public PortfolioPercentageResponse PortfolioPercentageResponse { get; internal set; }
     [NotMapped]
-    public double PortfolioPercentage { get; internal set; }
+    public decimal PortfolioPercentage { get; internal set; }
     [NotMapped]
     public dynamic GroupedItems { get; set; }
 

@@ -26,6 +26,91 @@ namespace MarketAnalyticHub.Controllers
       _portfolioService = portfolioService;
     }
 
+    [HttpGet("GetYearlyData")]
+    public async Task<IActionResult> GetYearlyData1()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+      // Fetch the portfolios
+      var portfolios = await _context.Portfolios
+          .Where(p => p.UserId == userId)
+          .Include(p => p.Items)
+          .ToListAsync();
+
+      // Get total revenue and investment data grouped by year
+      var totalRevenueByYear = portfolios
+          .SelectMany(p => p.Items)
+          .GroupBy(item => item.PurchaseDate.Year)
+          .Select(g => new
+          {
+            Year = g.Key,
+            TotalRevenue = g.Sum(item => item.CurrentMarketValue),
+            TotalInvestment = g.Sum(item => item.TotalInvestment)
+          })
+          .ToList();
+
+      // Prepare data for the chart
+      var series2021 = totalRevenueByYear
+          .Where(x => x.Year == 2021)
+          .Select(x => x.TotalRevenue)
+          .ToList();
+
+      var series2020 = totalRevenueByYear
+          .Where(x => x.Year == 2020)
+          .Select(x => x.TotalRevenue)
+          .ToList();
+
+      return Ok(new { series2021, series2020 });
+    }
+  
+
+
+      [HttpGet("GetYearlyData/{year}")]
+      public async Task<IActionResult> GetYearlyData(int year)
+      {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (userId == null)
+        {
+          return Unauthorized();
+        }
+
+        // Fetch the portfolios
+        var portfolios = await _context.Portfolios
+            .Where(p => p.UserId == userId)
+            .Include(p => p.Items)
+            .ToListAsync();
+
+        // Get total revenue and investment data grouped by month for the specified year
+        var totalRevenueByMonth = portfolios
+            .SelectMany(p => p.Items)
+            .Where(item => item.PurchaseDate.Year == year)
+            .GroupBy(item => item.PurchaseDate.Month)
+            .Select(g => new
+            {
+              Month = g.Key,
+              TotalRevenue = g.Sum(item => item.CurrentMarketValue),
+              TotalInvestment = g.Sum(item => item.TotalInvestment)
+            })
+            .OrderBy(x => x.Month)
+            .ToList();
+
+        // Prepare data for the chart
+        var seriesRevenue = new decimal[12];
+        var seriesInvestment = new decimal[12];
+
+        foreach (var item in totalRevenueByMonth)
+        {
+          seriesRevenue[item.Month - 1] = item.TotalRevenue;
+          seriesInvestment[item.Month - 1] = item.TotalInvestment;
+        }
+
+        return Ok(new { seriesRevenue, seriesInvestment });
+      }
+    
     public async Task<IActionResult> Index()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -36,32 +121,32 @@ namespace MarketAnalyticHub.Controllers
 
       // Fetch the portfolios first
       var portfolios = await _context.Portfolios
-          .Where(p => p.UserId == userId && p.CreationDate.HasValue)
+          .Where(p => p.UserId == userId)
           .Include(p => p.Items) // Include the related items
           .ToListAsync();
 
-      // Get Total Revenue by year
+      // Get Total Revenue by year based on PortfolioItems purchase dates
       var totalRevenueByYear = portfolios
-          .Where(p => p.CreationDate.HasValue)
-          .GroupBy(p => p.CreationDate.Value.Year)
+          .SelectMany(p => p.Items)
+          .GroupBy(item => item.PurchaseDate.Year)
           .Select(g => new TotalRevenueByYearDto
           {
             Year = g.Key,
-            TotalRevenue = g.Sum(p => p.CurrentMarketValue)
+            TotalRevenue = g.Sum(item => item.CurrentMarketValue)
           })
           .ToList();
 
       // Get Portfolio Growth
       var dashboardData = await _portfolioService.GetDashboardDataAsync(userId);
 
-      // Get Amount Total Year
-      var amountTotalYear = portfolios
-          .Where(p => p.CreationDate.HasValue)
-          .GroupBy(p => p.CreationDate.Value.Year)
+      // Get Amount Total Year by each PortfolioItem
+      var amountTotalYearByItems = portfolios
+          .SelectMany(p => p.Items)
+          .GroupBy(item => item.PurchaseDate.Year)
           .Select(g => new AmountTotalYearDto
           {
             Year = g.Key,
-            TotalInvestment = g.Sum(p => p.TotalInvestment)
+            TotalInvestment = g.Sum(item => item.TotalInvestment)
           })
           .ToList();
 
@@ -71,16 +156,30 @@ namespace MarketAnalyticHub.Controllers
           .Where(p => p.CreationDate.HasValue && p.CreationDate.Value.Year == currentYear)
           .ToList();
 
+      // Calculate Portfolio Growth Percentage
+      var previousYear = currentYear - 1;
+      var currentYearRevenue = totalRevenueByYear.FirstOrDefault(x => x.Year == currentYear)?.TotalRevenue ?? 0;
+      var previousYearRevenue = totalRevenueByYear.FirstOrDefault(x => x.Year == previousYear)?.TotalRevenue ?? 0;
+
+      decimal portfolioGrowthPercentage = 0;
+      if (previousYearRevenue > 0)
+      {
+        portfolioGrowthPercentage = ((currentYearRevenue - previousYearRevenue) / previousYearRevenue) * 100;
+      }
+
       var model = new DashboardViewModel
       {
+        PortfolioGrowthPercentage = portfolioGrowthPercentage,
         TotalRevenueByYear = totalRevenueByYear,
         DashboardData = dashboardData,
-        AmountTotalYear = amountTotalYear,
+        AmountTotalYear = amountTotalYearByItems,
         ProfileReportCurrentYear = profileReportCurrentYear
       };
 
       return View(model);
     }
+
+
   }
 
- }
+}

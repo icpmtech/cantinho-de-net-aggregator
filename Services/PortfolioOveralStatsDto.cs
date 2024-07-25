@@ -2,9 +2,9 @@ namespace MarketAnalyticHub.Services
 {
   public class PortfolioOveralStatsDto
   {
-    public double TotalMarketValue { get; set; }
-    public double TotalCustMarketValue { get; set; }
-    public double TotalDifferenceValue { get; set; }
-    public double TotalDifferencePercentage { get; set; }
+    public decimal TotalMarketValue { get; set; }
+    public decimal TotalCustMarketValue { get; set; }
+    public decimal TotalDifferenceValue { get; set; }
+    public decimal TotalDifferencePercentage { get; set; }
   }
 }

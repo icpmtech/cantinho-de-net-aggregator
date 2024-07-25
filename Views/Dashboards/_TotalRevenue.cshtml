@@ -1,0 +1,340 @@
+@model DashboardViewModel
+
+<!-- Include ApexCharts Library -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    // Function to update the revenue chart
+    function updateRevenueChart(data) {
+        const totalRevenueChartEl = document.querySelector('#totalRevenueChart1');
+
+        const totalRevenueChartOptions = {
+            series: [
+                {
+                    name: 'Revenue',
+                    data: data.seriesRevenue
+                },
+                {
+                    name: 'Investment',
+                    data: data.seriesInvestment
+                }
+            ],
+            chart: {
+                height: 300,
+                stacked: true,
+                type: 'bar',
+                toolbar: { show: false }
+            },
+            plotOptions: {
+                bar: {
+                    horizontal: false,
+                    columnWidth: '33%',
+                    borderRadius: 12,
+                    startingShape: 'rounded',
+                    endingShape: 'rounded'
+                }
+            },
+            colors: ['#7367F0', '#00CFDD'],
+            dataLabels: {
+                enabled: false
+            },
+            stroke: {
+                curve: 'smooth',
+                width: 6,
+                lineCap: 'round',
+                colors: ['#FFFFFF']
+            },
+            legend: {
+                show: true,
+                horizontalAlign: 'left',
+                position: 'top',
+                markers: {
+                    height: 8,
+                    width: 8,
+                    radius: 12,
+                    offsetX: -3
+                },
+                labels: {
+                    colors: '#6e6b7b'
+                },
+                itemMargin: {
+                    horizontal: 10
+                }
+            },
+            grid: {
+                borderColor: '#e9ecef',
+                padding: {
+                    top: 0,
+                    bottom: -8,
+                    left: 20,
+                    right: 20
+                }
+            },
+            xaxis: {
+                categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                labels: {
+                    style: {
+                        fontSize: '13px',
+                        colors: '#6e6b7b'
+                    }
+                },
+                axisTicks: {
+                    show: false
+                },
+                axisBorder: {
+                    show: false
+                }
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        fontSize: '13px',
+                        colors: '#6e6b7b'
+                    }
+                }
+            },
+            responsive: [
+                {
+                    breakpoint: 1700,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '32%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 1580,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '35%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 1440,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '42%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 1300,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '48%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 1200,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '40%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 1040,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 11,
+                                columnWidth: '48%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 991,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '30%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 840,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '35%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 768,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '28%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 640,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '32%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 576,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '37%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 480,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '45%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 420,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '52%'
+                            }
+                        }
+                    }
+                },
+                {
+                    breakpoint: 380,
+                    options: {
+                        plotOptions: {
+                            bar: {
+                                borderRadius: 10,
+                                columnWidth: '60%'
+                            }
+                        }
+                    }
+                }
+            ],
+            states: {
+                hover: {
+                    filter: {
+                        type: 'none'
+                    }
+                },
+                active: {
+                    filter: {
+                        type: 'none'
+                    }
+                }
+            }
+        };
+
+        if (totalRevenueChartEl !== null) {
+            const totalRevenueChart = new ApexCharts(totalRevenueChartEl, totalRevenueChartOptions);
+            totalRevenueChart.render();
+        }
+    }
+
+    // Function to update the chart when a year is selected
+    function updateGrowthChart(year) {
+        fetch(`/GetYearlyData/${year}`)
+            .then(response => response.json())
+            .then(data => {
+                updateRevenueChart(data);
+            });
+    }
+
+    // Initial render
+    document.addEventListener('DOMContentLoaded', function () {
+        const initialYear = @(Model.TotalRevenueByYear.OrderByDescending(y => y.Year).FirstOrDefault()?.Year ?? 0);
+        if (initialYear) {
+            updateGrowthChart(initialYear);
+        }
+    });
+</script>
+<div class="col-12 col-lg-8 order-2 order-md-3 order-lg-2 mb-4">
+    <div class="card">
+        <div class="row row-bordered g-0">
+            <div class="col-md-8">
+                <h5 class="card-header m-0 me-2 pb-3">Total Revenue</h5>
+                <div class="px-2">
+                    <div id="totalRevenueChart1"></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card-body">
+                    <div class="text-center">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" id="growthReportId" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                @(Model.TotalRevenueByYear.OrderByDescending(y => y.Year).FirstOrDefault()?.Year.ToString() ?? "Select Year")
+                            </button>
+                            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="growthReportId">
+                                @foreach (var item in Model.TotalRevenueByYear.OrderByDescending(y => y.Year))
+                                {
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="updateGrowthChart(@item.Year)">@item.Year</a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="growthChart"></div>
+                <div class="text-center fw-medium pt-3 mb-2">
+                    @Model.PortfolioGrowthPercentage.ToString("N2")% Portfolio Growth
+                </div>
+                <div class="d-flex px-xxl-4 px-lg-2 p-4 gap-xxl-3 gap-lg-1 gap-3 justify-content-between">
+                    @foreach (var yearData in Model.AmountTotalYear.OrderByDescending(y => y.Year).Take(2))
+                    {
+                        <div class="d-flex">
+                            <div class="me-2">
+                                <span class="badge bg-label-primary p-2">
+                                    <i class="bx bx-dollar text-primary"></i>
+                                </span>
+                            </div>
+                            <div class="d-flex flex-column">
+                                <small>@yearData.Year</small>
+                                <h6 class="mb-0">€@yearData.TotalInvestment.ToString("N0")k</h6>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+ 
+}

@@ -10,7 +10,7 @@ namespace MarketAnalyticHub.Models.Dashboard
     public decimal Growth { get; set; }
     public decimal PortfolioGrowth { get; set; }
     public decimal YearlyReport { get; set; }
-    public double ProfitPercentage { get; internal set; }
+    public decimal ProfitPercentage { get; internal set; }
   }
 
 }

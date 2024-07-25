@@ -9,6 +9,7 @@ namespace MarketAnalyticHub.Models
     public DashboardData DashboardData { get; set; }
     public List<AmountTotalYearDto> AmountTotalYear { get; set; }
     public List<Portfolio.Portfolio> ProfileReportCurrentYear { get; set; }
+    public decimal PortfolioGrowthPercentage { get; internal set; }
   }
 
   public class TotalRevenueByYearDto

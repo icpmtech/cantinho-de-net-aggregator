@@ -24,7 +24,7 @@ async function exportPortfolios(fileType) {
 async function importPortfolios(event) {
   const file = event.target.files[0];
   const formData = new FormData();
-  formData.append('file', file);
+  formData.append('File', file);
 
   const response = await fetch('/api/Portfolio/Import', {
     method: 'POST',
@@ -38,3 +38,19 @@ async function importPortfolios(event) {
   }
 }
 
+async function importPortfoliosYahoo(event) {
+  const file = event.target.files[0];
+  const formData = new FormData();
+  formData.append('File', file);
+
+  const response = await fetch('/api/Portfolio/ImportYahoo', {
+    method: 'POST',
+    body: formData
+  });
+
+  if (response.ok) {
+    loadPortfolios();
+  } else {
+    alert('Failed to import portfolios');
+  }
+}

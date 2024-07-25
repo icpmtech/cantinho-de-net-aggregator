@@ -144,11 +144,11 @@ function generateGroupedItemsHTML(group, portfolioId) {
       <div data-bs-toggle="collapse" data-bs-target="#group-${sanitizedSymbol}" aria-expanded="false" aria-controls="group-${sanitizedSymbol}" class="card-header bg-primary text-white d-flex justify-content-between align-items-center rounded" id="group-header-${sanitizedSymbol}">
         <span class="badge bg-white text-primary">${group.symbol}</span>
         <div class="d-flex align-items-center">
-          <span class="badge bg-white text-primary ms-1">${group.items.length}</span>
+          <span class="badge bg-white text-primary ms-1">Op. ${group.items.length}</span>
           <button class="btn btn-link p-0 ms-1" type="button">
             <span class="badge bg-white text-primary ms-1">
               <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
-                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${group.items[0].change}%
+                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${group.items[0].change}% </br>Op. €${(group.items[0].purchasePrice * group.items[0].quantity).toFixed(3)}
               </small>
             </span>
           </button>
@@ -185,12 +185,14 @@ function generateGroupedItemsHTML(group, portfolioId) {
 
 function generatePortfolioItemHTML(item) {
   const roiValue = item.quantity * item.currentPrice - item.purchasePrice * item.quantity;
+  const totalValue =  item.purchasePrice * item.quantity;
   const roiPercentage = ((item.currentPrice - item.purchasePrice) / item.purchasePrice) * 100;
 
   return `
     <li class="list-group-item bg-info text-white d-flex justify-content-between align-items-center rounded mb-2">
       <div>
         <p class="mb-1"><strong>Quantity:</strong> ${item.quantity}</p>
+        <p class="mb-1"><strong>Total Op.:</strong> €${totalValue.toFixed(2) }</p>
         <p class="mb-1"><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
         <p class="mb-1"><strong>Purchase Price:</strong> €${item.purchasePrice.toFixed(2)}</p>
         <p class="mb-1"><strong>ROI (Value):</strong> €${roiValue.toFixed(2)}</p>
