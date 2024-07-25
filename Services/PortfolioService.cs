@@ -19,6 +19,8 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using AspnetCoreMvcFull.Services;
 using Microsoft.OpenApi.Models;
 using DocumentFormat.OpenXml.Vml;
+using System.Globalization;
+using Microsoft.CodeAnalysis.RulesetToEditorconfig;
 
 namespace MarketAnalyticHub.Services
 {
@@ -320,7 +322,7 @@ namespace MarketAnalyticHub.Services
 
       return workbook;
     }
-
+  
     public async Task ImportYahooFromCsv(string csvData, string userId)
     {
       var lines = csvData.Split('\n').Skip(1); // Skip header line
@@ -343,9 +345,9 @@ namespace MarketAnalyticHub.Services
         if (parts.Length < 5) continue; // Skip incomplete lines
 
         var itemSymbol = parts[0].Trim();
-        var itemQuantity = int.TryParse(parts[11].Trim(), out int quantity) ? quantity : 0;
-        var itemPurchasePrice = decimal.TryParse(parts[10].Trim(), out decimal purchasePrice) ? purchasePrice : 0m;
-        var itemPurchaseDate = DateTime.TryParse(parts[9].Trim(), out DateTime purchaseDate) ? purchaseDate : DateTime.MinValue;
+        var itemQuantity = Converter.ConvertToInt(parts[11].Trim());
+        var itemPurchasePrice = Converter.ConvertToDecimal(parts[10].Trim());
+        var itemPurchaseDate = Converter.ConvertToDateTime(parts[9].Trim());
 
         portfolio.Items.Add(new PortfolioItem
         {
@@ -623,4 +625,5 @@ namespace MarketAnalyticHub.Services
     public double TotalMarketValueAfterImpact { get; set; }
     public List<Models.Portfolio.PortfolioItem> PortfolioItems { get; set; }
   }
+
 }
