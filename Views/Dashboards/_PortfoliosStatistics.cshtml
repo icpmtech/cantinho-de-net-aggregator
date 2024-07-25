@@ -1,0 +1,34 @@
+<!-- Portfolios Statistics -->
+<div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
+    <div class="card h-100">
+        <div class="card-header d-flex align-items-center justify-content-between pb-0">
+            <div class="card-title mb-0">
+                <h5 class="m-0 me-2">Portfolios Statistics</h5>
+                <small class="text-muted">Detailed portfolio data</small>
+            </div>
+            <div class="dropdown">
+                <button class="btn p-0" type="button" id="orderStatistics" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="bx bx-dots-vertical-rounded"></i>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="orderStatistics">
+                    <a class="dropdown-item" href="javascript:void(0);">Select All</a>
+                    <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
+                    <a class="dropdown-item" href="javascript:void(0);">Share</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex flex-column align-items-center gap-1">
+                    <h2 id="totalPortfolios" class="mb-2">€8,258</h2>
+                    <span>Total Portfolio</span>
+                </div>
+                <div id="symbolStatisticsChart"></div>
+            </div>
+            <ul id="portfolioStatistics" class="p-0 m-0">
+                <!-- Portfolio statistics will be loaded here -->
+            </ul>
+        </div>
+    </div>
+</div>
+<!--/ Portfolios Statistics -->

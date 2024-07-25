@@ -15,13 +15,14 @@ namespace MarketAnalyticHub.Controllers
   {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
-
-    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+    private readonly ILogger<AccountController> _logger;
+    public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ILogger<AccountController> logger)
     {
       _userManager = userManager;
       _signInManager = signInManager;
+      _logger = logger;
     }
-
+    public IActionResult ForgotPasswordBasic() => View();
     public IActionResult Register() => View();
 
     [HttpPost]
@@ -62,6 +63,37 @@ namespace MarketAnalyticHub.Controllers
     {
       return View();
     }
+    public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+    {
+      ViewData["ReturnUrl"] = returnUrl;
+      if (ModelState.IsValid)
+      {
+        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+        if (result.Succeeded)
+        {
+          _logger.LogInformation("User logged in.");
+          return LocalRedirect(returnUrl ?? "/");
+        }
+        if (result.RequiresTwoFactor)
+        {
+          return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
+        }
+        if (result.IsLockedOut)
+        {
+          _logger.LogWarning("User account locked out.");
+          return RedirectToPage("./Lockout");
+        }
+        else
+        {
+          ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+          return View(model);
+        }
+      }
+
+      // If we got this far, something failed, redisplay form
+      return View(model);
+    }
+
 
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
