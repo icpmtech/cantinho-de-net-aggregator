@@ -93,8 +93,8 @@ function generatePortfolioHTML(portfolio) {
               <i class="bx bx-dots-vertical-rounded"></i>
             </button>
             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="portfolioActions-${portfolio.id}">
-              <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Op.</a>
-              <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name.replace(/'/g, "\\'")}');">Edit</a>
+              <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Operations</a>
+              <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name.replace(/'/g, "\\'")}');">Edit Portfolio</a>
               <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
             </div>
           </div>
@@ -112,7 +112,7 @@ function generatePortfolioHTML(portfolio) {
                   <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +€0</small>
                 </div>
               </div>
-              <button class="btn badge bg-primary text-white" onclick="toggleChart(${portfolio.id})">View Chart</button>
+              <button class="btn badge bg-primary text-white" onclick="toggleChart(${portfolio.id})">TOGGLE CHART</button>
             </div>
             <canvas id="chart-${portfolio.id}" style="display: none; width: 100%; height: 200px;" class="mt-3"></canvas>
           </div>
@@ -140,9 +140,8 @@ function generatePortfolioHTML(portfolio) {
 function generateGroupedItemsHTML(group, portfolioId) {
   const sanitizedSymbol = sanitizeSymbol(group.symbol);
   return `
-    <div class="card shadow-none bg-transparent border  mb-3">
-
-      <div data-bs-toggle="collapse" data-bs-target="#group-${sanitizedSymbol}" aria-expanded="false" aria-controls="group-${sanitizedSymbol}" class="text-white d-flex justify-content-between align-items-center rounded" id="group-header-${sanitizedSymbol}">
+    <div class="card mt-3 shadow-sm rounded border-1">
+      <div data-bs-toggle="collapse" data-bs-target="#group-${sanitizedSymbol}" aria-expanded="false" aria-controls="group-${sanitizedSymbol}" class=" text-white d-flex justify-content-between align-items-center rounded" id="group-header-${sanitizedSymbol}">
         <span class="badge bg-white text-primary">${group.symbol}</span>
         <div class="d-flex align-items-center">
           <span class="badge bg-white text-primary ms-1">Op. ${group.items.length}</span>
@@ -156,9 +155,8 @@ function generateGroupedItemsHTML(group, portfolioId) {
         </div>
       </div>
       <div id="group-${sanitizedSymbol}" class="collapse" aria-labelledby="group-header-${sanitizedSymbol}" data-parent="#details-${portfolioId}">
-        <div class="card-body ">
-
-        
+        <div class="card-body">
+          <div>
             <p><strong>Current Price:</strong> ${group.items[0].currentPrice}</p>
             <p><strong>Change:</strong> ${group.items[0].change}</p>
             <p>
@@ -187,31 +185,26 @@ function generateGroupedItemsHTML(group, portfolioId) {
 
 function generatePortfolioItemHTML(item) {
   const roiValue = item.quantity * item.currentPrice - item.purchasePrice * item.quantity;
-  const totalValue =  item.purchasePrice * item.quantity;
+  const totalValue = item.purchasePrice * item.quantity;
   const roiPercentage = ((item.currentPrice - item.purchasePrice) / item.purchasePrice) * 100;
 
   return `
-    <li class="list-group-item border  d-flex justify-content-between align-items-center  mb-2">
-     
-      <div >
+    <li style="background-color:#ff4560;" class="list-group-item text-white d-flex justify-content-between align-items-center rounded mb-2">
+      <div>
         <p class="mb-1"><strong>Quantity:</strong> ${item.quantity}</p>
-        <p class="mb-1"><strong>Total Op.:</strong> €${totalValue.toFixed(2) }</p>
+        <p class="mb-1"><strong>Total Op.:</strong> €${totalValue.toFixed(2)}</p>
         <p class="mb-1"><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
         <p class="mb-1"><strong>Purchase Price:</strong> €${item.purchasePrice.toFixed(2)}</p>
         <p class="mb-1"><strong>ROI (Value):</strong> €${roiValue.toFixed(2)}</p>
         <p class="mb-1"><strong>ROI (Percentage):</strong> ${roiPercentage.toFixed(2)}%</p>
       </div>
       <div class="d-flex flex-column align-items-end">
-      <div class="dropdown">
-            <button class="btn p-0" type="button" id="portfolio-Actions-${item.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              <i class="bx bx-dots-vertical-rounded"></i>
-            </button>
-            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="portfolio-Actions-${item.id}">
-             <a class="dropdown-item" href="javascript:showEditPortfolioItemModal(${item.id});">Edit</a>
-              <a class="dropdown-item" href="javascript:deletePortfolioItem(${item.id});">Delete</a>
-            </div>
-          </div>
-          <div>
+        <button type="button"  onclick="showEditPortfolioItemModal(${item.id})" class="btn shadow rounded-pill btn-icon btn-primary">
+                <span class="tf-icons bx bx-edit-alt"></span>
+              </button>
+        <button type="button" onclick="deletePortfolioItem(${item.id})" class="btn rounded-pill shadow btn-icon btn-danger">
+                <span class="tf-icons bx bx-eraser"></span>
+              </button>
       </div>
     </li>
   `;
