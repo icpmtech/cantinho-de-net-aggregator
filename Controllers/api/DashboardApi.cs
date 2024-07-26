@@ -23,10 +23,12 @@ namespace MarketAnalyticHub.Controllers.api
   {
     private readonly ApplicationDbContext _context;
     private readonly PortfolioService _portfolioService;
-    public DashboardsController(ApplicationDbContext context, PortfolioService portfolioService)
+    private readonly IYahooFinanceService _yahooFinanceService;
+    public DashboardsController(ApplicationDbContext context, PortfolioService portfolioService, IYahooFinanceService yahooFinanceService)
     {
       _context = context;
       _portfolioService = portfolioService;
+      _yahooFinanceService = yahooFinanceService;
     }
 
     [HttpGet("chartdata/{id}")]
@@ -40,14 +42,18 @@ namespace MarketAnalyticHub.Controllers.api
         {
           return NotFound();
         }
+      var data = await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, DateTime.Now.AddDays(-7), DateTime.Now);
+      var dataResult = new
+      {
+        dates = data.Select(h => h.Date.ToString("yyyy-MM-dd")).ToArray(),
+        opens = data.Select(h => h.Open).ToArray(),
+        highs = data.Select(h => h.High).ToArray(),
+        lows = data.Select(h => h.Low).ToArray(),
+        closes = data.Select(h => h.Close).ToArray(),
+        volumes = data.Select(h => h.Volume).ToArray()
+      };
 
-        var data = new
-        {
-          prices = portfolioItem.StockEvents.Select(se => se.Price).ToArray(),
-          dates = portfolioItem.StockEvents.Select(se => se.Date).ToArray()
-        };
-
-        return Ok(data);
+      return Ok(dataResult);
       }
 
       [HttpGet("data")]

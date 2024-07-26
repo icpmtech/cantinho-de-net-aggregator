@@ -42,28 +42,27 @@
                             <tr>
                                 <td>@Html.DisplayFor(modelItem => item.OperationType)</td>
                                 <td>
-                                    <div id="chart-@item.Id" style="min-width: 150px; height: 80px;"></div>
+                                    <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
                                     <script>
                                         document.addEventListener('DOMContentLoaded', function () {
-                                            fetch('/api/portfolioitem/chartdata/@item.Id')
+                                            fetch('/api/dashboards/chartdata/@item.Id')
                                                 .then(response => response.json())
                                                 .then(data => {
                                                     var d = document.querySelector("#chart-@item.Id");
                                                     var c = {
                                                         chart: {
-                                                            height: 80,
-                                                            width: 140,
+                                                            height: 200,
                                                             type: "line",
-                                                            toolbar: { show: !1 },
+                                                            toolbar: { show: false },
                                                             dropShadow: {
-                                                                enabled: !0,
+                                                                enabled: true,
                                                                 top: 10,
                                                                 left: 5,
                                                                 blur: 3,
-                                                                color: config.colors.primary,
+                                                                color: "#FF4560", // Update with your config color
                                                                 opacity: 0.15
                                                             },
-                                                            sparkline: { enabled: !0 }
+                                                            sparkline: { enabled: true }
                                                         },
                                                         markers: {
                                                             size: 6,
@@ -72,10 +71,10 @@
                                                             strokeWidth: 4,
                                                             discrete: [
                                                                 {
-                                                                    fillColor: config.colors.white,
+                                                                    fillColor: "#FFFFFF", // Update with your config color
                                                                     seriesIndex: 0,
                                                                     dataPointIndex: 3,
-                                                                    strokeColor: config.colors.primary,
+                                                                    strokeColor: "#FF4560", // Update with your config color
                                                                     strokeWidth: 4,
                                                                     size: 6,
                                                                     radius: 2
@@ -83,13 +82,31 @@
                                                             ],
                                                             hover: { size: 7 }
                                                         },
-                                                        grid: { show: !1, padding: { right: 8 } },
-                                                        colors: [config.colors.primary],
-                                                        dataLabels: { enabled: !1 },
+                                                        grid: { show: false, padding: { right: 8 } },
+                                                        colors: ["#FF4560"], // Update with your config color
+                                                        dataLabels: { enabled: false },
                                                         stroke: { width: 5, curve: "smooth" },
-                                                        series: [{ data: data.prices }],
-                                                        xaxis: { show: !1, lines: { show: !1 }, labels: { show: !1 }, axisBorder: { show: !1 } },
-                                                        yaxis: { show: !1 }
+                                                        series: [{
+                                                            name: 'Close Prices',
+                                                            data: data.closes // Assuming you want to plot closing prices
+                                                        }],
+                                                        xaxis: {
+                                                            type: 'datetime',
+                                                            categories: data.dates,
+                                                            labels: {
+                                                                format: 'yyyy-MM-dd'
+                                                            }
+                                                        },
+                                                        yaxis: {
+                                                            title: {
+                                                                text: 'Price'
+                                                            }
+                                                        },
+                                                        legend: {
+                                                            show: true,
+                                                            position: 'top',
+                                                            horizontalAlign: 'left'
+                                                        }
                                                     };
                                                     null !== d && new ApexCharts(d, c).render();
                                                 })
@@ -125,6 +142,7 @@
     </div>
 </div>
 
+
 <div class="mt-3 d-flex justify-content-between">
     @if (Model.HasPreviousPage)
     {
@@ -147,6 +165,6 @@
     }
 </div>
 
-@section Scripts {
+@section PageScripts {
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 }
