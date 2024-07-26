@@ -5,6 +5,7 @@ namespace MarketAnalyticHub.Models
 {
   public class DashboardViewModel
   {
+    public List<TransactionDto> Transactions { get; set; }
     public List<TotalRevenueByYearDto> TotalRevenueByYear { get; set; }
     public DashboardData DashboardData { get; set; }
     public List<AmountTotalYearDto> AmountTotalYear { get; set; }

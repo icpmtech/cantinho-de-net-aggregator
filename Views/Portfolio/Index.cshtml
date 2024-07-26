@@ -8,196 +8,76 @@
     <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Portfolios"]
 </h4>
 
-<div class="row">
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
-        <div class="card shadow-sm border-0 rounded">
-            <div class="card-body">
-                <div class="card-title d-flex align-items-start justify-content-between">
-                    <div class="avatar flex-shrink-0">
-                        <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded" style="width: 40px; height: 40px;">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt1">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
+
+@Html.Partial("_PortfolioCards")
+
+<div class="col-12">
+    <h6 class="text-muted">Investment Analisys</h6>
+    <div class="nav-align-top mb-4">
+        <ul class="nav nav-pills mb-3 nav-fill" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-home" aria-controls="navs-pills-justified-home" aria-selected="true">
+                  <i class="tf-icons bx bx-wallet me-1"></i><span class="d-none d-sm-block"> Portfolios</span>
+                  <span id="portfolios-numbers" class="badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ms-1">3</span></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-profile" aria-controls="navs-pills-justified-profile" aria-selected="false" tabindex="-1">
+                  <i class="tf-icons bx bx-chart me-1"></i><span class="d-none d-sm-block"> Heat Map</span></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-messages" aria-controls="navs-pills-justified-messages" aria-selected="false" tabindex="-1">
+                  <i class="tf-icons bx bx-cube-alt me-1">
+
+                </i>
+                <span class="d-none d-sm-block"> Analisys</span></button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade active show" id="navs-pills-justified-home" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div >
+                            <div>
+                                <!-- Loading Spinner -->
+                                <div id="loadingSpinner" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                                <!-- Portfolio List -->
+                                <div id="portfolioList" style="display: none;">
+                                    <!-- Portfolio list will be rendered here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Total Cust Market Value"]</span>
-                <h3 id="totalCustMarketValue" class="card-title text-nowrap mb-1">€0</h3>
-                <small class="fw-medium"><i class='bx bx-cube'></i> </small>
+
             </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
-        <div class="card shadow-sm border-0 rounded">
-            <div class="card-body">
-                <div class="card-title d-flex align-items-start justify-content-between">
-                    <div class="avatar flex-shrink-0">
-                        <img src="~/img/icons/unicons/chart-success.png" alt="chart success" class="rounded" style="width: 40px; height: 40px;">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt2">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
+            <div class="tab-pane fade" id="navs-pills-justified-profile" role="tabpanel">
+               <div>
+                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+                    <div id="heatmapContainer"></div>
+                    <div id="portfolios-numbers"></div>
                 </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Total Market Value"]</span>
-                <h3 id="totalMarketValue" class="card-title mb-2">€0</h3>
-                <small class="fw-medium"><i class='bx bx-cube'></i> </small>
             </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
-        <div class="card shadow-sm border-0 rounded">
-            <div class="card-body">
-                <div class="card-title d-flex align-items-start justify-content-between">
-                    <div class="avatar flex-shrink-0">
-                        <img src="~/img/icons/unicons/chart.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
-                </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Total Portfolio Percentage"]</span>
-                <h3 id="totalPortfolioPercentage" class="card-title mb-2">0%</h3>
-                <small class="fw-medium"><i class='bx bx-cube'></i> </small>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
-        <div class="card shadow-sm border-0 rounded">
-            <div class="card-body">
-                <div class="card-title d-flex align-items-start justify-content-between">
-                    <div class="avatar flex-shrink-0">
-                        <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded" style="width: 40px; height: 40px;">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt4">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
-                </div>
-                <span class="fw-medium d-block mb-1">Dividends</span>
-                <h3 id="dividends" class="card-title text-nowrap mb-1">€0.00</h3>
-                <small class="text-success fw-medium"><i class='bx bx-cube'></i></small>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
-        <div class="card shadow-sm border-0 rounded">
-            <div class="card-body">
-                <div class="card-title d-flex align-items-start justify-content-between">
-                    <div class="avatar flex-shrink-0">
-                        <img src="~/img/icons/unicons/chart-success.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt5" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt5">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
-                </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Profit no Dividends"]</span>
-                <h3 id="totalDifferenceValue" class="card-title mb-2">€-103.81</h3>
-                <small class="text-danger fw-medium"><i id="totalDifferenceIcon" class='bx bx-down-arrow-alt'></i> <span id="totalDifferencePercentage">0%</span></small>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
-        <div class="card shadow-sm border-0 rounded">
-            <div class="card-body">
-                <div class="card-title d-flex align-items-start justify-content-between">
-                    <div class="avatar flex-shrink-0">
-                        <img src="~/img/icons/unicons/chart-success.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
-                    </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
-                </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Profit Total"]</span>
-                <h3 id="totalProfit" class="card-title mb-2">€-93.813</h3>
-                <small class="text-success fw-medium"><i id="totalProfitIcon" class='bx bx-up-arrow-alt'></i> <span id="totalProfitDifferencePercentage">0%</span></small>
+            <div class="tab-pane fade" id="navs-pills-justified-messages" role="tabpanel">
+                <p>
+                    Oat cake chupa chups dragée donut toffee. Sweet cotton candy jelly beans macaroon gummies cupcake gummi
+                    bears
+                    cake chocolate.
+                </p>
+                <p class="mb-0">
+                    Cake chocolate bar cotton candy apple pie tootsie roll ice cream apple pie brownie cake. Sweet roll icing
+                    sesame snaps caramels danish toffee. Brownie biscuit dessert dessert. Pudding jelly jelly-o tart brownie
+                    jelly.
+                </p>
             </div>
         </div>
     </div>
 </div>
 
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="row mb-3">
-            <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex flex-column flex-md-row justify-content-start">
-                <button class="btn btn-primary mb-2 mb-md-0 me-md-2" onclick="showAddPortfolioModal()">Add a new Portfolio</button>
-                <button class="btn btn-success mb-2 mb-md-0 me-md-2 " onclick="exportPortfolios('xlsx')">Export Portfolios (Excel)</button>
-                <button class="btn btn-success mb-2 mb-md-0" onclick="exportPortfolios('csv')">Export Portfolios (CSV)</button>
-            </div>
-            <div class="col-12 col-md-6 d-flex flex-column flex-md-row justify-content-end">
-                <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
-                <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
-                <input type="file" id="importFileYhaoo" style="display: none;" accept=".xlsx,.csv" onchange="importPortfoliosYahoo(event)">
-                <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFileYhaoo').click()"> <i class="bx bxl-yahoo"></i>Import Portfolios Yhaoo</button>
-                <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
-                    <option value="bar" selected>Bar</option>
-                    <option value="line">Line</option>
-                    <option value="candlestick">Candlestick</option>
-                </select>
-            </div>
-        </div>
-
-        
-    </div>
-</div>
-
-
-
-<div class="row">
-    <div class="col-md-12">
-        <div class=" mb-4">
-            <div >
-                <!-- Loading Spinner -->
-                <div id="loadingSpinner" class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-                <!-- Portfolio List -->
-                <div id="portfolioList" style="display: none;">
-                    <!-- Portfolio list will be rendered here -->
-                </div>
-
-
-
-            </div>
-        </div>
-    </div>
-</div>
 
 
 

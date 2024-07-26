@@ -12,6 +12,7 @@ async function showEditPortfolioItemModal(itemId) {
     document.getElementById('editPortfolioItemId').value = item.id;
     document.getElementById('portfolioeditPortfolioItemId').value = item.portfolioId;
     document.getElementById('editItemSymbol').value = item.symbol;
+    document.getElementById('editItemCompany').value = item.company;
     document.getElementById('editItemQuantity').value = item.quantity;
     document.getElementById('editItemPurchasePrice').value = item.purchasePrice;
     document.getElementById('editItemCommission').value = item.commission;
@@ -30,6 +31,7 @@ document.getElementById('addPortfolioItemForm').addEventListener('submit', async
   event.preventDefault();
   const portfolioId = document.getElementById('portfolioId').value;
   const symbol = document.getElementById('itemSymbol').value;
+  const company = document.getElementById('itemCompany').value;
   const quantity = document.getElementById('itemQuantity').value;
   const purchasePrice = document.getElementById('itemPurchasePrice').value;
   const purchaseDate = document.getElementById('itemPurchaseDate').value;
@@ -40,7 +42,7 @@ document.getElementById('addPortfolioItemForm').addEventListener('submit', async
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, commission, operationType })
+    body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, commission, operationType, company })
   });
 
   if (response.ok) {
@@ -56,6 +58,7 @@ document.getElementById('editPortfolioItemForm').addEventListener('submit', asyn
   const id = document.getElementById('editPortfolioItemId').value;
   const portfolioId = document.getElementById('portfolioeditPortfolioItemId').value;
   const symbol = document.getElementById('editItemSymbol').value;
+  const company = document.getElementById('editItemCompany').value;
   const quantity = document.getElementById('editItemQuantity').value;
   const purchasePrice = document.getElementById('editItemPurchasePrice').value;
   const purchaseDate = document.getElementById('editItemPurchaseDate').value;
@@ -67,7 +70,7 @@ document.getElementById('editPortfolioItemForm').addEventListener('submit', asyn
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, id, commission, operationType })
+      body: JSON.stringify({ portfolioId, symbol, quantity, purchasePrice, purchaseDate, id, commission, operationType, company })
     });
 
     if (response.ok) {

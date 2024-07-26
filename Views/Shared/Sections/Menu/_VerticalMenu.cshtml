@@ -246,6 +246,11 @@
                         <div>Portfolio</div>
                     </a>
                 </li>
+                <li class='menu-item@(currentPage == "/PortfolioItems/Index" ? " active" : "")'>
+                    <a asp-controller="PortfolioItems" asp-action="Index" class="menu-link">
+                        <div>Portfolio Items</div>
+                    </a>
+                </li>
                 <li class='menu-item@(currentPage == "/StockEvents/Index" ? " active" : "")'>
                     <a asp-controller="StockEvents" asp-action="Index" class="menu-link">
                         <div>Ticker/Symbol Events</div>
@@ -290,6 +295,12 @@
             <div>Connections</div>
           </a>
         </li>
+                <li class='menu-item@(currentPage == "/Pages/Billing" ? " active" : "")'>
+                    <a asp-controller="Pages" asp-action="Billing" class="menu-link">
+                        <div>Billing</div>
+                    </a>
+                </li>
+                
       </ul>
     </li>
    

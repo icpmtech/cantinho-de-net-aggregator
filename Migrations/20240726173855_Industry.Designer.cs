@@ -4,6 +4,7 @@ using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketAnalyticHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240726173855_Industry")]
+    partial class Industry
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -204,11 +207,11 @@ namespace MarketAnalyticHub.Migrations
                     b.Property<decimal?>("Commission")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("CurrentPrice")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("IndustryId")
+                        .HasColumnType("int");
 
                     b.Property<string>("OperationType")
                         .IsRequired()
@@ -236,7 +239,7 @@ namespace MarketAnalyticHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CompanyId");
+                    b.HasIndex("IndustryId");
 
                     b.HasIndex("PortfolioId");
 
@@ -532,7 +535,7 @@ namespace MarketAnalyticHub.Migrations
                 {
                     b.HasOne("MarketAnalyticHub.Models.SetupDb.Company", "Industry")
                         .WithMany()
-                        .HasForeignKey("CompanyId");
+                        .HasForeignKey("IndustryId");
 
                     b.HasOne("MarketAnalyticHub.Models.Portfolio.Portfolio", "Portfolio")
                         .WithMany("Items")

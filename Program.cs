@@ -1,4 +1,4 @@
-using MarketAnalyticHub.Models.SetupDb;
+﻿using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -126,6 +126,8 @@ builder.Services.AddSwaggerGen(c =>
   
 });
 
+builder.Services.AddEndpointsApiExplorer();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -138,6 +140,12 @@ else
   app.UseExceptionHandler("/Home/Error");
   app.UseHsts();
 }
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+};
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -184,5 +192,7 @@ app.UseEndpoints(endpoints =>
       pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
   );
 });
+
+app.MapCompanyEndpoints();
 
 app.Run();

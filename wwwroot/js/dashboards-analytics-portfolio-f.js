@@ -62,38 +62,40 @@
             
         }
 
-    function updatePortfolioStatistics(data) {
-            const portfolioStatisticsElement = document.getElementById('portfolioStatistics');
-    document.getElementById('totalPortfolios').innerText = `€${data.totalInvestment?.toFixed(2)}`;
-            portfolioStatisticsElement.innerHTML = data.map(portfolio => `
+  function updatePortfolioStatistics(data) {
+    const portfolioStatisticsElement = document.getElementById('portfolioStatistics');
+
+    const totalInvestment = data.reduce((sum, portfolio) => sum + portfolio.items.reduce((portfolioSum, item) => portfolioSum + item.totalInvestment, 0), 0);
+    const currentMarketValue = data.reduce((sum, portfolio) => sum + portfolio.items.reduce((portfolioSum, item) => portfolioSum + item.currentMarketValue, 0), 0);
+    const progressPercentage = (currentMarketValue / totalInvestment) * 100;
+
+    document.getElementById('totalPortfolios').innerText = `€${totalInvestment.toFixed(2)}`;
+    document.getElementById('currentMarketValue').innerText = `€${currentMarketValue.toFixed(2)}`;
+    document.getElementById('progressPercentage').innerText = `${progressPercentage.toFixed(2)}%`;
+
+    portfolioStatisticsElement.innerHTML = data.map(portfolio => `
     <div class="portfolio-section">
       <h5 class="portfolio-name">${portfolio.name}</h5>
       <ul class="list-unstyled">
         ${portfolio.items.map(item => `
-                            <li class="d-flex mb-4 pb-1">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <span class="avatar-initial rounded bg-label-primary"><i class='bx bx-mobile-alt'></i></span>
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <h6 class="mb-0">${item.symbol}</h6>
-                                                <small class="text-muted">Total Investment: €${item.totalInvestment.toFixed(2)}</small>
-                                                <small class="text-muted">Current Market Value: €${item.currentMarketValue.toFixed(2)}</small>
-                                                <small class="text-muted">Dividends: €${item.dividends.toFixed(2)}</small>
-                                    </div>
-                                </div>
-                            </li>
-                        `).join('')}
+          <li class="d-flex mb-4 pb-1">
+            <div class="avatar flex-shrink-0 me-3">
+              <span class="avatar-initial rounded bg-label-primary"><i class='bx bx-mobile-alt'></i></span>
+            </div>
+            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+              <div class="me-2">
+                <h6 class="mb-0">${item.symbol}</h6>
+                <small class="text-muted">Total Investment: €${item.totalInvestment.toFixed(2)}</small>
+                <small class="text-muted">Current Market Value: €${item.currentMarketValue.toFixed(2)}</small>
+                <small class="text-muted">Dividends: €${item.dividends.toFixed(2)}</small>
+              </div>
+            </div>
+          </li>
+        `).join('')}
       </ul>
     </div>
-    `).join('');
-            // Calculate the total investment
-            const totalInvestment = data.reduce((sum, portfolio) => sum + portfolio.items.reduce((portfolioSum, item) => portfolioSum + item.totalInvestment, 0), 0);
-
-    // Update the total portfolios element
-    document.getElementById('totalPortfolios').innerText = `€${totalInvestment.toFixed(2)}`;
-        }
-
+  `).join('');
+  }
 
 
 

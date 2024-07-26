@@ -29,7 +29,28 @@ namespace MarketAnalyticHub.Controllers.api
       _portfolioService = portfolioService;
     }
 
-    [HttpGet("data")]
+    [HttpGet("chartdata/{id}")]
+      public async Task<IActionResult> GetChartData(int id)
+      {
+        var portfolioItem = await _context.PortfolioItems
+            .Include(p => p.StockEvents) // Assuming StockEvents contain historical price data
+            .FirstOrDefaultAsync(p => p.Id == id);
+
+        if (portfolioItem == null)
+        {
+          return NotFound();
+        }
+
+        var data = new
+        {
+          prices = portfolioItem.StockEvents.Select(se => se.Price).ToArray(),
+          dates = portfolioItem.StockEvents.Select(se => se.Date).ToArray()
+        };
+
+        return Ok(data);
+      }
+
+      [HttpGet("data")]
     public async Task<ActionResult<DashboardData>> GetDashboardData()
     {
       // Replace "userId" with the actual user ID from your authentication context

@@ -1,0 +1,152 @@
+@model PaginatedList<MarketAnalyticHub.Models.Portfolio.PortfolioItem>
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_ContentNavbarLayout.cshtml";
+}
+
+<h1 class="mt-4">Portfolio Items</h1>
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <a class="btn btn-primary" asp-action="Create">
+                <i class='bx bx-plus'></i> Create New
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>
+                                <a asp-action="Index" asp-route-sortOrder="@ViewData["OperationTypeSortParm"]">
+                                    Operation Type <i class='bx bx-sort'></i>
+                                </a>
+                            </th>
+                            <th>Chart</th>
+                            <th>@Html.DisplayNameFor(model => model.First().Symbol)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().PurchaseDate)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().Quantity)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().PurchasePrice)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().CurrentPrice)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().Commission)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().Industry.Name)</th>
+                            <th>@Html.DisplayNameFor(model => model.First().Portfolio.Name)</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@Html.DisplayFor(modelItem => item.OperationType)</td>
+                                <td>
+                                    <div id="chart-@item.Id" style="min-width: 150px; height: 80px;"></div>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            fetch('/api/portfolioitem/chartdata/@item.Id')
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    var d = document.querySelector("#chart-@item.Id");
+                                                    var c = {
+                                                        chart: {
+                                                            height: 80,
+                                                            width: 140,
+                                                            type: "line",
+                                                            toolbar: { show: !1 },
+                                                            dropShadow: {
+                                                                enabled: !0,
+                                                                top: 10,
+                                                                left: 5,
+                                                                blur: 3,
+                                                                color: config.colors.primary,
+                                                                opacity: 0.15
+                                                            },
+                                                            sparkline: { enabled: !0 }
+                                                        },
+                                                        markers: {
+                                                            size: 6,
+                                                            colors: "transparent",
+                                                            strokeColors: "transparent",
+                                                            strokeWidth: 4,
+                                                            discrete: [
+                                                                {
+                                                                    fillColor: config.colors.white,
+                                                                    seriesIndex: 0,
+                                                                    dataPointIndex: 3,
+                                                                    strokeColor: config.colors.primary,
+                                                                    strokeWidth: 4,
+                                                                    size: 6,
+                                                                    radius: 2
+                                                                }
+                                                            ],
+                                                            hover: { size: 7 }
+                                                        },
+                                                        grid: { show: !1, padding: { right: 8 } },
+                                                        colors: [config.colors.primary],
+                                                        dataLabels: { enabled: !1 },
+                                                        stroke: { width: 5, curve: "smooth" },
+                                                        series: [{ data: data.prices }],
+                                                        xaxis: { show: !1, lines: { show: !1 }, labels: { show: !1 }, axisBorder: { show: !1 } },
+                                                        yaxis: { show: !1 }
+                                                    };
+                                                    null !== d && new ApexCharts(d, c).render();
+                                                })
+                                                .catch(error => console.error('Error fetching chart data:', error));
+                                        });
+                                    </script>
+                                </td>
+                                <td>@Html.DisplayFor(modelItem => item.Symbol)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PurchaseDate)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
+                                <td>@Html.DisplayFor(modelItem => item.PurchasePrice)</td>
+                                <td>@Html.DisplayFor(modelItem => item.CurrentPrice)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Commission)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Industry.Name)</td>
+                                <td>@Html.DisplayFor(modelItem => item.Portfolio.Name)</td>
+                                <td>
+                                    <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
+                                        <i class='bx bx-edit'></i> Edit
+                                    </a>
+                                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
+                                        <i class='bx bx-detail'></i> Details
+                                    </a>
+                                    <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
+                                        <i class='bx bx-trash'></i> Delete
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3 d-flex justify-content-between">
+    @if (Model.HasPreviousPage)
+    {
+        <a class="btn btn-secondary" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)">Previous</a>
+    }
+    else
+    {
+        <span class="btn btn-secondary disabled">Previous</span>
+    }
+
+    <span>Page @Model.PageIndex of @Model.TotalPages</span>
+
+    @if (Model.HasNextPage)
+    {
+        <a class="btn btn-secondary" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)">Next</a>
+    }
+    else
+    {
+        <span class="btn btn-secondary disabled">Next</span>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+}

@@ -1,0 +1,100 @@
+@model MarketAnalyticHub.Models.Portfolio.PortfolioItem
+
+@{
+    ViewData["Title"] = "Details";
+    Layout = "~/Views/Shared/_ContentNavbarLayout.cshtml";
+}
+
+<!-- Include ApexCharts library -->
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<h1 class="mt-4">Portfolio Item Details</h1>
+
+<div class="container">
+    <!-- Apex Chart Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Price Comparison Chart</h5>
+        </div>
+        <div class="card-body">
+            <div id="chart"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var options = {
+                series: [{
+                    name: 'Current Price',
+                    data: [@Model.CurrentPrice]
+                }, {
+                    name: 'Purchase Price',
+                    data: [@Model.PurchasePrice]
+                }],
+                chart: {
+                    type: 'line',
+                    height: 350
+                },
+                title: {
+                    text: 'Price Comparison'
+                },
+                xaxis: {
+                    categories: ['Purchase Date'] // Example category
+                },
+                yaxis: {
+                    title: {
+                        text: 'Price'
+                    }
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        });
+    </script>
+
+    <!-- Details Card -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Portfolio Item Details</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.OperationType)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.OperationType)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.UserId)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.UserId)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Symbol)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Symbol)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.PurchaseDate)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.PurchaseDate)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Quantity)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Quantity)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.PurchasePrice)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.PurchasePrice)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.CurrentPrice)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.CurrentPrice)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Commission)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Commission)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Industry)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Industry.Id)</dd>
+
+                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Portfolio)</dt>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Portfolio.Id)</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a>
+        <a class="btn btn-secondary" asp-action="Index">Back to List</a>
+    </div>
+</div>

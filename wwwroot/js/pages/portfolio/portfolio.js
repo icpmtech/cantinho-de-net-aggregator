@@ -1,10 +1,43 @@
 document.addEventListener('DOMContentLoaded', function () {
   loadPortfolios();
   loadSymbols();
+  loadCompanies();
   loadDashboardData();
   loadTotalPortfolioPercentage();
   loadDashboardDataOverAllPortfolio();
 });
+
+
+
+async function loadCompanies() {
+  const response = await fetch('/api/company', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (response.ok) {
+    const companyies = await response.json();
+    const companySelect = document.getElementById('itemCompany');
+    const editcompanySelect = document.getElementById('editItemCompany');
+    companyies.forEach(company => {
+      const option = document.createElement('option');
+      option.value = company.id;
+      option.text = company.name;
+      companySelect.appendChild(option);
+
+      const editOption = document.createElement('option');
+      option.value = company.id;
+      option.text = company.name
+      editcompanySelect.appendChild(editOption);
+    });
+  } else {
+    alert('Failed to load companies');
+  }
+}
+
+
 async function loadDashboardDataOverAllPortfolio() {
   try {
     const response = await fetch('/api/Portfolio/portfolio-overall-stats');

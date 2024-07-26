@@ -16,6 +16,7 @@ async function loadPortfolios(dateRange = '1y') {
   if (response.ok) {
     const portfolios = await response.json();
     renderPortfolioList(portfolios, 'bar', dateRange); // Pass dateRange to renderPortfolioList
+    renderPortfolioHeatMaps(portfolios);
   } else {
     alert('Failed to load portfolios');
   }
@@ -24,6 +25,74 @@ async function loadPortfolios(dateRange = '1y') {
   document.getElementById('loadingSpinner').style.display = 'none';
   document.getElementById('portfolioList').style.display = 'block';
 }
+// Generate random stock data for the heatmaps
+function generateStockData(count, range) {
+  let series = [];
+  for (let i = 0; i < count; i++) {
+    let x = `Month ${i + 1}`;
+    let y = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+    series.push({ x: x, y: y });
+  }
+  return series;
+}
+
+function renderPortfolioHeatMaps(portfolios) {
+  const heatmapContainer = document.getElementById('heatmapContainer');
+  heatmapContainer.innerHTML = '';  // Clear any existing content
+
+  document.getElementById('portfolios-numbers').innerHTML = portfolios.length;
+
+  portfolios.forEach((portfolio, index) => {
+    const heatmapDiv = document.createElement('div');
+    heatmapDiv.id = `heatmap${index + 1}`;
+    heatmapDiv.classList.add('heatmap');
+    heatmapContainer.appendChild(heatmapDiv);
+
+    const stockData = portfolio.items.map(stock => ({
+      name: stock.symbol,
+      data: generateStockData(12, { min: -10, max: 10 })
+    }));
+
+    const options = {
+      chart: {
+        type: 'heatmap',
+        height: 800
+      },
+      series: stockData,
+      plotOptions: {
+        heatmap: {
+          shadeIntensity: 0.5,
+          radius: 0,
+          useFillColorAsStroke: false,
+          colorScale: {
+            ranges: [{
+              from: -10,
+              to: 0,
+              color: '#FF0000',
+              name: 'negative'
+            }, {
+              from: 1,
+              to: 10,
+              color: '#00FF00',
+              name: 'positive'
+            }]
+          }
+        }
+      },
+      dataLabels: {
+        enabled: false
+      },
+      title: {
+        text: `Portfolio ${portfolio.name} Performance`
+      }
+    };
+
+    const chart = new ApexCharts(document.querySelector(`#heatmap${index + 1}`), options);
+    chart.render();
+  });
+}
+
+
 
 
 async function loadSymbols() {
@@ -62,7 +131,7 @@ function renderPortfolioList(portfolios, chartType = 'bar', dateRange = 'all') {
   portfolioList.dataset.portfolios = JSON.stringify(portfolios); // Save portfolios data for re-rendering
   portfolioList.dataset.dateRange = dateRange; // Save date range for re-rendering
   portfolioList.innerHTML = '';
-
+  document.getElementById('portfolios-numbers').innerHTML = portfolios.length;
   const renderedSymbols = new Set();
 
   portfolios.forEach(portfolio => {
@@ -92,10 +161,19 @@ function generatePortfolioHTML(portfolio) {
             <button class="btn p-0" type="button" id="portfolioActions-${portfolio.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               <i class="bx bx-dots-vertical-rounded"></i>
             </button>
-            <div class="dropdown-menu dropdown-menu-end" aria-labelledby="portfolioActions-${portfolio.id}">
-              <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">Add Operations</a>
-              <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name.replace(/'/g, "\\'")}');">Edit Portfolio</a>
-              <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
+              <div class="dropdown-menu dropdown-menu-end" aria-labelledby="portfolioActions-${portfolio.id}">
+                  <a class="dropdown-item" href="javascript:toggleChart(${portfolio.id})">
+                    <i class="bx bx-line-chart"></i> View Chart
+                  </a>
+                  <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">
+                    <i class="bx bx-plus"></i> Add Op.
+                  </a>
+                  <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name.replace(/'/g, "\\'")}');">
+                    <i class="bx bx-edit"></i> Edit
+                  </a>
+                  <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">
+                    <i class="bx bx-trash"></i> Delete
+                  </a>
             </div>
           </div>
         </div>
@@ -112,7 +190,7 @@ function generatePortfolioHTML(portfolio) {
                   <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +€0</small>
                 </div>
               </div>
-              <button class="btn badge bg-primary text-white" onclick="toggleChart(${portfolio.id})">TOGGLE CHART</button>
+             
             </div>
             <canvas id="chart-${portfolio.id}" style="display: none; width: 100%; height: 200px;" class="mt-3"></canvas>
           </div>

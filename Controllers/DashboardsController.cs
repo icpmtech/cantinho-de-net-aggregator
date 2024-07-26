@@ -166,9 +166,24 @@ namespace MarketAnalyticHub.Controllers
       {
         portfolioGrowthPercentage = ((currentYearRevenue - previousYearRevenue) / previousYearRevenue) * 100;
       }
+      // Get Transactions from PortfolioItems
+      var transactions = portfolios
+          .SelectMany(p => p.Items)
+          .Select(item => new TransactionDto
+          {
+            Type = item.OperationType,
+            Description = item.Symbol,
+            Icon = GetIconForTransaction(item.Symbol),
+            Amount = item.Quantity * item.PurchasePrice,
+            Currency = "USD",
+            Date = item.PurchaseDate,
+            Source = item.Symbol
+          })
+          .ToList();
 
       var model = new DashboardViewModel
       {
+        Transactions = transactions,
         PortfolioGrowthPercentage = portfolioGrowthPercentage,
         TotalRevenueByYear = totalRevenueByYear,
         DashboardData = dashboardData,
@@ -178,7 +193,16 @@ namespace MarketAnalyticHub.Controllers
 
       return View(model);
     }
-
+    private string GetIconForTransaction(string symbol)
+    {
+      // You can map symbols to specific icons if needed
+      return symbol switch
+      {
+        "AAPL" => "/img/icons/unicons/apple.png",
+        "GOOGL" => "/img/icons/unicons/google.png",
+        _ => "/img/icons/unicons/wallet.png",
+      };
+    }
 
   }
 

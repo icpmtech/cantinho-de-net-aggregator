@@ -1,6 +1,8 @@
+using MarketAnalyticHub.Models.Portfolio;
 using MarketAnalyticHub.Models;
-using System.ComponentModel.DataAnnotations.Schema;
 using static MarketAnalyticHub.Controllers.SocialSentimentService;
+using System.ComponentModel.DataAnnotations.Schema;
+using MarketAnalyticHub.Models.SetupDb;
 
 namespace MarketAnalyticHub.Models.Portfolio
 {
@@ -17,11 +19,14 @@ namespace MarketAnalyticHub.Models.Portfolio
     public decimal CurrentPrice { get; set; }
     public decimal? Commission { get; set; }
 
+    public int? CompanyId { get; set; } // Foreign key for Company
+    public Company? Industry { get; set; } // Navigation property
+
     // Navigation property for dividends
     public ICollection<Dividend>? Dividends { get; set; }
 
     // Calculated fields
-    public decimal TotalInvestment => Quantity * PurchasePrice + Commission??0;
+    public decimal TotalInvestment => Quantity * PurchasePrice + Commission ?? 0;
     public decimal CurrentMarketValue => Quantity * CurrentPrice;
 
     // Total Dividend Income for this portfolio item
@@ -45,15 +50,15 @@ namespace MarketAnalyticHub.Models.Portfolio
     [NotMapped]
     public decimal? Change { get; set; }
     [NotMapped]
-    public double? SentimentImpact { get;  set; }
+    public double? SentimentImpact { get; set; }
     [NotMapped]
-    public decimal? AdjustedPrice { get;  set; }
+    public decimal? AdjustedPrice { get; set; }
 
     [NotMapped]
-    public SocialSentiment SocialSentiment { get;  set; }
-    public IEnumerable<StockEvent> StockEvents { get;  set; }
+    public SocialSentiment? SocialSentiment { get; set; }
+    public IEnumerable<StockEvent>? StockEvents { get; set; }
 
     // Foreign key relationship to Portfolio
-    public Portfolio Portfolio { get; set; }
+    public Portfolio? Portfolio { get; set; }
   }
 }
