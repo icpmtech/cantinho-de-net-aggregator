@@ -72,7 +72,7 @@ namespace MarketAnalyticHub.Controllers
         if (result.Succeeded)
         {
           _logger.LogInformation("User logged in.");
-          return LocalRedirect(returnUrl ?? "/");
+          return LocalRedirect(returnUrl ?? "/Dashboard/Index");
         }
         if (result.RequiresTwoFactor)
         {
@@ -114,7 +114,7 @@ namespace MarketAnalyticHub.Controllers
     public async Task<IActionResult> Logout()
     {
       await _signInManager.SignOutAsync();
-      return RedirectToAction("Login", "Account");
+      return RedirectToAction("Index", "Home");
     }
   }
 }

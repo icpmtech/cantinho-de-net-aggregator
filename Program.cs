@@ -1,4 +1,4 @@
-﻿using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
@@ -182,7 +182,7 @@ using (var scope = app.Services.CreateScope())
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.UseEndpoints(endpoints =>
 {

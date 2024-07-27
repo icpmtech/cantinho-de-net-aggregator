@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MarketAnalyticHub.Models.Portfolio;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Models;
+using System.Security.Claims;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -23,12 +24,13 @@ namespace MarketAnalyticHub.Controllers
     // GET: PortfolioItems
     public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber)
     {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       ViewData["CurrentSort"] = sortOrder;
       ViewData["OperationTypeSortParm"] = String.IsNullOrEmpty(sortOrder) ? "operationType_desc" : "";
       ViewData["UserIdSortParm"] = sortOrder == "UserId" ? "userId_desc" : "UserId";
       // Add other sort parameters as needed
 
-      var portfolios = from p in _context.PortfolioItems select p;
+      var portfolios = from p in _context.PortfolioItems where p.UserId == userId select p;
 
       if (!String.IsNullOrEmpty(searchQuery))
       {
@@ -93,8 +95,10 @@ namespace MarketAnalyticHub.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,OperationType,UserId,PortfolioId,Symbol,PurchaseDate,Quantity,PurchasePrice,CurrentPrice,Commission,CompanyId")] PortfolioItem portfolioItem)
         {
-            if (ModelState.IsValid)
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (ModelState.IsValid)
             {
+               portfolioItem.UserId = userId;
                 _context.Add(portfolioItem);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
@@ -138,7 +142,7 @@ namespace MarketAnalyticHub.Controllers
             {
                 try
                 {
-                    _context.Update(portfolioItem);
+          _context.Update(portfolioItem);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

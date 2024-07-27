@@ -175,7 +175,7 @@ namespace MarketAnalyticHub.Controllers
             Description = item.Symbol,
             Icon = GetIconForTransaction(item.Symbol),
             Amount = item.Quantity * item.PurchasePrice,
-            Currency = "USD",
+            Currency = "€",
             Date = item.PurchaseDate,
             Source = item.Symbol
           })
