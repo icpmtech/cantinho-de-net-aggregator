@@ -26,6 +26,97 @@ namespace MarketAnalyticHub.Controllers
       _portfolioService = portfolioService;
     }
 
+    public IActionResult GetTransactions(string filter)
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+      // Fetch the portfolios first
+      var portfolios = _context.Portfolios
+          .Where(p => p.UserId == userId)
+          .Include(p => p.Items) // Include the related items
+          .ToList();
+
+      DateTime fromDate = DateTime.MinValue;
+
+      if (filter == "Last 28 Days")
+      {
+        fromDate = DateTime.Now.AddDays(-28);
+      }
+      else if (filter == "Last Month")
+      {
+        fromDate = DateTime.Now.AddMonths(-1);
+      }
+      else if (filter == "Last Year")
+      {
+        fromDate = DateTime.Now.AddYears(-1);
+      }
+      else if (filter == "All")
+      {
+        fromDate = DateTime.Now.AddYears(-50);
+      }
+
+      var transactions = portfolios
+          .SelectMany(p => p.Items)
+          .Where(item => item.PurchaseDate >= fromDate)
+          .Select(item => new TransactionDto
+          {
+            Type = item.OperationType,
+            Description = item.Symbol,
+            Icon = GetIconForTransaction(item.Symbol),
+            Amount = item.Quantity * item.PurchasePrice,
+            Currency = "€",
+            Date = item.PurchaseDate,
+            Source = item.Symbol
+          })
+          .ToList();
+
+      return PartialView("_TransactionsPartial", transactions);
+    }
+    public IActionResult GetPortfolioStatistics_v2()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+      // Fetch the portfolios
+      var portfolios = _context.Portfolios
+          .Where(p => p.UserId == userId)
+          .Include(p => p.Items) // Include the related items
+          .ToList();
+
+      var totalValue = portfolios.Sum(p => p.Items.Sum(i => i.Quantity * i.PurchasePrice));
+
+      var statistics = portfolios
+          .Select(p => new PortfolioStatisticsDto
+          {
+            PortfolioName = p.Name,
+            TotalValue = p.Items.Sum(i => i.Quantity * i.PurchasePrice),
+            ItemCount = p.Items.Count
+          })
+          .ToList();
+
+      var result = new
+      {
+        TotalValue = totalValue,
+        Statistics = statistics
+      };
+
+      return Json(result);
+    }
+    public class PortfolioStatisticsDto
+    {
+      public string PortfolioName { get; set; }
+      public decimal TotalValue { get; set; }
+      public int ItemCount { get; set; }
+    }
+
+
     [HttpGet("GetYearlyData")]
     public async Task<IActionResult> GetYearlyData1()
     {
@@ -167,8 +258,10 @@ namespace MarketAnalyticHub.Controllers
         portfolioGrowthPercentage = ((currentYearRevenue - previousYearRevenue) / previousYearRevenue) * 100;
       }
       // Get Transactions from PortfolioItems
+      var fromDate = DateTime.Now.AddDays(-28);
       var transactions = portfolios
           .SelectMany(p => p.Items)
+           .Where(item => item.PurchaseDate >= fromDate)
           .Select(item => new TransactionDto
           {
             Type = item.OperationType,

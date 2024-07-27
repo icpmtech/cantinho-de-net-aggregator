@@ -38,5 +38,26 @@ namespace MarketAnalyticHub.Models.Portfolio
     public dynamic GroupedItems { get; set; }
 
     public DateTime? CreationDate { get; private set; }
+    public IDictionary<DateTime, MonthlyPortfolioSummary> CalculateMonthlySummaries()
+    {
+      var monthlySummaries = Items
+          .GroupBy(item => new DateTime(item.PurchaseDate.Year, item.PurchaseDate.Month, 1))
+          .ToDictionary(
+              g => g.Key,
+              g => new MonthlyPortfolioSummary
+              {
+                TotalInvestment = g.Sum(item => item.TotalInvestment),
+                CurrentMarketValue = g.Sum(item => item.CurrentMarketValue),
+                TotalDividendIncome = g.Sum(item => item.TotalDividendIncome)
+              });
+
+      return monthlySummaries;
+    }
+    public class MonthlyPortfolioSummary
+    {
+      public decimal TotalInvestment { get; set; }
+      public decimal CurrentMarketValue { get; set; }
+      public decimal TotalDividendIncome { get; set; }
+    }
   }
 }

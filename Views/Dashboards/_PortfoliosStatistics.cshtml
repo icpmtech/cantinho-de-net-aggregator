@@ -12,24 +12,106 @@
                     <i class="bx bx-dots-vertical-rounded"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="orderStatistics">
-                    <a class="dropdown-item" href="javascript:void(0);">Select All</a>
-                    <a class="dropdown-item" href="javascript:void(0);">Refresh</a>
+                    <a class="dropdown-item" href="javascript:void(0);" onclick="selectAllPortfolios()">Select All</a>
+                    <a class="dropdown-item" href="javascript:void(0);" onclick="refreshPortfolioStatistics()">Refresh</a>
                     <a class="dropdown-item" href="javascript:void(0);">Share</a>
                 </div>
             </div>
         </div>
         <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-                <div class="d-flex flex-column align-items-center gap-1">
+                <div class="d-flex align-items-center gap-1">
                     <h2 id="totalPortfolios" class="mb-2">€0</h2>
                     <span>Total Portfolio</span>
                 </div>
-                <div id="symbolStatisticsChart"></div>
+            </div>
+            <div id="symbolStatisticsChart1"></div>
+            <div id="portfolioStatistics1">
+                <!-- Portfolio statistics will be loaded here -->
             </div>
             <ul id="portfolioStatistics" class="p-0 m-0">
                 <!-- Portfolio statistics will be loaded here -->
             </ul>
+            <button id="viewMoreBtn" class="btn btn-primary mt-3" style="display:none;" onclick="viewMore()">View More</button>
         </div>
     </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        refreshPortfolioStatistics();
+    });
+
+    function refreshPortfolioStatistics() {
+        fetch('@Url.Action("GetPortfolioStatistics_v2", "Dashboards")')
+            .then(response => response.json())
+            .then(data => {
+                renderChart(data.statistics);
+                updateTotalPortfolio(data.statistics);
+                updatePortfolioStatisticsList(data.statistics);
+            })
+            .catch(error => {
+                console.error('Error fetching portfolio statistics:', error);
+            });
+    }
+
+    function renderChart(statistics) {
+        const chartContainer = document.getElementById('symbolStatisticsChart1');
+        chartContainer.innerHTML = '';
+
+        const options = {
+            series: statistics.map(stat => stat.totalValue),
+            chart: {
+                type: 'donut',
+                width: '100%'
+            },
+            labels: statistics.map(stat => stat.portfolioName),
+            responsive: [{
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        width: 200,
+                        height: 300
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }],
+            tooltip: {
+                y: {
+                    formatter: function (value) {
+                        return `€${value.toFixed(2)}`;
+                    }
+                }
+            }
+        };
+
+        const chart = new ApexCharts(chartContainer, options);
+        chart.render();
+    }
+
+    function updateTotalPortfolio(statistics) {
+        const total = statistics.reduce((sum, stat) => sum + stat.totalValue, 0);
+        document.getElementById('totalPortfolios').innerText = `€${total.toFixed(2)}`;
+    }
+
+    function updatePortfolioStatisticsList(statistics) {
+        const statisticsList = document.getElementById('portfolioStatistics1');
+        statisticsList.innerHTML = '';
+        statistics.forEach(stat => {
+            const listItem = document.createElement('li');
+            listItem.className = 'd-flex justify-content-between align-items-center mb-3';
+            listItem.innerHTML = `<span>${stat.portfolioName}</span><span>€${stat.totalValue.toFixed(2)}</span>`;
+            statisticsList.appendChild(listItem);
+        });
+    }
+
+    function selectAllPortfolios() {
+        refreshPortfolioStatistics();
+    }
+</script>
 <!--/ Portfolios Statistics -->
+@section PageScripts {
+
+}

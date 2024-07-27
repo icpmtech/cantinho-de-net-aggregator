@@ -3,19 +3,21 @@
 <!-- Include ApexCharts Library -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
-    // Function to update the revenue chart
-    function updateRevenueChart(data) {
+    let totalRevenueChart;
+
+    // Function to initialize the revenue chart
+    function initializeRevenueChart() {
         const totalRevenueChartEl = document.querySelector('#totalRevenueChart1');
 
         const totalRevenueChartOptions = {
             series: [
                 {
                     name: 'Revenue',
-                    data: data.seriesRevenue
+                    data: []
                 },
                 {
                     name: 'Investment',
-                    data: data.seriesInvestment
+                    data: []
                 }
             ],
             chart: {
@@ -28,7 +30,7 @@
                 bar: {
                     horizontal: false,
                     columnWidth: '33%',
-                    borderRadius: 12,
+                    borderRadius: 15,
                     startingShape: 'rounded',
                     endingShape: 'rounded'
                 }
@@ -263,22 +265,35 @@
         };
 
         if (totalRevenueChartEl !== null) {
-            const totalRevenueChart = new ApexCharts(totalRevenueChartEl, totalRevenueChartOptions);
+            totalRevenueChart = new ApexCharts(totalRevenueChartEl, totalRevenueChartOptions);
             totalRevenueChart.render();
         }
     }
 
     // Function to update the chart when a year is selected
     function updateGrowthChart(year) {
+        console.log(`Fetching data for year: ${year}`);
         fetch(`/GetYearlyData/${year}`)
             .then(response => response.json())
             .then(data => {
-                updateRevenueChart(data);
-            });
+                totalRevenueChart.updateSeries([
+                    {
+                        name: 'Revenue',
+                        data: data.seriesRevenue
+                    },
+                    {
+                        name: 'Investment',
+                        data: data.seriesInvestment
+                    }
+                ]);
+                document.getElementById('growthReportId').textContent = year;
+            })
+            .catch(error => console.error('Error fetching data:', error));
     }
 
     // Initial render
     document.addEventListener('DOMContentLoaded', function () {
+        initializeRevenueChart();
         const initialYear = @(Model.TotalRevenueByYear.OrderByDescending(y => y.Year).FirstOrDefault()?.Year ?? 0);
         if (initialYear) {
             updateGrowthChart(initialYear);
@@ -304,7 +319,7 @@
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="growthReportId">
                                 @foreach (var item in Model.TotalRevenueByYear.OrderByDescending(y => y.Year))
                                 {
-                                    <a class="dropdown-item" href="javascript:void(0);" onclick="updateGrowthChart(@item.Year)">@item.Year</a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="updateGrowthChart('@item.Year')">@item.Year</a>
                                 }
                             </div>
                         </div>
@@ -334,7 +349,3 @@
         </div>
     </div>
 </div>
-
-@section Scripts {
- 
-}

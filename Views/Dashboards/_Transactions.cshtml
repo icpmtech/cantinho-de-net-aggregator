@@ -9,45 +9,32 @@
                     <i class="bx bx-dots-vertical-rounded"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="transactionID">
-                    <a class="dropdown-item" href="javascript:void(0);">Last 28 Days</a>
-                    <a class="dropdown-item" href="javascript:void(0);">Last Month</a>
-                    <a class="dropdown-item" href="javascript:void(0);">Last Year</a>
+                    <a class="dropdown-item" href="javascript:void(0);" onclick="filterTransactions('Last 28 Days')">Last 28 Days</a>
+                    <a class="dropdown-item" href="javascript:void(0);" onclick="filterTransactions('Last Month')">Last Month</a>
+                    <a class="dropdown-item" href="javascript:void(0);" onclick="filterTransactions('Last Year')">Last Year</a>
+                    <a class="dropdown-item" href="javascript:void(0);" onclick="filterTransactions('All')">All</a>
                 </div>
             </div>
         </div>
         <div class="card-body">
-            <ul class="p-0 m-0">
-                @if (Model?.Transactions == null || !Model.Transactions.Any())
-                {
-                    <li class="d-flex mb-4 pb-1">
-                        <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                            <div class="me-2">
-                                <small class="text-muted d-block mb-1">No Transactions Available</small>
-                            </div>
-                        </div>
-                    </li>
-                }
-                else
-                {
-                    @foreach (var transaction in Model.Transactions)
-                    {
-                        <li class="d-flex mb-4 pb-1">
-                            <div class="avatar flex-shrink-0 me-3">
-                                <img src="@transaction.Icon" alt="Transaction Icon" class="rounded">
-                            </div>
-                            <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                <div class="me-2">
-                                    <small class="text-muted d-block mb-1">@transaction.Type</small>
-                                    <h6 class="mb-0">@transaction.Description</h6>
-                                </div>
-                                <div class="user-progress d-flex align-items-center gap-1">
-                                    <h6 class="mb-0">@transaction.Amount.ToString("N2")</h6> <span class="text-muted">@transaction.Currency</span>
-                                </div>
-                            </div>
-                        </li>
-                    }
-                }
-            </ul>
+            <div id="transactionsList">
+                @Html.Partial("_TransactionsPartial", Model.Transactions)
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+    function filterTransactions(filter) {
+        $.ajax({
+            url: '@Url.Action("GetTransactions", "Dashboard")',
+            data: { filter: filter },
+            success: function (data) {
+                $('#transactionsList').html(data);
+            },
+            error: function (xhr, status, error) {
+                console.error('Error fetching transactions:', error);
+            }
+        });
+    }
+</script>

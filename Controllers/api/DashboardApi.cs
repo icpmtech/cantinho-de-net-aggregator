@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using MarketAnalyticHub.Models.Portfolio;
 using AspnetCoreMvcFull.Models;
+using static MarketAnalyticHub.Models.Portfolio.Portfolio;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -65,6 +66,34 @@ namespace MarketAnalyticHub.Controllers.api
       var data = await GetDashboardDataAsync(userId);
       return Ok(data);
     }
+    [HttpGet("income")]
+    public async Task<IActionResult> GetIncomeData()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+      var incomeData = new
+      {
+        series = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Value.CurrentMarketValue).ToArray()),
+        categories = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Key.ToString("MMM yyyy")).ToArray())
+      };
+
+      return Ok(incomeData);
+    }
+
+    [HttpGet("dividends")]
+    public async Task<IActionResult> GetDividendsData()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+      var dividendsData = new
+      {
+        series = portfolios.Select(s=>s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Value.TotalDividendIncome).ToArray()),
+        categories = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Key.ToString("MMM yyyy")).ToArray())
+      };
+
+      return Ok(dividendsData);
+    }
 
     private async Task<decimal> GetCurrentPriceAsync(string symbol)
     {
@@ -98,27 +127,40 @@ namespace MarketAnalyticHub.Controllers.api
     }
 
 
-    // GET: api/Dashboards/income
-    [HttpGet("income")]
-    public async Task<IActionResult> GetIncomeData()
-    {
-      // Replace the hardcoded data with actual data retrieval logic
-      var incomeData = new
-      {
-        Series = new[] { 24, 21, 30, 22, 42, 26, 35, 29 },
-        Categories = new[] { "", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul" }
-      };
-
-      return Ok(incomeData);
-    }
+   
     // GET: api/Dashboards/profit
     [HttpGet("profit")]
     public async Task<IActionResult> GetProfitData()
     {
-      // Replace the hardcoded data with actual data retrieval logic
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+      var allMonthlySummaries = new Dictionary<DateTime, MonthlyPortfolioSummary>();
+
+      foreach (var portfolio in portfolios)
+      {
+        var monthlySummaries = portfolio.CalculateMonthlySummaries();
+        foreach (var summary in monthlySummaries)
+        {
+          if (allMonthlySummaries.ContainsKey(summary.Key))
+          {
+            allMonthlySummaries[summary.Key].TotalInvestment += summary.Value.TotalInvestment;
+            allMonthlySummaries[summary.Key].CurrentMarketValue += summary.Value.CurrentMarketValue;
+            allMonthlySummaries[summary.Key].TotalDividendIncome += summary.Value.TotalDividendIncome;
+          }
+          else
+          {
+            allMonthlySummaries[summary.Key] = summary.Value;
+          }
+        }
+      }
+
+      // Transform the allMonthlySummaries to an array of current market values
       var profitData = new
       {
-        Data = new[] { 110, 270, 145, 245, 205, 285 }
+        Data = allMonthlySummaries.OrderBy(kv => kv.Key)
+                                    .Select(kv => kv.Value.CurrentMarketValue)
+                                    .ToArray()
       };
 
       return Ok(profitData);

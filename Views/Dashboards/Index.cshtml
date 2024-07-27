@@ -139,7 +139,7 @@
                             </div>
                         </div>
                         <span class="fw-medium d-block mb-1">Operations</span>
-                        <h3 id="operations" class="card-title mb-2">0</h3>
+                        <h3 id="operations" class="card-title mb-2">@Model.Transactions?.Count()</h3>
                         <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +0%</small>
                     </div>
                 </div>
@@ -153,11 +153,11 @@
                             <div class="d-flex flex-sm-column flex-row align-items-start justify-content-between">
                                 <div class="card-title">
                                     <h5 class="text-nowrap mb-2">Profile Report</h5>
-                                    <span class="badge bg-label-warning rounded-pill">Year 2021</span>
+                                    <span class="badge bg-label-warning rounded-pill">Year @(Model.TotalRevenueByYear.OrderByDescending(y => y.Year).FirstOrDefault()?.Year.ToString() ?? "No Year")</span>
                                 </div>
                                 <div class="mt-sm-auto">
-                                    <small class="text-success text-nowrap fw-medium"><i class='bx bx-chevron-up'></i> 68.2%</small>
-                                    <h3 class="mb-0">€0k</h3>
+                                    <small class="text-success text-nowrap fw-medium"><i class='bx bx-chevron-up'></i> @Model.PortfolioGrowthPercentage%</small>
+                                    <h3 class="mb-0">€@(Model.AmountTotalYear.OrderByDescending(y => y.Year).FirstOrDefault()?.TotalInvestment.ToString() ?? "No Year")</h3>
                                 </div>
                             </div>
                             <div id="profileReportChart"></div>

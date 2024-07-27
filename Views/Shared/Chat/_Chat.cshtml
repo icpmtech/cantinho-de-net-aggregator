@@ -370,9 +370,9 @@
             height: 90%;
             max-height: 90%;
             overflow-y: auto;
-            z-index: 1000;
+            z-index: 99999;
             transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, max-height 0.3s ease-in-out;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 8px #696cff;
             border-radius: 10px;
             background-color: #fff;
         }
@@ -382,18 +382,18 @@
             }
 
             .chat-window.maximized {
-                width: 60%;
-                height: auto;
+                width: 80%;
+                height: 90%;
                 max-height: 90%;
                 bottom: 5%;
                 right: 20px;
-                
+                z-index: 99999;
             }
 
         .ai-copilot-btn {
             position: fixed;
             bottom: 10px;
-            right: 10px;
+            right: 20px;
             z-index: 1001;
             border-radius: 50%;
             width: 60px;
@@ -402,6 +402,8 @@
             justify-content: center;
             align-items: center;
             font-size: 24px;
+            box-shadow: 0 4px 20px #696cff;
+           
         }
 
         #messagesList {

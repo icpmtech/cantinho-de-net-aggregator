@@ -295,6 +295,8 @@
     loadSymbolsStatisticsData();
     loadIncomeData();
     loadExpensesData();
+    loadDividendsData();
+    loadProfitDataExpenses();
   });
 
   // Define a function to load the growth data from the backend
@@ -468,6 +470,119 @@
     }
   }
 
+  // Profit Report Line Chart
+  // Define a function to load the profit data from the backend
+  async function loadProfitDataExpenses() {
+    try {
+      const data = await fetchData('/api/Dashboards/profit');
+      updateProfitChartExpenses(data);
+    } catch (error) {
+      alert('Failed to load profit data: ' + error.message);
+    }
+  }
+
+  // Function to update the profit chart with the fetched data
+  function updateProfitChartExpenses(data) {
+    const profitChartEl = document.querySelector('#profitChart');
+
+    const profitChartConfig = {
+      series: [
+        {
+          data: data.series
+        }
+      ],
+      chart: {
+        height: 215,
+        parentHeightOffset: 0,
+        parentWidthOffset: 0,
+        toolbar: {
+          show: false
+        },
+        type: 'area'
+      },
+      dataLabels: {
+        enabled: false
+      },
+      stroke: {
+        width: 2,
+        curve: 'smooth'
+      },
+      legend: {
+        show: false
+      },
+      markers: {
+        size: 6,
+        colors: 'transparent',
+        strokeColors: 'transparent',
+        strokeWidth: 4,
+        discrete: [
+          {
+            fillColor: '#ffffff',
+            seriesIndex: 0,
+            dataPointIndex: 7,
+            strokeColor: '#696CFF', // replace with config.colors.primary
+            strokeWidth: 2,
+            size: 6,
+            radius: 8
+          }
+        ],
+        hover: {
+          size: 7
+        }
+      },
+      colors: ['#696CFF'], // replace with config.colors.primary
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'dark', // replace with shadeColor
+          shadeIntensity: 0.6,
+          opacityFrom: 0.5,
+          opacityTo: 0.25,
+          stops: [0, 95, 100]
+        }
+      },
+      grid: {
+        borderColor: '#EBEBEB', // replace with borderColor
+        strokeDashArray: 3,
+        padding: {
+          top: -20,
+          bottom: -8,
+          left: -10,
+          right: 8
+        }
+      },
+      xaxis: {
+        categories: data.categories,
+        axisBorder: {
+          show: false
+        },
+        axisTicks: {
+          show: false
+        },
+        labels: {
+          show: true,
+          style: {
+            fontSize: '13px',
+            colors: '#A1A1A1' // replace with axisColor
+          }
+        }
+      },
+      yaxis: {
+        labels: {
+          show: false
+        },
+        min: 10,
+        max: 50,
+        tickAmount: 4
+      }
+    };
+
+    if (typeof profitChartEl !== undefined && profitChartEl !== null) {
+      const profitChart = new ApexCharts(profitChartEl, profitChartConfig);
+      profitChart.render();
+    }
+  }
+
   // Symbols Statistics Chart
   // --------------------------------------------------------------------
   // Define a function to load the order statistics data from the backend
@@ -558,6 +673,119 @@
     if (typeof chartOrderStatistics !== undefined && chartOrderStatistics !== null) {
       const statisticsChart = new ApexCharts(chartOrderStatistics, orderChartConfig);
       statisticsChart.render();
+    }
+  }
+
+
+  // Define a function to load the dividends data from the backend
+  async function loadDividendsData() {
+    try {
+      const data = await fetchData('/api/Dashboards/dividends');
+      updateDividendsChart(data);
+    } catch (error) {
+      alert('Failed to load dividends data: ' + error.message);
+    }
+  }
+
+  // Function to update the dividends chart with the fetched data
+  function updateDividendsChart(data) {
+    const dividendsChartEl = document.querySelector('#dividendsChart');
+
+    const dividendsChartConfig = {
+      series: [
+        {
+          data: data.series
+        }
+      ],
+      chart: {
+        height: 215,
+        parentHeightOffset: 0,
+        parentWidthOffset: 0,
+        toolbar: {
+          show: false
+        },
+        type: 'area'
+      },
+      dataLabels: {
+        enabled: false
+      },
+      stroke: {
+        width: 2,
+        curve: 'smooth'
+      },
+      legend: {
+        show: false
+      },
+      markers: {
+        size: 6,
+        colors: 'transparent',
+        strokeColors: 'transparent',
+        strokeWidth: 4,
+        discrete: [
+          {
+            fillColor: '#ffffff',
+            seriesIndex: 0,
+            dataPointIndex: 7,
+            strokeColor: '#696CFF', // replace with config.colors.primary
+            strokeWidth: 2,
+            size: 6,
+            radius: 8
+          }
+        ],
+        hover: {
+          size: 7
+        }
+      },
+      colors: ['#696CFF'], // replace with config.colors.primary
+      fill: {
+        type: 'gradient',
+        gradient: {
+          shade: 'dark', // replace with shadeColor
+          shadeIntensity: 0.6,
+          opacityFrom: 0.5,
+          opacityTo: 0.25,
+          stops: [0, 95, 100]
+        }
+      },
+      grid: {
+        borderColor: '#EBEBEB', // replace with borderColor
+        strokeDashArray: 3,
+        padding: {
+          top: -20,
+          bottom: -8,
+          left: -10,
+          right: 8
+        }
+      },
+      xaxis: {
+        categories: data.categories,
+        axisBorder: {
+          show: false
+        },
+        axisTicks: {
+          show: false
+        },
+        labels: {
+          show: true,
+          style: {
+            fontSize: '13px',
+            colors: '#A1A1A1' // replace with axisColor
+          }
+        }
+      },
+      yaxis: {
+        labels: {
+          show: false
+        },
+        min: 10,
+        max: 50,
+        tickAmount: 4
+      }
+    };
+
+    if (typeof dividendsChartEl !== undefined && dividendsChartEl !== null) {
+      const dividendsChart = new ApexCharts(dividendsChartEl, dividendsChartConfig);
+      dividendsChart.render();
     }
   }
 
