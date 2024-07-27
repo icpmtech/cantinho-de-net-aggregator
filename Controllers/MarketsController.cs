@@ -6,8 +6,10 @@ using Microsoft.Extensions.Logging;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 using MarketAnalyticHub.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MarketAnalyticHub.Controllers;
+[Authorize("Admin")]
 public class MarketsController : Controller
 {
   private readonly MarketsService _MarketsService;

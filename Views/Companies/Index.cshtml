@@ -5,9 +5,13 @@
 }
 
 <h4 class="py-3 mb-4">
-    <span class="text-muted fw-light">Companies /</span>Companies
+    <span class="text-muted fw-light">Companies /</span> Companies
 </h4>
+
 <script>
+    let currentPage = 1;
+    const rowsPerPage = 20;
+
     async function uploadCsv() {
         const formData = new FormData();
         const fileInput = document.querySelector('#csvFile');
@@ -42,14 +46,65 @@
             alert('Error downloading CSV');
         }
     }
+
+    function searchTable() {
+        const input = document.getElementById('searchInput');
+        const filter = input.value.toLowerCase();
+        const rows = document.querySelectorAll('#companyTable tbody tr');
+
+        rows.forEach(row => {
+            const nameCell = row.querySelector('td:nth-child(1)');
+            const descriptionCell = row.querySelector('td:nth-child(2)');
+            if (nameCell && descriptionCell) {
+                const name = nameCell.textContent.toLowerCase();
+                const description = descriptionCell.textContent.toLowerCase();
+                if (name.includes(filter) || description.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            }
+        });
+
+        paginateTable();
+    }
+
+    function paginateTable() {
+        const rows = document.querySelectorAll('#companyTable tbody tr');
+        const totalPages = Math.ceil(rows.length / rowsPerPage);
+        const pagination = document.querySelector('.pagination');
+        pagination.innerHTML = '';
+
+        rows.forEach((row, index) => {
+            row.style.display = (index < currentPage * rowsPerPage && index >= (currentPage - 1) * rowsPerPage) ? '' : 'none';
+        });
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageItem = document.createElement('li');
+            pageItem.className = 'page-item';
+            pageItem.innerHTML = `<a class="page-link" href="#" onclick="goToPage(${i})">${i}</a>`;
+            pagination.appendChild(pageItem);
+        }
+
+        document.querySelectorAll('.pagination .page-item')[currentPage - 1]?.classList.add('active');
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        paginateTable();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        paginateTable();
+    });
 </script>
+
 <div class="card">
     <h5 class="card-header">File input</h5>
     <div class="card-body">
         <div class="col-md-12">
-
             <div class="mb-4 d-flex justify-content-between">
-               <button type="button" class="btn btn-secondary" onclick="uploadCsv()">Upload CSV</button>
+                <button type="button" class="btn btn-secondary" onclick="uploadCsv()">Upload CSV</button>
                 <button type="button" class="btn btn-success" onclick="downloadCsv()">Download CSV</button>
             </div>
             <form>
@@ -60,24 +115,26 @@
         </div>
     </div>
 </div>
+
 <br />
+
 <div class="row">
     <div class="col-md-12">
         <ul class="nav nav-pills flex-column flex-md-row mb-3">
-            <li class="nav-item"> <a class="btn btn-primary" asp-action="Create">Create New</a></li>
+            <li class="nav-item"><a class="btn btn-primary" asp-action="Create">Create New</a></li>
         </ul>
         <div class="card mb-4">
             <div class="card-body">
+                <div class="input-group mb-3">
+                    <input id="searchInput" class="form-control" type="text" placeholder="Search..." />
+                    <button class="btn btn-primary" type="button" onclick="searchTable()">Search</button>
+                </div>
                 <div class="table-responsive text-nowrap">
-                    <table class="table">
+                    <table class="table" id="companyTable">
                         <thead>
                             <tr>
-                                <th>
-                                    @Html.DisplayNameFor(model => model.First().Name)
-                                </th>
-                                <th>
-                                    @Html.DisplayNameFor(model => model.First().Description)
-                                </th>
+                                <th>@Html.DisplayNameFor(model => model.First().Name)</th>
+                                <th>@Html.DisplayNameFor(model => model.First().Description)</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -85,12 +142,8 @@
                             @foreach (var item in Model)
                             {
                                 <tr>
-                                    <td>
-                                        @Html.DisplayFor(modelItem => item.Name)
-                                    </td>
-                                    <td>
-                                        @Html.DisplayFor(modelItem => item.Description)
-                                    </td>
+                                    <td>@Html.DisplayFor(modelItem => item.Name)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.Description)</td>
                                     <td>
                                         <div class="dropdown">
                                             <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
@@ -106,7 +159,9 @@
                         </tbody>
                     </table>
                 </div>
-
+                <nav>
+                    <ul class="pagination justify-content-center"></ul>
+                </nav>
             </div>
         </div>
     </div>

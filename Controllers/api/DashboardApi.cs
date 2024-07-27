@@ -73,7 +73,7 @@ namespace MarketAnalyticHub.Controllers.api
       var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
       var incomeData = new
       {
-        series = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Value.CurrentMarketValue).ToArray()),
+        series = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Value.CurrentMarketValue)).ToArray(),
         categories = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Key.ToString("MMM yyyy")).ToArray())
       };
 

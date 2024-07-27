@@ -488,7 +488,7 @@
     const profitChartConfig = {
       series: [
         {
-          data: data.series
+          data: data.data
         }
       ],
       chart: {
@@ -551,29 +551,11 @@
           right: 8
         }
       },
-      xaxis: {
-        categories: data.categories,
-        axisBorder: {
-          show: false
-        },
-        axisTicks: {
-          show: false
-        },
-        labels: {
-          show: true,
-          style: {
-            fontSize: '13px',
-            colors: '#A1A1A1' // replace with axisColor
-          }
-        }
-      },
+      
       yaxis: {
         labels: {
           show: false
-        },
-        min: 10,
-        max: 50,
-        tickAmount: 4
+        }
       }
     };
 
@@ -691,10 +673,14 @@
   function updateDividendsChart(data) {
     const dividendsChartEl = document.querySelector('#dividendsChart');
 
+    const seriesData = data.series.flat();
+    const categoriesData = data.categories.flat();
+
+
     const dividendsChartConfig = {
       series: [
         {
-          data: data.series
+          data: seriesData
         }
       ],
       chart: {
@@ -758,7 +744,7 @@
         }
       },
       xaxis: {
-        categories: data.categories,
+        categories: categoriesData,
         axisBorder: {
           show: false
         },
@@ -776,10 +762,7 @@
       yaxis: {
         labels: {
           show: false
-        },
-        min: 10,
-        max: 50,
-        tickAmount: 4
+        }
       }
     };
 
@@ -799,14 +782,18 @@
     }
   }
 
+
   // Function to update the income chart with the fetched data
   function updateIncomeChart(data) {
+
+    const seriesData = data.series.flat();
+    const categoriesData = data.categories.flat();
     const incomeChartEl = document.querySelector('#incomeChart');
 
     const incomeChartConfig = {
       series: [
         {
-          data: data.series
+          data: seriesData
         }
       ],
       chart: {
@@ -870,7 +857,7 @@
         }
       },
       xaxis: {
-        categories: data.categories,
+        categories: categoriesData,
         axisBorder: {
           show: false
         },
@@ -889,9 +876,7 @@
         labels: {
           show: false
         },
-        min: 10,
-        max: 50,
-        tickAmount: 4
+       
       }
     };
 
