@@ -62,10 +62,6 @@
             <dl class="row">
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.OperationType)</dt>
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.OperationType)</dd>
-
-                <dt class="col-sm-3">@Html.DisplayNameFor(model => model.UserId)</dt>
-                <dd class="col-sm-9">@Html.DisplayFor(model => model.UserId)</dd>
-
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Symbol)</dt>
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.Symbol)</dd>
 
@@ -85,10 +81,10 @@
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.Commission)</dd>
 
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Industry)</dt>
-                <dd class="col-sm-9">@Html.DisplayFor(model => model.Industry.Id)</dd>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Industry.Name)</dd>
 
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Portfolio)</dt>
-                <dd class="col-sm-9">@Html.DisplayFor(model => model.Portfolio.Id)</dd>
+                <dd class="col-sm-9">@Html.DisplayFor(model => model.Portfolio.Name)</dd>
             </dl>
         </div>
     </div>

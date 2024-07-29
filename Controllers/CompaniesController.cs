@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Graph;
+using MarketAnalyticHub.Models;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -20,14 +22,41 @@ namespace MarketAnalyticHub.Controllers
             _context = context;
         }
 
-        // GET: Companies
-        public async Task<IActionResult> Index()
-        {
-            return View(await _context.Companies.ToListAsync());
-        }
+    // GET: Companies
+    public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber)
+    {
+      ViewData["CurrentSortOrder"] = sortOrder;
+      ViewData["CurrentFilter"] = searchQuery;
 
-        // GET: Companies/Details/5
-        public async Task<IActionResult> Details(int? id)
+      int pageSize = 25;
+
+      var companies = from c in _context.Companies
+                      select c;
+
+      if (!String.IsNullOrEmpty(searchQuery))
+      {
+        companies = companies.Where(c => c.Name.Contains(searchQuery) || c.Description.Contains(searchQuery));
+      }
+
+      switch (sortOrder)
+      {
+        case "name_desc":
+          companies = companies.OrderByDescending(c => c.Name);
+          break;
+        case "description":
+          companies = companies.OrderBy(c => c.Description);
+          break;
+        default:
+          companies = companies.OrderBy(c => c.Name);
+          break;
+      }
+
+      return View(await PaginatedList<Company>.CreateAsync(companies.AsNoTracking(), pageNumber ?? 1, pageSize));
+    }
+
+
+    // GET: Companies/Details/5
+    public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {

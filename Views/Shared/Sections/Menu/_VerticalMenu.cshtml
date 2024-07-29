@@ -17,9 +17,9 @@
       <span class="app-brand-text demo menu-text fw-bold ms-2">@TempData.Peek("appName")</span>
     </a>
 
-    <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto d-block d-xl-none">
-      <i class="bx bx-chevron-left bx-sm align-middle"></i>
-    </a>
+        <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
+            <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
+        </a>
   </div>
 
   <div class="menu-inner-shadow"></div>
@@ -86,10 +86,15 @@
             </a>
 
             <ul class="menu-sub">
-
                 <li class='menu-item@(currentPage == "/APilot/News" ? " active" : "")'>
                     <a asp-controller="APilot" asp-action="News" class="menu-link">
                         <div>News</div>
+                    </a>
+                </li>
+                
+                <li class='menu-item@(currentPage == "/ChatApp/Index" ? " active" : "")'>
+                    <a asp-controller="ChatApp" asp-action="Index" class="menu-link">
+                        <div>Chat</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/APilot/Reddit" ? " active" : "")'>

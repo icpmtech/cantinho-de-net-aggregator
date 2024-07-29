@@ -24,6 +24,7 @@ let config = {
     bodyColor: '#697a8d',
     headingColor: '#566a7f',
     textMuted: '#a1acb8',
-    borderColor: '#eceef1'
+    borderColor: '#eceef1',
+    controls: ["rtl", "style", "headerType", "contentLayout", "layoutCollapsed", "layoutNavbarOptions", "themes"]
   }
 };

@@ -1,0 +1,28 @@
+<!-- Export Buttons -->
+<div class="export-buttons mb-3">
+    <button id="exportCsvButton" class="btn btn-primary">Export CSV</button>
+    <button id="exportExcelButton" class="btn btn-success">Export Excel</button>
+</div>
+
+<!-- Tree Map Container -->
+<div id="treeMapContainer"></div>
+
+<!-- Modal -->
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent" class="list-group">
+                    <!-- Dynamic content will be inserted here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>

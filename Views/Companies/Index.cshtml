@@ -1,4 +1,4 @@
-@model IEnumerable<MarketAnalyticHub.Models.SetupDb.Company>
+@model PaginatedList<MarketAnalyticHub.Models.SetupDb.Company>
 
 @{
     ViewData["Title"] = "Index";
@@ -7,97 +7,6 @@
 <h4 class="py-3 mb-4">
     <span class="text-muted fw-light">Companies /</span> Companies
 </h4>
-
-<script>
-    let currentPage = 1;
-    const rowsPerPage = 20;
-
-    async function uploadCsv() {
-        const formData = new FormData();
-        const fileInput = document.querySelector('#csvFile');
-        formData.append('file', fileInput.files[0]);
-
-        const response = await fetch('/api/Importer/import-csv', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (response.ok) {
-            alert('CSV imported successfully');
-            location.reload();  // Reload the page to show updated data
-        } else {
-            alert('Error importing CSV');
-        }
-    }
-
-    async function downloadCsv() {
-        const response = await fetch('/api/Importer/export-csv');
-
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'companies.csv';
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        } else {
-            alert('Error downloading CSV');
-        }
-    }
-
-    function searchTable() {
-        const input = document.getElementById('searchInput');
-        const filter = input.value.toLowerCase();
-        const rows = document.querySelectorAll('#companyTable tbody tr');
-
-        rows.forEach(row => {
-            const nameCell = row.querySelector('td:nth-child(1)');
-            const descriptionCell = row.querySelector('td:nth-child(2)');
-            if (nameCell && descriptionCell) {
-                const name = nameCell.textContent.toLowerCase();
-                const description = descriptionCell.textContent.toLowerCase();
-                if (name.includes(filter) || description.includes(filter)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            }
-        });
-
-        paginateTable();
-    }
-
-    function paginateTable() {
-        const rows = document.querySelectorAll('#companyTable tbody tr');
-        const totalPages = Math.ceil(rows.length / rowsPerPage);
-        const pagination = document.querySelector('.pagination');
-        pagination.innerHTML = '';
-
-        rows.forEach((row, index) => {
-            row.style.display = (index < currentPage * rowsPerPage && index >= (currentPage - 1) * rowsPerPage) ? '' : 'none';
-        });
-
-        for (let i = 1; i <= totalPages; i++) {
-            const pageItem = document.createElement('li');
-            pageItem.className = 'page-item';
-            pageItem.innerHTML = `<a class="page-link" href="#" onclick="goToPage(${i})">${i}</a>`;
-            pagination.appendChild(pageItem);
-        }
-
-        document.querySelectorAll('.pagination .page-item')[currentPage - 1]?.classList.add('active');
-    }
-
-    function goToPage(page) {
-        currentPage = page;
-        paginateTable();
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        paginateTable();
-    });
-</script>
 
 <div class="card">
     <h5 class="card-header">File input</h5>
@@ -126,15 +35,31 @@
         <div class="card mb-4">
             <div class="card-body">
                 <div class="input-group mb-3">
-                    <input id="searchInput" class="form-control" type="text" placeholder="Search..." />
+                    <input id="searchInput" class="form-control" type="text" placeholder="Search..." value="@ViewData["CurrentFilter"]" />
                     <button class="btn btn-primary" type="button" onclick="searchTable()">Search</button>
                 </div>
                 <div class="table-responsive text-nowrap">
                     <table class="table" id="companyTable">
                         <thead>
                             <tr>
-                                <th>@Html.DisplayNameFor(model => model.First().Name)</th>
-                                <th>@Html.DisplayNameFor(model => model.First().Description)</th>
+                                <th>
+                                    <a href="javascript:void(0);" onclick="sortTable('name')">Name</a>
+                                    @if (ViewData["CurrentSortOrder"] as string == "name")
+                                    {
+                                        <span>&#9650;</span>
+                                    }
+                                    else if (ViewData["CurrentSortOrder"] as string == "name_desc")
+                                    {
+                                        <span>&#9660;</span>
+                                    }
+                                </th>
+                                <th>
+                                    <a href="javascript:void(0);" onclick="sortTable('description')">Description</a>
+                                    @if (ViewData["CurrentSortOrder"] as string == "description")
+                                    {
+                                        <span>&#9650;</span>
+                                    }
+                                </th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -146,11 +71,13 @@
                                     <td>@Html.DisplayFor(modelItem => item.Description)</td>
                                     <td>
                                         <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                                <i class="bx bx-dots-vertical-rounded"></i>
+                                            </button>
                                             <div class="dropdown-menu">
-                                                <a asp-action="Edit" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-2"></i>Edit</a>
-                                                <a asp-action="Details" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-edit-alt me-2"></i>Details</a>
-                                                <a asp-action="Delete" class="dropdown-item" asp-route-id="@item.Id"><i class="bx bx-trash me-2"></i>Delete</a>
+                                                <a class="dropdown-item" href="@Url.Action("Edit", new { id = item.Id })"><i class="bx bx-edit-alt me-2"></i>Edit</a>
+                                                <a class="dropdown-item" href="@Url.Action("Details", new { id = item.Id })"><i class="bx bx-info-circle me-2"></i>Details</a>
+                                                <a class="dropdown-item" href="@Url.Action("Delete", new { id = item.Id })"><i class="bx bx-trash me-2"></i>Delete</a>
                                             </div>
                                         </div>
                                     </td>
@@ -160,9 +87,80 @@
                     </table>
                 </div>
                 <nav>
-                    <ul class="pagination justify-content-center"></ul>
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(Model.PageIndex == 1 ? "disabled" : "")">
+                            <a class="page-link" href="javascript:void(0);" onclick="goToPage(@(Model.PageIndex - 1))">Previous</a>
+                        </li>
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(Model.PageIndex == i ? "active" : "")">
+                                <a class="page-link" href="javascript:void(0);" onclick="goToPage(@i)">@i</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.PageIndex == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="javascript:void(0);" onclick="goToPage(@(Model.PageIndex + 1))">Next</a>
+                        </li>
+                    </ul>
                 </nav>
             </div>
         </div>
     </div>
 </div>
+
+@section PageScripts {
+    <script>
+        async function uploadCsv() {
+            const formData = new FormData();
+            const fileInput = document.querySelector('#csvFile');
+            formData.append('file', fileInput.files[0]);
+
+            const response = await fetch('/api/Importer/import-csv', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                alert('CSV imported successfully');
+                location.reload();  // Reload the page to show updated data
+            } else {
+                alert('Error importing CSV');
+            }
+        }
+
+        async function downloadCsv() {
+            const response = await fetch('/api/Importer/export-csv');
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'companies.csv';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+            } else {
+                alert('Error downloading CSV');
+            }
+        }
+
+        function searchTable() {
+            const input = document.getElementById('searchInput').value;
+            const url = `@Url.Action("Index")?searchQuery=${input}`;
+            window.location.href = url;
+        }
+
+        function sortTable(sortOrder) {
+            const searchQuery = document.getElementById('searchInput').value;
+            const url = `@Url.Action("Index")?sortOrder=${sortOrder}&searchQuery=${searchQuery}`;
+            window.location.href = url;
+        }
+
+        function goToPage(pageNumber) {
+            const searchQuery = document.getElementById('searchInput').value;
+            const sortOrder = '@ViewData["CurrentSortOrder"]';
+            const url = `@Url.Action("Index")?pageNumber=${pageNumber}&sortOrder=${sortOrder}&searchQuery=${searchQuery}`;
+            window.location.href = url;
+        }
+    </script>
+}

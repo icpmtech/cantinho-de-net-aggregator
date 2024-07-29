@@ -83,8 +83,8 @@ namespace MarketAnalyticHub.Controllers
         // GET: PortfolioItems/Create
         public IActionResult Create()
         {
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Id");
-            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Id");
+            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
+            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name");
             return View();
         }
 
@@ -103,8 +103,8 @@ namespace MarketAnalyticHub.Controllers
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Id", portfolioItem.CompanyId);
-            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Id", portfolioItem.PortfolioId);
+            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
+            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
             return View(portfolioItem);
         }
 
@@ -121,8 +121,8 @@ namespace MarketAnalyticHub.Controllers
             {
                 return NotFound();
             }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Id", portfolioItem.CompanyId);
-            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Id", portfolioItem.PortfolioId);
+            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
+            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
             return View(portfolioItem);
         }
 
@@ -158,8 +158,8 @@ namespace MarketAnalyticHub.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Id", portfolioItem.CompanyId);
-            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Id", portfolioItem.PortfolioId);
+            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
+            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
             return View(portfolioItem);
         }
 

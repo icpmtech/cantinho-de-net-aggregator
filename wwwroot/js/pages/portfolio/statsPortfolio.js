@@ -17,6 +17,7 @@ async function loadPortfolios(dateRange = '1y') {
     const portfolios = await response.json();
     renderPortfolioList(portfolios, 'bar', dateRange); // Pass dateRange to renderPortfolioList
     renderPortfolioHeatMaps(portfolios);
+    renderPortfolioTreeMaps(portfolios);
   } else {
     alert('Failed to load portfolios');
   }
@@ -280,6 +281,9 @@ function generatePortfolioItemHTML(item) {
         <button type="button"  onclick="showEditPortfolioItemModal(${item.id})" class="btn shadow rounded-pill btn-icon btn-primary">
                 <span class="tf-icons bx bx-edit-alt"></span>
               </button>
+               <a href="/PortfolioItems/Details/${item.id}" class="btn shadow rounded-pill btn-icon btn-primary">
+                <span class="tf-icons bx bx-show-alt"></span>
+              </a>
         <button type="button" onclick="deletePortfolioItem(${item.id})" class="btn rounded-pill shadow btn-icon btn-danger">
                 <span class="tf-icons bx bx-eraser"></span>
               </button>

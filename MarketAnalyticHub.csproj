@@ -46,6 +46,39 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="wwwroot\assets\img\customizer\dark.svg" />
+    <None Include="wwwroot\assets\img\customizer\light.svg" />
+    <None Include="wwwroot\assets\img\customizer\ltr.svg" />
+    <None Include="wwwroot\assets\img\customizer\rtl.svg" />
+    <None Include="wwwroot\assets\img\customizer\system.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\check-warning.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\check.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\diamond-info.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\facebook.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\github.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\instagram.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\keyboard.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\laptop.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\paper.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\rocket.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\twitter.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\user-success.svg" />
+    <None Include="wwwroot\assets\img\front-pages\icons\user.svg" />
+    <None Include="wwwroot\assets\js\front-config.js" />
+    <None Include="wwwroot\assets\js\front-main.js" />
+    <None Include="wwwroot\assets\js\front-page-landing.js" />
+    <None Include="wwwroot\assets\vendor\fonts\boxicons\boxicons.woff2" />
+    <None Include="wwwroot\assets\vendor\js\bootstrap.js" />
+    <None Include="wwwroot\assets\vendor\js\dropdown-hover.js" />
+    <None Include="wwwroot\assets\vendor\js\helpers.js" />
+    <None Include="wwwroot\assets\vendor\js\mega-dropdown.js" />
+    <None Include="wwwroot\assets\vendor\js\template-customizer.js" />
+    <None Include="wwwroot\assets\vendor\libs\nouislider\nouislider.js" />
+    <None Include="wwwroot\assets\vendor\libs\popper\popper.js" />
+    <None Include="wwwroot\assets\vendor\libs\swiper\swiper.js" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Update="wwwroot\js\dashboards-analytics-portfolio-f.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

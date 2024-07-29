@@ -12,7 +12,7 @@ async function showEditPortfolioItemModal(itemId) {
     document.getElementById('editPortfolioItemId').value = item.id;
     document.getElementById('portfolioeditPortfolioItemId').value = item.portfolioId;
     document.getElementById('editItemSymbol').value = item.symbol;
-    document.getElementById('editItemCompany').value = item.company;
+    document.getElementById('editItemCompany').value = item.companyId;
     document.getElementById('editItemQuantity').value = item.quantity;
     document.getElementById('editItemPurchasePrice').value = item.purchasePrice;
     document.getElementById('editItemCommission').value = item.commission;

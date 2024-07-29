@@ -63,16 +63,7 @@
                 </div>
             </div>
             <div class="tab-pane fade" id="navs-pills-justified-messages" role="tabpanel">
-                <p>
-                    Oat cake chupa chups dragée donut toffee. Sweet cotton candy jelly beans macaroon gummies cupcake gummi
-                    bears
-                    cake chocolate.
-                </p>
-                <p class="mb-0">
-                    Cake chocolate bar cotton candy apple pie tootsie roll ice cream apple pie brownie cake. Sweet roll icing
-                    sesame snaps caramels danish toffee. Brownie biscuit dessert dessert. Pudding jelly jelly-o tart brownie
-                    jelly.
-                </p>
+                @Html.Partial("_TreeMap")
             </div>
         </div>
     </div>
@@ -89,12 +80,16 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
 @section PageScripts {
     <script src="~/js/pages/portfolio/portfolio.js"></script>
     <script src="~/js/pages/portfolio/importexportportfolio.js"></script>
     <script src="~/js/pages/portfolio/editportfolio.js"></script>
     <script src="~/js/pages/portfolio/editportfolioitem.js"></script>
     <script src="~/js/pages/portfolio/statsportfolio.js"></script>
+    <script src="~/js/pages/portfolio/treemap.js"></script>
     <script src="~/js/pages/portfolio/utilsportfolio.js"></script>
     <script src="~/js/pages/portfolio/chartsportfolio.js"></script>
+
 }
