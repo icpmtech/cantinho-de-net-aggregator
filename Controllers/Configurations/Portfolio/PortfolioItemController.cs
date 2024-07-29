@@ -29,6 +29,7 @@ public class PortfolioItemController : Controller
   public async Task<IActionResult> GetItem(int id)
   {
     var item = await _portfolioItemService.GetItemByIdAsync(id);
+
     if (item == null)
     {
       return NotFound();

@@ -31,7 +31,45 @@ namespace MarketAnalyticHub.Controllers.api
       _portfolioService = portfolioService;
       _yahooFinanceService = yahooFinanceService;
     }
+    [HttpGet("chartdata-date-range/{id}")]
+    public async Task<IActionResult> GetChartDataDateRange(int id, [FromQuery] string timeRange)
+    {
+      var portfolioItem = await _context.PortfolioItems
+               .Include(p => p.StockEvents) // Assuming StockEvents contain historical price data
+               .FirstOrDefaultAsync(p => p.Id == id);
 
+      if (portfolioItem == null)
+      {
+        return NotFound();
+      }
+
+      DateTime startDate = timeRange switch
+      {
+        "1d" => DateTime.Now.AddDays(-1),
+        "1w" => DateTime.Now.AddDays(-7),
+        "1m" => DateTime.Now.AddMonths(-1),
+        "3m" => DateTime.Now.AddMonths(-3),
+        "6m" => DateTime.Now.AddMonths(-6),
+        "1y" => DateTime.Now.AddYears(-1),
+        "5y" => DateTime.Now.AddYears(-5),
+        "all" => DateTime.Now.AddYears(-5),
+        _ => DateTime.Now.AddMonths(-1) // Default to "all" if no valid range is specified
+      };
+
+      var data = await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now);
+
+      var dataResult = new
+      {
+        dates = data.Select(h => h.Date.ToString("yyyy-MM-dd")).ToArray(),
+        opens = data.Select(h => h.Open).ToArray(),
+        highs = data.Select(h => h.High).ToArray(),
+        lows = data.Select(h => h.Low).ToArray(),
+        closes = data.Select(h => h.Close).ToArray(),
+        volumes = data.Select(h => h.Volume).ToArray()
+      };
+
+      return Ok(dataResult);
+    }
     [HttpGet("chartdata/{id}")]
       public async Task<IActionResult> GetChartData(int id)
       {

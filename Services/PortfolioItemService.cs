@@ -33,7 +33,10 @@ namespace MarketAnalyticHub.Services
 
     public async Task<PortfolioItem> GetItemByIdAsync(int id)
     {
-      var item = await _context.PortfolioItems.FirstOrDefaultAsync(p => p.Id == id);
+      var item = await _context.PortfolioItems
+                .Include(p => p.Industry)
+                .Include(p => p.Portfolio)
+                .FirstOrDefaultAsync(m => m.Id == id);
 
       if (item != null)
       {

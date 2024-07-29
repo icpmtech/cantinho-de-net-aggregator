@@ -5,56 +5,229 @@
     Layout = "~/Views/Shared/_ContentNavbarLayout.cshtml";
 }
 
-<!-- Include ApexCharts library -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-<h1 class="mt-4">Portfolio Item Details</h1>
-
-<div class="container">
-    <!-- Apex Chart Card -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5>Price Comparison Chart</h5>
-        </div>
-        <div class="card-body">
-            <div id="chart"></div>
-        </div>
-    </div>
-
+@section PageScripts {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
+        
+
         document.addEventListener('DOMContentLoaded', function () {
-            var options = {
-                series: [{
-                    name: 'Current Price',
-                    data: [@Model.CurrentPrice]
-                }, {
-                    name: 'Purchase Price',
-                    data: [@Model.PurchasePrice]
-                }],
+            let chartOptions = {
                 chart: {
-                    type: 'line',
-                    height: 350
+                    height: 300,
+                    type: "line",
+                    toolbar: { show: false },
+                    dropShadow: {
+                        enabled: true,
+                        top: 10,
+                        left: 5,
+                        blur: 3,
+                        color: "#FF4560",
+                        opacity: 0.15
+                    },
+                    animations: {
+                        enabled: true,
+                        easing: 'linear',
+                        dynamicAnimation: {
+                            speed: 1000
+                        }
+                    }
                 },
-                title: {
-                    text: 'Price Comparison'
+                markers: {
+                    size: 6,
+                    colors: "transparent",
+                    strokeColors: "transparent",
+                    strokeWidth: 4,
+                    discrete: [
+                        {
+                            fillColor: "#FFFFFF",
+                            seriesIndex: 0,
+                            dataPointIndex: 3,
+                            strokeColor: "#FF4560",
+                            strokeWidth: 4,
+                            size: 6,
+                            radius: 2
+                        }
+                    ],
+                    hover: { size: 7 }
                 },
+                grid: { show: true, padding: { right: 8 } },
+                colors: ["#FF4560"],
+                dataLabels: { enabled: false },
+                stroke: { width: 5, curve: "smooth" },
+                series: [{
+                    name: 'Close Prices',
+                    data: []
+                }],
                 xaxis: {
-                    categories: ['Purchase Date'] // Example category
+                    type: 'datetime',
+                    categories: [],
+                    labels: {
+                        format: 'yyyy-MM-dd HH:mm:ss'
+                    }
                 },
                 yaxis: {
                     title: {
                         text: 'Price'
                     }
+                },
+                legend: {
+                    show: true,
+                    position: 'top',
+                    horizontalAlign: 'left'
+                },
+                tooltip: {
+                    enabled: true,
+                    theme: 'dark'
                 }
             };
 
-            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            const chart = new ApexCharts(document.querySelector("#chart-@Model.Id"), chartOptions);
             chart.render();
+
+            function updateChartData() {
+                const spinner = document.querySelector("#chart-spinner");
+                spinner.style.display = 'block';
+
+                fetch(`/api/dashboards/chartdata/@Model.Id`)
+                    .then(response => response.json())
+                    .then(data => {
+                        chart.updateSeries([{
+                            name: 'Close Prices',
+                            data: data.closes
+                        }]);
+                        chart.updateOptions({
+                            xaxis: {
+                                categories: data.dates
+                            }
+                        });
+                        showToast('Chart data updated successfully.', 'bg-success');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching chart data:', error);
+                        showToast('Error fetching chart data.', 'bg-danger');
+                    })
+                    .finally(() => {
+                        spinner.style.display = 'none';
+                    });
+            }
+
+            function showToast(message, type) {
+                const toastMessage = document.getElementById('toast-message');
+                toastMessage.classList.remove('bg-success', 'bg-danger');
+                toastMessage.classList.add(type);
+                toastMessage.querySelector('.toast-body').innerText = message;
+                const toast = new bootstrap.Toast(toastMessage);
+                toast.show();
+            }
+
+            // Fetch initial data
+            updateChartData();
+
+            // Set interval to fetch data every minute
+            setInterval(updateChartData, 60000); // 60000 ms = 1 minute
+
+            // Event listeners for time range buttons
+            document.querySelectorAll('.btn-group .btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const spinner = document.querySelector("#chart-spinner");
+                    spinner.style.display = 'block';
+
+                    const timeRange = this.getAttribute('data-range');
+                    fetch(`/api/dashboards/chartdata-date-range/@Model.Id?timeRange=${timeRange}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            chart.updateSeries([{
+                                name: 'Close Prices',
+                                data: data.closes
+                            }]);
+                            chart.updateOptions({
+                                xaxis: {
+                                    categories: data.dates
+                                }
+                            });
+                            showToast('Chart data updated successfully.', 'bg-success');
+                        })
+                        .catch(error => {
+                            console.error('Error fetching chart data:', error);
+                            showToast('Error fetching chart data.', 'bg-danger');
+                        })
+                        .finally(() => {
+                            spinner.style.display = 'none';
+                        });
+                });
+            });
+
+            // Event listeners for chart type buttons
+            document.querySelectorAll('.chart-type-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const spinner = document.querySelector("#chart-spinner");
+                    spinner.style.display = 'block';
+
+                    const chartType = this.getAttribute('data-chart-type');
+                    chart.updateOptions({
+                        chart: {
+                            type: chartType
+                        }
+                    }).then(() => {
+                        spinner.style.display = 'none';
+                        showToast('Chart type changed successfully.', 'bg-success');
+                    });
+                });
+            });
         });
     </script>
+}
+
+<!-- Toast Notification -->
+<div id="toast-message" class="toast bs-toast toast fade" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+        <i class='bx bx-bell me-2'></i>
+        <div class="me-auto fw-medium">Notification</div>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+        <!-- Toast message will be dynamically inserted here -->
+    </div>
+</div>
+
+<h1 class="mt-4">Portfolio Item Details</h1>
+
+<div class="container mt-4">
+    <!-- Apex Chart Card -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4>Chart Portfolio Item</h4>
+            <div>
+                <!-- Button Group for Time Range Selection -->
+                <div class="btn-group me-2" role="group" aria-label="Time Range">
+                    <button type="button" class="btn btn-outline-primary" data-range="1d">1 Day</button>
+                    <button type="button" class="btn btn-outline-primary" data-range="1w">1 Week</button>
+                    <button type="button" class="btn btn-outline-primary" data-range="1m">1 Month</button>
+                    <button type="button" class="btn btn-outline-primary" data-range="3m">3 Months</button>
+                    <button type="button" class="btn btn-outline-primary" data-range="6m">6 Months</button>
+                    <button type="button" class="btn btn-outline-primary" data-range="1y">1 Year</button>
+                    <button type="button" class="btn btn-outline-primary" data-range="5y">5 Years</button>
+                    <button type="button" class="btn btn-outline-primary" data-range="all">All</button>
+                </div>
+                <!-- Button Group for Chart Type Selection -->
+                <div class="btn-group" role="group" aria-label="Chart Type">
+                    <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="line">Line</button>
+                    <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="bar">Bar</button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="chart-@Model.Id" class="mt-4"></div>
+            <div id="chart-spinner" class="spinner-grow" role="status" style="display:none;">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
 
     <!-- Details Card -->
-    <div class="card">
+    <div class="card mb-4">
         <div class="card-header">
             <h5>Portfolio Item Details</h5>
         </div>
@@ -62,6 +235,7 @@
             <dl class="row">
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.OperationType)</dt>
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.OperationType)</dd>
+
                 <dt class="col-sm-3">@Html.DisplayNameFor(model => model.Symbol)</dt>
                 <dd class="col-sm-9">@Html.DisplayFor(model => model.Symbol)</dd>
 
@@ -89,8 +263,8 @@
         </div>
     </div>
 
-    <div class="mt-3">
-        <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a>
+    <div class="d-flex justify-content-end">
+        <a class="btn btn-primary me-2" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a>
         <a class="btn btn-secondary" asp-action="Index">Back to List</a>
     </div>
 </div>

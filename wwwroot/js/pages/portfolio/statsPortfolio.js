@@ -278,9 +278,9 @@ function generatePortfolioItemHTML(item) {
         <p class="mb-1"><strong>ROI (Percentage):</strong> ${roiPercentage.toFixed(2)}%</p>
       </div>
       <div class="d-flex flex-column align-items-end">
-        <button type="button"  onclick="showEditPortfolioItemModal(${item.id})" class="btn shadow rounded-pill btn-icon btn-primary">
+        <a href="/PortfolioItems/Edit/${item.id}" class="btn shadow rounded-pill btn-icon btn-primary">
                 <span class="tf-icons bx bx-edit-alt"></span>
-              </button>
+              </a>
                <a href="/PortfolioItems/Details/${item.id}" class="btn shadow rounded-pill btn-icon btn-primary">
                 <span class="tf-icons bx bx-show-alt"></span>
               </a>
