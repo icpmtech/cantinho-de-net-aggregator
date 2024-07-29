@@ -13,135 +13,114 @@
             <a class="btn btn-primary" asp-action="Create">
                 <i class='bx bx-plus'></i> Create New
             </a>
+            <form class="form-inline my-2 my-lg-0">
+                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
         </div>
         <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="thead-light">
-                        <tr>
-                            <th>
-                                <a asp-action="Index" asp-route-sortOrder="@ViewData["OperationTypeSortParm"]">
-                                    Operation Type <i class='bx bx-sort'></i>
-                                </a>
-                            </th>
-                            <th>Chart</th>
-                            <th>@Html.DisplayNameFor(model => model.First().Symbol)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().PurchaseDate)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().Quantity)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().PurchasePrice)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().CurrentPrice)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().Commission)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().Industry.Name)</th>
-                            <th>@Html.DisplayNameFor(model => model.First().Portfolio.Name)</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model)
-                        {
-                            <tr>
-                                <td>@Html.DisplayFor(modelItem => item.OperationType)</td>
-                                <td>
-                                    <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
-                                    <script>
-                                        document.addEventListener('DOMContentLoaded', function () {
-                                            fetch('/api/dashboards/chartdata/@item.Id')
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    var d = document.querySelector("#chart-@item.Id");
-                                                    var c = {
-                                                        chart: {
-                                                            height: 200,
-                                                            type: "line",
-                                                            toolbar: { show: false },
-                                                            dropShadow: {
-                                                                enabled: true,
-                                                                top: 10,
-                                                                left: 5,
-                                                                blur: 3,
-                                                                color: "#FF4560", // Update with your config color
-                                                                opacity: 0.15
-                                                            },
-                                                            sparkline: { enabled: true }
-                                                        },
-                                                        markers: {
-                                                            size: 6,
-                                                            colors: "transparent",
-                                                            strokeColors: "transparent",
-                                                            strokeWidth: 4,
-                                                            discrete: [
-                                                                {
-                                                                    fillColor: "#FFFFFF", // Update with your config color
-                                                                    seriesIndex: 0,
-                                                                    dataPointIndex: 3,
-                                                                    strokeColor: "#FF4560", // Update with your config color
-                                                                    strokeWidth: 4,
-                                                                    size: 6,
-                                                                    radius: 2
-                                                                }
-                                                            ],
-                                                            hover: { size: 7 }
-                                                        },
-                                                        grid: { show: false, padding: { right: 8 } },
-                                                        colors: ["#FF4560"], // Update with your config color
-                                                        dataLabels: { enabled: false },
-                                                        stroke: { width: 5, curve: "smooth" },
-                                                        series: [{
-                                                            name: 'Close Prices',
-                                                            data: data.closes // Assuming you want to plot closing prices
-                                                        }],
-                                                        xaxis: {
-                                                            type: 'datetime',
-                                                            categories: data.dates,
-                                                            labels: {
-                                                                format: 'yyyy-MM-dd'
-                                                            }
-                                                        },
-                                                        yaxis: {
-                                                            title: {
-                                                                text: 'Price'
-                                                            }
-                                                        },
-                                                        legend: {
-                                                            show: true,
-                                                            position: 'top',
-                                                            horizontalAlign: 'left'
-                                                        }
-                                                    };
-                                                    null !== d && new ApexCharts(d, c).render();
-                                                })
-                                                .catch(error => console.error('Error fetching chart data:', error));
-                                        });
-                                    </script>
-                                </td>
-                                <td>@Html.DisplayFor(modelItem => item.Symbol)</td>
-                                <td>@Html.DisplayFor(modelItem => item.PurchaseDate)</td>
-                                <td>@Html.DisplayFor(modelItem => item.Quantity)</td>
-                                <td>@Html.DisplayFor(modelItem => item.PurchasePrice)</td>
-                                <td>@Html.DisplayFor(modelItem => item.CurrentPrice)</td>
-                                <td>@Html.DisplayFor(modelItem => item.Commission)</td>
-                                <td>@Html.DisplayFor(modelItem => item.Industry.Name)</td>
-                                <td>@Html.DisplayFor(modelItem => item.Portfolio.Name)</td>
-                                <td>
-                                    <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
-                                        <i class='bx bx-edit'></i> Edit
-                                    </a>
-                                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
-                                        <i class='bx bx-detail'></i> Details
-                                    </a>
-                                    <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
-                                        <i class='bx bx-trash'></i> Delete
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+            <div class="list-group">
+                @foreach (var item in Model)
+                {
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h5 class="mb-1">@Html.DisplayFor(modelItem => item.Symbol)</h5>
+                            <small>@Html.DisplayFor(modelItem => item.PurchaseDate.ToShortDateString())</small>
+                        </div>
+                        <p class="mb-1">Quantity: @Html.DisplayFor(modelItem => item.Quantity)</p>
+                        <p class="mb-1">Purchase Price: @Html.DisplayFor(modelItem => item.PurchasePrice)</p>
+                        <p class="mb-1">Current Price: @Html.DisplayFor(modelItem => item.CurrentPrice)</p>
+                        <p class="mb-1">Commission: @Html.DisplayFor(modelItem => item.Commission)</p>
+                        <p class="mb-1">Industry: @Html.DisplayFor(modelItem => item.Industry.Name)</p>
+                        <p class="mb-1">Portfolio: @Html.DisplayFor(modelItem => item.Portfolio.Name)</p>
+                        <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
+                        <div class="btn-group mt-2" role="group" aria-label="Basic example">
+                            <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
+                                <i class='bx bx-edit'></i> Edit
+                            </a>
+                            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
+                                <i class='bx bx-detail'></i> Details
+                            </a>
+                            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
+                                <i class='bx bx-trash'></i> Delete
+                            </a>
+                        </div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                fetch('/api/dashboards/chartdata/@item.Id')
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        var d = document.querySelector("#chart-@item.Id");
+                                        var c = {
+                                            chart: {
+                                                height: 200,
+                                                type: "line",
+                                                toolbar: { show: false },
+                                                dropShadow: {
+                                                    enabled: true,
+                                                    top: 10,
+                                                    left: 5,
+                                                    blur: 3,
+                                                    color: "#FF4560",
+                                                    opacity: 0.15
+                                                },
+                                                sparkline: { enabled: true }
+                                            },
+                                            markers: {
+                                                size: 6,
+                                                colors: "transparent",
+                                                strokeColors: "transparent",
+                                                strokeWidth: 4,
+                                                discrete: [
+                                                    {
+                                                        fillColor: "#FFFFFF",
+                                                        seriesIndex: 0,
+                                                        dataPointIndex: 3,
+                                                        strokeColor: "#FF4560",
+                                                        strokeWidth: 4,
+                                                        size: 6,
+                                                        radius: 2
+                                                    }
+                                                ],
+                                                hover: { size: 7 }
+                                            },
+                                            grid: { show: false, padding: { right: 8 } },
+                                            colors: ["#FF4560"],
+                                            dataLabels: { enabled: false },
+                                            stroke: { width: 5, curve: "smooth" },
+                                            series: [{
+                                                name: 'Close Prices',
+                                                data: data.closes
+                                            }],
+                                            xaxis: {
+                                                type: 'datetime',
+                                                categories: data.dates,
+                                                labels: {
+                                                    format: 'yyyy-MM-dd'
+                                                }
+                                            },
+                                            yaxis: {
+                                                title: {
+                                                    text: 'Price'
+                                                }
+                                            },
+                                            legend: {
+                                                show: true,
+                                                position: 'top',
+                                                horizontalAlign: 'left'
+                                            }
+                                        };
+                                        null !== d && new ApexCharts(d, c).render();
+                                    })
+                                    .catch(error => console.error('Error fetching chart data:', error));
+                            });
+                        </script>
+                    </div>
+                }
             </div>
         </div>
     </div>
 </div>
-
 
 <div class="mt-3 d-flex justify-content-between">
     @if (Model.HasPreviousPage)
