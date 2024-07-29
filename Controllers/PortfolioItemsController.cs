@@ -30,7 +30,9 @@ namespace MarketAnalyticHub.Controllers
       ViewData["UserIdSortParm"] = sortOrder == "UserId" ? "userId_desc" : "UserId";
       // Add other sort parameters as needed
 
-      var portfolios = from p in _context.PortfolioItems where p.UserId == userId select p;
+      var portfolios = from p in _context.PortfolioItems.Include(p => p.Industry)
+                .Include(p => p.Portfolio)
+                       where p.UserId == userId select p;
 
       if (!String.IsNullOrEmpty(searchQuery))
       {

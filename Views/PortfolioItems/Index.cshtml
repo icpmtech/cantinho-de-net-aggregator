@@ -13,10 +13,6 @@
             <a class="btn btn-primary" asp-action="Create">
                 <i class='bx bx-plus'></i> Create New
             </a>
-            <form class="form-inline my-2 my-lg-0">
-                <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
-            </form>
         </div>
         <div class="card-body">
             <div class="list-group">
@@ -24,15 +20,15 @@
                 {
                     <div class="list-group-item">
                         <div class="d-flex w-100 justify-content-between">
-                            <h5 class="mb-1">@Html.DisplayFor(modelItem => item.Symbol)</h5>
-                            <small>@Html.DisplayFor(modelItem => item.PurchaseDate.ToShortDateString())</small>
+                            <h5 class="mb-1">@item.Symbol</h5>
+                            <small>@item.PurchaseDate.ToShortDateString()</small>
                         </div>
-                        <p class="mb-1">Quantity: @Html.DisplayFor(modelItem => item.Quantity)</p>
-                        <p class="mb-1">Purchase Price: @Html.DisplayFor(modelItem => item.PurchasePrice)</p>
-                        <p class="mb-1">Current Price: @Html.DisplayFor(modelItem => item.CurrentPrice)</p>
-                        <p class="mb-1">Commission: @Html.DisplayFor(modelItem => item.Commission)</p>
-                        <p class="mb-1">Industry: @Html.DisplayFor(modelItem => item.Industry.Name)</p>
-                        <p class="mb-1">Portfolio: @Html.DisplayFor(modelItem => item.Portfolio.Name)</p>
+                        <p class="mb-1">Quantity: @item.Quantity</p>
+                        <p class="mb-1">Purchase Price: @item.PurchasePrice</p>
+                        <p class="mb-1">Current Price: @item.CurrentPrice</p>
+                        <p class="mb-1">Commission: @item.Commission</p>
+                        <p class="mb-1">Industry: @(item.Industry != null ? item.Industry.Name : "N/A")</p>
+                        <p class="mb-1">Portfolio: @(item.Portfolio != null ? item.Portfolio.Name : "N/A")</p>
                         <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
                         <div class="btn-group mt-2" role="group" aria-label="Basic example">
                             <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
