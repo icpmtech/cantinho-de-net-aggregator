@@ -50,8 +50,8 @@ async function loadPortfolioStatistics() {
 function updateDashboard(data) {
   document.getElementById('profit').innerText = `€${data.profit?.toFixed(2)}`;
   document.getElementById('dividends').innerText = `€${data.dividends?.toFixed(2)}`;
-  document.getElementById('payments').innerText = `€${data.payments?.toFixed(2)}`;
-  document.getElementById('operations').innerText = `€${data.operations?.toFixed(2)}`;
+  document.getElementById('payments').innerText = `${data.payments}`;
+  document.getElementById('operations').innerText = `${data.operations}`;
 
   const profitPercentageElement = document.getElementById('profit_percentage');
   const profitPercentage = data.profitPercentage?.toFixed(3);

@@ -110,9 +110,9 @@ namespace MarketAnalyticHub.Services
       decimal currentMarketValue = portfolios.Sum(p => p.CurrentMarketValue);
       decimal dividends = portfolios.Sum(p => p.Items.Sum(i => i.Dividends.Sum(d => d.Amount)));
       decimal profit = currentMarketValue - totalInvestment;
-      decimal payments = 2456; // This should be replaced with actual payments data
-      decimal operations = 14857; // This should be replaced with actual operations data
-      decimal yearlyReport = 84686; // This should be replaced with actual yearly report data
+      int? payments  = portfolios.Select(x => x.Items.Sum(st => st.StockEvents?.Count())).Sum(); ; // This should be replaced with actual payments data
+      int? operations = portfolios.Sum(p => p.Items.Count()); // This should be replaced with actual operations data
+      decimal yearlyReport = 0; // This should be replaced with actual yearly report data
       decimal growth = totalInvestment > 0 ? (profit / totalInvestment) * 100 : 0;
       decimal portfolioGrowth = totalInvestment > 0 ? (currentMarketValue / totalInvestment) * 100 : 0;
 
@@ -615,6 +615,34 @@ namespace MarketAnalyticHub.Services
         TotalMarketValueAfterImpact = (double)totalMarketValueAfterImpact,
         PortfolioItems = portfolios.SelectMany(p => p.Items).ToList()
       };
+    }
+
+    public async Task<int?> TotalTransactions(string userId)
+    {
+      var portfolios = await _context.Portfolios
+                                    .Include(p => p.Items)
+                                    .ThenInclude(pi => pi.Dividends)
+                                    .Include(p => p.Items)
+                                    .ThenInclude(pi => pi.StockEvents)
+                                    .Where(p => p.UserId == userId)
+                                    .ToListAsync();
+     var totalTransactions= portfolios.Select(x => x.Items.Count()).Sum();
+
+      return  totalTransactions;
+    }
+
+    public async Task<int?> TotalStockEvents(string userId)
+    {
+      var portfolios = await _context.Portfolios
+                                    .Include(p => p.Items)
+                                    .ThenInclude(pi => pi.Dividends)
+                                    .Include(p => p.Items)
+                                    .ThenInclude(pi => pi.StockEvents)
+                                    .Where(p => p.UserId == userId)
+                                    .ToListAsync();
+      var totalStockEvents = portfolios.Select(x => x.Items.Sum(st=>st.StockEvents?.Count())).Sum();
+
+      return totalStockEvents;
     }
   }
 

@@ -285,8 +285,8 @@ namespace MarketAnalyticHub.Controllers.api
       decimal currentMarketValue = (decimal)overallStats.TotalMarketValue;
       decimal dividends = portfolios.Sum(p => p.Items.Sum(i => i.Dividends.Sum(d => d.Amount)));
       decimal profit = currentMarketValue - totalInvestment;
-      decimal payments = 2456; // This should be replaced with actual payments data
-      decimal operations = 14857; // This should be replaced with actual operations data
+      int? payments = await _portfolioService.TotalStockEvents(userId); ; // This should be replaced with actual payments data
+      int? operations = await _portfolioService.TotalTransactions(userId); // This should be replaced with actual operations data
       decimal yearlyReport = 84686; // This should be replaced with actual yearly report data
       decimal growth = totalInvestment > 0 ? (profit / totalInvestment) * 100 : 0;
       

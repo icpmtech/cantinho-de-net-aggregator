@@ -52,8 +52,8 @@
     function updateDashboard(data) {
       document.getElementById('profit').innerText = `€${data.profit?.toFixed(2)}`;
     document.getElementById('dividends').innerText = `€${data.dividends?.toFixed(2)}`;
-    document.getElementById('payments').innerText = `€${data.payments?.toFixed(2)}`;
-    document.getElementById('operations').innerText = `€${data.operations?.toFixed(2)}`;
+    document.getElementById('payments').innerText = `${data.payments}`;
+    document.getElementById('operations').innerText = `${data.operations}`;
            // document.getElementById('totalRevenue').innerText = `$${data.totalRevenue?.toFixed(2)}`;
            // document.getElementById('growth').innerText = `${data.growth}%`;
            // document.getElementById('portfolioGrowth').innerText = `${data.portfolioGrowth}% Portfolio Growth`;

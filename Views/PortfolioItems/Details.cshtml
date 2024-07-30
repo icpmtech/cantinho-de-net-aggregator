@@ -194,11 +194,15 @@
 
 <h1 class="mt-4">Portfolio Item Details</h1>
 
+<h1 class="mt-4">Portfolio Item Details</h1>
+
 <div class="container mt-4">
     <!-- Apex Chart Card -->
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4>Chart Portfolio Item</h4>
+            <h4><i class="fas fa-chart-line"></i> Chart Portfolio Item</h4>
+        </div>
+        <div class="card-body">
             <div>
                 <!-- Button Group for Time Range Selection -->
                 <div class="btn-group me-2" role="group" aria-label="Time Range">
@@ -211,15 +215,13 @@
                     <button type="button" class="btn btn-outline-primary" data-range="5y">5 Years</button>
                     <button type="button" class="btn btn-outline-primary" data-range="all">All</button>
                 </div>
-                <!-- Button Group for Chart Type Selection -->
-                <div class="btn-group" role="group" aria-label="Chart Type">
-                    <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="line">Line</button>
-                    <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="bar">Bar</button>
-                </div>
             </div>
-        </div>
-        <div class="card-body">
             <div id="chart-@Model.Id" class="mt-4"></div>
+            <!-- Button Group for Chart Type Selection -->
+            <div class="btn-group mt-3" role="group" aria-label="Chart Type">
+                <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="line"><i class="fas fa-chart-line"></i> Line</button>
+                <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="bar"><i class="fas fa-chart-bar"></i> Bar</button>
+            </div>
             <div id="chart-spinner" class="spinner-grow" role="status" style="display:none;">
                 <span class="visually-hidden">Loading...</span>
             </div>
@@ -229,7 +231,7 @@
     <!-- Details Card -->
     <div class="card mb-4">
         <div class="card-header">
-            <h5>Portfolio Item Details</h5>
+            <h5><i class="fas fa-info-circle"></i> Portfolio Item Details</h5>
         </div>
         <div class="card-body">
             <dl class="row">
@@ -264,7 +266,26 @@
     </div>
 
     <div class="d-flex justify-content-end">
-        <a class="btn btn-primary me-2" asp-action="Edit" asp-route-id="@Model?.Id">Edit</a>
-        <a class="btn btn-secondary" asp-action="Index">Back to List</a>
+        <a class="btn btn-primary me-2" asp-action="Edit" asp-route-id="@Model?.Id"><i class="fas fa-edit"></i> Edit</a>
+        <a class="btn btn-secondary" asp-action="Index"><i class="fas fa-arrow-left"></i> Back to List</a>
     </div>
 </div>
+
+<!-- Responsive Design Enhancements -->
+<style>
+    @@media (max-width: 576px) {
+        .btn-group {
+            flex-direction: column;
+            width: 100%;
+        }
+        .btn-group button {
+            margin-bottom: 5px;
+        }
+        dl.row {
+            flex-direction: column;
+        }
+        dl.row dt, dl.row dd {
+            width: 100%;
+        }
+    }
+</style>
