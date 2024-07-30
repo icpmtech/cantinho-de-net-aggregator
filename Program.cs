@@ -28,20 +28,34 @@ using MarketAnalyticHub;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using MarketAnalyticHub.Controllers;
 using AspnetCoreMvcFull.Services;
-
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.Cookies;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
                 {
                   options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
                 });
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+{
+  options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+  options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
+})
+.AddCookie()
+.AddGoogle(options =>
+{
+  IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("Authentication:Google");
+  options.ClientId = googleAuthNSection["ClientId"];
+  options.ClientSecret = googleAuthNSection["ClientSecret"];
+  options.CallbackPath = "/signin-google";
+})
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
     .EnableTokenAcquisitionToCallDownstreamApi()
     .AddMicrosoftGraph(builder.Configuration.GetSection("MicrosoftGraph"))
     .AddInMemoryTokenCaches()
     .AddDownstreamApi("DownstreamApi", builder.Configuration.GetSection("DownstreamApi"))
-    .AddInMemoryTokenCaches();
+    .AddInMemoryTokenCaches()
+    ;
 
 // Add services to localization.
 builder.Services.AddControllersWithViews()

@@ -1,5 +1,7 @@
+@model PaginatedList<MarketAnalyticHub.Models.Portfolio.PortfolioItem>
 @using Microsoft.AspNetCore.Mvc.Localization
 @inject IViewLocalizer Localizer
+
 
 <div class="row">
     <div class="col-lg-4 col-md-6 col-12 mb-4">
@@ -139,31 +141,5 @@
                 <small class="text-success fw-medium"><i id="totalProfitIcon" class='bx bx-up-arrow-alt'></i> <span id="totalProfitDifferencePercentage">0%</span></small>
             </div>
         </div>
-    </div>
-</div>
-
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="row mb-3">
-            <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex flex-column flex-md-row justify-content-start">
-                <button class="btn btn-primary mb-2 mb-md-0 me-md-2" onclick="showAddPortfolioModal()">Add a new Portfolio</button>
-                <button class="btn btn-success mb-2 mb-md-0 me-md-2 " onclick="exportPortfolios('xlsx')">Export Portfolios (Excel)</button>
-                <button class="btn btn-success mb-2 mb-md-0" onclick="exportPortfolios('csv')">Export Portfolios (CSV)</button>
-            </div>
-            <div class="col-12 col-md-6 d-flex flex-column flex-md-row justify-content-end">
-                <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
-                <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
-                <input type="file" id="importFileYhaoo" style="display: none;" accept=".xlsx,.csv" onchange="importPortfoliosYahoo(event)">
-                <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFileYhaoo').click()"> <i class="bx bxl-yahoo"></i>Import Portfolios Yhaoo</button>
-                <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
-                    <option value="bar" selected>Bar</option>
-                    <option value="line">Line</option>
-                    <option value="candlestick">Candlestick</option>
-                </select>
-            </div>
-        </div>
-
-        
     </div>
 </div>

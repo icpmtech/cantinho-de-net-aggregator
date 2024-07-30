@@ -282,13 +282,16 @@ namespace MarketAnalyticHub.Services
     public string ExportToCsv(IEnumerable<Portfolio> portfolios)
     {
       var csvBuilder = new StringBuilder();
-      csvBuilder.AppendLine("PortfolioName,ItemSymbol,ItemQuantity,ItemPurchasePrice,ItemPurchaseDate");
+      csvBuilder.AppendLine("PortfolioName,ItemSymbol,ItemQuantity,ItemPurchasePrice,ItemPurchaseDate,Commission");
 
       foreach (var portfolio in portfolios)
       {
         foreach (var item in portfolio.Items)
         {
-          csvBuilder.AppendLine($"{portfolio.Name},{item.Symbol},{item.Quantity},{item.PurchasePrice},{item.PurchaseDate}");
+          csvBuilder.AppendLine($"{portfolio.Name},{item.Symbol}" +
+            $",{item.Quantity}," +
+            $"{item.PurchasePrice},{item.PurchaseDate}" +
+            $",{item.Commission}");
         }
       }
 
@@ -348,7 +351,7 @@ namespace MarketAnalyticHub.Services
         var itemQuantity = Converter.ConvertToInt(parts[11].Trim());
         var itemPurchasePrice = Converter.ConvertToDecimal(parts[10].Trim());
         var itemPurchaseDate = Converter.ConvertToDateTime(parts[9].Trim());
-
+        var itemCommission = Converter.ConvertToDecimal(parts[12].Trim());
         portfolio.Items.Add(new PortfolioItem
         {
           Symbol = itemSymbol,
@@ -356,7 +359,8 @@ namespace MarketAnalyticHub.Services
           PurchasePrice = itemPurchasePrice,
           PurchaseDate = itemPurchaseDate,
           UserId = userId,
-          OperationType = "N/A"
+          OperationType = "Buy",
+          Commission = itemCommission,
         });
       }
 
@@ -394,7 +398,7 @@ namespace MarketAnalyticHub.Services
             PurchasePrice = itemPurchasePrice,
             PurchaseDate = itemPurchaseDate,
             UserId = userId,
-            OperationType="N/A"
+            OperationType="Buy"
           });
         }
 

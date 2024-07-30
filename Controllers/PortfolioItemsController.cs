@@ -22,22 +22,26 @@ namespace MarketAnalyticHub.Controllers
         }
 
     // GET: PortfolioItems
-    public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber)
+    public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber, int pageSize = 10, string tab = "list")
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       ViewData["CurrentSort"] = sortOrder;
+      ViewData["CurrentFilter"] = searchQuery;
+      ViewData["CurrentPageSize"] = pageSize;
+      ViewData["CurrentTab"] = tab;
+
       ViewData["OperationTypeSortParm"] = String.IsNullOrEmpty(sortOrder) ? "operationType_desc" : "";
       ViewData["UserIdSortParm"] = sortOrder == "UserId" ? "userId_desc" : "UserId";
-      // Add other sort parameters as needed
 
       var portfolios = from p in _context.PortfolioItems.Include(p => p.Industry)
-                .Include(p => p.Portfolio)
-                       where p.UserId == userId select p;
+                      .Include(p => p.Portfolio)
+                       where p.UserId == userId
+                       select p;
 
       if (!String.IsNullOrEmpty(searchQuery))
       {
         portfolios = portfolios.Where(p => p.Symbol.Contains(searchQuery)
-                                   || p.OperationType.Contains(searchQuery));
+                               || p.OperationType.Contains(searchQuery));
       }
 
       switch (sortOrder)
@@ -51,19 +55,21 @@ namespace MarketAnalyticHub.Controllers
         case "userId_desc":
           portfolios = portfolios.OrderByDescending(p => p.UserId);
           break;
-        // Add other cases for sorting as needed
         default:
           portfolios = portfolios.OrderBy(p => p.OperationType);
           break;
       }
 
-      int pageSize = 10;
-      return View(await PaginatedList<PortfolioItem>.CreateAsync(portfolios.AsNoTracking(), pageNumber ?? 1, pageSize));
-    }
-    
+      var model = await PaginatedList<PortfolioItem>.CreateAsync(portfolios.AsNoTracking(), pageNumber ?? 1, pageSize);
 
-        // GET: PortfolioItems/PortfolioItems/Details/5
-        public async Task<IActionResult> Details(int? id)
+     
+
+      return View(model);
+    }
+
+
+    // GET: PortfolioItems/PortfolioItems/Details/5
+    public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
             {

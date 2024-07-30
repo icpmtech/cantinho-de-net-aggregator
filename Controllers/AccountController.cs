@@ -1,15 +1,20 @@
-using MarketAnalyticHub.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+
 
 namespace MarketAnalyticHub.Controllers
 {
-
+  using MarketAnalyticHub.Models;
   using Microsoft.AspNetCore.Identity;
   using Microsoft.AspNetCore.Mvc;
+  using Microsoft.AspNetCore.Identity;
+  using Microsoft.AspNetCore.Mvc;
+  using Microsoft.Identity.Client;
   using System.Threading.Tasks;
-
-
+  using Microsoft.AspNetCore.Authentication;
+  using Microsoft.AspNetCore.Authentication.Cookies;
+  using Microsoft.AspNetCore.Mvc;
+  using Microsoft.AspNetCore.Authentication.Google;
+  using Azure;
+  using System.Security.Claims;
 
   public class AccountController : Controller
   {
@@ -22,6 +27,62 @@ namespace MarketAnalyticHub.Controllers
       _signInManager = signInManager;
       _logger = logger;
     }
+    [HttpGet]
+    public IActionResult LoginGoogle()
+    {
+      var redirectUrl = Url.Action(nameof(LoginCallback), "Account");
+      var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+      return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+    }
+
+    public async Task<IActionResult> LoginCallback()
+    {
+      var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+      if (!authenticateResult.Succeeded)
+        return BadRequest("Failed to authenticate.");
+
+      var claims = authenticateResult.Principal.Claims;
+      var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+      var givenName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
+      var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+
+      if (email == null)
+        return BadRequest("Email claim not found.");
+
+      var user = await _userManager.FindByEmailAsync(email);
+
+      if (user == null)
+      {
+        user = new ApplicationUser { UserName = name, Email = email };
+        var createUserResult = await _userManager.CreateAsync(user);
+
+        if (!createUserResult.Succeeded)
+        {
+          foreach (var error in createUserResult.Errors)
+          {
+            ModelState.AddModelError(string.Empty, error.Description);
+          }
+          return RedirectToAction("Index", "Home");
+        }
+
+        var roleResult = await _userManager.AddToRoleAsync(user, "Standard");
+
+        if (!roleResult.Succeeded)
+        {
+          foreach (var error in roleResult.Errors)
+          {
+            ModelState.AddModelError(string.Empty, error.Description);
+          }
+          await _userManager.DeleteAsync(user); // Rollback user creation if role assignment fails
+          return RedirectToAction("Index", "Home");
+        }
+      }
+
+      await _signInManager.SignInAsync(user, isPersistent: false);
+      return RedirectToAction("Index", "Dashboards");
+    }
+
     public IActionResult ForgotPasswordBasic() => View();
     public IActionResult Register() => View();
 
@@ -113,6 +174,7 @@ namespace MarketAnalyticHub.Controllers
     [HttpGet]
     public async Task<IActionResult> Logout()
     {
+      await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
       await _signInManager.SignOutAsync();
       return RedirectToAction("Index", "Home");
     }
