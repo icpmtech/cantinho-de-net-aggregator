@@ -93,11 +93,7 @@
 </div>
 
 <script>
-    function toggleCollapse(id) {
-        var element = document.getElementById(id);
-        element.classList.toggle('show');
-    }
-
+    
     async function fetchStockData() {
         const response = await fetch('/api/SentimentAnalyzerApi/GetStockData');
         const stockData = await response.json();
