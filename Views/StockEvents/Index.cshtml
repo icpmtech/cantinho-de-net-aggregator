@@ -1,84 +1,54 @@
-﻿@model IEnumerable<MarketAnalyticHub.Models.StockEvent>
-
+@model IEnumerable<MarketAnalyticHub.Models.StockEvent>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Index";
-    Layout = "~/Areas/Admin/Views/Shared/_ContentNavbarLayout.cshtml";
+    ViewData["Title"] = "Portfolio Manager";
 }
 
-<h1>Index</h1>
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">@Localizer["StockEvents Manager"] /</span> @Localizer["StockEvents"]
+</h4>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-primary">Create New</a>
 </p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EventName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Details)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Impact)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Sentiment)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Source)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PriceChange)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PortfolioItem)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Date)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EventName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Details)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Impact)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Sentiment)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Source)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PriceChange)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PortfolioItem.Id)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+
+@if (!Model.Any())
+{
+    <div class="list-group">
+        <div class="list-group-item">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">No Stock Events Available</h5>
+                    <p class="card-text">There are no stock events to display at the moment. Please check back later or create a new stock event.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <div class="list-group">
+        @foreach (var item in Model)
+        {
+            <div class="list-group-item">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">@Html.DisplayFor(modelItem => item.EventName)</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">@Html.DisplayFor(modelItem => item.Date)</h6>
+                        <p class="card-text"><strong>Details:</strong> @Html.DisplayFor(modelItem => item.Details)</p>
+                        <p class="card-text"><strong>Impact:</strong> @Html.DisplayFor(modelItem => item.Impact)</p>
+                        <p class="card-text"><strong>Sentiment:</strong> @Html.DisplayFor(modelItem => item.Sentiment)</p>
+                        <p class="card-text"><strong>Source:</strong> @Html.DisplayFor(modelItem => item.Source)</p>
+                        <p class="card-text"><strong>Price:</strong> @Html.DisplayFor(modelItem => item.Price)</p>
+                        <p class="card-text"><strong>Price Change:</strong> @Html.DisplayFor(modelItem => item.PriceChange)</p>
+                        <p class="card-text"><strong>Portfolio Item:</strong> @Html.DisplayFor(modelItem => item.PortfolioItem.Id)</p>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="card-link">Edit</a>
+                        <a asp-action="Details" asp-route-id="@item.Id" class="card-link">Details</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="card-link">Delete</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

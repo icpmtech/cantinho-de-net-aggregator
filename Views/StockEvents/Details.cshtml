@@ -1,4 +1,4 @@
-﻿@model MarketAnalyticHub.Models.StockEvent
+@model MarketAnalyticHub.Models.StockEvent
 
 @{
     ViewData["Title"] = "Details";
@@ -7,67 +7,74 @@
 
 <h1>Details</h1>
 
-<div>
-    <h4>StockEvent</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Date)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Date)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.EventName)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.EventName)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Details)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Details)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Impact)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Impact)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Sentiment)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Sentiment)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Source)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Source)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Price)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Price)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PriceChange)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PriceChange)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.PortfolioItem)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.PortfolioItem.Id)
-        </dd>
-    </dl>
-</div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> Stock Event Details
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">
+                        <i class="bi bi-calendar3"></i> @Html.DisplayNameFor(model => model.Date)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Date)
+                    </dd>
+                    <dt class="col-sm-3">
+                        <i class="bi bi-flag"></i> @Html.DisplayNameFor(model => model.EventName)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.EventName)
+                    </dd>
+                    <dt class="col-sm-3">
+                        <i class="bi bi-info-circle"></i> @Html.DisplayNameFor(model => model.Details)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Details)
+                    </dd>
+                    <dt class="col-sm-3">
+                        <i class="bi bi-graph-up"></i> @Html.DisplayNameFor(model => model.Impact)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Impact)
+                    </dd>
+                    <dt class="col-sm-3">
+                        <i class="bi bi-emoji-smile"></i> @Html.DisplayNameFor(model => model.Sentiment)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Sentiment)
+                    </dd>
+                    <dt class="col-sm-3">
+                        <i class="bi bi-newspaper"></i> @Html.DisplayNameFor(model => model.Source)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Source)
+                    </dd>
+                    <dt class="col-sm-3">
+                        <i class="bi bi-currency-dollar"></i> @Html.DisplayNameFor(model => model.Price)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.Price)
+                    </dd>
+                    <dt class="col-sm-3">
+                        <i class="bi bi-arrow-up-down"></i> @Html.DisplayNameFor(model => model.PriceChange)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.PriceChange)
+                    </dd>
+                    <dt class="col-sm-3">
+                        <i class="bi bi-folder2-open"></i> @Html.DisplayNameFor(model => model.PortfolioItem)
+                    </dt>
+                    <dd class="col-sm-9">
+                        @Html.DisplayFor(model => model.PortfolioItem.Id)
+                    </dd>
+                </dl>
+            </div>
+            <div class="card-footer">
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-primary"><i class="bi bi-pencil"></i> Edit</a>
+                <a asp-action="Index" class="btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to List</a>
+            </div>
+        </div>
+    </div>
 </div>
