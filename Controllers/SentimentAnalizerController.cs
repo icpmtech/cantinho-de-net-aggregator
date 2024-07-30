@@ -32,5 +32,17 @@ namespace MarketAnalyticHub.Controllers
 
         return View(portfolios);
       }
+
+    public async Task<IActionResult> Calendar()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+
+
+
+      return View(portfolios);
     }
+
+  }
   }

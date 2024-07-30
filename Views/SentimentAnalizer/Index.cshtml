@@ -208,9 +208,12 @@
 
     // Helper function to get date range for the beginning of the year and the current date
     function getDateRange() {
-        const currentYear = new Date().getFullYear();
-        const startDate = new Date(currentYear, 0, 3); // January 1st of the current year
-        const endDate = new Date(); // Today
+        const currentDate = new Date();
+        const endDate = currentDate; // Today
+
+        // Calculate the start date (three months prior to today)
+        const startDate = new Date(currentDate);
+        startDate.setMonth(startDate.getMonth() - 3);
         return { startDate, endDate };
     }
 
