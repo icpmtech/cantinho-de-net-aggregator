@@ -87,117 +87,9 @@
 <h4 class="py-3 mb-4"><span class="text-muted fw-light">Sentiment Analysis /</span> Sentiment Analyzer</h4>
 
 <div class="row mb-5">
-    <div class="col-md-12">
-        @foreach (var portfolio in Model)
-        {
-            var groupedStocks = portfolio.Items.GroupBy(s => s.Symbol);
-            foreach (var stockGroup in groupedStocks)
-            {
-                var positiveEventCount = stockGroup.SelectMany(s => s.StockEvents).Count(e => e.Sentiment == "Positive");
-                var negativeEventCount = stockGroup.SelectMany(s => s.StockEvents).Count(e => e.Sentiment == "Negative");
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="fas fa-microchip"></i> @stockGroup.Key Analysis (Total: @stockGroup.SelectMany(s => s.StockEvents).Count()) | Positive: @positiveEventCount | Negative: @negativeEventCount
-                        </h5>
-                        <button class="btn btn-success btn-toggle" onclick="toggleCollapse('@stockGroup.Key-positive')">
-                            <i class="fas fa-arrow-up"></i> Positive Analysis
-                        </button>
-                        <div id="@stockGroup.Key-positive" class="collapse">
-                            @foreach (var stock in stockGroup)
-                            {
-                                @foreach (var stockEvent in stock.StockEvents.Where(e => e.Sentiment == "Positive"))
-                                {
-                                    <div class="card-text">
-                                        <p class="card-text"><i class="fas fa-calendar-day"></i> <strong>Date:</strong> <span>@stockEvent.Date</span></p>
-                                        <p class="card-text"><i class="fas fa-chart-line"></i> <strong>Price Change:</strong> <span class="positive">@stockEvent.PriceChange%</span></p>
-                                        <p class="card-text"><i class="fas fa-calendar-check"></i> <strong>Events:</strong> <a href="@stockEvent.Source" class="text-success">Link</a></p>
-                                        <p class="card-text"><i class="fas fa-smile"></i> <strong>Sentiment:</strong> <span class="positive">@stockEvent.Sentiment</span></p>
-                                    </div>
-                                }
-                            }
-                        </div>
-
-                        <button class="btn btn-danger btn-toggle" onclick="toggleCollapse('@stockGroup.Key-negative')">
-                            <i class="fas fa-arrow-down"></i> Negative Analysis
-                        </button>
-                        <div id="@stockGroup.Key-negative" class="collapse">
-                            @foreach (var stock in stockGroup)
-                            {
-                                @foreach (var stockEvent in stock.StockEvents.Where(e => e.Sentiment == "Negative"))
-                                {
-                                    <div class="card-text">
-                                        <p class="card-text"><i class="fas fa-calendar-day"></i> <strong>Date:</strong> <span>@stockEvent.Date</span></p>
-                                        <p class="card-text"><i class="fas fa-chart-line"></i> <strong>Price Change:</strong> <span class="negative">@stockEvent.PriceChange%</span></p>
-                                        <p class="card-text"><i class="fas fa-calendar-check"></i> <strong>Events:</strong> <a href="@stockEvent.Source" class="text-danger">Link</a></p>
-                                        <p class="card-text"><i class="fas fa-frown"></i> <strong>Sentiment:</strong> <span class="negative">@stockEvent.Sentiment</span></p>
-                                    </div>
-                                }
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
-        }
-    </div>
-
-    <div class="col-md-12 table-container">
-        <div class="card">
-            <h5 class="card-title">
-                <button class="btn btn-link btn-block text-left" onclick="toggleCollapse('events-table')">
-                    <i class="fas fa-table"></i> Events Analyzer
-                </button>
-            </h5>
-            <div id="events-table" class="collapse show">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th scope="col"><i class="fas fa-calendar-day"></i> Date</th>
-                                    <th scope="col"><i class="fas fa-info-circle"></i> Event Name</th>
-                                    <th scope="col"><i class="fas fa-file-alt"></i> Details</th>
-                                    <th scope="col"><i class="fas fa-chart-line"></i> Impact</th>
-                                    <th scope="col"><i class="fas fa-smile"></i> Sentiment</th>
-                                    <th scope="col"><i class="fas fa-link"></i> Source</th>
-                                    <th scope="col"><i class="fas fa-ellipsis-v"></i> Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var portfolio in Model)
-                                {
-                                    foreach (var stock in portfolio.Items)
-                                    {
-                                        foreach (var stockEvent in stock.StockEvents)
-                                        {
-                                            <tr>
-                                                <td>@stockEvent.Date</td>
-                                                <td>@stockEvent.EventName</td>
-                                                <td>@stockEvent.Details</td>
-                                                <td class="@stockEvent.Impact.ToLower()">@stockEvent.Impact</td>
-                                                <td class="@stockEvent.Sentiment.ToLower()">@stockEvent.Sentiment</td>
-                                                <td><a href="@stockEvent.Source" class="@stockEvent.Sentiment.ToLower()">Link</a></td>
-                                                <td>
-                                                    <div class="btn-group" role="group">
-                                                        <a class="btn btn-secondary" href="/StockEvents/Details/@stockEvent.Id"><i class="fas fa-eye"></i> View More</a>
-                                                        <a class="btn btn-primary" href="/StockEvents/Edit/@stockEvent.Id"><i class="fas fa-edit"></i> Edit</a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div id="loading" class="loading-spinner">Loading...</div>
-    <div class="col-md-12 chart-container">
-        <div id="chart"></div>
-    </div>
+    @Html.Partial("_List", Model)
+    @Html.Partial("_Table", Model)
+    @Html.Partial("_Chart", Model)
 </div>
 
 <script>
@@ -321,7 +213,7 @@
     // Helper function to get date range for the beginning of the year and the current date
     function getDateRange() {
         const currentYear = new Date().getFullYear();
-        const startDate = new Date(currentYear, 0, 1); // January 1st of the current year
+        const startDate = new Date(currentYear, 0, 3); // January 1st of the current year
         const endDate = new Date(); // Today
         return { startDate, endDate };
     }
