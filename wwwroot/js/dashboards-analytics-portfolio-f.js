@@ -88,10 +88,12 @@
                     </div>
                     <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
                       <div class="me-2">
+                       <a href="/PortfolioItems/Details/${item.id}" class="text-decoration-none">
                         <h6 class="mb-0">${item.symbol}</h6>
                         <small class="text-muted">Total Investment: €${item.totalInvestment.toFixed(2)}</small>
                         <small class="text-muted">Current Market Value: €${item.currentMarketValue.toFixed(2)}</small>
                         <small class="text-muted">Dividends: €${item.dividends.toFixed(2)}</small>
+                         </a>
                       </div>
                     </div>
                   </li>

@@ -19,11 +19,12 @@ namespace MarketAnalyticHub.Controllers
   {
     private readonly ApplicationDbContext _context;
     private readonly PortfolioService _portfolioService;
-
-    public DashboardsController(ApplicationDbContext context, PortfolioService portfolioService)
+    private readonly IYahooFinanceService _yahooFinanceService;
+    public DashboardsController(ApplicationDbContext context, PortfolioService portfolioService, IYahooFinanceService yahooFinanceService)
     {
       _context = context;
       _portfolioService = portfolioService;
+      _yahooFinanceService = yahooFinanceService;
     }
 
     public IActionResult GetTransactions(string filter)
@@ -161,47 +162,59 @@ namespace MarketAnalyticHub.Controllers
 
 
       [HttpGet("GetYearlyData/{year}")]
-      public async Task<IActionResult> GetYearlyData(int year)
+    public async Task<IActionResult> GetYearlyData(int year)
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
       {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userId == null)
-        {
-          return Unauthorized();
-        }
-
-        // Fetch the portfolios
-        var portfolios = await _context.Portfolios
-            .Where(p => p.UserId == userId)
-            .Include(p => p.Items)
-            .ToListAsync();
-
-        // Get total revenue and investment data grouped by month for the specified year
-        var totalRevenueByMonth = portfolios
-            .SelectMany(p => p.Items)
-            .Where(item => item.PurchaseDate.Year == year)
-            .GroupBy(item => item.PurchaseDate.Month)
-            .Select(g => new
-            {
-              Month = g.Key,
-              TotalRevenue = g.Sum(item => item.CurrentMarketValue),
-              TotalInvestment = g.Sum(item => item.TotalInvestment)
-            })
-            .OrderBy(x => x.Month)
-            .ToList();
-
-        // Prepare data for the chart
-        var seriesRevenue = new decimal[12];
-        var seriesInvestment = new decimal[12];
-
-        foreach (var item in totalRevenueByMonth)
-        {
-          seriesRevenue[item.Month - 1] = item.TotalRevenue;
-          seriesInvestment[item.Month - 1] = item.TotalInvestment;
-        }
-
-        return Ok(new { seriesRevenue, seriesInvestment });
+        return Unauthorized();
       }
-    
+
+      // Fetch the portfolios
+      var portfolios = await _context.Portfolios
+          .Where(p => p.UserId == userId)
+          .Include(p => p.Items)
+          .ToListAsync();
+
+      // Fetch real-time prices for each item and update the item price
+      foreach (var portfolio in portfolios)
+      {
+        foreach (var item in portfolio.Items)
+        {
+          var price =  _yahooFinanceService.GetRealTimePriceAsync(item.Symbol).Result.CurrentPrice;
+          item.CurrentPrice = (decimal)price;
+        }
+      }
+
+      // Get total revenue and investment data grouped by month for the specified year
+      var totalRevenueByMonth = portfolios
+          .SelectMany(p => p.Items)
+          .Where(item => item.PurchaseDate.Year == year)
+          .GroupBy(item => item.PurchaseDate.Month)
+          .Select(g => new
+          {
+            Month = g.Key,
+            TotalRevenue = g.Sum(item => item.CurrentPrice * item.Quantity),
+            TotalInvestment = g.Sum(item => item.TotalInvestment),
+            Difference = g.Sum(item => item.CurrentPrice * item.Quantity) - g.Sum(item => item.TotalInvestment)
+          })
+          .OrderBy(x => x.Month)
+          .ToList();
+
+      // Prepare data for the chart
+      var seriesRevenue = new decimal[12];
+      var seriesInvestment = new decimal[12];
+      var seriesDifference = new decimal[12];
+
+      foreach (var item in totalRevenueByMonth)
+      {
+        seriesRevenue[item.Month - 1] = item.TotalRevenue;
+        seriesInvestment[item.Month - 1] = item.TotalInvestment;
+        seriesDifference[item.Month - 1] = item.Difference;
+      }
+
+      return Ok(new { seriesRevenue, seriesInvestment, seriesDifference });
+    }
     public async Task<IActionResult> Index()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

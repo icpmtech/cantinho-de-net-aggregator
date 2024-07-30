@@ -34,7 +34,7 @@ namespace AspnetCoreMvcFull.Controllers
             return View(await applicationDbContext.ToListAsync());
         }
 
-        // GET: StockEvents/Details/5
+        // GET: StockEvents/PortfolioItems/Details/5
         public async Task<IActionResult> Details(int? id)
         {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

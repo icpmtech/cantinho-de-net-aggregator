@@ -24,7 +24,7 @@ namespace MarketAnalyticHub.Controllers
             return View(await _context.Sectors.ToListAsync());
         }
 
-        // GET: Sectors/Details/5
+        // GET: Sectors/PortfolioItems/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

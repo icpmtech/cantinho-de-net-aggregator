@@ -56,11 +56,15 @@ namespace MarketAnalyticHub.Controllers.api
         _ => DateTime.Now.AddMonths(-1) // Default to "all" if no valid range is specified
       };
 
-      var data = await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now);
+      var data = timeRange switch
+      {
+        "1d" => await _yahooFinanceService.GetHourlyHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now),
+        _ => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now)
+      };
 
       var dataResult = new
       {
-        dates = data.Select(h => h.Date.ToString("yyyy-MM-dd")).ToArray(),
+        dates = data.Select(h => h.Date.ToString(timeRange == "1d" ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd")).ToArray(),
         opens = data.Select(h => h.Open).ToArray(),
         highs = data.Select(h => h.High).ToArray(),
         lows = data.Select(h => h.Low).ToArray(),
@@ -268,6 +272,7 @@ namespace MarketAnalyticHub.Controllers.api
         Items = p.Items.Select(i => new PortfolioItemDetail
         {
           Symbol = i.Symbol,
+          Id = i.Id,
           TotalInvestment = i.TotalInvestment,
           CurrentMarketValue = i.CurrentMarketValue,
           Dividends = i.Dividends.Sum(d => d.Amount)

@@ -32,7 +32,7 @@ namespace MarketAnalyticHub.Controllers.Configurations.Portfolio
       return View(await applicationDbContext.ToListAsync());
     }
 
-    // GET: Transactions/Details/5
+    // GET: Transactions/PortfolioItems/Details/5
     public async Task<IActionResult> Details(int? id)
     {
       if (id == null)

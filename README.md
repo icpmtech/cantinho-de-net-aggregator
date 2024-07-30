@@ -6,7 +6,7 @@
 
 <h1 align="center">
    <a href="https://cantinhodonet.com" target="_blank">
-      Cantinho de .NET - Your Market Analytic Hub
+      Cantinho de .NET - Your Market Analytics Hub: Predictive Insights
    </a>
 </h1>
 

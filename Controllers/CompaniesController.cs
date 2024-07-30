@@ -55,7 +55,7 @@ namespace MarketAnalyticHub.Controllers
     }
 
 
-    // GET: Companies/Details/5
+    // GET: Companies/PortfolioItems/Details/5
     public async Task<IActionResult> Details(int? id)
         {
             if (id == null)

@@ -18,30 +18,25 @@
                 {
                     name: 'Investment',
                     data: []
+                },
+                {
+                    name: 'Diff.',
+                    data: []
                 }
             ],
             chart: {
                 height: 300,
-                stacked: true,
+                stacked: false, // Change to false to avoid stacking
                 type: 'bar',
                 toolbar: { show: false }
             },
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '33%',
-                    borderRadius: 15,
-                    startingShape: 'rounded',
-                    endingShape: 'rounded'
-                }
-            },
-            colors: ['#7367F0', '#00CFDD'],
+            colors: ['#7367F0', '#00CFDD', '#FF4560'], // Distinct colors for each series
             dataLabels: {
                 enabled: false
             },
             stroke: {
                 curve: 'smooth',
-                width: 6,
+                width: 2,
                 lineCap: 'round',
                 colors: ['#FFFFFF']
             },
@@ -94,162 +89,6 @@
                     }
                 }
             },
-            responsive: [
-                {
-                    breakpoint: 1700,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '32%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 1580,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '35%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 1440,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '42%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 1300,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '48%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 1200,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '40%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 1040,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 11,
-                                columnWidth: '48%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 991,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '30%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 840,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '35%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 768,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '28%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 640,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '32%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 576,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '37%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 480,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '45%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 420,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '52%'
-                            }
-                        }
-                    }
-                },
-                {
-                    breakpoint: 380,
-                    options: {
-                        plotOptions: {
-                            bar: {
-                                borderRadius: 10,
-                                columnWidth: '60%'
-                            }
-                        }
-                    }
-                }
-            ],
             states: {
                 hover: {
                     filter: {
@@ -284,6 +123,10 @@
                     {
                         name: 'Investment',
                         data: data.seriesInvestment
+                    },
+                    {
+                        name: 'Diff.',
+                        data: data.seriesDifference
                     }
                 ]);
                 document.getElementById('growthReportId').textContent = year;
@@ -300,6 +143,7 @@
         }
     });
 </script>
+
 <div class="col-12 col-lg-8 order-2 order-md-3 order-lg-2 mb-4">
     <div class="card">
         <div class="row row-bordered g-0">
