@@ -252,17 +252,22 @@
             <ul class="menu-sub">
                 <li class='menu-item@(currentPage == "/Portfolio/Index" ? " active" : "")'>
                     <a asp-controller="Portfolio" asp-action="Index" class="menu-link">
-                        <div>Portfolio</div>
+                        <div>Overview</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/PortfolioItems/Index" ? " active" : "")'>
                     <a asp-controller="PortfolioItems" asp-action="Index" class="menu-link">
-                        <div>Portfolio Items</div>
+                        <div>Transactions</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Portfolio/Dividends" ? " active" : "")'>
+                    <a asp-controller="Portfolio" asp-action="Dividends" class="menu-link">
+                        <div>Dividends</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/StockEvents/Index" ? " active" : "")'>
                     <a asp-controller="StockEvents" asp-action="Index" class="menu-link">
-                        <div>Ticker/Symbol Events</div>
+                        <div>Events</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/Portfolio/Fundamentals" ? " active" : "")'>
@@ -275,11 +280,7 @@
                         <div>Qualitatives</div>
                     </a>
                 </li>
-                <li class='menu-item@(currentPage == "/Portfolio/Dividends" ? " active" : "")'>
-                    <a asp-controller="Portfolio" asp-action="Dividends" class="menu-link">
-                        <div>Dividends</div>
-                    </a>
-                </li>
+                
             </ul>
         </li>
     <!-- Settings -->

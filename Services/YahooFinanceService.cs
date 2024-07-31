@@ -10,12 +10,37 @@ namespace MarketAnalyticHub.Services
     Task<StockData> GetRealTimePriceAsync(string symbol);
     Task<List<HistoricalData>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate);
     Task<List<HistoricalData>> GetHourlyHistoricalDataAsync(string symbol, DateTime startDate, DateTime now);
+    Task<IEnumerable<Dividend>> GetDividendsAsync(string symbol);
   }
 
 
-
-  public class YahooFinanceService : IYahooFinanceService
+public class YahooFinanceService : IYahooFinanceService
   {
+
+    public async Task<IEnumerable<Dividend>> GetDividendsAsync(string symbol)
+    {
+      List<Dividend> dividends = new List<Dividend>();
+      try
+      {
+        var _dividends = await Yahoo.GetDividendsAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1));
+
+        foreach (var candle in _dividends)
+        {
+          dividends.Append(new Dividend { Amount = candle.Dividend, ExDate = candle.DateTime });
+        }
+
+
+
+        return dividends;
+      }
+      catch (Exception ex)
+      {
+        // Log the exception (optional)
+        //_logger.LogError(ex, $"Failed to get current price for symbol: {symbol}");
+        return dividends;
+      }
+    }
+
     public async Task<StockData> GetRealTimePriceAsync(string symbol)
     {
       try

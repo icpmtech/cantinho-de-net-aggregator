@@ -206,7 +206,13 @@ namespace MarketAnalyticHub.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool PortfolioItemExists(int id)
+    [HttpGet("dividends")]
+    public async Task<IActionResult> Calendar(string symbol)
+    {
+      return View();
+    }
+
+    private bool PortfolioItemExists(int id)
         {
             return _context.PortfolioItems.Any(e => e.Id == id);
         }

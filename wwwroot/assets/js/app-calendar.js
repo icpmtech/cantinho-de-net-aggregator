@@ -1,1 +1,450 @@
-let direction="ltr";isRtl&&(direction="rtl"),document.addEventListener("DOMContentLoaded",function(){{let e=document.getElementById("calendar"),t=document.querySelector(".app-calendar-sidebar"),n=document.getElementById("addEventSidebar"),a=document.querySelector(".app-overlay"),l={Business:"primary",Holiday:"success",Personal:"danger",Family:"warning",ETC:"info"},r=document.querySelector(".offcanvas-title"),i=document.querySelector(".btn-toggle-sidebar"),d=document.querySelector("#addEventBtn"),o=document.querySelector(".btn-delete-event"),s=document.querySelector(".btn-cancel"),c=document.querySelector("#eventTitle"),u=document.querySelector("#eventStartDate"),v=document.querySelector("#eventEndDate"),m=document.querySelector("#eventURL"),p=$("#eventLabel"),f=$("#eventGuests"),g=document.querySelector("#eventLocation"),h=document.querySelector("#eventDescription"),b=document.querySelector(".allDay-switch"),y=document.querySelector(".select-all"),S=[].slice.call(document.querySelectorAll(".input-filter")),L=document.querySelector(".inline-calendar"),E,k=events,w=!1,x,q=new bootstrap.Offcanvas(n);function P(e){return e.id?"<span class='badge badge-dot bg-"+$(e.element).data("label")+" me-2'> </span>"+e.text:e.text}function M(e){return e.id?"<div class='d-flex flex-wrap align-items-center'><div class='avatar avatar-xs me-2'><img src='"+assetsPath+"img/avatars/"+$(e.element).data("avatar")+"' alt='avatar' class='rounded-circle' /></div>"+e.text+"</div>":e.text}var T,A;function F(){var e=document.querySelector(".fc-sidebarToggle-button");for(e.classList.remove("fc-button-primary"),e.classList.add("d-lg-none","d-inline-block","ps-0");e.firstChild;)e.firstChild.remove();e.setAttribute("data-bs-toggle","sidebar"),e.setAttribute("data-overlay",""),e.setAttribute("data-target","#app-calendar-sidebar"),e.insertAdjacentHTML("beforeend",'<i class="bx bx-menu bx-lg text-heading"></i>')}p.length&&p.wrap('<div class="position-relative"></div>').select2({placeholder:"Select value",dropdownParent:p.parent(),templateResult:P,templateSelection:P,minimumResultsForSearch:-1,escapeMarkup:function(e){return e}}),f.length&&f.wrap('<div class="position-relative"></div>').select2({placeholder:"Select value",dropdownParent:f.parent(),closeOnSelect:!1,templateResult:M,templateSelection:M,escapeMarkup:function(e){return e}}),u&&(T=u.flatpickr({enableTime:!0,altFormat:"Y-m-dTH:i:S",onReady:function(e,t,n){n.isMobile&&n.mobileInput.setAttribute("step",null)}})),v&&(A=v.flatpickr({enableTime:!0,altFormat:"Y-m-dTH:i:S",onReady:function(e,t,n){n.isMobile&&n.mobileInput.setAttribute("step",null)}})),L&&(x=L.flatpickr({monthSelectorType:"static",inline:!0}));let D=new Calendar(e,{initialView:"dayGridMonth",events:function(e,t){let n=function(){let t=[],e=[].slice.call(document.querySelectorAll(".input-filter:checked"));return e.forEach(e=>{t.push(e.getAttribute("data-value"))}),t}();t(k.filter(function(e){return n.includes(e.extendedProps.calendar.toLowerCase())}))},plugins:[dayGridPlugin,interactionPlugin,listPlugin,timegridPlugin],editable:!0,dragScroll:!0,dayMaxEvents:2,eventResizableFromStart:!0,customButtons:{sidebarToggle:{text:"Sidebar"}},headerToolbar:{start:"sidebarToggle, prev,next, title",end:"dayGridMonth,timeGridWeek,timeGridDay,listMonth"},direction:direction,initialDate:new Date,navLinks:!0,eventClassNames:function({event:e}){return["fc-event-"+l[e._def.extendedProps.calendar]]},dateClick:function(e){e=moment(e.date).format("YYYY-MM-DD");C(),q.show(),r&&(r.innerHTML="Add Event"),d.innerHTML="Add",d.classList.remove("btn-update-event"),d.classList.add("btn-add-event"),o.classList.add("d-none"),u.value=e,v.value=e},eventClick:function(e){e=e,(E=e.event).url&&(e.jsEvent.preventDefault(),window.open(E.url,"_blank")),q.show(),r&&(r.innerHTML="Update Event"),d.innerHTML="Update",d.classList.add("btn-update-event"),d.classList.remove("btn-add-event"),o.classList.remove("d-none"),c.value=E.title,T.setDate(E.start,!0,"Y-m-d"),!0===E.allDay?b.checked=!0:b.checked=!1,null!==E.end?A.setDate(E.end,!0,"Y-m-d"):A.setDate(E.start,!0,"Y-m-d"),p.val(E.extendedProps.calendar).trigger("change"),void 0!==E.extendedProps.location&&(g.value=E.extendedProps.location),void 0!==E.extendedProps.guests&&f.val(E.extendedProps.guests).trigger("change"),void 0!==E.extendedProps.description&&(h.value=E.extendedProps.description)},datesSet:function(){F()},viewDidMount:function(){F()}});D.render(),F();var Y=document.getElementById("eventForm");function C(){v.value="",m.value="",u.value="",c.value="",g.value="",b.checked=!1,f.val("").trigger("change"),h.value=""}FormValidation.formValidation(Y,{fields:{eventTitle:{validators:{notEmpty:{message:"Please enter event title "}}},eventStartDate:{validators:{notEmpty:{message:"Please enter start date "}}},eventEndDate:{validators:{notEmpty:{message:"Please enter end date "}}}},plugins:{trigger:new FormValidation.plugins.Trigger,bootstrap5:new FormValidation.plugins.Bootstrap5({eleValidClass:"",rowSelector:function(e,t){return".mb-6"}}),submitButton:new FormValidation.plugins.SubmitButton,autoFocus:new FormValidation.plugins.AutoFocus}}).on("core.form.valid",function(){w=!0}).on("core.form.invalid",function(){w=!1}),i&&i.addEventListener("click",e=>{s.classList.remove("d-none")}),d.addEventListener("click",e=>{var t,n;d.classList.contains("btn-add-event")?w&&(n={id:D.getEvents().length+1,title:c.value,start:u.value,end:v.value,startStr:u.value,endStr:v.value,display:"block",extendedProps:{location:g.value,guests:f.val(),calendar:p.val(),description:h.value}},m.value&&(n.url=m.value),b.checked&&(n.allDay=!0),n=n,k.push(n),D.refetchEvents(),q.hide()):w&&(n={id:E.id,title:c.value,start:u.value,end:v.value,url:m.value,extendedProps:{location:g.value,guests:f.val(),calendar:p.val(),description:h.value},display:"block",allDay:!!b.checked},(t=n).id=parseInt(t.id),k[k.findIndex(e=>e.id===t.id)]=t,D.refetchEvents(),q.hide())}),o.addEventListener("click",e=>{var t;t=parseInt(E.id),k=k.filter(function(e){return e.id!=t}),D.refetchEvents(),q.hide()}),n.addEventListener("hidden.bs.offcanvas",function(){C()}),i.addEventListener("click",e=>{r&&(r.innerHTML="Add Event"),d.innerHTML="Add",d.classList.remove("btn-update-event"),d.classList.add("btn-add-event"),o.classList.add("d-none"),t.classList.remove("show"),a.classList.remove("show")}),y&&y.addEventListener("click",e=>{e.currentTarget.checked?document.querySelectorAll(".input-filter").forEach(e=>e.checked=1):document.querySelectorAll(".input-filter").forEach(e=>e.checked=0),D.refetchEvents()}),S&&S.forEach(e=>{e.addEventListener("click",()=>{document.querySelectorAll(".input-filter:checked").length<document.querySelectorAll(".input-filter").length?y.checked=!1:y.checked=!0,D.refetchEvents()})}),x.config.onChange.push(function(e){D.changeView(D.view.type,moment(e[0]).format("YYYY-MM-DD")),F(),t.classList.remove("show"),a.classList.remove("show")})}});
+const apiUrl = '/api/events';
+
+// Fetch events from the API
+async function fetchEvents() {
+  try {
+    const response = await fetch(apiUrl);
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching events:', error);
+    return [];
+  }
+}
+
+// Set assetsPath to '~/assets'
+const assetsPath = '~/assets';
+
+// Validate assets path
+function validateAssetsPath(path) {
+  if (!path || typeof path !== 'string' || !path.trim()) {
+    console.error('Error: Invalid assetsPath. Please ensure it is set correctly.');
+    return false;
+  }
+  return true;
+}
+
+let direction = "ltr"; // Direction is explicitly set to LTR
+
+document.addEventListener("DOMContentLoaded", async function () {
+  if (!validateAssetsPath(assetsPath)) {
+    return; // Exit if assetsPath is invalid
+  }
+
+  let eventsList = await fetchEvents();
+
+  let calendarElement = document.getElementById("calendar"),
+    sidebarElement = document.querySelector(".app-calendar-sidebar"),
+    addEventSidebarElement = document.getElementById("addEventSidebar"),
+    overlayElement = document.querySelector(".app-overlay"),
+    eventCategories = {
+      Business: "primary",
+      Holiday: "success",
+      Personal: "danger",
+      Family: "warning",
+      ETC: "info"
+    },
+    offcanvasTitleElement = document.querySelector(".offcanvas-title"),
+    toggleSidebarButton = document.querySelector(".btn-toggle-sidebar"),
+    addEventButton = document.querySelector("#addEventBtn"),
+    deleteEventButton = document.querySelector(".btn-delete-event"),
+    cancelButton = document.querySelector(".btn-cancel"),
+    eventTitleInput = document.querySelector("#eventTitle"),
+    eventStartDateInput = document.querySelector("#eventStartDate"),
+    eventEndDateInput = document.querySelector("#eventEndDate"),
+    eventURLInput = document.querySelector("#eventURL"),
+    eventLabelSelect = $("#eventLabel"),
+    eventGuestsSelect = $("#eventGuests"),
+    eventLocationInput = document.querySelector("#eventLocation"),
+    eventDescriptionInput = document.querySelector("#eventDescription"),
+    eventImpactInput = document.querySelector("#eventImpact"),
+    eventSentimentInput = document.querySelector("#eventSentiment"),
+    eventSourceInput = document.querySelector("#eventSource"),
+    eventPriceInput = document.querySelector("#eventPrice"),
+    eventPriceChangeInput = document.querySelector("#eventPriceChange"),
+    eventPortfolioItemIdInput = document.querySelector("#eventPortfolioItemId"),
+    allDaySwitch = document.querySelector(".allDay-switch"),
+    selectAllCheckbox = document.querySelector(".select-all"),
+    filterInputs = [].slice.call(document.querySelectorAll(".input-filter")),
+    inlineCalendarElement = document.querySelector(".inline-calendar"),
+    selectedEvent,
+    isFormValid = false,
+    inlineCalendarInstance,
+    offcanvasInstance = new bootstrap.Offcanvas(addEventSidebarElement);
+
+  function formatEventLabel(option) {
+    return option.id ? "<span class='badge badge-dot bg-" + $(option.element).data("label") + " me-2'> </span>" + option.text : option.text;
+  }
+
+  function formatGuestOption(option) {
+    return option.id ? "<div class='d-flex flex-wrap align-items-center'><div class='avatar avatar-xs me-2'><img src='" + assetsPath + "/img/avatars/" + $(option.element).data("avatar") + "' alt='avatar' class='rounded-circle' /></div>" + option.text + "</div>" : option.text;
+  }
+
+  var startDatePicker, endDatePicker;
+
+  function customizeSidebarToggleButton() {
+    var sidebarToggleButton = document.querySelector(".fc-sidebarToggle-button");
+    if (sidebarToggleButton) {
+      sidebarToggleButton.classList.remove("fc-button-primary");
+      sidebarToggleButton.classList.add("d-lg-none", "d-inline-block", "ps-0");
+
+      while (sidebarToggleButton.firstChild) {
+        sidebarToggleButton.firstChild.remove();
+      }
+
+      sidebarToggleButton.setAttribute("data-bs-toggle", "sidebar");
+      sidebarToggleButton.setAttribute("data-overlay", "");
+      sidebarToggleButton.setAttribute("data-target", "#app-calendar-sidebar");
+      sidebarToggleButton.insertAdjacentHTML("beforeend", '<i class="bx bx-menu bx-lg text-heading"></i>');
+    }
+  }
+
+  if (eventLabelSelect.length) {
+    eventLabelSelect.wrap('<div class="position-relative"></div>').select2({
+      placeholder: "Select value",
+      dropdownParent: eventLabelSelect.parent(),
+      templateResult: formatEventLabel,
+      templateSelection: formatEventLabel,
+      minimumResultsForSearch: -1,
+      escapeMarkup: function (markup) {
+        return markup;
+      }
+    });
+  }
+
+  if (eventGuestsSelect.length) {
+    eventGuestsSelect.wrap('<div class="position-relative"></div>').select2({
+      placeholder: "Select value",
+      dropdownParent: eventGuestsSelect.parent(),
+      closeOnSelect: false,
+      templateResult: formatGuestOption,
+      templateSelection: formatGuestOption,
+      escapeMarkup: function (markup) {
+        return markup;
+      }
+    });
+  }
+
+  if (eventStartDateInput) {
+    startDatePicker = eventStartDateInput.flatpickr({
+      enableTime: true,
+      altFormat: "Y-m-dTH:i:S",
+      onReady: function (dates, dateStr, instance) {
+        if (instance.isMobile) {
+          instance.mobileInput.setAttribute("step", null);
+        }
+      }
+    });
+  }
+
+  if (eventEndDateInput) {
+    endDatePicker = eventEndDateInput.flatpickr({
+      enableTime: true,
+      altFormat: "Y-m-dTH:i:S",
+      onReady: function (dates, dateStr, instance) {
+        if (instance.isMobile) {
+          instance.mobileInput.setAttribute("step", null);
+        }
+      }
+    });
+  }
+
+  if (inlineCalendarElement) {
+    inlineCalendarInstance = inlineCalendarElement.flatpickr({
+      monthSelectorType: "static",
+      inline: true
+    });
+  }
+
+  let calendarInstance = new Calendar(calendarElement, {
+    initialView: "dayGridMonth",
+    events: function (fetchInfo, successCallback) {
+      let selectedCategories = [].slice.call(document.querySelectorAll(".input-filter:checked")).map(input => input.getAttribute("data-value"));
+      let filteredEvents = eventsList.filter(event => {
+        return event.calendar && selectedCategories.includes(event.calendar.toLowerCase());
+      });
+      successCallback(filteredEvents);
+    },
+    plugins: [dayGridPlugin, interactionPlugin, listPlugin, timegridPlugin],
+    editable: true,
+    dragScroll: true,
+    dayMaxEvents: 2,
+    eventResizableFromStart: true,
+    customButtons: {
+      sidebarToggle: {
+        text: "Sidebar"
+      }
+    },
+    headerToolbar: {
+      start: "sidebarToggle, prev,next, title",
+      end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth"
+    },
+    direction: direction,
+    initialDate: new Date(),
+    navLinks: true,
+    eventClassNames: function ({ event }) {
+      return ["fc-event-" + eventCategories[event.calendar]];
+    },
+    dateClick: function (info) {
+      let selectedDate = moment(info.date).format("YYYY-MM-DD");
+      resetEventForm();
+      offcanvasInstance.show();
+      if (offcanvasTitleElement) offcanvasTitleElement.innerHTML = "Add Event";
+      addEventButton.innerHTML = "Add";
+      addEventButton.classList.remove("btn-update-event");
+      addEventButton.classList.add("btn-add-event");
+      deleteEventButton.classList.add("d-none");
+      eventStartDateInput.value = selectedDate;
+      eventEndDateInput.value = selectedDate;
+    },
+    eventClick: function (info) {
+      selectedEvent = info.event;
+      if (selectedEvent.url) {
+        info.jsEvent.preventDefault();
+        window.open(selectedEvent.url, "_blank");
+      }
+      offcanvasInstance.show();
+      if (offcanvasTitleElement) offcanvasTitleElement.innerHTML = "Update Event";
+      addEventButton.innerHTML = "Update";
+      addEventButton.classList.add("btn-update-event");
+      addEventButton.classList.remove("btn-add-event");
+      deleteEventButton.classList.remove("d-none");
+      eventTitleInput.value = selectedEvent.title;
+      startDatePicker.setDate(selectedEvent.start, true, "Y-m-d");
+      allDaySwitch.checked = !!selectedEvent.allDay;
+      if (selectedEvent.end) {
+        endDatePicker.setDate(selectedEvent.end, true, "Y-m-d");
+      } else {
+        endDatePicker.setDate(selectedEvent.start, true, "Y-m-d");
+      }
+      eventLabelSelect.val(selectedEvent.calendar).trigger("change");
+      if (selectedEvent.location) {
+        eventLocationInput.value = selectedEvent.location;
+      }
+      if (selectedEvent.guests) {
+        eventGuestsSelect.val(selectedEvent.guests).trigger("change");
+      }
+      if (selectedEvent.description) {
+        eventDescriptionInput.value = selectedEvent.description;
+      }
+      if (selectedEvent.extendedProps) {
+        eventImpactInput.value = selectedEvent.extendedProps.impact;
+        eventSentimentInput.value = selectedEvent.extendedProps.sentiment;
+        eventSourceInput.value = selectedEvent.extendedProps.source;
+        eventPriceInput.value = selectedEvent.extendedProps.price;
+        eventPriceChangeInput.value = selectedEvent.extendedProps.priceChange;
+        eventPortfolioItemIdInput.value = selectedEvent.extendedProps.portfolioItemId;
+      }
+    },
+    datesSet: function () {
+      customizeSidebarToggleButton();
+    },
+    viewDidMount: function () {
+      customizeSidebarToggleButton();
+    }
+  });
+
+  calendarInstance.render();
+  customizeSidebarToggleButton();
+
+  var eventForm = document.getElementById("eventForm");
+
+  function resetEventForm() {
+    eventEndDateInput.value = "";
+    eventURLInput.value = "";
+    eventStartDateInput.value = "";
+    eventTitleInput.value = "";
+    eventLocationInput.value = "";
+    allDaySwitch.checked = false;
+    eventGuestsSelect.val("").trigger("change");
+    eventDescriptionInput.value = "";
+    eventImpactInput.value = "";
+    eventSentimentInput.value = "";
+    eventSourceInput.value = "";
+    eventPriceInput.value = "";
+    eventPriceChangeInput.value = "";
+    eventPortfolioItemIdInput.value = "";
+  }
+
+  FormValidation.formValidation(eventForm, {
+    fields: {
+      eventTitle: {
+        validators: {
+          notEmpty: {
+            message: "Please enter event title"
+          }
+        }
+      },
+      eventStartDate: {
+        validators: {
+          notEmpty: {
+            message: "Please enter start date"
+          }
+        }
+      },
+      eventEndDate: {
+        validators: {
+          notEmpty: {
+            message: "Please enter end date"
+          }
+        }
+      }
+    },
+    plugins: {
+      trigger: new FormValidation.plugins.Trigger(),
+      bootstrap5: new FormValidation.plugins.Bootstrap5({
+        eleValidClass: "",
+        rowSelector: function (field, element) {
+          return ".mb-6";
+        }
+      }),
+      submitButton: new FormValidation.plugins.SubmitButton(),
+      autoFocus: new FormValidation.plugins.AutoFocus()
+    }
+  }).on("core.form.valid", function () {
+    isFormValid = true;
+  }).on("core.form.invalid", function () {
+    isFormValid = false;
+  });
+
+  if (toggleSidebarButton) {
+    toggleSidebarButton.addEventListener("click", () => {
+      cancelButton.classList.remove("d-none");
+    });
+  }
+
+  addEventButton.addEventListener("click", async () => {
+    if (addEventButton.classList.contains("btn-add-event") && isFormValid) {
+      let newEvent = {
+        title: eventTitleInput.value,
+        start: eventStartDateInput.value,
+        end: eventEndDateInput.value,
+        url: eventURLInput.value,
+        location: eventLocationInput.value,
+        guests: eventGuestsSelect.val(),
+        calendar: eventLabelSelect.val(),
+        description: eventDescriptionInput.value,
+        allDay: allDaySwitch.checked,
+        extendedProps: {
+          impact: eventImpactInput.value,
+          sentiment: eventSentimentInput.value,
+          source: eventSourceInput.value,
+          price: eventPriceInput.value,
+          priceChange: eventPriceChangeInput.value,
+          portfolioItemId: eventPortfolioItemIdInput.value
+        }
+      };
+
+      let response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newEvent)
+      });
+
+      if (response.ok) {
+        eventsList = await fetchEvents();
+        calendarInstance.refetchEvents();
+        offcanvasInstance.hide();
+      } else {
+        console.error('Error saving event:', response.statusText);
+      }
+    } else if (isFormValid) {
+      let updatedEvent = {
+        id: selectedEvent.id,
+        title: eventTitleInput.value,
+        start: eventStartDateInput.value,
+        end: eventEndDateInput.value,
+        url: eventURLInput.value,
+        location: eventLocationInput.value,
+        guests: eventGuestsSelect.val(),
+        calendar: eventLabelSelect.val(),
+        description: eventDescriptionInput.value,
+        allDay: !!allDaySwitch.checked,
+        extendedProps: {
+          impact: eventImpactInput.value,
+          sentiment: eventSentimentInput.value,
+          source: eventSourceInput.value,
+          price: eventPriceInput.value,
+          priceChange: eventPriceChangeInput.value,
+          portfolioItemId: eventPortfolioItemIdInput.value
+        }
+      };
+
+      let response = await fetch(`${apiUrl}/${selectedEvent.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedEvent)
+      });
+
+      if (response.ok) {
+        eventsList = await fetchEvents();
+        calendarInstance.refetchEvents();
+        offcanvasInstance.hide();
+      } else {
+        console.error('Error updating event:', response.statusText);
+      }
+    }
+  });
+
+  deleteEventButton.addEventListener("click", async () => {
+    let response = await fetch(`${apiUrl}/${selectedEvent.id}`, {
+      method: 'DELETE'
+    });
+
+    if (response.ok) {
+      eventsList = await fetchEvents();
+      calendarInstance.refetchEvents();
+      offcanvasInstance.hide();
+    } else {
+      console.error('Error deleting event:', response.statusText);
+    }
+  });
+
+  addEventSidebarElement.addEventListener("hidden.bs.offcanvas", resetEventForm);
+
+  toggleSidebarButton.addEventListener("click", () => {
+    if (offcanvasTitleElement) offcanvasTitleElement.innerHTML = "Add Event";
+    addEventButton.innerHTML = "Add";
+    addEventButton.classList.remove("btn-update-event");
+    addEventButton.classList.add("btn-add-event");
+    deleteEventButton.classList.add("d-none");
+    sidebarElement.classList.remove("show");
+    overlayElement.classList.remove("show");
+  });
+
+  if (selectAllCheckbox) {
+    selectAllCheckbox.addEventListener("click", (event) => {
+      if (event.currentTarget.checked) {
+        document.querySelectorAll(".input-filter").forEach(input => input.checked = true);
+      } else {
+        document.querySelectorAll(".input-filter").forEach(input => input.checked = false);
+      }
+      calendarInstance.refetchEvents();
+    });
+  }
+
+  if (filterInputs) {
+    filterInputs.forEach(input => {
+      input.addEventListener("click", () => {
+        if (document.querySelectorAll(".input-filter:checked").length < document.querySelectorAll(".input-filter").length) {
+          selectAllCheckbox.checked = false;
+        } else {
+          selectAllCheckbox.checked = true;
+        }
+        calendarInstance.refetchEvents();
+      });
+    });
+  }
+
+  if (inlineCalendarInstance) {
+    inlineCalendarInstance.config.onChange.push(function (selectedDates) {
+      calendarInstance.changeView(calendarInstance.view.type, moment(selectedDates[0]).format("YYYY-MM-DD"));
+      customizeSidebarToggleButton();
+      sidebarElement.classList.remove("show");
+      overlayElement.classList.remove("show");
+    });
+  }
+});
