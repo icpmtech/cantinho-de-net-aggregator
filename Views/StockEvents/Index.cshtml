@@ -169,11 +169,19 @@
             });
             document.querySelectorAll('.toggle-details').forEach(function (button) {
                 button.addEventListener('click', function () {
+                    const target = document.querySelector(button.getAttribute('data-bs-target'));
                     const icon = button.querySelector('i');
-                    icon.classList.toggle('bx-chevron-down');
-                    icon.classList.toggle('bx-chevron-up');
+
+                    if (target.classList.contains('show')) {
+                        target.classList.remove('show');
+                        icon.classList.remove('bx-chevron-up');
+                        icon.classList.add('bx-chevron-down');
+                    } else {
+                        target.classList.add('show');
+                        icon.classList.remove('bx-chevron-down');
+                        icon.classList.add('bx-chevron-up');
+                    }
                 });
-            });
         });
 
     </script>

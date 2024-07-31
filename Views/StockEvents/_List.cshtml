@@ -35,12 +35,11 @@ else
                                 <h5 class="card-title">@Html.DisplayFor(modelItem => item.EventName)</h5>
                                 <h6 class="card-subtitle mb-2 text-muted">@Html.DisplayFor(modelItem => item.Date)</h6>
                             </div>
-                            <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#details-list-@item.Id">
+                            <button class="btn btn-link toggle-details" data-bs-toggle="collapse" data-bs-target="#details-list-@item.Id" aria-expanded="false">
                                 <i class="bx bx-chevron-down"></i>
                             </button>
-                           
                         </div>
-                        <div id="details-list-@item.Id" class="collapse">
+                        <div id="details-list-@item.Id" class="details-section" style="display: none;">
                             <p class="card-text"><strong>Details:</strong> @Html.DisplayFor(modelItem => item.Details)</p>
                             <p class="card-text"><strong>Impact:</strong> @Html.DisplayFor(modelItem => item.Impact)</p>
                             <p class="card-text"><strong>Sentiment:</strong> @Html.DisplayFor(modelItem => item.Sentiment)</p>
@@ -98,3 +97,4 @@ else
         </div>
     </div>
 }
+
