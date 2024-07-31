@@ -115,8 +115,8 @@ namespace MarketAnalyticHub.Controllers.api
       var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
       var incomeData = new
       {
-        series = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Value.CurrentMarketValue)).ToArray(),
-        categories = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Key.ToString("MMM yyyy")).ToArray())
+        series = portfolios.Select(s => PortfolioBaseService.CalculateMonthlySummaries(s.Items).OrderBy(ms => ms.Key).Select(ms => ms.Value.CurrentMarketValue)).ToArray(),
+        categories = portfolios.Select(s => PortfolioBaseService.CalculateMonthlySummaries(s.Items).OrderBy(ms => ms.Key).Select(ms => ms.Key.ToString("MMM yyyy")).ToArray())
       };
 
       return Ok(incomeData);
@@ -130,8 +130,8 @@ namespace MarketAnalyticHub.Controllers.api
 
       var dividendsData = new
       {
-        series = portfolios.Select(s=>s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Value.TotalDividendIncome).ToArray()),
-        categories = portfolios.Select(s => s.CalculateMonthlySummaries().OrderBy(ms => ms.Key).Select(ms => ms.Key.ToString("MMM yyyy")).ToArray())
+        series = portfolios.Select(s=> PortfolioBaseService.CalculateMonthlySummaries(s.Items).OrderBy(ms => ms.Key).Select(ms => ms.Value.TotalDividendIncome).ToArray()),
+        categories = portfolios.Select(s => PortfolioBaseService.CalculateMonthlySummaries(s.Items).OrderBy(ms => ms.Key).Select(ms => ms.Key.ToString("MMM yyyy")).ToArray())
       };
 
       return Ok(dividendsData);
@@ -157,19 +157,104 @@ namespace MarketAnalyticHub.Controllers.api
 
     // GET: api/Dashboards/expenses
     [HttpGet("expenses")]
-    public async Task<IActionResult> GetExpensesData()
+    public async Task<IActionResult> GetEventsDataWeek()
+    {
+      try
+      {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+        // Get the start date of the current week (assuming week starts on Monday)
+        var startOfWeek = PortfolioHelpers.GetStartOfWeek(DateTime.Now);
+
+        var lastWeekEvents = portfolios
+            .SelectMany(p => p.Items.SelectMany(i => i.StockEvents))
+            .Where(e => DateTime.Parse(e.Date) >= startOfWeek && DateTime.Parse(e.Date) < startOfWeek.AddDays(7))
+            .ToList();
+
+        var eventsData = new
+        {
+          Series = lastWeekEvents.Count()
+        };
+
+        return Ok(eventsData);
+      }
+      catch (Exception ex)
+      {
+        // Log the exception (ex)
+        return StatusCode(StatusCodes.Status500InternalServerError, new { error = "An error occurred while processing your request." });
+      }
+    }
+    // GET: api/Dashboards/profit-week
+    [HttpGet("profit-week")]
+    public async Task<IActionResult> GetProfitDataWek()
     {
       // Replace the hardcoded data with actual data retrieval logic
-      var expensesData = new
+      try
       {
-        Series = 65 // Example data
-      };
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
 
-      return Ok(expensesData);
+
+        var allWeeklySummaries = PortfolioHelpers.AggregateWeeklySummaries(portfolios);
+
+        // Get the summary for the last week
+        var lastWeekSummary = allWeeklySummaries.OrderByDescending(kv => kv.Key).FirstOrDefault();
+
+        if (lastWeekSummary.Value.Summary == null)
+        {
+          return NotFound(new { message = "No data available for the last week." });
+        }
+
+        var profitData = new
+        {
+          Series = lastWeekSummary.Value.Summary.TotalInvestment- lastWeekSummary.Value.Summary.CurrentMarketValue // Example data
+        };
+
+        return Ok(profitData);
+      }
+      catch (Exception ex)
+      {
+        // Log the exception (ex)
+        return StatusCode(StatusCodes.Status500InternalServerError, new { error = "An error occurred while processing your request." });
+      }
     }
 
+    // GET: api/Dashboards/dividends-week
+    [HttpGet("dividends-week")]
+    public async Task<IActionResult> GetDividendsDataWeek()
+    {
+      try
+      {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+        var allWeeklySummaries = PortfolioHelpers.AggregateWeeklySummaries(portfolios);
+
+        // Get the summary for the last week
+        var lastWeekSummary = allWeeklySummaries.OrderByDescending(kv => kv.Key).FirstOrDefault();
+
+        if (lastWeekSummary.Value.Summary == null)
+        {
+          return NotFound(new { message = "No data available for the last week." });
+        }
+
+        var profitData = new
+        {
+          Series = lastWeekSummary.Value.Summary.TotalDividendIncome // Example data
+        };
+
+        return Ok(profitData);
+      }
+      catch (Exception ex)
+      {
+        // Log the exception (ex)
+        return StatusCode(StatusCodes.Status500InternalServerError, new { error = "An error occurred while processing your request." });
+      }
+    }
 
    
+
+
     // GET: api/Dashboards/profit
     [HttpGet("profit")]
     public async Task<IActionResult> GetProfitData()
@@ -181,7 +266,7 @@ namespace MarketAnalyticHub.Controllers.api
 
       foreach (var portfolio in portfolios)
       {
-        var monthlySummaries = portfolio.CalculateMonthlySummaries();
+        var monthlySummaries = PortfolioBaseService.CalculateMonthlySummaries(portfolio.Items);
         foreach (var summary in monthlySummaries)
         {
           if (allMonthlySummaries.ContainsKey(summary.Key))

@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using MarketAnalyticHub.Models.Dashboard;
 using MarketAnalyticHub.Models;
+using System.Net.Http;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -286,7 +287,8 @@ namespace MarketAnalyticHub.Controllers
             Source = item.Symbol
           })
           .ToList();
-
+      var symbols = portfolios.SelectMany(p => p.Items).Select(i => i.Symbol).Distinct().ToList();
+      var realTimeData = await FetchRealTimeData(symbols);
       var model = new DashboardViewModel
       {
         Transactions = transactions,
@@ -294,11 +296,64 @@ namespace MarketAnalyticHub.Controllers
         TotalRevenueByYear = totalRevenueByYear,
         DashboardData = dashboardData,
         AmountTotalYear = amountTotalYearByItems,
-        ProfileReportCurrentYear = profileReportCurrentYear
+        ProfileReportCurrentYear = profileReportCurrentYear,
+        RealTimeData = realTimeData
       };
-
+     
       return View(model);
     }
+    public string GetIconUrl(string symbol)
+    {
+      // Return the URL of the icon based on the symbol
+      // Replace with your logic to get the correct icon URL
+      return symbol switch
+      {
+        "AAPL" => "/path/to/apple-icon.png",
+        "GOOG" => "/path/to/google-icon.png",
+        "MSFT" => "/path/to/microsoft-icon.png",
+        _ => "/path/to/default-icon.png"
+      };
+    }
+
+    private async Task<Dictionary<string, RealTimeDataDto>> FetchRealTimeData(List<string> symbols)
+    {
+      var realTimeData = new Dictionary<string, RealTimeDataDto>();
+
+      foreach (var symbol in symbols?.Distinct())
+      {
+        try
+        {
+          var stockData = await _yahooFinanceService.GetRealTimePriceAsync(symbol);
+
+          if (stockData != null)
+          {
+            realTimeData[symbol] = new RealTimeDataDto
+            {
+              Symbol = symbol,
+              CurrentPrice = (decimal)stockData.CurrentPrice,
+              Change = (decimal)stockData.Change,
+              PercentChange = (decimal)stockData.PercentChange
+            };
+          }
+        }
+        catch (Exception ex)
+        {
+          // Log the exception (optional)
+          //_logger.LogError(ex, $"Failed to get real-time data for symbol: {symbol}");
+          // You can choose to add some default value or continue without adding to the dictionary
+          realTimeData[symbol] = new RealTimeDataDto
+          {
+            Symbol = symbol,
+            CurrentPrice = 0,
+            Change = 0,
+            PercentChange = 0
+          };
+        }
+      }
+
+      return realTimeData;
+    }
+
     private string GetIconForTransaction(string symbol)
     {
       // You can map symbols to specific icons if needed

@@ -11,6 +11,15 @@ namespace MarketAnalyticHub.Models
     public List<AmountTotalYearDto> AmountTotalYear { get; set; }
     public List<Portfolio.Portfolio> ProfileReportCurrentYear { get; set; }
     public decimal PortfolioGrowthPercentage { get; internal set; }
+    public Dictionary<string, RealTimeDataDto> RealTimeData { get; set; }
+  }
+
+  public class RealTimeDataDto
+  {
+    public string Symbol { get; set; }
+    public decimal CurrentPrice { get; set; }
+    public decimal Change { get; set; }
+    public decimal PercentChange { get; set; }
   }
 
   public class TotalRevenueByYearDto

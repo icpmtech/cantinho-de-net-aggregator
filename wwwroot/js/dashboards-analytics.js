@@ -297,6 +297,8 @@
     loadExpensesData();
     loadDividendsData();
     loadProfitDataExpenses();
+    loadDividendsOfWeekData();
+    loadProfitWeekChartData();
   });
 
   // Define a function to load the growth data from the backend
@@ -897,6 +899,174 @@
     }
   }
 
+  // Define a function to load the expenses data from the backend
+  async function loadProfitWeekChartData() {
+    try {
+      const data = await fetchData('/api/Dashboards/profit-week');
+      updateProfitWeekChart(data);
+    } catch (error) {
+      alert('Failed to load expenses data: ' + error.message);
+    }
+  }
+
+  // Define a function to load the expenses data from the backend
+  async function loadDividendsOfWeekData() {
+    try {
+      const data = await fetchData('/api/Dashboards/dividends-week');
+      updateDividendsOfWeekChart(data);
+    } catch (error) {
+      alert('Failed to load expenses data: ' + error.message);
+    }
+  }
+
+  // Function to update the profit chart with the fetched data
+  function updateDividendsOfWeekChart(data) {
+    const weeklyExpensesEl = document.querySelector('#dividendsOfWeek');
+    const weeklyExpensesConfig = {
+      series: [data.series],
+      chart: {
+        width: 60,
+        height: 60,
+        type: 'radialBar'
+      },
+      plotOptions: {
+        radialBar: {
+          startAngle: 0,
+          endAngle: 360,
+          strokeWidth: '8',
+          hollow: {
+            margin: 2,
+            size: '45%'
+          },
+          track: {
+            strokeWidth: '50%',
+            background: '#EBEBEB' // replace with borderColor
+          },
+          dataLabels: {
+            show: true,
+            name: {
+              show: false
+            },
+            value: {
+              formatter: function (val) {
+                return '€' + parseInt(val);
+              },
+              offsetY: 5,
+              color: '#697a8d',
+              fontSize: '13px',
+              show: true
+            }
+          }
+        }
+      },
+      fill: {
+        type: 'solid',
+        colors: ['#696CFF'] // replace with config.colors.primary
+      },
+      stroke: {
+        lineCap: 'round'
+      },
+      grid: {
+        padding: {
+          top: -10,
+          bottom: -15,
+          left: -10,
+          right: -10
+        }
+      },
+      states: {
+        hover: {
+          filter: {
+            type: 'none'
+          }
+        },
+        active: {
+          filter: {
+            type: 'none'
+          }
+        }
+      }
+    };
+    if (typeof weeklyExpensesEl !== undefined && weeklyExpensesEl !== null) {
+      const weeklyExpenses = new ApexCharts(weeklyExpensesEl, weeklyExpensesConfig);
+      weeklyExpenses.render();
+    }
+  }
+
+
+  // Function to update the profit chart with the fetched data
+  function updateProfitWeekChart(data) {
+    const weeklyExpensesEl = document.querySelector('#profitOfWeek');
+    const weeklyExpensesConfig = {
+      series: [data.series],
+      chart: {
+        width: 60,
+        height: 60,
+        type: 'radialBar'
+      },
+      plotOptions: {
+        radialBar: {
+          startAngle: 0,
+          endAngle: 360,
+          strokeWidth: '8',
+          hollow: {
+            margin: 2,
+            size: '45%'
+          },
+          track: {
+            strokeWidth: '50%',
+            background: '#EBEBEB' // replace with borderColor
+          },
+          dataLabels: {
+            show: true,
+            name: {
+              show: false
+            },
+            value: {
+              formatter: function (val) {
+                return '€' + parseInt(val);
+              },
+              offsetY: 5,
+              color: '#697a8d',
+              fontSize: '13px',
+              show: true
+            }
+          }
+        }
+      },
+      fill: {
+        type: 'solid',
+        colors: ['#696CFF'] // replace with config.colors.primary
+      },
+      stroke: {
+        lineCap: 'round'
+      },
+      grid: {
+        padding: {
+          top: -10,
+          bottom: -15,
+          left: -10,
+          right: -10
+        }
+      },
+      states: {
+        hover: {
+          filter: {
+            type: 'none'
+          }
+        },
+        active: {
+          filter: {
+            type: 'none'
+          }
+        }
+      }
+    };
+    if (typeof weeklyExpensesEl !== undefined && weeklyExpensesEl !== null) {
+      const weeklyExpenses = new ApexCharts(weeklyExpensesEl, weeklyExpensesConfig);
+      weeklyExpenses.render();
+    }
+  }
   // Function to update the expenses chart with the fetched data
   function updateExpensesChart(data) {
     const weeklyExpensesEl = document.querySelector('#expensesOfWeek');
@@ -927,7 +1097,7 @@
             },
             value: {
               formatter: function (val) {
-                return '$' + parseInt(val);
+                return '€' + parseInt(val);
               },
               offsetY: 5,
               color: '#697a8d',

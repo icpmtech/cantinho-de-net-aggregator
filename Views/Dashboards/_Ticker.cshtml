@@ -1,0 +1,114 @@
+@model DashboardViewModel
+
+<div class="ticker-container card">
+    <div class="ticker card-body" id="ticker-items">
+        @foreach (var item in Model.RealTimeData)
+        {
+            <div class="ticker-item">
+                <div class="ticker-icon">
+                    <i class="bx bx-line-chart"></i>
+                </div>
+                <div class="ticker-content">
+                    <div class="ticker-symbol">@item.Value.Symbol</div>
+                    <div class="ticker-value">@String.Format("{0:#,0.000}",item.Value.CurrentPrice)</div>
+                    <div class="ticker-change @(item.Value.Change >= 0 ? "" : "negative")">
+                        @(item.Value.Change >= 0 ? "+" : "") @String.Format("{0:#,0.000}",item.Value.Change) (@(item.Value.PercentChange >= 0 ? "+" : "")@String.Format("{0:#,0.000}", item.Value.PercentChange) %)
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .ticker-container {
+        width: 100%;
+        overflow: hidden;
+        background-color: #fff;
+        height: 55px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        display: flex;
+        align-items: center;
+    }
+
+    .ticker {
+        display: flex;
+        white-space: nowrap;
+        overflow: hidden;
+        animation: ticker 30s linear infinite;
+
+    }
+
+    .ticker-item {
+        display: flex;
+        align-items: center;
+        padding: 0 15px;
+        border-right: 1px solid #eee;
+        text-align: center;
+        min-width: 150px; /* Ensures items are spaced out */
+    }
+
+    .ticker-item:last-child {
+        border-right: none;
+    }
+
+    .ticker-icon {
+        margin-right: 8px;
+    }
+
+    .ticker-symbol {
+        font-weight: bold;
+        font-size: 0.6em;
+        color: #333;
+    }
+
+    .ticker-value {
+        font-size: 1em;
+        color: #000;
+    }
+
+    .ticker-change {
+        font-size: 0.6em;
+        color: #008000; /* Green for positive change */
+    }
+
+    .ticker-change.negative {
+        color: #ff0000; /* Red for negative change */
+    }
+
+    @@keyframes ticker {
+        0% {
+            transform: translateX(calc(100% / 3));
+        }
+        100% {
+            transform: translateX(-100%);
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const tickerItemsContainer = document.getElementById('ticker-items');
+
+        // Clone ticker items for continuous scrolling effect
+        const tickerItems = tickerItemsContainer.innerHTML;
+        tickerItemsContainer.innerHTML += tickerItems;
+
+        // Adjust animation duration based on the number of items
+        const itemCount = tickerItemsContainer.children.length / 2;
+        const duration = itemCount * 8; // Adjust duration as needed
+        tickerItemsContainer.style.animationDuration = `${duration}s`;
+
+        // Pause animation on hover
+        tickerItemsContainer.addEventListener('mouseover', () => {
+            tickerItemsContainer.style.animationPlayState = 'paused';
+        });
+
+        // Resume animation when not hovering
+        tickerItemsContainer.addEventListener('mouseout', () => {
+            tickerItemsContainer.style.animationPlayState = 'running';
+        });
+    });
+</script>
