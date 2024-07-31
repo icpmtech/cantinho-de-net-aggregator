@@ -1,0 +1,100 @@
+@model PaginatedList<MarketAnalyticHub.Models.StockEvent>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">
+        <i class="bx bx-plus"></i> Create New
+    </a>
+</p>
+
+<div class="mb-3">
+    <label for="pageSizeSelect" class="form-label">Page Size:</label>
+    <select id="pageSizeSelect" class="form-select d-inline-block w-auto" onchange="location.href='@Url.Action("Index", new { pageSize = ViewData["CurrentPageSize"], pageNumber = 1, sortOrder = ViewData["CurrentSort"] })'">
+        <option value="5" selected=@(ViewData["CurrentPageSize"].ToString() == "5" ? "selected" : "")>5</option>
+        <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "10" ? "selected" : "")>10</option>
+        <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "20" ? "selected" : "")>20</option>
+        <option value="50" selected=@(ViewData["CurrentPageSize"].ToString() == "50" ? "selected" : "")>50</option>
+    </select>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-warning" role="alert">
+        No Stock Events Available. Please check back later or create a new stock event.
+    </div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var item in Model)
+        {
+            <div class="list-group-item">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title">@Html.DisplayFor(modelItem => item.EventName)</h5>
+                                <h6 class="card-subtitle mb-2 text-muted">@Html.DisplayFor(modelItem => item.Date)</h6>
+                            </div>
+                            <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#details-list-@item.Id">
+                                <i class="bx bx-chevron-down"></i>
+                            </button>
+                           
+                        </div>
+                        <div id="details-list-@item.Id" class="collapse">
+                            <p class="card-text"><strong>Details:</strong> @Html.DisplayFor(modelItem => item.Details)</p>
+                            <p class="card-text"><strong>Impact:</strong> @Html.DisplayFor(modelItem => item.Impact)</p>
+                            <p class="card-text"><strong>Sentiment:</strong> @Html.DisplayFor(modelItem => item.Sentiment)</p>
+                            <p class="card-text"><strong>Source:</strong> @Html.DisplayFor(modelItem => item.Source)</p>
+                            <p class="card-text"><strong>Price:</strong> @Html.DisplayFor(modelItem => item.Price)</p>
+                            <p class="card-text"><strong>Price Change:</strong> @Html.DisplayFor(modelItem => item.PriceChange)</p>
+                            <p class="card-text"><strong>Portfolio Item:</strong> @Html.DisplayFor(modelItem => item.PortfolioItem.Id)</p>
+                            <div class="mt-2">
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                    <i class="bx bx-edit"></i> Edit
+                                </a>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                                    <i class="bx bx-info-circle"></i> Details
+                                </a>
+                                <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
+                                    <i class="bx bx-trash"></i> Delete
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="mt-3 d-flex justify-content-between align-items-center">
+        <div>
+            @if (Model.HasPreviousPage)
+            {
+                <a class="btn btn-secondary" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-pageSize="@ViewData["CurrentPageSize"]">
+                    <i class="bx bx-chevron-left"></i> Previous
+                </a>
+            }
+            else
+            {
+                <span class="btn btn-secondary disabled">
+                    <i class="bx bx-chevron-left"></i> Previous
+                </span>
+            }
+        </div>
+        <div>Page @Model.PageIndex of @Model.TotalPages</div>
+        <div>
+            @if (Model.HasNextPage)
+            {
+                <a class="btn btn-secondary" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-pageSize="@ViewData["CurrentPageSize"]">
+                    Next <i class="bx bx-chevron-right"></i>
+                </a>
+            }
+            else
+            {
+                <span class="btn btn-secondary disabled">
+                    Next <i class="bx bx-chevron-right"></i>
+                </span>
+            }
+        </div>
+    </div>
+}

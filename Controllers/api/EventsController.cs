@@ -23,7 +23,7 @@ namespace MarketAnalyticHub.Controllers.api
     [HttpGet]
     public ActionResult<IEnumerable<Event>> GetEvents()
     {
-      return _context.StockEvents.Select(s => new Event
+     var result=  _context.StockEvents?.Select(s => new Event
       {
         Id = s.Id,
         Title = s.EventName,
@@ -42,6 +42,7 @@ namespace MarketAnalyticHub.Controllers.api
           PortfolioItemId = s.PortfolioItemId
         }
       }).ToList();
+      return result;
     }
 
     // GET: api/Events/5

@@ -1,54 +1,180 @@
-@model IEnumerable<MarketAnalyticHub.Models.StockEvent>
+@model PaginatedList<MarketAnalyticHub.Models.StockEvent>
 @using Microsoft.AspNetCore.Mvc.Localization
 @inject IViewLocalizer Localizer
 @{
     ViewData["Title"] = "Portfolio Manager";
 }
+@section PageStyles{
 
+   <style>
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .table th, .table td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+
+            .table th {
+                background-color: #f2f2f2;
+            }
+
+        .details-row {
+            display: none;
+        }
+
+        .details-content {
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-top: none;
+        }
+
+        .clickable-row:hover {
+            cursor: pointer;
+            background-color: #f1f1f1;
+        }
+    </style>
+
+}
 <h4 class="py-3 mb-4">
     <span class="text-muted fw-light">@Localizer["StockEvents Manager"] /</span> @Localizer["StockEvents"]
 </h4>
 
-<p>
-    <a asp-action="Create" class="btn btn-primary">Create New</a>
-</p>
-
-@if (!Model.Any())
-{
-    <div class="list-group">
-        <div class="list-group-item">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">No Stock Events Available</h5>
-                    <p class="card-text">There are no stock events to display at the moment. Please check back later or create a new stock event.</p>
-                </div>
+@Html.Partial("_Cards", Model)
+<div class="col-12">
+    <h6 class="text-muted">My Events</h6>
+    <div class="nav-align-top mb-4">
+        <ul class="nav nav-pills mb-3 nav-fill" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link @(ViewData["CurrentTab"].ToString() == "list" ? "active" : "")" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-list" aria-controls="navs-pills-justified-list" aria-selected="true">
+                    <i class="tf-icons bx bx-wallet me-1"></i><span class="d-none d-sm-block"> List</span>
+                    <span id="portfolios-numbers" class="badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ms-1">@Model.Count()</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link @(ViewData["CurrentTab"].ToString() == "table" ? "active" : "")" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-table" aria-controls="navs-pills-justified-table" aria-selected="false">
+                    <i class="tf-icons bx bx-cube-alt me-1"></i><span class="d-none d-sm-block"> Table</span>
+                    <span id="portfolios-numbers" class="badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ms-1">@Model.Count()</span>
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade @(ViewData["CurrentTab"].ToString() == "list" ? "show active" : "")" id="navs-pills-justified-list" role="tabpanel">
+                @Html.Partial("_List", Model)
+            </div>
+            <div class="tab-pane fade @(ViewData["CurrentTab"].ToString() == "table" ? "show active" : "")" id="navs-pills-justified-table" role="tabpanel">
+                @Html.Partial("_Table", Model)
             </div>
         </div>
     </div>
+</div>
+
+@section VendorScripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 }
-else
-{
-    <div class="list-group">
-        @foreach (var item in Model)
-        {
-            <div class="list-group-item">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">@Html.DisplayFor(modelItem => item.EventName)</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">@Html.DisplayFor(modelItem => item.Date)</h6>
-                        <p class="card-text"><strong>Details:</strong> @Html.DisplayFor(modelItem => item.Details)</p>
-                        <p class="card-text"><strong>Impact:</strong> @Html.DisplayFor(modelItem => item.Impact)</p>
-                        <p class="card-text"><strong>Sentiment:</strong> @Html.DisplayFor(modelItem => item.Sentiment)</p>
-                        <p class="card-text"><strong>Source:</strong> @Html.DisplayFor(modelItem => item.Source)</p>
-                        <p class="card-text"><strong>Price:</strong> @Html.DisplayFor(modelItem => item.Price)</p>
-                        <p class="card-text"><strong>Price Change:</strong> @Html.DisplayFor(modelItem => item.PriceChange)</p>
-                        <p class="card-text"><strong>Portfolio Item:</strong> @Html.DisplayFor(modelItem => item.PortfolioItem.Id)</p>
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="card-link">Edit</a>
-                        <a asp-action="Details" asp-route-id="@item.Id" class="card-link">Details</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="card-link">Delete</a>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
+
+
+
+@section PageScripts {
+  
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var pageSizeSelect = document.getElementById('pageSizeSelect');
+            var currentTab = document.querySelector('.nav-link.active').getAttribute('data-bs-target').replace('#navs-pills-justified-', '');
+
+            function updateUrlParam(param, value) {
+                var url = new URL(window.location.href);
+                url.searchParams.set(param, value);
+                url.searchParams.set('pageNumber', 1); // Reset to first page
+                url.searchParams.set('tab', currentTab); // Maintain the current tab
+                window.location.href = url.toString();
+            }
+
+            pageSizeSelect.addEventListener('change', function () {
+                updateUrlParam('pageSize', pageSizeSelect.value);
+            });
+
+            var tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    var newTab = tab.getAttribute('data-bs-target').replace('#navs-pills-justified-', '');
+                    var url = new URL(window.location.href);
+                    url.searchParams.set('tab', newTab);
+                    url.searchParams.set('pageNumber', 1); // Reset to first page
+                    window.location.href = url.toString();
+                });
+            });
+            function updateCardValues() {
+                // Fetch data from your API
+                fetch('/api/Dashboards/portfolio-statistics')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Calculate total values
+                        const totalCustMarketValue = data.reduce((acc, portfolio) => acc + portfolio.currentMarketValue, 0);
+                        const totalInvestment = data.reduce((acc, portfolio) => acc + portfolio.totalInvestment, 0);
+                        const totalDividends = data.reduce((acc, portfolio) => acc + portfolio.items.reduce((itemAcc, item) => itemAcc + item.dividends, 0), 0);
+                        const totalDifferenceValue = totalCustMarketValue - totalInvestment;
+                        const totalProfit = (totalCustMarketValue / totalInvestment) - 1;
+                        const totalDifferencePercentage = (totalDifferenceValue / totalInvestment) * 100;
+                        const totalProfitDifferencePercentage = totalProfit * 100;
+
+                        document.getElementById('totalCustMarketValue').textContent = `€${totalCustMarketValue.toFixed(2)}`;
+                        document.getElementById('totalMarketValue').textContent = `€${totalInvestment.toFixed(2)}`;
+                        document.getElementById('totalPortfolioPercentage').textContent = `${totalDifferencePercentage.toFixed(2)}%`;
+                        document.getElementById('dividends').textContent = `€${totalDividends.toFixed(2)}`;
+                        document.getElementById('totalDifferenceValue').textContent = `€${totalDifferenceValue.toFixed(2)}`;
+                        document.getElementById('totalProfit').textContent = `${totalProfitDifferencePercentage.toFixed(2)}%`;
+
+                        // Update difference icons and percentages
+                        document.getElementById('totalDifferenceIcon').className = totalDifferenceValue >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
+                        document.getElementById('totalDifferencePercentage').textContent = `${totalDifferencePercentage.toFixed(2)}%`;
+
+                        document.getElementById('totalProfitIcon').className = totalProfit >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
+                        document.getElementById('totalProfitDifferencePercentage').textContent = `${totalProfitDifferencePercentage.toFixed(2)}%`;
+                    })
+                    .catch(error => console.error('Error fetching portfolio summary:', error));
+            }
+
+            // Call the function to update card values
+            updateCardValues();
+
+            // Optionally, set an interval to refresh data periodically
+            setInterval(updateCardValues, 60000); // Refresh every 60 seconds
+
+
+        });
+       
+        document.addEventListener('DOMContentLoaded', function () {
+            var rows = document.querySelectorAll('.clickable-row');
+            rows.forEach(function (row) {
+                row.addEventListener('click', function () {
+                    var id = this.getAttribute('data-id');
+                    var detailsRow = document.getElementById('details-' + id);
+                    if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
+                        detailsRow.style.display = 'table-row';
+                    } else {
+                        detailsRow.style.display = 'none';
+                    }
+                });
+            });
+            document.querySelectorAll('.toggle-details').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const icon = button.querySelector('i');
+                    icon.classList.toggle('bx-chevron-down');
+                    icon.classList.toggle('bx-chevron-up');
+                });
+            });
+        });
+
+    </script>
 }

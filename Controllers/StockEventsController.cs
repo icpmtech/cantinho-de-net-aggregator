@@ -9,6 +9,10 @@ using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Services;
 using System.Security.Claims;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.Data.SqlClient;
+using Microsoft.Graph;
+using MarketAnalyticHub.Models.Portfolio;
 
 namespace AspnetCoreMvcFull.Controllers
 {
@@ -22,17 +26,52 @@ namespace AspnetCoreMvcFull.Controllers
         }
 
         // GET: StockEvents
-        public async Task<IActionResult> Index()
-        {
-     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-      var applicationDbContext = _context.StockEvents
-                                       .Include(s => s.PortfolioItem)
-                                       .Where(s => s.PortfolioItem.Portfolio.UserId == userId);
-                                       // Adjust this if UserId is directly in PortfolioItem
+     public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber, int pageSize = 10, string tab = "list")
+{
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var applicationDbContext = _context.StockEvents
+                                      .Include(s => s.PortfolioItem)
+                                      .Where(s => s.PortfolioItem.Portfolio.UserId == userId);
+    // Adjust this if UserId is directly in PortfolioItem
+    ViewData["CurrentSort"] = sortOrder;
+    ViewData["CurrentFilter"] = searchQuery;
+    ViewData["CurrentPageSize"] = pageSize;
+    ViewData["CurrentTab"] = tab;
 
+    ViewData["OperationTypeSortParm"] = String.IsNullOrEmpty(sortOrder) ? "operationType_desc" : "";
+    ViewData["UserIdSortParm"] = sortOrder == "UserId" ? "userId_desc" : "UserId";
 
-            return View(await applicationDbContext.ToListAsync());
-        }
+    // Filtering logic
+    if (!String.IsNullOrEmpty(searchQuery))
+    {
+        applicationDbContext = applicationDbContext.Where(s => s.EventName.Contains(searchQuery));
+    }
+
+    // Sorting logic
+    switch (sortOrder)
+    {
+        case "operationType_desc":
+            applicationDbContext = applicationDbContext.OrderByDescending(s => s.Date);
+            break;
+        case "UserId":
+            applicationDbContext = applicationDbContext.OrderBy(s => s.PortfolioItem.Portfolio.UserId);
+            break;
+        case "userId_desc":
+            applicationDbContext = applicationDbContext.OrderByDescending(s => s.PortfolioItem.Portfolio.UserId);
+            break;
+        default:
+            applicationDbContext = applicationDbContext.OrderBy(s => s.Date);
+            break;
+    }
+
+    // Pagination logic
+    var pageIndex = pageNumber ?? 1;
+    var model = await PaginatedList<StockEvent>.CreateAsync(applicationDbContext.AsNoTracking(), pageIndex, pageSize);
+
+    
+
+    return View(model);
+}
 
         // GET: StockEvents/PortfolioItems/Details/5
         public async Task<IActionResult> Details(int? id)
