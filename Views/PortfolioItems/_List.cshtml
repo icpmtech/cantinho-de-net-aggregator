@@ -27,102 +27,108 @@
                         @foreach (var group in groupedItems)
                         {
                             <div class="list-group-item">
-                                <h5 class="mb-1">@group.Key</h5>
-                                @foreach (var item in group)
-                                {
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <small>@item.PurchaseDate.ToShortDateString()</small>
-                                    </div>
-                                    <p class="mb-1">Quantity: @item.Quantity</p>
-                                    <p class="mb-1">Purchase Price: @item.PurchasePrice</p>
-                                    <p class="mb-1">Current Price: @item.CurrentPrice</p>
-                                    <p class="mb-1">Commission: @item.Commission</p>
-                                    <p class="mb-1">Industry: @(item.Industry != null ? item.Industry.Name : "N/A")</p>
-                                    <p class="mb-1">Portfolio: @(item.Portfolio != null ? item.Portfolio.Name : "N/A")</p>
-                                    <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
-                                    <div class="btn-group mt-2" role="group" aria-label="Basic example">
-                                        <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
-                                            <i class='bx bx-edit'></i> Edit
-                                        </a>
-                                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
-                                            <i class='bx bx-detail'></i> Details
-                                        </a>
-                                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
-                                            <i class='bx bx-trash'></i> Delete
-                                        </a>
-                                    </div>
-                                    <script>
-                                        document.addEventListener('DOMContentLoaded', function () {
-                                            fetch('/api/dashboards/chartdata/@item.Id')
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    var d = document.querySelector("#chart-@item.Id");
-                                                    var c = {
-                                                        chart: {
-                                                            height: 200,
-                                                            type: "line",
-                                                            toolbar: { show: false },
-                                                            dropShadow: {
-                                                                enabled: true,
-                                                                top: 10,
-                                                                left: 5,
-                                                                blur: 3,
-                                                                color: "#FF4560",
-                                                                opacity: 0.15
+                                <h5 class="mb-1">
+                                    <a data-bs-toggle="collapse" href="#collapse-@group.Key" role="button" aria-expanded="false" aria-controls="collapse-@group.Key">
+                                        @group.Key
+                                    </a>
+                                </h5>
+                                <div class="collapse" id="collapse-@group.Key">
+                                    @foreach (var item in group)
+                                    {
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <small>@item.PurchaseDate.ToShortDateString()</small>
+                                        </div>
+                                        <p class="mb-1">Quantity: @item.Quantity</p>
+                                        <p class="mb-1">Purchase Price: @item.PurchasePrice</p>
+                                        <p class="mb-1">Current Price: @item.CurrentPrice</p>
+                                        <p class="mb-1">Commission: @item.Commission</p>
+                                        <p class="mb-1">Industry: @(item.Industry != null ? item.Industry.Name : "N/A")</p>
+                                        <p class="mb-1">Portfolio: @(item.Portfolio != null ? item.Portfolio.Name : "N/A")</p>
+                                        <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
+                                        <div class="btn-group mt-2" role="group" aria-label="Basic example">
+                                            <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
+                                                <i class='bx bx-edit'></i> Edit
+                                            </a>
+                                            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
+                                                <i class='bx bx-detail'></i> Details
+                                            </a>
+                                            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
+                                                <i class='bx bx-trash'></i> Delete
+                                            </a>
+                                        </div>
+                                        <script>
+                                            document.addEventListener('DOMContentLoaded', function () {
+                                                fetch('/api/dashboards/chartdata/@item.Id')
+                                                    .then(response => response.json())
+                                                    .then(data => {
+                                                        var d = document.querySelector("#chart-@item.Id");
+                                                        var c = {
+                                                            chart: {
+                                                                height: 200,
+                                                                type: "line",
+                                                                toolbar: { show: false },
+                                                                dropShadow: {
+                                                                    enabled: true,
+                                                                    top: 10,
+                                                                    left: 5,
+                                                                    blur: 3,
+                                                                    color: "#FF4560",
+                                                                    opacity: 0.15
+                                                                },
+                                                                sparkline: { enabled: true }
                                                             },
-                                                            sparkline: { enabled: true }
-                                                        },
-                                                        markers: {
-                                                            size: 6,
-                                                            colors: "transparent",
-                                                            strokeColors: "transparent",
-                                                            strokeWidth: 4,
-                                                            discrete: [
-                                                                {
-                                                                    fillColor: "#FFFFFF",
-                                                                    seriesIndex: 0,
-                                                                    dataPointIndex: 3,
-                                                                    strokeColor: "#FF4560",
-                                                                    strokeWidth: 4,
-                                                                    size: 6,
-                                                                    radius: 2
+                                                            markers: {
+                                                                size: 6,
+                                                                colors: "transparent",
+                                                                strokeColors: "transparent",
+                                                                strokeWidth: 4,
+                                                                discrete: [
+                                                                    {
+                                                                        fillColor: "#FFFFFF",
+                                                                        seriesIndex: 0,
+                                                                        dataPointIndex: 3,
+                                                                        strokeColor: "#FF4560",
+                                                                        strokeWidth: 4,
+                                                                        size: 6,
+                                                                        radius: 2
+                                                                    }
+                                                                ],
+                                                                hover: { size: 7 }
+                                                            },
+                                                            grid: { show: false, padding: { right: 8 } },
+                                                            colors: ["#FF4560"],
+                                                            dataLabels: { enabled: false },
+                                                            stroke: { width: 5, curve: "smooth" },
+                                                            series: [{
+                                                                name: 'Close Prices',
+                                                                data: data.closes
+                                                            }],
+                                                            xaxis: {
+                                                                type: 'datetime',
+                                                                categories: data.dates,
+                                                                labels: {
+                                                                    format: 'yyyy-MM-dd'
                                                                 }
-                                                            ],
-                                                            hover: { size: 7 }
-                                                        },
-                                                        grid: { show: false, padding: { right: 8 } },
-                                                        colors: ["#FF4560"],
-                                                        dataLabels: { enabled: false },
-                                                        stroke: { width: 5, curve: "smooth" },
-                                                        series: [{
-                                                            name: 'Close Prices',
-                                                            data: data.closes
-                                                        }],
-                                                        xaxis: {
-                                                            type: 'datetime',
-                                                            categories: data.dates,
-                                                            labels: {
-                                                                format: 'yyyy-MM-dd'
+                                                            },
+                                                            yaxis: {
+                                                                title: {
+                                                                    text: 'Price'
+                                                                }
+                                                            },
+                                                            legend: {
+                                                                show: true,
+                                                                position: 'top',
+                                                                horizontalAlign: 'left'
                                                             }
-                                                        },
-                                                        yaxis: {
-                                                            title: {
-                                                                text: 'Price'
-                                                            }
-                                                        },
-                                                        legend: {
-                                                            show: true,
-                                                            position: 'top',
-                                                            horizontalAlign: 'left'
-                                                        }
-                                                    };
-                                                    null !== d && new ApexCharts(d, c).render();
-                                                })
-                                                .catch(error => console.error('Error fetching chart data:', error));
-                                        });
-                                    </script>
-                                }
-                                <hr />
+                                                        };
+                                                        null !== d && new ApexCharts(d, c).render();
+                                                    })
+                                                    .catch(error => console.error('Error fetching chart data:', error));
+                                            });
+                                        </script>
+                                    }
+                                    <hr />
+                                </div>
                             </div>
                         }
                     </div>

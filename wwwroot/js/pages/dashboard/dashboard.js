@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
   loadDashboardData();
-  loadPortfolioStatistics();
+  //loadPortfolioStatistics();
 });
 
 async function fetchData(url, method = 'GET', body = null) {
