@@ -1,5 +1,8 @@
 @model PaginatedList<MarketAnalyticHub.Models.Portfolio.PortfolioItem>
 
+@{
+    var groupedItems = Model.GroupBy(item => item.Symbol);
+}
 
 <div class="row">
     <div class="col-md-12">
@@ -12,110 +15,114 @@
                     <div>
                         <label for="pageSizeSelect" class="form-label">Page Size:</label>
                         <select id="pageSizeSelect" class="form-select d-inline-block w-auto">
-                            <option value="5" selected=@(ViewData["CurrentPageSize"].ToString() == "5" ? "selected" : "")>5</option>
-                            <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "10" ? "selected" : "")>10</option>
-                            <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "20" ? "selected" : "")>20</option>
-                            <option value="50" selected=@(ViewData["CurrentPageSize"].ToString() == "50" ? "selected" : "")>50</option>
+                            <option value="5" selected=@(ViewData["CurrentPageSize"].ToString() == "10" ? "selected" : "")>10</option>
+                            <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "20" ? "selected" : "")>20</option>
+                            <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "50" ? "selected" : "")>50</option>
+                            <option value="50" selected=@(ViewData["CurrentPageSize"].ToString() == "100" ? "selected" : "")>100</option>
                         </select>
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="list-group">
-                        @foreach (var item in Model)
+                        @foreach (var group in groupedItems)
                         {
                             <div class="list-group-item">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">@item.Symbol</h5>
-                                    <small>@item.PurchaseDate.ToShortDateString()</small>
-                                </div>
-                                <p class="mb-1">Quantity: @item.Quantity</p>
-                                <p class="mb-1">Purchase Price: @item.PurchasePrice</p>
-                                <p class="mb-1">Current Price: @item.CurrentPrice</p>
-                                <p class="mb-1">Commission: @item.Commission</p>
-                                <p class="mb-1">Industry: @(item.Industry != null ? item.Industry.Name : "N/A")</p>
-                                <p class="mb-1">Portfolio: @(item.Portfolio != null ? item.Portfolio.Name : "N/A")</p>
-                                <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
-                                <div class="btn-group mt-2" role="group" aria-label="Basic example">
-                                    <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
-                                        <i class='bx bx-edit'></i> Edit
-                                    </a>
-                                    <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
-                                        <i class='bx bx-detail'></i> Details
-                                    </a>
-                                    <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
-                                        <i class='bx bx-trash'></i> Delete
-                                    </a>
-                                </div>
-                                <script>
-                                    document.addEventListener('DOMContentLoaded', function () {
-                                        fetch('/api/dashboards/chartdata/@item.Id')
-                                            .then(response => response.json())
-                                            .then(data => {
-                                                var d = document.querySelector("#chart-@item.Id");
-                                                var c = {
-                                                    chart: {
-                                                        height: 200,
-                                                        type: "line",
-                                                        toolbar: { show: false },
-                                                        dropShadow: {
-                                                            enabled: true,
-                                                            top: 10,
-                                                            left: 5,
-                                                            blur: 3,
-                                                            color: "#FF4560",
-                                                            opacity: 0.15
+                                <h5 class="mb-1">@group.Key</h5>
+                                @foreach (var item in group)
+                                {
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <small>@item.PurchaseDate.ToShortDateString()</small>
+                                    </div>
+                                    <p class="mb-1">Quantity: @item.Quantity</p>
+                                    <p class="mb-1">Purchase Price: @item.PurchasePrice</p>
+                                    <p class="mb-1">Current Price: @item.CurrentPrice</p>
+                                    <p class="mb-1">Commission: @item.Commission</p>
+                                    <p class="mb-1">Industry: @(item.Industry != null ? item.Industry.Name : "N/A")</p>
+                                    <p class="mb-1">Portfolio: @(item.Portfolio != null ? item.Portfolio.Name : "N/A")</p>
+                                    <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
+                                    <div class="btn-group mt-2" role="group" aria-label="Basic example">
+                                        <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
+                                            <i class='bx bx-edit'></i> Edit
+                                        </a>
+                                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
+                                            <i class='bx bx-detail'></i> Details
+                                        </a>
+                                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
+                                            <i class='bx bx-trash'></i> Delete
+                                        </a>
+                                    </div>
+                                    <script>
+                                        document.addEventListener('DOMContentLoaded', function () {
+                                            fetch('/api/dashboards/chartdata/@item.Id')
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    var d = document.querySelector("#chart-@item.Id");
+                                                    var c = {
+                                                        chart: {
+                                                            height: 200,
+                                                            type: "line",
+                                                            toolbar: { show: false },
+                                                            dropShadow: {
+                                                                enabled: true,
+                                                                top: 10,
+                                                                left: 5,
+                                                                blur: 3,
+                                                                color: "#FF4560",
+                                                                opacity: 0.15
+                                                            },
+                                                            sparkline: { enabled: true }
                                                         },
-                                                        sparkline: { enabled: true }
-                                                    },
-                                                    markers: {
-                                                        size: 6,
-                                                        colors: "transparent",
-                                                        strokeColors: "transparent",
-                                                        strokeWidth: 4,
-                                                        discrete: [
-                                                            {
-                                                                fillColor: "#FFFFFF",
-                                                                seriesIndex: 0,
-                                                                dataPointIndex: 3,
-                                                                strokeColor: "#FF4560",
-                                                                strokeWidth: 4,
-                                                                size: 6,
-                                                                radius: 2
+                                                        markers: {
+                                                            size: 6,
+                                                            colors: "transparent",
+                                                            strokeColors: "transparent",
+                                                            strokeWidth: 4,
+                                                            discrete: [
+                                                                {
+                                                                    fillColor: "#FFFFFF",
+                                                                    seriesIndex: 0,
+                                                                    dataPointIndex: 3,
+                                                                    strokeColor: "#FF4560",
+                                                                    strokeWidth: 4,
+                                                                    size: 6,
+                                                                    radius: 2
+                                                                }
+                                                            ],
+                                                            hover: { size: 7 }
+                                                        },
+                                                        grid: { show: false, padding: { right: 8 } },
+                                                        colors: ["#FF4560"],
+                                                        dataLabels: { enabled: false },
+                                                        stroke: { width: 5, curve: "smooth" },
+                                                        series: [{
+                                                            name: 'Close Prices',
+                                                            data: data.closes
+                                                        }],
+                                                        xaxis: {
+                                                            type: 'datetime',
+                                                            categories: data.dates,
+                                                            labels: {
+                                                                format: 'yyyy-MM-dd'
                                                             }
-                                                        ],
-                                                        hover: { size: 7 }
-                                                    },
-                                                    grid: { show: false, padding: { right: 8 } },
-                                                    colors: ["#FF4560"],
-                                                    dataLabels: { enabled: false },
-                                                    stroke: { width: 5, curve: "smooth" },
-                                                    series: [{
-                                                        name: 'Close Prices',
-                                                        data: data.closes
-                                                    }],
-                                                    xaxis: {
-                                                        type: 'datetime',
-                                                        categories: data.dates,
-                                                        labels: {
-                                                            format: 'yyyy-MM-dd'
+                                                        },
+                                                        yaxis: {
+                                                            title: {
+                                                                text: 'Price'
+                                                            }
+                                                        },
+                                                        legend: {
+                                                            show: true,
+                                                            position: 'top',
+                                                            horizontalAlign: 'left'
                                                         }
-                                                    },
-                                                    yaxis: {
-                                                        title: {
-                                                            text: 'Price'
-                                                        }
-                                                    },
-                                                    legend: {
-                                                        show: true,
-                                                        position: 'top',
-                                                        horizontalAlign: 'left'
-                                                    }
-                                                };
-                                                null !== d && new ApexCharts(d, c).render();
-                                            })
-                                            .catch(error => console.error('Error fetching chart data:', error));
-                                    });
-                                </script>
+                                                    };
+                                                    null !== d && new ApexCharts(d, c).render();
+                                                })
+                                                .catch(error => console.error('Error fetching chart data:', error));
+                                        });
+                                    </script>
+                                }
+                                <hr />
                             </div>
                         }
                     </div>

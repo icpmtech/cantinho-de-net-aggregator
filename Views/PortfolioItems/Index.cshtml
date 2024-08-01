@@ -70,12 +70,13 @@
                 .then(data => {
                     // Calculate total values
                    
-                    document.getElementById('totalCustMarketValue').textContent = `€${data[0].currentMarketValue.toFixed(2)}`;
+                    document.getElementById('totalCustMarketValue').textContent = `€${data[0].currentMarketValue.toFixed(2)
+                }`;
                     document.getElementById('totalMarketValue').textContent = `€${data[0].totalInvestment.toFixed(2)}`;
                     document.getElementById('totalPortfolioPercentage').textContent = `${data[0].totalDifferencePercentage.toFixed(2)}%`;
                     document.getElementById('dividends').textContent = `€${data[0].totalDividends.toFixed(2)}`;
                     document.getElementById('totalDifferenceValue').textContent = `€${data[0].totalDifferenceValue.toFixed(2)}`;
-                    document.getElementById('totalProfit').textContent = `${data[0].totalProfitDifferencePercentage.toFixed(2)}%`;
+                    document.getElementById('totalProfit').textContent = `${data[0].totalProfitDifferencePercentage.toFixed(2)}`;
 
                     // Update difference icons and percentages
                     document.getElementById('totalDifferenceIcon').className = data[0].totalDifferenceValue >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';

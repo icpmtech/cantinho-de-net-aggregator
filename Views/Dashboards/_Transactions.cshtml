@@ -19,6 +19,15 @@
         <div class="card-body">
             <div id="transactionsList">
                 @Html.Partial("_TransactionsPartial", Model.Transactions)
+                <hr class="m-0">
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <small class="text-body">You have done 57.6% more sales.<br>Check your new badge in your profile.</small>
+                        <div>
+                            <a href="/PortfolioItems" class="badge bg-label-warning rounded-2 p-2"><i class="bx bx-chevron-right bx-md text-warning"></i></a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
