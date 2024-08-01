@@ -1,5 +1,6 @@
 namespace MarketAnalyticHub.Models
 {
+  using MarketAnalyticHub.Controllers;
   using System.ComponentModel.DataAnnotations;
 
   public class UserProfile
@@ -37,6 +38,20 @@ namespace MarketAnalyticHub.Models
     public string Currency { get; set; }
 
     public string AvatarUrl { get; set; }
+    public string Username { get; set; }
+    public string Status { get; set; }
+    public string Role { get; set; }
+    public string TaxId { get; set; }
+    public string Contact { get; set; }
+    public string Plan { get; set; }
+    public DateTime PlanExpiry { get; set; }
+    public string PaymentMethod { get; set; }
+    public string BillingAddress { get; set; }
+    public int TasksDone { get; set; }
+    public int ProjectsDone { get; set; }
+    public List<string> Languages { get; set; }
+    public List<PaymentMethod> PaymentMethods { get; internal set; }
+    public List<Address> Addresses { get; internal set; }
   }
 
 }

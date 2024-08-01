@@ -90,7 +90,7 @@ namespace MarketAnalyticHub.Controllers.api
         {
           return NotFound();
         }
-      var data = await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, DateTime.Now.AddDays(-1), DateTime.Now,YahooFinanceApi.Period.Daily);
+      var data = await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, DateTime.Now.AddDays(-30), DateTime.Now,YahooFinanceApi.Period.Daily);
       var dataResult = new
       {
         dates = data.Select(h => h.Date.ToString("yyyy-MM-dd")).ToArray(),

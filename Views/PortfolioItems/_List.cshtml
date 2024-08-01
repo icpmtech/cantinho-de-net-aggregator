@@ -58,36 +58,40 @@
                                                     .then(response => response.json())
                                                     .then(data => {
                                                         var d = document.querySelector("#chart-@item.Id");
-                                                        var c = {
+                                                        var options = {
                                                             chart: {
-                                                                height: 200,
-                                                                type: "line",
-                                                                toolbar: { show: false },
-                                                                dropShadow: {
-                                                                    enabled: true,
-                                                                    top: 10,
-                                                                    left: 5,
-                                                                    blur: 3,
-                                                                    color: "#FF4560",
-                                                                    opacity: 0.15
+                                                                height: 400,
+                                                                type: 'line',
+                                                                toolbar: { show: true }
+                                                            },
+                                                            series: [
+                                                                {
+                                                                    name: 'Open',
+                                                                    data: data.opens,
+                                                                    type: 'line',
                                                                 },
-                                                                sparkline: { enabled: true }
-                                                            },
-                                                            markers: {
-                                                                size: 4,
-                                                                colors: ["#FF4560"],
-                                                                strokeColors: "#fff",
-                                                                strokeWidth: 2,
-                                                                hover: { size: 7 }
-                                                            },
-                                                            grid: { show: false, padding: { right: 8 } },
-                                                            colors: ["#FF4560"],
-                                                            dataLabels: { enabled: false },
-                                                            stroke: { width: 2, curve: "smooth" },
-                                                            series: [{
-                                                                name: 'Close Prices',
-                                                                data: data.closes
-                                                            }],
+                                                                {
+                                                                    name: 'High',
+                                                                    data: data.highs,
+                                                                    type: 'line',
+                                                                },
+                                                                {
+                                                                    name: 'Low',
+                                                                    data: data.lows,
+                                                                    type: 'line',
+                                                                },
+                                                                {
+                                                                    name: 'Close',
+                                                                    data: data.closes,
+                                                                    type: 'line',
+                                                                },
+                                                                {
+                                                                    name: 'Volume',
+                                                                    type: 'column',
+                                                                    data: data.volumes,
+                                                                    yaxis: 1,
+                                                                }
+                                                            ],
                                                             xaxis: {
                                                                 type: 'datetime',
                                                                 categories: data.dates,
@@ -100,29 +104,52 @@
                                                                     text: 'Date'
                                                                 }
                                                             },
-                                                            yaxis: {
-                                                                title: {
-                                                                    text: 'Price'
+                                                            yaxis: [
+                                                                {
+                                                                    title: {
+                                                                        text: 'Price'
+                                                                    },
+                                                                    labels: {
+                                                                        formatter: function (value) {
+                                                                            return  value.toFixed(2);
+                                                                        }
+                                                                    }
                                                                 },
-                                                                labels: {
-                                                                    formatter: function (value) {
-                                                                        return "$" + value.toFixed(2);
+                                                                {
+                                                                    opposite: true,
+                                                                    title: {
+                                                                        text: 'Volume'
+                                                                    },
+                                                                    labels: {
+                                                                        formatter: function (value) {
+                                                                            return value.toFixed(0);
+                                                                        }
+                                                                    }
+                                                                }
+                                                            ],
+                                                            tooltip: {
+                                                                shared: true,
+                                                                intersect: false,
+                                                                x: {
+                                                                    format: 'yyyy-MM-dd'
+                                                                },
+                                                                y: {
+                                                                    formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
+                                                                        if (seriesIndex === 4) {
+                                                                            return value.toFixed(0); // Volume
+                                                                        } else {
+                                                                            return  value.toFixed(2); // Price
+                                                                        }
                                                                     }
                                                                 }
                                                             },
-                                                            tooltip: {
-                                                                x: {
-                                                                    format: 'yyyy-MM-dd'
-                                                                }
-                                                            },
                                                             legend: {
-                                                                show: true,
                                                                 position: 'top',
                                                                 horizontalAlign: 'left'
                                                             }
                                                         };
                                                         if (d) {
-                                                            new ApexCharts(d, c).render();
+                                                            new ApexCharts(d, options).render();
                                                         }
                                                     })
                                                     .catch(error => console.error('Error fetching chart data:', error));

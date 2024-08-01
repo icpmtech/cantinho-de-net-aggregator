@@ -266,8 +266,11 @@
             </div>
             @{
                 // Calculating revenue and percentage change
+                // Calculating revenue and percentage change
                 var revenue = Model.Quantity * Model.CurrentPrice - Model.Quantity * Model.PurchasePrice;
-                var percentageChange = (Model.CurrentPrice - Model.PurchasePrice) / Model.PurchasePrice * 100;
+                var purchasePrice = Model.PurchasePrice;
+                var currentPrice = Model.CurrentPrice;
+                var percentageChange = purchasePrice != 0 ? (currentPrice - purchasePrice) / purchasePrice * 100 : 0;
             }
 
             <p class="mb-1">Revenue</p>

@@ -1,66 +1,65 @@
 @{
-  TempData.Keep();
-  string? currentPage = ViewContext.HttpContext.Request.Path;
+    TempData.Keep();
+    string? currentPage = ViewContext.HttpContext.Request.Path;
 }
 
 <!-- Menu -->
 @* ! Do this simple *@
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
 
-  @* ! Hide app brand if navbar-full *@
-  <div
-    class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
-    <a asp-controller="Dashboards" asp-action="Index" class="app-brand-link">
-      <span class="app-brand-logo demo">
-        @await Html.PartialAsync("../_Partials/_Macros")
-      </span>
-      <span class="app-brand-text demo menu-text fw-bold ms-2">@TempData.Peek("appName")</span>
-    </a>
+    @* ! Hide app brand if navbar-full *@
+    <div class='app-brand demo @((@ViewData["navbarFull"] != null && Convert.ToBoolean(@ViewData["navbarFull"])) ? "d-xl-none" : "")'>
+        <a asp-controller="Dashboards" asp-action="Index" class="app-brand-link">
+            <span class="app-brand-logo demo">
+                @await Html.PartialAsync("../_Partials/_Macros")
+            </span>
+            <span class="app-brand-text demo menu-text fw-bold ms-2">@TempData.Peek("appName")</span>
+        </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
             <i class="bx bx-chevron-left bx-sm d-flex align-items-center justify-content-center"></i>
         </a>
-  </div>
+    </div>
 
-  <div class="menu-inner-shadow"></div>
+    <div class="menu-inner-shadow"></div>
 
-  @* ! Full version menu-items *@
-  <ul class="menu-inner py-1">
-    <!-- Dashboards -->
-    <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards/") ? " active open" : "")'>
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-home-circle"></i>
-        <div>Indicators</div>
-        <div class="badge bg-danger rounded-pill ms-auto">1</div>
-      </a>
-      <ul class="menu-sub">
+    @* ! Full version menu-items *@
+    <ul class="menu-inner py-1">
+        <!-- Dashboards -->
+        <li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards/") ? " active open" : "")'>
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-home-circle"></i>
+                <div>Indicators</div>
+                <div class="badge bg-danger rounded-pill ms-auto">1</div>
+            </a>
+            <ul class="menu-sub">
                 <li class='menu-item@(currentPage == "/Dashboards/Index" ? " active" : "")'>
-          <a asp-controller="Dashboards" asp-action="Index" class="menu-link">
-            <div>Analytics</div>
-          </a>
-                   
+                    <a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+                        <div>Analytics</div>
+                    </a>
+
+                </li>
+
+            </ul>
         </li>
-       
-      </ul>
-    </li>
 
         <!-- Research -->
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Research</span>
         </li>
-    <li class='menu-item@(currentPage.StartsWith("/Sources") ? " active open" : "")'>
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <li class='menu-item@(currentPage.StartsWith("/Sources") ? " active open" : "")'>
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-archive"></i>
-        <div>Sources</div>
-      </a>
-
-      <ul class="menu-sub">
-       
-       <li class='menu-item@(currentPage == "/Sources/News" ? " active" : "")'>
-            <a asp-controller="Sources" asp-action="News" class="menu-link">
-                        <div>News</div>
+                <div>Sources</div>
             </a>
-        </li>
+
+            <ul class="menu-sub">
+
+                <li class='menu-item@(currentPage == "/Sources/News" ? " active" : "")'>
+                    <a asp-controller="Sources" asp-action="News" class="menu-link">
+                        <div>News</div>
+                    </a>
+                </li>
                 <li class='menu-item@(currentPage == "/Sources/Reddit" ? " active" : "")'>
                     <a asp-controller="Sources" asp-action="Reddit" class="menu-link">
                         <div>Reddit</div>
@@ -77,8 +76,8 @@
                     </a>
                 </li>
 
-      </ul>
-    </li>
+            </ul>
+        </li>
         <li class='menu-item@(currentPage.StartsWith("/APilot") ? " active open" : "")'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-cube-alt"></i>
@@ -91,7 +90,7 @@
                         <div>News</div>
                     </a>
                 </li>
-                
+
                 <li class='menu-item@(currentPage == "/ChatApp/Index" ? " active" : "")'>
                     <a asp-controller="ChatApp" asp-action="Index" class="menu-link">
                         <div>Chat</div>
@@ -139,9 +138,9 @@
         </li>
 
         <!-- Configurations -->
-    <li class="menu-header small text-uppercase">
-      <span class="menu-header-text">Configuration</span>
-    </li>
+        <li class="menu-header small text-uppercase">
+            <span class="menu-header-text">Configuration</span>
+        </li>
         <!-- Sources -->
         <li class='menu-item@(currentPage == "/Configurations/News" ? " active" : "")'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -175,8 +174,8 @@
                         <div>Symbols</div>
                     </a>
                 </li>
-               
-              
+
+
             </ul>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/Admin") ? " active open" : "")' )'>
@@ -201,7 +200,7 @@
                         <div>Role Manager</div>
                     </a>
                 </li>
-                
+
             </ul>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/Sectors") ? " active open" : "")' )'>
@@ -221,7 +220,7 @@
                         <div>Sectors</div>
                     </a>
                 </li>
-                </ul>
+            </ul>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/Companies") ? " active open" : "")' )'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -280,56 +279,56 @@
                         <div>Qualitatives</div>
                     </a>
                 </li>
-                
+
             </ul>
         </li>
-    <!-- Settings -->
-    <li class='menu-item@(currentPage.StartsWith("/Pages/Account") ? " active open" : "")'>
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-dock-top"></i>
-        <div>Account Settings</div>
-      </a>
-      <ul class="menu-sub">
-        <li class='menu-item@(currentPage == "/Pages/AccountSettings" ? " active" : "")'>
-          <a asp-controller="Pages" asp-action="AccountSettings" class="menu-link">
-            <div>Account</div>
-          </a>
-        </li>
-        <li class='menu-item@(currentPage == "/Pages/AccountSettingsNotifications" ? " active" : "")'>
-          <a asp-controller="Pages" asp-action="AccountSettingsNotifications" class="menu-link">
-            <div>Notifications</div>
-          </a>
-        </li>
-        <li class='menu-item@(currentPage == "/Pages/AccountSettingsConnections" ? " active" : "")'>
-          <a asp-controller="Pages" asp-action="AccountSettingsConnections" class="menu-link">
-            <div>Connections</div>
-          </a>
-        </li>
-                <li class='menu-item@(currentPage == "/Pages/Billing" ? " active" : "")'>
-                    <a asp-controller="Pages" asp-action="Billing" class="menu-link">
+        <!-- Settings -->
+        <li class='menu-item@(currentPage.StartsWith("/Pages/Account") || currentPage.StartsWith("/UserProfiles") ? " active open" : "")'>
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-dock-top"></i>
+                <div>Account Settings</div>
+            </a>
+            <ul class="menu-sub">
+                <li class='menu-item@(currentPage == "/Pages/AccountSettings" ? " active" : "")'>
+                    <a asp-controller="Pages" asp-action="AccountSettings" class="menu-link">
+                        <div>Account</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Pages/AccountSettingsNotifications" ? " active" : "")'>
+                    <a asp-controller="Pages" asp-action="AccountSettingsNotifications" class="menu-link">
+                        <div>Notifications</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Pages/AccountSettingsConnections" ? " active" : "")'>
+                    <a asp-controller="Pages" asp-action="AccountSettingsConnections" class="menu-link">
+                        <div>Connections</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/UserProfiles/Index" ? " active" : "")'>
+                    <a asp-controller="UserProfiles" asp-action="Index" class="menu-link">
                         <div>Billing</div>
                     </a>
                 </li>
-                
-      </ul>
-    </li>
-   
-    
-    <!-- Help Center -->
-    <li class="menu-header small text-uppercase"><span class="menu-header-text">Help Center</span></li>
-    <li class="menu-item">
-      <a href='@TempData.Peek("support")' target="_blank" class="menu-link">
-        <i class="menu-icon tf-icons bx bx-support"></i>
-        <div>Support</div>
-      </a>
-    </li>
-    <li class="menu-item">
-      <a href='@TempData.Peek("documentation")' target="_blank" class="menu-link">
-        <i class="menu-icon tf-icons bx bx-file"></i>
-        <div>Documentation</div>
-      </a>
-    </li>
-  </ul>
+
+            </ul>
+        </li>
+
+
+        <!-- Help Center -->
+        <li class="menu-header small text-uppercase"><span class="menu-header-text">Help Center</span></li>
+        <li class="menu-item">
+            <a href='@TempData.Peek("support")' target="_blank" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-support"></i>
+                <div>Support</div>
+            </a>
+        </li>
+        <li class="menu-item">
+            <a href='@TempData.Peek("documentation")' target="_blank" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-file"></i>
+                <div>Documentation</div>
+            </a>
+        </li>
+    </ul>
 
 </aside>
 <!-- / Menu -->

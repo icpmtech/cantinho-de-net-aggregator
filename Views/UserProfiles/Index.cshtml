@@ -1,10 +1,7 @@
+@model UserProfileApp.Models.UserProfile
+
 <div class="content-wrapper">
-
-    <!-- Content -->
-
     <div class="container-xxl flex-grow-1 container-p-y">
-
-
         <div class="row">
             <!-- User Sidebar -->
             <div class="col-xl-4 col-lg-5 order-1 order-md-0">
@@ -12,11 +9,11 @@
                 <div class="card mb-6">
                     <div class="card-body pt-12">
                         <div class="user-avatar-section">
-                            <div class=" d-flex align-items-center flex-column">
-                                <img class="img-fluid rounded mb-4" src="../../assets/img/avatars/1.png" height="120" width="120" alt="User avatar">
+                            <div class="d-flex align-items-center flex-column">
+                                <img class="img-fluid rounded mb-4" src="~/images/avatar.png" height="120" width="120" alt="User avatar">
                                 <div class="user-info text-center">
-                                    <h5>Violet Mendoza</h5>
-                                    <span class="badge bg-label-secondary">Author</span>
+                                    <h5>@Model.FirstName @Model.LastName</h5>
+                                    <span class="badge bg-label-secondary">@Model.Role</span>
                                 </div>
                             </div>
                         </div>
@@ -49,35 +46,35 @@
                             <ul class="list-unstyled mb-6">
                                 <li class="mb-2">
                                     <span class="h6">Username:</span>
-                                    <span>@@violet.dev</span>
+                                    <span>@Model.Username</span>
                                 </li>
                                 <li class="mb-2">
                                     <span class="h6">Email:</span>
-                                    <span>vafgot@vultukir.org</span>
+                                    <span>@Model.Email</span>
                                 </li>
                                 <li class="mb-2">
                                     <span class="h6">Status:</span>
-                                    <span>Active</span>
+                                    <span>@Model.Status</span>
                                 </li>
                                 <li class="mb-2">
                                     <span class="h6">Role:</span>
-                                    <span>Author</span>
+                                    <span>@Model.Role</span>
                                 </li>
                                 <li class="mb-2">
                                     <span class="h6">Tax id:</span>
-                                    <span>Tax-8965</span>
+                                    <span>@Model.TaxId</span>
                                 </li>
                                 <li class="mb-2">
                                     <span class="h6">Contact:</span>
-                                    <span>(123) 456-7890</span>
+                                    <span>@Model.Contact</span>
                                 </li>
                                 <li class="mb-2">
                                     <span class="h6">Languages:</span>
-                                    <span>French</span>
+                                    <span>@string.Join(", ", Model.Languages)</span>
                                 </li>
                                 <li class="mb-2">
                                     <span class="h6">Country:</span>
-                                    <span>England</span>
+                                    <span>@Model.Country</span>
                                 </li>
                             </ul>
                             <div class="d-flex justify-content-center">
@@ -186,60 +183,31 @@
                     </div>
                     <div class="card-body">
                         <div class="added-cards">
-                            <div class="cardMaster border p-6 rounded mb-4">
-                                <div class="d-flex justify-content-between flex-sm-row flex-column">
-                                    <div class="card-information">
-                                        <img class="mb-2" src="../../assets/img/icons/payments/mastercard.png" alt="Master Card" height="25">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <h6 class="mb-0 me-2">Kaith Morrison</h6>
-                                            <span class="badge bg-label-primary me-1">Popular</span>
+                            @foreach (var payment in Model.PaymentMethods)
+                            {
+                                <div class="cardMaster border p-6 rounded mb-4">
+                                    <div class="d-flex justify-content-between flex-sm-row flex-column">
+                                        <div class="card-information">
+                                            <img class="mb-2" src="~/images/@payment.CardType.ToLower().Replace(" ", "-")-cc.png" alt="@payment.CardType" height="25">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <h6 class="mb-0 me-2">@payment.CardName</h6>
+                                                @if (payment.IsPrimary)
+                                                {
+                                                    <span class="badge bg-label-primary me-1">Primary</span>
+                                                }
+                                            </div>
+                                            <span class="card-number">@payment.CardNumber</span>
                                         </div>
-                                        <span class="card-number">∗∗∗∗ ∗∗∗∗ ∗∗∗∗ 9856</span>
-                                    </div>
-                                    <div class="d-flex flex-column text-start text-lg-end">
-                                        <div class="d-flex order-sm-0 order-1">
-                                            <button class="btn btn-sm btn-label-primary me-4" data-bs-toggle="modal" data-bs-target="#editCCModal">Edit</button>
-                                            <button class="btn btn-sm btn-label-danger">Delete</button>
+                                        <div class="d-flex flex-column text-start text-lg-end">
+                                            <div class="d-flex order-sm-0 order-1">
+                                                <button class="btn btn-sm btn-label-primary me-4" data-bs-toggle="modal" data-bs-target="#editCCModal" data-card-id="@payment.CardNumber">Edit</button>
+                                                <button class="btn btn-sm btn-label-danger" data-card-id="@payment.CardNumber">Delete</button>
+                                            </div>
+                                            <small class="mt-sm-4 mt-2 order-sm-1 order-0 text-sm-end mb-2">Card expires at @payment.ExpiryDate.ToString("MM/yy")</small>
                                         </div>
-                                        <small class="mt-sm-4 mt-2 order-sm-1 order-0 text-sm-end mb-2">Card expires at 12/24</small>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="cardMaster border p-6 rounded mb-4">
-                                <div class="d-flex justify-content-between flex-sm-row flex-column">
-                                    <div class="card-information">
-                                        <img class="mb-2" src="../../assets/img/icons/payments/visa.png" alt="Master Card" height="25">
-                                        <h6 class="mb-2 me-2">Tom McBride</h6>
-                                        <span class="card-number">∗∗∗∗ ∗∗∗∗ ∗∗∗∗ 6542</span>
-                                    </div>
-                                    <div class="d-flex flex-column text-start text-lg-end">
-                                        <div class="d-flex order-sm-0 order-1">
-                                            <button class="btn btn-sm btn-label-primary me-4" data-bs-toggle="modal" data-bs-target="#editCCModal">Edit</button>
-                                            <button class="btn btn-sm btn-label-danger">Delete</button>
-                                        </div>
-                                        <small class="mt-sm-4 mt-2 order-sm-1 order-0 text-sm-end mb-2">Card expires at 02/24</small>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="cardMaster border p-6 rounded">
-                                <div class="d-flex justify-content-between flex-sm-row flex-column">
-                                    <div class="card-information">
-                                        <img class="mb-2" src="../../assets/img/icons/payments/american-express-logo.png" alt="Visa Card" height="25">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <h6 class="mb-0 me-2">Mildred Wagner</h6>
-                                            <span class="badge bg-label-danger me-1">Expired</span>
-                                        </div>
-                                        <span class="card-number">∗∗∗∗ ∗∗∗∗ ∗∗∗∗ 5896</span>
-                                    </div>
-                                    <div class="d-flex flex-column text-start text-lg-end">
-                                        <div class="d-flex order-sm-0 order-1">
-                                            <button class="btn btn-sm btn-label-primary me-4" data-bs-toggle="modal" data-bs-target="#editCCModal">Edit</button>
-                                            <button class="btn btn-sm btn-label-danger">Delete</button>
-                                        </div>
-                                        <small class="mt-sm-4 mt-2 order-sm-1 order-0 text-sm-end mb-2">Card expires at 08/20</small>
-                                    </div>
-                                </div>
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -253,45 +221,50 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-xl-7 col-12">
-                                <dl class="row mb-0 gx-2">
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Company Name:</dt>
-                                    <dd class="col-sm-8">Kelly Group</dd>
+                        @foreach (var address in Model.Addresses)
+                        {
+                            if (address.IsBillingAddress)
+                            {
+                                <div class="row">
+                                    <div class="col-xl-7 col-12">
+                                        <dl class="row mb-0 gx-2">
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Company Name:</dt>
+                                            <dd class="col-sm-8">Kelly Group</dd>
 
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Billing Email:</dt>
-                                    <dd class="col-sm-8">user@ex.com</dd>
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Billing Email:</dt>
+                                            <dd class="col-sm-8">@Model.Email</dd>
 
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Tax ID:</dt>
-                                    <dd class="col-sm-8">TAX-357378</dd>
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Tax ID:</dt>
+                                            <dd class="col-sm-8">@Model.TaxId</dd>
 
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">VAT Number:</dt>
-                                    <dd class="col-sm-8">SDF754K77</dd>
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">VAT Number:</dt>
+                                            <dd class="col-sm-8">SDF754K77</dd>
 
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading mb-0">Billing Address:</dt>
-                                    <dd class="col-sm-8 mb-xl-0">100 Water Plant <br>Avenue, Building 1303<br> Wake Island</dd>
-                                </dl>
-                            </div>
-                            <div class="col-xl-5 col-12">
-                                <dl class="row mb-0 gx-2">
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Contact:</dt>
-                                    <dd class="col-sm-8">+1 (605) 977-32-65</dd>
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading mb-0">Billing Address:</dt>
+                                            <dd class="col-sm-8 mb-xl-0">@address.AddressLine1 <br>@address.AddressLine2<br>@address.City, @address.State @address.ZipCode</dd>
+                                        </dl>
+                                    </div>
+                                    <div class="col-xl-5 col-12">
+                                        <dl class="row mb-0 gx-2">
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Contact:</dt>
+                                            <dd class="col-sm-8">@Model.Contact</dd>
 
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Country:</dt>
-                                    <dd class="col-sm-8">Wake Island</dd>
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Country:</dt>
+                                            <dd class="col-sm-8">@address.Country</dd>
 
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">State:</dt>
-                                    <dd class="col-sm-8">Capholim</dd>
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">State:</dt>
+                                            <dd class="col-sm-8">@address.State</dd>
 
-                                    <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Zipcode:</dt>
-                                    <dd class="col-sm-8">403114</dd>
-                                </dl>
-                            </div>
-                        </div>
+                                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Zipcode:</dt>
+                                            <dd class="col-sm-8">@address.ZipCode</dd>
+                                        </dl>
+                                    </div>
+                                </div>
+                            }
+                        }
                     </div>
                 </div>
                 <!--/ Billing Address -->
-
             </div>
             <!--/ User Content -->
         </div>
@@ -307,62 +280,60 @@
                             <h4 class="mb-2">Edit User Information</h4>
                             <p>Updating user details will receive a privacy audit.</p>
                         </div>
-                        <form class="row g-6" onsubmit="false">
+                        <form class="row g-6" asp-action="Edit" method="post">
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalEditUserFirstName">First Name</label>
-                                <input type="text" id="modalEditUserFirstName" name="modalEditUserFirstName" class="form-control" placeholder="John" value="John">
+                                <input type="text" id="modalEditUserFirstName" name="FirstName" class="form-control" value="@Model.FirstName">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalEditUserLastName">Last Name</label>
-                                <input type="text" id="modalEditUserLastName" name="modalEditUserLastName" class="form-control" placeholder="Doe" value="Doe">
+                                <input type="text" id="modalEditUserLastName" name="LastName" class="form-control" value="@Model.LastName">
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="modalEditUserName">Username</label>
-                                <input type="text" id="modalEditUserName" name="modalEditUserName" class="form-control" placeholder="johndoe007" value="johndoe007">
+                                <input type="text" id="modalEditUserName" name="Username" class="form-control" value="@Model.Username">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalEditUserEmail">Email</label>
-                                <input type="text" id="modalEditUserEmail" name="modalEditUserEmail" class="form-control" placeholder="example@domain.com" value="example@domain.com">
+                                <input type="email" id="modalEditUserEmail" name="Email" class="form-control" value="@Model.Email">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalEditUserStatus">Status</label>
                                 <div class="position-relative">
                                     <div class="position-relative">
-                                        <select id="modalEditUserStatus" name="modalEditUserStatus" class="select2 form-select select2-hidden-accessible" aria-label="Default select example" tabindex="-1" aria-hidden="true" data-select2-id="modalEditUserStatus">
-                                            <option selected="" data-select2-id="15">Status</option>
-                                            <option value="1">Active</option>
-                                            <option value="2">Inactive</option>
-                                            <option value="3">Suspended</option>
-                                        </select><span class="select2 select2-container select2-container--default" dir="ltr" data-select2-id="14" style="width: auto;"><span class="selection"><span class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-disabled="false" aria-labelledby="select2-modalEditUserStatus-container"><span class="select2-selection__rendered" id="select2-modalEditUserStatus-container" role="textbox" aria-readonly="true" title="Status">Status</span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+                                        <select id="modalEditUserStatus" name="Status" class="form-select">
+                                            <option value="Active" @(Model.Status == "Active" ? "selected" : "")>Active</option>
+                                            <option value="Inactive" @(Model.Status == "Inactive" ? "selected" : "")>Inactive</option>
+                                            <option value="Suspended" @(Model.Status == "Suspended" ? "selected" : "")>Suspended</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalEditTaxID">Tax ID</label>
-                                <input type="text" id="modalEditTaxID" name="modalEditTaxID" class="form-control modal-edit-tax-id" placeholder="123 456 7890" value="123 456 7890">
+                                <input type="text" id="modalEditTaxID" name="TaxId" class="form-control" value="@Model.TaxId">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalEditUserPhone">Phone Number</label>
                                 <div class="input-group">
                                     <span class="input-group-text">US (+1)</span>
-                                    <input type="text" id="modalEditUserPhone" name="modalEditUserPhone" class="form-control phone-number-mask" placeholder="202 555 0111" value="202 555 0111">
+                                    <input type="text" id="modalEditUserPhone" name="Contact" class="form-control" value="@Model.Contact">
                                 </div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalEditUserLanguage">Language</label>
                                 <div class="position-relative">
                                     <div class="position-relative">
-                                        <select id="modalEditUserLanguage" name="modalEditUserLanguage" class="select2 form-select select2-hidden-accessible" multiple="" tabindex="-1" aria-hidden="true" data-select2-id="modalEditUserLanguage">
-                                            <option value="">Select</option>
-                                            <option value="english" selected="" data-select2-id="26">English</option>
-                                            <option value="spanish">Spanish</option>
-                                            <option value="french">French</option>
-                                            <option value="german">German</option>
-                                            <option value="dutch">Dutch</option>
-                                            <option value="hebrew">Hebrew</option>
-                                            <option value="sanskrit">Sanskrit</option>
-                                            <option value="hindi">Hindi</option>
-                                        </select><span class="select2 select2-container select2-container--default" dir="ltr" data-select2-id="25" style="width: auto;"><span class="selection"><span class="select2-selection select2-selection--multiple" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="-1" aria-disabled="false"><ul class="select2-selection__rendered"><li class="select2-selection__choice" title="English" data-select2-id="27"><span class="select2-selection__choice__remove" role="presentation">×</span>English</li><li class="select2-search select2-search--inline"><input class="select2-search__field" type="search" tabindex="0" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" role="searchbox" aria-autocomplete="list" placeholder="" style="width: 0.75em;"></li></ul></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+                                        <select id="modalEditUserLanguage" name="Languages" class="form-select" multiple>
+                                            <option value="English" @(Model.Languages.Contains("English") ? "selected" : "")>English</option>
+                                            <option value="Spanish" @(Model.Languages.Contains("Spanish") ? "selected" : "")>Spanish</option>
+                                            <option value="French" @(Model.Languages.Contains("French") ? "selected" : "")>French</option>
+                                            <option value="German" @(Model.Languages.Contains("German") ? "selected" : "")>German</option>
+                                            <option value="Dutch" @(Model.Languages.Contains("Dutch") ? "selected" : "")>Dutch</option>
+                                            <option value="Hebrew" @(Model.Languages.Contains("Hebrew") ? "selected" : "")>Hebrew</option>
+                                            <option value="Sanskrit" @(Model.Languages.Contains("Sanskrit") ? "selected" : "")>Sanskrit</option>
+                                            <option value="Hindi" @(Model.Languages.Contains("Hindi") ? "selected" : "")>Hindi</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -370,39 +341,38 @@
                                 <label class="form-label" for="modalEditUserCountry">Country</label>
                                 <div class="position-relative">
                                     <div class="position-relative">
-                                        <select id="modalEditUserCountry" name="modalEditUserCountry" class="select2 form-select select2-hidden-accessible" data-allow-clear="true" tabindex="-1" aria-hidden="true" data-select2-id="modalEditUserCountry">
-                                            <option value="">Select</option>
-                                            <option value="Australia">Australia</option>
-                                            <option value="Bangladesh">Bangladesh</option>
-                                            <option value="Belarus">Belarus</option>
-                                            <option value="Brazil">Brazil</option>
-                                            <option value="Canada">Canada</option>
-                                            <option value="China">China</option>
-                                            <option value="France">France</option>
-                                            <option value="Germany">Germany</option>
-                                            <option value="India" selected="" data-select2-id="54">India</option>
-                                            <option value="Indonesia">Indonesia</option>
-                                            <option value="Israel">Israel</option>
-                                            <option value="Italy">Italy</option>
-                                            <option value="Japan">Japan</option>
-                                            <option value="Korea">Korea, Republic of</option>
-                                            <option value="Mexico">Mexico</option>
-                                            <option value="Philippines">Philippines</option>
-                                            <option value="Russia">Russian Federation</option>
-                                            <option value="South Africa">South Africa</option>
-                                            <option value="Thailand">Thailand</option>
-                                            <option value="Turkey">Turkey</option>
-                                            <option value="Ukraine">Ukraine</option>
-                                            <option value="United Arab Emirates">United Arab Emirates</option>
-                                            <option value="United Kingdom">United Kingdom</option>
-                                            <option value="United States">United States</option>
-                                        </select><span class="select2 select2-container select2-container--default" dir="ltr" data-select2-id="53" style="width: auto;"><span class="selection"><span class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-disabled="false" aria-labelledby="select2-modalEditUserCountry-container"><span class="select2-selection__rendered" id="select2-modalEditUserCountry-container" role="textbox" aria-readonly="true" title="India"><span class="select2-selection__clear" title="Remove all items" data-select2-id="55">×</span>India</span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+                                        <select id="modalEditUserCountry" name="Country" class="form-select">
+                                            <option value="Australia" @(Model.Country == "Australia" ? "selected" : "")>Australia</option>
+                                            <option value="Bangladesh" @(Model.Country == "Bangladesh" ? "selected" : "")>Bangladesh</option>
+                                            <option value="Belarus" @(Model.Country == "Belarus" ? "selected" : "")>Belarus</option>
+                                            <option value="Brazil" @(Model.Country == "Brazil" ? "selected" : "")>Brazil</option>
+                                            <option value="Canada" @(Model.Country == "Canada" ? "selected" : "")>Canada</option>
+                                            <option value="China" @(Model.Country == "China" ? "selected" : "")>China</option>
+                                            <option value="France" @(Model.Country == "France" ? "selected" : "")>France</option>
+                                            <option value="Germany" @(Model.Country == "Germany" ? "selected" : "")>Germany</option>
+                                            <option value="India" @(Model.Country == "India" ? "selected" : "")>India</option>
+                                            <option value="Indonesia" @(Model.Country == "Indonesia" ? "selected" : "")>Indonesia</option>
+                                            <option value="Israel" @(Model.Country == "Israel" ? "selected" : "")>Israel</option>
+                                            <option value="Italy" @(Model.Country == "Italy" ? "selected" : "")>Italy</option>
+                                            <option value="Japan" @(Model.Country == "Japan" ? "selected" : "")>Japan</option>
+                                            <option value="Korea" @(Model.Country == "Korea" ? "selected" : "")>Korea, Republic of</option>
+                                            <option value="Mexico" @(Model.Country == "Mexico" ? "selected" : "")>Mexico</option>
+                                            <option value="Philippines" @(Model.Country == "Philippines" ? "selected" : "")>Philippines</option>
+                                            <option value="Russia" @(Model.Country == "Russia" ? "selected" : "")>Russian Federation</option>
+                                            <option value="South Africa" @(Model.Country == "South Africa" ? "selected" : "")>South Africa</option>
+                                            <option value="Thailand" @(Model.Country == "Thailand" ? "selected" : "")>Thailand</option>
+                                            <option value="Turkey" @(Model.Country == "Turkey" ? "selected" : "")>Turkey</option>
+                                            <option value="Ukraine" @(Model.Country == "Ukraine" ? "selected" : "")>Ukraine</option>
+                                            <option value="United Arab Emirates" @(Model.Country == "United Arab Emirates" ? "selected" : "")>United Arab Emirates</option>
+                                            <option value="United Kingdom" @(Model.Country == "United Kingdom" ? "selected" : "")>United Kingdom</option>
+                                            <option value="United States" @(Model.Country == "United States" ? "selected" : "")>United States</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="form-check form-switch my-2 ms-2">
-                                    <input type="checkbox" class="form-check-input" id="editBillingAddress" checked="">
+                                    <input type="checkbox" class="form-check-input" id="editBillingAddress" name="IsBillingAddress" checked="@Model.Addresses.Any(a => a.IsBillingAddress)">
                                     <label for="editBillingAddress" class="switch-label">Use as a billing address?</label>
                                 </div>
                             </div>
@@ -426,32 +396,33 @@
                             <h2>Edit Card</h2>
                             <p class="text-muted">Edit your saved card details</p>
                         </div>
-                        <form id="editCCForm" class="row g-3 fv-plugins-bootstrap5 fv-plugins-framework" onsubmit="return false" novalidate="novalidate">
+                        <form id="editCCForm" class="row g-3 fv-plugins-bootstrap5 fv-plugins-framework" asp-action="EditPaymentMethod" method="post">
                             <div class="col-12 fv-plugins-icon-container">
                                 <label class="form-label w-100" for="modalEditCard">Card Number</label>
                                 <div class="input-group input-group-merge has-validation">
-                                    <input id="modalEditCard" name="modalEditCard" class="form-control credit-card-mask-edit" type="text" placeholder="4356 3215 6548 7898" value="4356 3215 6548 7898" aria-describedby="modalEditCard2">
-                                    <span class="input-group-text cursor-pointer" id="modalEditCard2"><span class="card-type-edit"><img src="../../assets/img/icons/payments/visa-cc.png" height="20"></span></span>
-                                </div><div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                                    <input id="modalEditCard" name="CardNumber" class="form-control credit-card-mask-edit" type="text" placeholder="4356 3215 6548 7898" aria-describedby="modalEditCard2">
+                                    <span class="input-group-text cursor-pointer" id="modalEditCard2"><span class="card-type-edit"><img src="~/images/visa-cc.png" height="20"></span></span>
+                                </div>
+                                <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalEditName">Name</label>
-                                <input type="text" id="modalEditName" class="form-control" placeholder="John Doe" value="John Doe">
+                                <input type="text" id="modalEditName" name="CardName" class="form-control" placeholder="John Doe">
                             </div>
                             <div class="col-6 col-md-3">
                                 <label class="form-label" for="modalEditExpiryDate">Exp. Date</label>
-                                <input type="text" id="modalEditExpiryDate" class="form-control expiry-date-mask-edit" placeholder="MM/YY" value="08/28">
+                                <input type="text" id="modalEditExpiryDate" name="ExpiryDate" class="form-control expiry-date-mask-edit" placeholder="MM/YY">
                             </div>
                             <div class="col-6 col-md-3">
                                 <label class="form-label" for="modalEditCvv">CVV Code</label>
                                 <div class="input-group input-group-merge">
-                                    <input type="text" id="modalEditCvv" class="form-control cvv-code-mask-edit" maxlength="3" placeholder="654" value="XXX">
+                                    <input type="text" id="modalEditCvv" name="CVVCode" class="form-control cvv-code-mask-edit" maxlength="3" placeholder="654">
                                     <span class="input-group-text cursor-pointer" id="modalEditCvv2"><i class="bx bx-help-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Card Verification Value" data-bs-original-title="Card Verification Value"></i></span>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="form-check form-switch">
-                                    <input type="checkbox" class="form-check-input" id="editPrimaryCard">
+                                    <input type="checkbox" class="form-check-input" id="editPrimaryCard" name="IsPrimary">
                                     <label for="editPrimaryCard">Set as primary card</label>
                                 </div>
                             </div>
@@ -476,8 +447,7 @@
                             <h4 class="address-title mb-2">Add New Address</h4>
                             <p class="address-subtitle">Add new address for express delivery</p>
                         </div>
-                        <form id="addNewAddressForm" class="row g-6 fv-plugins-bootstrap5 fv-plugins-framework" onsubmit="return false" novalidate="novalidate">
-
+                        <form id="addNewAddressForm" class="row g-6 fv-plugins-bootstrap5 fv-plugins-framework" asp-action="EditAddress" method="post">
                             <div class="col-12">
                                 <div class="row">
                                     <div class="col-md mb-md-0 mb-4">
@@ -508,20 +478,20 @@
                             </div>
                             <div class="col-12 col-md-6 fv-plugins-icon-container">
                                 <label class="form-label" for="modalAddressFirstName">First Name</label>
-                                <input type="text" id="modalAddressFirstName" name="modalAddressFirstName" class="form-control" placeholder="John">
+                                <input type="text" id="modalAddressFirstName" name="FirstName" class="form-control" placeholder="John">
                                 <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                             </div>
                             <div class="col-12 col-md-6 fv-plugins-icon-container">
                                 <label class="form-label" for="modalAddressLastName">Last Name</label>
-                                <input type="text" id="modalAddressLastName" name="modalAddressLastName" class="form-control" placeholder="Doe">
+                                <input type="text" id="modalAddressLastName" name="LastName" class="form-control" placeholder="Doe">
                                 <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="modalAddressCountry">Country</label>
                                 <div class="position-relative">
                                     <div class="position-relative">
-                                        <select id="modalAddressCountry" name="modalAddressCountry" class="select2 form-select select2-hidden-accessible" data-allow-clear="true" tabindex="-1" aria-hidden="true" data-select2-id="modalAddressCountry">
-                                            <option value="" data-select2-id="82">Select</option>
+                                        <select id="modalAddressCountry" name="Country" class="form-select" data-allow-clear="true">
+                                            <option value="">Select</option>
                                             <option value="Australia">Australia</option>
                                             <option value="Bangladesh">Bangladesh</option>
                                             <option value="Belarus">Belarus</option>
@@ -546,37 +516,37 @@
                                             <option value="United Arab Emirates">United Arab Emirates</option>
                                             <option value="United Kingdom">United Kingdom</option>
                                             <option value="United States">United States</option>
-                                        </select><span class="select2 select2-container select2-container--default" dir="ltr" data-select2-id="81" style="width: auto;"><span class="selection"><span class="select2-selection select2-selection--single" role="combobox" aria-haspopup="true" aria-expanded="false" tabindex="0" aria-disabled="false" aria-labelledby="select2-modalAddressCountry-container"><span class="select2-selection__rendered" id="select2-modalAddressCountry-container" role="textbox" aria-readonly="true"><span class="select2-selection__placeholder">Select value</span></span><span class="select2-selection__arrow" role="presentation"><b role="presentation"></b></span></span></span><span class="dropdown-wrapper" aria-hidden="true"></span></span>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
                             <div class="col-12 ">
                                 <label class="form-label" for="modalAddressAddress1">Address Line 1</label>
-                                <input type="text" id="modalAddressAddress1" name="modalAddressAddress1" class="form-control" placeholder="12, Business Park">
+                                <input type="text" id="modalAddressAddress1" name="AddressLine1" class="form-control" placeholder="12, Business Park">
                             </div>
                             <div class="col-12">
                                 <label class="form-label" for="modalAddressAddress2">Address Line 2</label>
-                                <input type="text" id="modalAddressAddress2" name="modalAddressAddress2" class="form-control" placeholder="Mall Road">
+                                <input type="text" id="modalAddressAddress2" name="AddressLine2" class="form-control" placeholder="Mall Road">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalAddressLandmark">Landmark</label>
-                                <input type="text" id="modalAddressLandmark" name="modalAddressLandmark" class="form-control" placeholder="Nr. Hard Rock Cafe">
+                                <input type="text" id="modalAddressLandmark" name="Landmark" class="form-control" placeholder="Nr. Hard Rock Cafe">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalAddressCity">City</label>
-                                <input type="text" id="modalAddressCity" name="modalAddressCity" class="form-control" placeholder="Los Angeles">
+                                <input type="text" id="modalAddressCity" name="City" class="form-control" placeholder="Los Angeles">
                             </div>
                             <div class="col-12 col-md-6">
-                                <label class="form-label" for="modalAddressLandmark">State</label>
-                                <input type="text" id="modalAddressState" name="modalAddressState" class="form-control" placeholder="California">
+                                <label class="form-label" for="modalAddressState">State</label>
+                                <input type="text" id="modalAddressState" name="State" class="form-control" placeholder="California">
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalAddressZipCode">Zip Code</label>
-                                <input type="text" id="modalAddressZipCode" name="modalAddressZipCode" class="form-control" placeholder="99950">
+                                <input type="text" id="modalAddressZipCode" name="ZipCode" class="form-control" placeholder="99950">
                             </div>
                             <div class="col-12">
                                 <div class="form-check form-switch my-2 ms-2">
-                                    <input type="checkbox" class="form-check-input" id="billingAddress">
+                                    <input type="checkbox" class="form-check-input" id="billingAddress" name="IsBillingAddress">
                                     <label for="billingAddress" class="switch-label">Use as a billing address?</label>
                                 </div>
                             </div>
@@ -601,32 +571,33 @@
                             <h4 class="mb-2">Add New Card</h4>
                             <p>Add new card to complete payment</p>
                         </div>
-                        <form id="addNewCCForm" class="row g-6 fv-plugins-bootstrap5 fv-plugins-framework" onsubmit="return false" novalidate="novalidate">
+                        <form id="addNewCCForm" class="row g-6 fv-plugins-bootstrap5 fv-plugins-framework" asp-action="AddPaymentMethod" method="post">
                             <div class="col-12 fv-plugins-icon-container">
                                 <label class="form-label w-100" for="modalAddCard">Card Number</label>
                                 <div class="input-group input-group-merge has-validation">
-                                    <input id="modalAddCard" name="modalAddCard" class="form-control credit-card-mask" type="text" placeholder="1356 3215 6548 7898" aria-describedby="modalAddCard2">
+                                    <input id="modalAddCard" name="CardNumber" class="form-control credit-card-mask" type="text" placeholder="1356 3215 6548 7898" aria-describedby="modalAddCard2">
                                     <span class="input-group-text cursor-pointer" id="modalAddCard2"><span class="card-type me-n2"></span></span>
-                                </div><div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
+                                </div>
+                                <div class="fv-plugins-message-container fv-plugins-message-container--enabled invalid-feedback"></div>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label" for="modalAddCardName">Name</label>
-                                <input type="text" id="modalAddCardName" class="form-control" placeholder="John Doe">
+                                <input type="text" id="modalAddCardName" name="CardName" class="form-control" placeholder="John Doe">
                             </div>
                             <div class="col-6 col-md-3">
                                 <label class="form-label" for="modalAddCardExpiryDate">Exp. Date</label>
-                                <input type="text" id="modalAddCardExpiryDate" class="form-control expiry-date-mask" placeholder="MM/YY">
+                                <input type="text" id="modalAddCardExpiryDate" name="ExpiryDate" class="form-control expiry-date-mask" placeholder="MM/YY">
                             </div>
                             <div class="col-6 col-md-3">
                                 <label class="form-label" for="modalAddCardCvv">CVV Code</label>
                                 <div class="input-group input-group-merge">
-                                    <input type="text" id="modalAddCardCvv" class="form-control cvv-code-mask" maxlength="3" placeholder="654">
+                                    <input type="text" id="modalAddCardCvv" name="CVVCode" class="form-control cvv-code-mask" maxlength="3" placeholder="654">
                                     <span class="input-group-text cursor-pointer ps-0" id="modalAddCardCvv2"><i class="bx bx-help-circle text-muted" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Card Verification Value" data-bs-original-title="Card Verification Value"></i></span>
                                 </div>
                             </div>
                             <div class="col-12">
                                 <div class="form-check form-switch my-2 ms-2">
-                                    <input type="checkbox" class="form-check-input" id="futureAddress">
+                                    <input type="checkbox" class="form-check-input" id="futureAddress" name="SaveForFuture">
                                     <label for="futureAddress" class="switch-label">Save card for future billing?</label>
                                 </div>
                             </div>
@@ -651,10 +622,10 @@
                             <h4 class="mb-2">Upgrade Plan</h4>
                             <p>Choose the best plan for user.</p>
                         </div>
-                        <form id="upgradePlanForm" class="row g-4" onsubmit="return false">
+                        <form id="upgradePlanForm" class="row g-4" asp-action="UpgradePlan" method="post">
                             <div class="col-sm-9">
                                 <label class="form-label" for="choosePlan">Choose Plan</label>
-                                <select id="choosePlan" name="choosePlan" class="form-select" aria-label="Choose Plan">
+                                <select id="choosePlan" name="Plan" class="form-select" aria-label="Choose Plan">
                                     <option selected="">Choose Plan</option>
                                     <option value="standard">Standard - $99/month</option>
                                     <option value="exclusive">Exclusive - $249/month</option>
@@ -685,4 +656,4 @@
         <!-- /Modal -->
     </div>
     <!-- / Content -->
-
+</div>
