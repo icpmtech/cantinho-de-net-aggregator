@@ -654,7 +654,7 @@ namespace MarketAnalyticHub.Services
         PortfolioId = portfolio.Id,
         TotalMarketValue = (decimal)totalMarketValue,
         TotalCustMarketValue = totalCustMarketValue,
-        TotalPortfolioProfit = totalDifferenceDividendsValue,
+        TotalPortfolioProfit = totalWithDividendsMarketValue,
         TotalDifferenceValue = totalDifferenceValue,
         TotalDifferenceWithDividendsPercentage = totalDifferenceDividendsPercentage,
         TotalDifferencePercentage = totalDifferencePercentage,
@@ -749,7 +749,9 @@ namespace MarketAnalyticHub.Services
       return (currentMonthRevenue, previousMonthRevenue);
     }
 
-   
+  
+
+
 
     // DTOs
     public class PortfolioSentimentImpactResponse

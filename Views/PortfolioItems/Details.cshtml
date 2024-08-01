@@ -6,12 +6,8 @@
 }
 
 @section PageScripts {
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
-        
-
         document.addEventListener('DOMContentLoaded', function () {
             let chartOptions = {
                 chart: {
@@ -129,8 +125,8 @@
             setInterval(updateChartData, 60000); // 60000 ms = 1 minute
 
             // Event listeners for time range buttons
-            document.querySelectorAll('.btn-group .btn').forEach(button => {
-                button.addEventListener('click', function () {
+            document.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', function () {
                     const spinner = document.querySelector("#chart-spinner");
                     spinner.style.display = 'block';
 
@@ -180,47 +176,128 @@
     </script>
 }
 
-<!-- Toast Notification -->
-<div id="toast-message" class="toast bs-toast toast fade" role="alert" aria-live="assertive" aria-atomic="true">
-    <div class="toast-header">
-        <i class='bx bx-bell me-2'></i>
-        <div class="me-auto fw-medium">Notification</div>
-        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-    </div>
-    <div class="toast-body">
-        <!-- Toast message will be dynamically inserted here -->
-    </div>
-</div>
+@section PageStyles {
+    <style>
+        .custom-portfolio-items-toast-container {
+            top: 87px;
+            right: 129px;
+        }
 
+        /* Small devices (landscape phones, less than 768px) */
+        @@media (max-width: 767.98px) {
+            .custom-portfolio-items-toast-container {
+                top: 85px;
+                right: 20px;
+            }
+        }
+
+        /* Medium devices (tablets, 768px and up) */
+        @@media (min-width: 768px) and (max-width: 991.98px) {
+            .custom-portfolio-items-toast-container {
+                top: 85px;
+                right: 60px;
+            }
+        }
+
+        /* Large devices (desktops, 992px and up) */
+        @@media (min-width: 992px) and (max-width: 1199.98px) {
+            .custom-portfolio-items-toast-container {
+                top: 85px;
+                right: 100px;
+            }
+        }
+    </style>
+}
 
 <div class="container mt-4">
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+                <div class="avatar flex-shrink-0">
+                    <img src="~/img/icons/unicons/chart.png" alt="wallet symbol" class="rounded">
+                </div>
+                <div class="dropdown">
+                    <button class="btn p-0" type="button" id="cardOpt5" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="bx bx-dots-vertical-rounded text-muted"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt5">
+                        <a class="dropdown-item" href="Edit/@Model.Id">Edit</a>
+                        <a class="dropdown-item" href="Index">Back List</a>
+                    </div>
+                </div>
+            </div>
+            @{
+                // Calculating revenue and percentage change
+                var revenue = Model.Quantity * Model.CurrentPrice - Model.Quantity * Model.PurchasePrice;
+                var percentageChange = (Model.CurrentPrice - Model.PurchasePrice) / Model.PurchasePrice * 100;
+            }
+
+            <p class="mb-1">Revenue</p>
+            <h4 class="card-title mb-3">
+                € @(String.Format("{0:N2}", revenue))
+            </h4>
+            <small class="@(revenue >= 0 ? "text-success" : "text-danger") fw-medium">
+                <i class="bx @(revenue >= 0 ? "bx-up-arrow-alt" : "bx-down-arrow-alt")"></i>
+                @(String.Format("{0:N2}", percentageChange)) %
+            </small>
+        </div>
+    </div>
     <!-- Apex Chart Card -->
     <div class="card mb-4">
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h4><i class="fas fa-chart-line"></i> Chart Portfolio Item</h4>
+            <h4><i class="bx bx-chart-line"></i> Chart Portfolio Item</h4>
         </div>
         <div class="card-body">
-            <div>
-                <!-- Button Group for Time Range Selection -->
-                <div class="btn-group me-2" role="group" aria-label="Time Range">
-                    <button type="button" class="btn btn-outline-primary" data-range="1d">Today</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="1w">1 Week</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="1m">1 Month</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="3m">3 Months</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="6m">6 Months</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="1y">1 Year</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="5y">5 Years</button>
-                    <button type="button" class="btn btn-outline-primary" data-range="all">All</button>
+            <div class="row">
+                <div class="d-flex flex-column flex-md-row justify-content-between">
+                    <div id="chart-spinner" class="spinner-grow text-primary" role="status" style="display:none;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div aria-label="Time Range">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                Select Range
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="1d">Today</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="1w">1 Week</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="1m">1 Month</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="3m">3 Months</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="6m">6 Months</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="1y">1 Year</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="5y">5 Years</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="all">All</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-12">
+                    <div id="chart-@Model.Id" class="mt-4"></div>
+                    <div class="btn-group mt-3" role="group" aria-label="Chart Type">
+                        <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="line">
+                            <i class="bx bx-chart-line"></i> Line
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="bar">
+                            <i class="bx bx-chart-bar"></i> Bar
+                        </button>
+                    </div>
+
                 </div>
             </div>
-            <div id="chart-@Model.Id" class="mt-4"></div>
-            <!-- Button Group for Chart Type Selection -->
-            <div class="btn-group mt-3" role="group" aria-label="Chart Type">
-                <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="line"><i class="fas fa-chart-line"></i> Line</button>
-                <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="bar"><i class="fas fa-chart-bar"></i> Bar</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container custom-portfolio-items-toast-container position-absolute">
+        <div id="toast-message" class="bs-toast fade toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class='bx bx-bell me-2'></i>
+                <div class="me-auto fw-medium">Notification</div>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
-            <div id="chart-spinner" class="spinner-grow" role="status" style="display:none;">
-                <span class="visually-hidden">Loading...</span>
+            <div class="toast-body">
+                <!-- Toast message will be dynamically inserted here -->
             </div>
         </div>
     </div>
@@ -267,22 +344,3 @@
         <a class="btn btn-secondary" asp-action="Index"><i class="fas fa-arrow-left"></i> Back to List</a>
     </div>
 </div>
-
-<!-- Responsive Design Enhancements -->
-<style>
-    @@media (max-width: 576px) {
-        .btn-group {
-            flex-direction: column;
-            width: 100%;
-        }
-        .btn-group button {
-            margin-bottom: 5px;
-        }
-        dl.row {
-            flex-direction: column;
-        }
-        dl.row dt, dl.row dd {
-            width: 100%;
-        }
-    }
-</style>

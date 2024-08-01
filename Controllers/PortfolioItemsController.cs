@@ -9,17 +9,20 @@ using MarketAnalyticHub.Models.Portfolio;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Models;
 using System.Security.Claims;
+using MarketAnalyticHub.Services;
 
 namespace MarketAnalyticHub.Controllers
 {
-    public class PortfolioItemsController : Controller
-    {
-        private readonly ApplicationDbContext _context;
+  public class PortfolioItemsController : Controller
+  {
+    private readonly ApplicationDbContext _context;
+    private readonly PortfolioService _portfolioService;
 
-        public PortfolioItemsController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+    public PortfolioItemsController(ApplicationDbContext context, PortfolioService portfolioService)
+    {
+      _context = context;
+      _portfolioService = portfolioService;
+    }
 
     // GET: PortfolioItems
     public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber, int pageSize = 10, string tab = "list")
@@ -62,7 +65,7 @@ namespace MarketAnalyticHub.Controllers
 
       var model = await PaginatedList<PortfolioItem>.CreateAsync(portfolios.AsNoTracking(), pageNumber ?? 1, pageSize);
 
-     
+
 
       return View(model);
     }
@@ -70,141 +73,145 @@ namespace MarketAnalyticHub.Controllers
 
     // GET: PortfolioItems/PortfolioItems/Details/5
     public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+    {
+      if (id == null)
+      {
+        return NotFound();
+      }
 
-            var portfolioItem = await _context.PortfolioItems
-                .Include(p => p.Industry)
-                .Include(p => p.Portfolio)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (portfolioItem == null)
-            {
-                return NotFound();
-            }
+      var portfolioItem = await _context.PortfolioItems
+          .Include(p => p.Industry)
+          .Include(p => p.Portfolio)
+          .FirstOrDefaultAsync(m => m.Id == id);
+      if (portfolioItem == null)
+      {
+        return NotFound();
+      }
+      var dataPrice = await _portfolioService.GetCurrentPriceAsync(portfolioItem.Symbol);
+      portfolioItem.CurrentPrice = (decimal)dataPrice.CurrentPrice;
+      return View(portfolioItem);
+    }
 
-            return View(portfolioItem);
-        }
+    // GET: PortfolioItems/Create
+    public IActionResult Create()
+    {
+      ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
+      ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name");
+      return View();
+    }
 
-        // GET: PortfolioItems/Create
-        public IActionResult Create()
-        {
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
-            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name");
-            return View();
-        }
-
-        // POST: PortfolioItems/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,OperationType,UserId,PortfolioId,Symbol,PurchaseDate,Quantity,PurchasePrice,CurrentPrice,Commission,CompanyId")] PortfolioItem portfolioItem)
-        {
+    // POST: PortfolioItems/Create
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create([Bind("Id,OperationType,UserId,PortfolioId,Symbol,PurchaseDate,Quantity,PurchasePrice,CurrentPrice,Commission,CompanyId")] PortfolioItem portfolioItem)
+    {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       if (ModelState.IsValid)
-            {
-               portfolioItem.UserId = userId;
-                _context.Add(portfolioItem);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
-            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
-            return View(portfolioItem);
-        }
+      {
+        portfolioItem.UserId = userId;
+        _context.Add(portfolioItem);
+        await _context.SaveChangesAsync();
+        return RedirectToAction(nameof(Index));
+      }
+      ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
+      ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
+      return View(portfolioItem);
+    }
 
-        // GET: PortfolioItems/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+    // GET: PortfolioItems/Edit/5
+    public async Task<IActionResult> Edit(int? id)
+    {
+      if (id == null)
+      {
+        return NotFound();
+      }
+
+      var portfolioItem = await _context.PortfolioItems.FindAsync(id);
+      if (portfolioItem == null)
+      {
+        return NotFound();
+      }
+      var dataPrice = await _portfolioService.GetCurrentPriceAsync(portfolioItem.Symbol);
+      portfolioItem.CurrentPrice = (decimal)dataPrice.CurrentPrice;
+      ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
+      ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
+      return View(portfolioItem);
+    }
+
+    // POST: PortfolioItems/Edit/5
+    // To protect from overposting attacks, enable the specific properties you want to bind to.
+    // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(int id, [Bind("Id,OperationType,UserId,PortfolioId,Symbol,PurchaseDate,Quantity,PurchasePrice,CurrentPrice,Commission,CompanyId")] PortfolioItem portfolioItem)
+    {
+      if (id != portfolioItem.Id)
+      {
+        return NotFound();
+      }
+
+      if (ModelState.IsValid)
+      {
+        try
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
 
-            var portfolioItem = await _context.PortfolioItems.FindAsync(id);
-            if (portfolioItem == null)
-            {
-                return NotFound();
-            }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
-            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
-            return View(portfolioItem);
-        }
-
-        // POST: PortfolioItems/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,OperationType,UserId,PortfolioId,Symbol,PurchaseDate,Quantity,PurchasePrice,CurrentPrice,Commission,CompanyId")] PortfolioItem portfolioItem)
-        {
-            if (id != portfolioItem.Id)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
           _context.Update(portfolioItem);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!PortfolioItemExists(portfolioItem.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
-            ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
-            return View(portfolioItem);
+          await _context.SaveChangesAsync();
         }
-
-        // GET: PortfolioItems/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        catch (DbUpdateConcurrencyException)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var portfolioItem = await _context.PortfolioItems
-                .Include(p => p.Industry)
-                .Include(p => p.Portfolio)
-                .FirstOrDefaultAsync(m => m.Id == id);
-            if (portfolioItem == null)
-            {
-                return NotFound();
-            }
-
-            return View(portfolioItem);
+          if (!PortfolioItemExists(portfolioItem.Id))
+          {
+            return NotFound();
+          }
+          else
+          {
+            throw;
+          }
         }
+        return RedirectToAction(nameof(Index));
+      }
+      ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
+      ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
+      return View(portfolioItem);
+    }
 
-        // POST: PortfolioItems/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
-            var portfolioItem = await _context.PortfolioItems.FindAsync(id);
-            if (portfolioItem != null)
-            {
-                _context.PortfolioItems.Remove(portfolioItem);
-            }
+    // GET: PortfolioItems/Delete/5
+    public async Task<IActionResult> Delete(int? id)
+    {
+      if (id == null)
+      {
+        return NotFound();
+      }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+      var portfolioItem = await _context.PortfolioItems
+          .Include(p => p.Industry)
+          .Include(p => p.Portfolio)
+          .FirstOrDefaultAsync(m => m.Id == id);
+      if (portfolioItem == null)
+      {
+        return NotFound();
+      }
+
+      return View(portfolioItem);
+    }
+
+    // POST: PortfolioItems/Delete/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+      var portfolioItem = await _context.PortfolioItems.FindAsync(id);
+      if (portfolioItem != null)
+      {
+        _context.PortfolioItems.Remove(portfolioItem);
+      }
+
+      await _context.SaveChangesAsync();
+      return RedirectToAction(nameof(Index));
+    }
 
     [HttpGet("dividends")]
     public async Task<IActionResult> Calendar(string symbol)
@@ -213,8 +220,8 @@ namespace MarketAnalyticHub.Controllers
     }
 
     private bool PortfolioItemExists(int id)
-        {
-            return _context.PortfolioItems.Any(e => e.Id == id);
-        }
+    {
+      return _context.PortfolioItems.Any(e => e.Id == id);
     }
+  }
 }

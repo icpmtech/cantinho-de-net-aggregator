@@ -8,8 +8,8 @@ namespace MarketAnalyticHub.Services
   public interface IYahooFinanceService
   {
     Task<StockData> GetRealTimePriceAsync(string symbol);
-    Task<List<HistoricalData>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate);
-    Task<List<HistoricalData>> GetHourlyHistoricalDataAsync(string symbol, DateTime startDate, DateTime now);
+    Task<List<HistoricalData>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate, Period period);
+    Task<List<HistoricalData>> GetDailyHistoricalDataAsync(string symbol, DateTime startDate, DateTime now);
     Task<IEnumerable<Dividend>> GetDividendsAsync(string symbol);
   }
 
@@ -81,11 +81,11 @@ public class YahooFinanceService : IYahooFinanceService
       }
     }
 
-    public async Task<List<HistoricalData>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate)
+    public async Task<List<HistoricalData>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate, Period period )
     {
       try
       {
-        var historicalData = await Yahoo.GetHistoricalAsync(symbol, startDate, endDate);
+        var historicalData = await Yahoo.GetHistoricalAsync(symbol, startDate, endDate, period);
         return historicalData.Select(data => new HistoricalData
         {
           Date = data.DateTime,
@@ -104,7 +104,7 @@ public class YahooFinanceService : IYahooFinanceService
       }
     }
 
-    public async Task<List<HistoricalData>> GetHourlyHistoricalDataAsync(string symbol, DateTime startDate, DateTime now)
+    public async Task<List<HistoricalData>> GetDailyHistoricalDataAsync(string symbol, DateTime startDate, DateTime now)
     {
       try
       {

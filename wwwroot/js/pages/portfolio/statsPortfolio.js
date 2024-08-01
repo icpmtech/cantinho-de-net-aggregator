@@ -211,7 +211,7 @@ function generatePortfolioItemHTML(item) {
         <a href="/PortfolioItems/Edit/${item.id}" class="btn shadow rounded-pill btn-icon btn-primary">
                 <span class="tf-icons bx bx-edit-alt"></span>
               </a>
-               <a href="/PortfolioItems/PortfolioItems/Details/${item.id}" class="btn shadow rounded-pill btn-icon btn-primary">
+               <a href="/PortfolioItems/Details/${item.id}" class="btn shadow rounded-pill btn-icon btn-primary">
                 <span class="tf-icons bx bx-show-alt"></span>
               </a>
         <button type="button" onclick="deletePortfolioItem(${item.id})" class="btn rounded-pill shadow btn-icon btn-danger">

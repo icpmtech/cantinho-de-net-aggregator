@@ -46,7 +46,7 @@
             .then(response => response.json())
             .then(data => {
                 renderChart(data.statistics);
-                updateTotalPortfolio(data.statistics);
+                updateTotalPortfolio(data);
                 updatePortfolioStatisticsList(data.statistics);
             })
             .catch(error => {
@@ -90,8 +90,8 @@
         chart.render();
     }
 
-    function updateTotalPortfolio(statistics) {
-        const total = statistics.reduce((sum, stat) => sum + stat.totalValue, 0);
+    function updateTotalPortfolio(data) {
+        const total = data.totalValue;
         document.getElementById('totalPortfolios').innerText = `€${total.toFixed(2)}`;
     }
 

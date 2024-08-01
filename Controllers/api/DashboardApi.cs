@@ -35,7 +35,6 @@ namespace MarketAnalyticHub.Controllers.api
     public async Task<IActionResult> GetChartDataDateRange(int id, [FromQuery] string timeRange)
     {
       var portfolioItem = await _context.PortfolioItems
-               .Include(p => p.StockEvents) // Assuming StockEvents contain historical price data
                .FirstOrDefaultAsync(p => p.Id == id);
 
       if (portfolioItem == null)
@@ -52,14 +51,21 @@ namespace MarketAnalyticHub.Controllers.api
         "6m" => DateTime.Now.AddMonths(-6),
         "1y" => DateTime.Now.AddYears(-1),
         "5y" => DateTime.Now.AddYears(-5),
-        "all" => DateTime.Now.AddYears(-5),
+        "all" => DateTime.Now.AddYears(-50),
         _ => DateTime.Now.AddMonths(-1) // Default to "all" if no valid range is specified
       };
 
       var data = timeRange switch
       {
-        "1d" => await _yahooFinanceService.GetHourlyHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now),
-        _ => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now)
+        "1d" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now,YahooFinanceApi.Period.Daily),
+        "1w" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Daily),
+        "1m" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now,YahooFinanceApi.Period.Weekly),
+        "3m" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Weekly),
+        "6m" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Monthly),
+        "1y" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Monthly),
+        "5y" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Monthly),
+        "all" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Monthly),
+        _ => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Daily)
       };
 
       var dataResult = new
@@ -78,14 +84,13 @@ namespace MarketAnalyticHub.Controllers.api
       public async Task<IActionResult> GetChartData(int id)
       {
         var portfolioItem = await _context.PortfolioItems
-            .Include(p => p.StockEvents) // Assuming StockEvents contain historical price data
             .FirstOrDefaultAsync(p => p.Id == id);
 
         if (portfolioItem == null)
         {
           return NotFound();
         }
-      var data = await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, DateTime.Now.AddDays(-7), DateTime.Now);
+      var data = await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, DateTime.Now.AddDays(-1), DateTime.Now,YahooFinanceApi.Period.Daily);
       var dataResult = new
       {
         dates = data.Select(h => h.Date.ToString("yyyy-MM-dd")).ToArray(),
@@ -363,8 +368,8 @@ namespace MarketAnalyticHub.Controllers.api
       var portfolioStatistics = portfolios.Select(p => new PortfolioStatistic
       {
         Name = p.Name,
-        TotalInvestment = (decimal)overallStats.TotalCustMarketValue,
-        CurrentMarketValue = (decimal)overallStats.TotalMarketValue,
+        TotalInvestment = (decimal)overallStats.TotalMarketValue ,
+        CurrentMarketValue = (decimal)overallStats.TotalCustMarketValue,
         TotalDifferenceValue = (decimal)overallStats.TotalDifferenceValue,
         TotalDividends = (decimal)overallStats.TotalDividends,
         TotalProfit = (decimal)overallStats.TotalPortfolioProfit,

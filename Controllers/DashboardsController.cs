@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using MarketAnalyticHub.Models.Dashboard;
 using MarketAnalyticHub.Models;
 using System.Net.Http;
+using MarketAnalyticHub.Controllers.api;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -78,7 +79,7 @@ namespace MarketAnalyticHub.Controllers
 
       return PartialView("_TransactionsPartial", transactions);
     }
-    public IActionResult GetPortfolioStatistics_v2()
+    public async Task<IActionResult> GetPortfolioStatistics_v2()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       if (userId == null)
@@ -86,14 +87,39 @@ namespace MarketAnalyticHub.Controllers
         return Unauthorized();
       }
 
-      // Fetch the portfolios
-      var portfolios = _context.Portfolios
-          .Where(p => p.UserId == userId)
-          .Include(p => p.Items) // Include the related items
-          .ToList();
+      // Fetch overall portfolio statistics
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
+      if (overallStats == null)
+      {
+        return NotFound("No portfolio statistics found.");
+      }
 
-      var totalValue = portfolios.Sum(p => p.Items.Sum(i => i.Quantity * i.PurchasePrice));
+      // Fetch user portfolios with related data
+      var portfolios = await _context.Portfolios
+                                     .Include(p => p.Items)
+                                     .ThenInclude(pi => pi.Dividends)
+                                     .Where(p => p.UserId == userId)
+                                     .ToListAsync();
 
+      if (!portfolios.Any())
+      {
+        return NotFound("No portfolios found for the user.");
+      }
+
+      // Calculate statistics for each portfolio
+      var portfolioStatisticsList = portfolios.Select(p => new PortfolioStatistic
+      {
+        Name = p.Name,
+        TotalInvestment = (decimal)overallStats.TotalCustMarketValue,
+        CurrentMarketValue = (decimal)overallStats.TotalMarketValue,
+        TotalDifferenceValue = (decimal)overallStats.TotalDifferenceValue,
+        TotalDividends = (decimal)overallStats.TotalDividends,
+        TotalProfit = (decimal)overallStats.TotalPortfolioProfit,
+        TotalDifferencePercentage = (decimal)overallStats.TotalDifferencePercentage,
+        TotalProfitDifferencePercentage = (decimal)overallStats.TotalDifferenceWithDividendsPercentage,
+      }).ToList();
+
+      // Map to DTO for result
       var statistics = portfolios
           .Select(p => new PortfolioStatisticsDto
           {
@@ -105,12 +131,13 @@ namespace MarketAnalyticHub.Controllers
 
       var result = new
       {
-        TotalValue = totalValue,
+        TotalValue = overallStats.TotalPortfolioProfit,
         Statistics = statistics
       };
 
       return Json(result);
     }
+
     public class PortfolioStatisticsDto
     {
       public string PortfolioName { get; set; }
@@ -235,7 +262,7 @@ namespace MarketAnalyticHub.Controllers
       }
 
       var portfolioPercentageResponses = await _portfolioService.CalculatePortfolioPercentagesAsync(portfolios);
-      var portfolioPercentageResponsesTotal = portfolioPercentageResponses.Sum(s => s.TotalDividendsPercentage);
+      var portfolioPercentageResponsesTotal = portfolioPercentageResponses.Sum(s => s?.TotalDividendsPercentage);
 
       var totalRevenueByYear = _portfolioService.GetTotalRevenueByYear(portfolios);
       var totalRevenueByMonth = _portfolioService.GetTotalRevenueByMonth(portfolios);

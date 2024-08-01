@@ -92,8 +92,8 @@
                         </div>
                         <span>Dividends</span>
                         <h3 id="dividends" class="card-title text-nowrap mb-1">€0</h3>
-                        <small class="@(Model.DashboardData.DividendsPercentage > 0 ? "text-success" : "text-danger") fw-medium">
-                            <i class='@(Model.DashboardData.DividendsPercentage > 0 ? "bx bx-up-arrow-alt" : "bx bx-down-arrow-alt")'></i>
+                        <small class="@(Model.DashboardData.DividendsPercentage >= 0 ? "text-success" : "text-danger") fw-medium">
+                            <i class='@(Model.DashboardData.DividendsPercentage >= 0 ? "bx bx-up-arrow-alt" : "bx bx-down-arrow-alt")'></i>
                             @Model.DashboardData.DividendsPercentage%
                         </small>
                     </div>
@@ -162,8 +162,8 @@
                                     <span class="badge bg-label-warning rounded-pill">Year @(Model.TotalRevenueByYear.OrderByDescending(y => y.Year).FirstOrDefault()?.Year.ToString() ?? "No Year")</span>
                                 </div>
                                 <div class="mt-sm-auto">
-                                    <small class="@(Model.PortfolioGrowthPercentage > 0 ? "text-success" : "text-danger") text-nowrap fw-medium">
-                                        <i class='bx @(Model.PortfolioGrowthPercentage > 0 ? "bx-chevron-up" : "bx-chevron-down")'></i>
+                                    <small class="@(Model.PortfolioGrowthPercentage >= 0 ? "text-success" : "text-danger") text-nowrap fw-medium">
+                                        <i class='bx @(Model.PortfolioGrowthPercentage >= 0 ? "bx-chevron-up" : "bx-chevron-down")'></i>
                                         @Model.PortfolioGrowthPercentage%
                                     </small>
                                     <h3 class="mb-0">€@(Model.AmountTotalYear.OrderByDescending(y => y.Year).FirstOrDefault()?.TotalInvestment.ToString() ?? "No Year")</h3>

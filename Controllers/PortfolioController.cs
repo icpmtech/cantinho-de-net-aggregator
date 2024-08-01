@@ -46,7 +46,7 @@ namespace MarketAnalyticHub.Controllers
         return BadRequest("Symbol is required.");
       }
 
-      var data = await _yahooFinanceService.GetHistoricalDataAsync(symbol, startDate, endDate);
+      var data = await _yahooFinanceService.GetHistoricalDataAsync(symbol, startDate, endDate , YahooFinanceApi.Period.Weekly);
 
       if (data == null || !data.Any())
       {
