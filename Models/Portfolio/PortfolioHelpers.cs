@@ -10,7 +10,16 @@ public static class PortfolioHelpers
     int diff = (7 + (date.DayOfWeek - DayOfWeek.Monday)) % 7;
     return date.AddDays(-1 * diff).Date;
   }
-
+  public static string GetIconForTransaction(string symbol)
+  {
+    // You can map symbols to specific icons if needed
+    return symbol switch
+    {
+      "AAPL" => "/img/icons/unicons/apple.png",
+      "GOOGL" => "/img/icons/unicons/google.png",
+      _ => "/img/icons/unicons/wallet.png",
+    };
+  }
   public static IDictionary<DateTime, (WeeklyPortfolioSummary Summary, decimal PercentageChange)> AggregateWeeklySummaries(IEnumerable<Portfolio> portfolios)
   {
     var allWeeklySummaries = new Dictionary<DateTime, (WeeklyPortfolioSummary Summary, decimal PercentageChange)>();

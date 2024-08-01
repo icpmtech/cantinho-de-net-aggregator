@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using MarketAnalyticHub.Controllers.api;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -47,8 +48,14 @@ namespace MarketAnalyticHub.Controllers
 
       var data = await _yahooFinanceService.GetHistoricalDataAsync(symbol, startDate, endDate);
 
+      if (data == null || !data.Any())
+      {
+        return Ok(new { Message = "No historical data found", Data = 0 });
+      }
+
       return Ok(data);
     }
+
 
     [HttpGet("stock-price")]
     public async Task<IActionResult> GetRealTimePrice([FromQuery] string symbol)
@@ -165,29 +172,38 @@ namespace MarketAnalyticHub.Controllers
     public async Task<IActionResult> GetPortfolios()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
       var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
       foreach (var portfolio in portfolios)
       {
-        var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
-        if(portfolioPercentageResponse is not null)
-        portfolio.PortfolioPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
+        var portfolioPercentageResponse = await _portfolioService.CalculateTotalPortfolioPercentagesAsync(portfolio);
+        if (portfolioPercentageResponse != null)
+        {
+          portfolio.PortfolioPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
+        }
+
         // Group portfolio items by symbol
         var groupedItems = portfolio.Items
             .GroupBy(item => item.Symbol)
-            .Select(group => new
+            .Select(group => new GroupedPortfolioItem
             {
               Symbol = group.Key,
+              Items = group.ToList()
+            })
+            .ToList();
 
-              Items = group.Distinct().ToList()
-            });
-
-        // You can then replace portfolio.Items with the grouped items if needed
-        // Or perform further operations on the grouped items
-        portfolio.GroupedItems = groupedItems.ToList(); // Assuming GroupedItems is a new property in your portfolio model
-
+        // Assign grouped items to the portfolio
+        portfolio.GroupedItems = groupedItems;
       }
+
       return Ok(portfolios);
     }
+
 
     [HttpPost("CalculateOriginalMarketValue")]
     public ActionResult<MarketValueResponse> CalculateOriginalMarketValue([FromBody] MarketValueRequest request)
@@ -272,38 +288,41 @@ namespace MarketAnalyticHub.Controllers
       await _portfolioService.DeletePortfolioAsync(id);
       return NoContent();
     }
-    [HttpPost("calculateportfoliopercentages")]
-    public async Task<ActionResult<PortfolioPercentageResponse>> CalculatePortfolioPercentages([FromBody] int portfolioId)
-    {
-      var portfolio = await _portfolioService.GetPortfolioByIdAsync(portfolioId);
-      if (portfolio == null)
-      {
-        return NotFound("Portfolio not found");
-      }
 
-      var response = _portfolioService.CalculatePortfolioPercentages(portfolio);
-      return Ok(response);
-    }
+
     [HttpGet("total-percentage")]
     public async Task<IActionResult> GetTotalPortfolioPercentage()
     {
+      // Replace with actual user ID from your authentication context
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
 
-      decimal totalPercentage = 0;
-      decimal totalDifferenceWithDividendsPercentage = 0;
-      decimal totalProfit = 0;
-      foreach (var portfolio in portfolios)
+      if (string.IsNullOrEmpty(userId))
       {
-        var portfolioPercentageResponse = _portfolioService.CalculatePortfolioPercentages(portfolio);
-        if(portfolioPercentageResponse is not null)
-        totalPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
-        totalDifferenceWithDividendsPercentage += portfolioPercentageResponse?.TotalDifferenceWithDividendsPercentage??0;
-        totalProfit += portfolioPercentageResponse?.TotalPortfolioProfit??0;
+        return Unauthorized("User not found");
       }
 
-      return Ok(new { TotalPercentage = totalPercentage,TotalProfit= totalProfit, TotalWithDividendsPercentage = totalDifferenceWithDividendsPercentage });
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
+
+      if (overallStats == null)
+      {
+        return NotFound("No portfolio statistics found for the user");
+      }
+
+      var portfolioStatistic = new PortfolioStatistic
+      {
+        TotalInvestment = overallStats.TotalCustMarketValue,
+        CurrentMarketValue = overallStats.TotalMarketValue,
+        TotalDifferenceValue = overallStats.TotalDifferenceValue,
+        TotalDividends = overallStats.TotalDividends,
+        TotalProfit = overallStats.TotalPortfolioProfit,
+        TotalDifferencePercentage = overallStats.TotalDifferencePercentage,
+        TotalProfitDifferencePercentage = overallStats.TotalDifferenceWithDividendsPercentage
+      };
+
+      return Ok(portfolioStatistic);
     }
+
+
     [HttpGet("portfolio-overall-stats")]
     public async Task<IActionResult> GetTotalPortfolioOverallStats()
     {

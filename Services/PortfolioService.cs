@@ -3,8 +3,6 @@ using MarketAnalyticHub.Models.Dashboard;
 using MarketAnalyticHub.Models.Portfolio;
 using ClosedXML.Excel;
 using MarketAnalyticHub.Controllers;
-using MarketAnalyticHub.Models;
-using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,71 +11,104 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Graph;
-using System.Security.Claims;
-using DocumentFormat.OpenXml.Spreadsheet;
 using AspnetCoreMvcFull.Services;
-using Microsoft.OpenApi.Models;
-using DocumentFormat.OpenXml.Vml;
-using System.Globalization;
-using Microsoft.CodeAnalysis.RulesetToEditorconfig;
+using MarketAnalyticHub.Models.SetupDb;
 
 namespace MarketAnalyticHub.Services
 {
   public class PortfolioService
   {
     private readonly ApplicationDbContext _context;
-    private readonly FinnhubService _FinnhubService;
-    private readonly ILogger<PortfolioService> _logger;
     private readonly IYahooFinanceService _yahooFinanceService;
+    private readonly ILogger<PortfolioService> _logger;
     private readonly SentimentAnalysisService _sentimentAnalysisService;
     private readonly OpenAIService _openAIService;
-    public PortfolioService(ApplicationDbContext context,   OpenAIService openAIService, FinnhubService finnhubService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
+    private readonly FinnhubService _FinnhubService;
+    
+    public PortfolioService(ApplicationDbContext context, FinnhubService finnhubService, OpenAIService openAIService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
     {
       _context = context;
-      _FinnhubService = finnhubService;
       _yahooFinanceService = yahooFinanceService;
       _logger = logger;
       _sentimentAnalysisService = sentimentAnalysisService;
       _openAIService = openAIService;
+      _FinnhubService = finnhubService;
     }
 
-    // Existing methods
     public async Task<PortfolioOveralStatsDto> GetTotalPortfolioOverall(string userId)
     {
       var portfolios = await GetPortfoliosByUserAsync(userId);
 
+      if (portfolios == null || !portfolios.Any())
+      {
+        return new PortfolioOveralStatsDto
+        {
+          TotalMarketValue = 0,
+          TotalCustMarketValue = 0,
+          TotalDifferenceValue = 0,
+          TotalDifferencePercentage = 0,
+          TotalPortfolioProfit = 0,
+          TotalDifferenceWithDividendsPercentage = 0,
+          TotalDividendsPercentage = 0,
+          TotalDividends = 0,
+          ItemPercentages = new List<PortfolioItemPercentage>()
+        };
+      }
+
       decimal totalMarketValue = 0;
       decimal totalCustMarketValue = 0;
       decimal totalDifferenceValue = 0;
+      decimal totalDifferencePercentage = 0;
+      decimal totalPortfolioProfit = 0;
+      decimal totalDifferenceWithDividendsPercentage = 0;
+      decimal totalDividendsPercentage = 0;
+      decimal totalDividends = 0;
+      var itemPercentages = new List<PortfolioItemPercentage>();
 
       foreach (var portfolio in portfolios)
       {
-        var portfolioStats = CalculatePortfolioPercentages(portfolio);
-        if (portfolioStats is not null)
+        var portfolioPercentageResponse = await CalculateTotalPortfolioPercentagesAsync(portfolio);
+        if (portfolioPercentageResponse != null)
         {
-          totalMarketValue += portfolioStats.TotalMarketValue;
-          totalCustMarketValue += portfolioStats.TotalCustMarketValue;
-          totalDifferenceValue += portfolioStats.TotalDifferenceValue;
-        }
+          totalMarketValue += portfolioPercentageResponse.TotalMarketValue;
+          totalCustMarketValue += portfolioPercentageResponse.TotalCustMarketValue;
+          totalDifferenceValue += portfolioPercentageResponse.TotalDifferenceValue;
+          totalPortfolioProfit += portfolioPercentageResponse.TotalPortfolioProfit;
+          totalDifferenceWithDividendsPercentage += portfolioPercentageResponse.TotalDifferenceWithDividendsPercentage;
+          totalDividendsPercentage += portfolioPercentageResponse.TotalDividendsPercentage;
+          totalDividends += portfolioPercentageResponse.TotalDividends;
 
+          // Ensure ItemPercentages is not null before adding
+          if (portfolioPercentageResponse.ItemPercentages != null)
+          {
+            itemPercentages.AddRange(portfolioPercentageResponse.ItemPercentages);
+          }
+        }
       }
 
-      decimal totalDifferencePercentage = (totalCustMarketValue != 0) ? (totalDifferenceValue / totalCustMarketValue) * 100 : 0;
+      if (totalCustMarketValue != 0)
+      {
+        totalDifferencePercentage = (totalDifferenceValue / totalCustMarketValue) * 100;
+      }
 
-      var overallStats = new PortfolioOveralStatsDto
+      return new PortfolioOveralStatsDto
       {
         TotalMarketValue = totalMarketValue,
         TotalCustMarketValue = totalCustMarketValue,
         TotalDifferenceValue = totalDifferenceValue,
-        TotalDifferencePercentage = Math.Round(totalDifferencePercentage, 3)
+        TotalDifferencePercentage = Math.Round(totalDifferencePercentage, 3),
+        TotalPortfolioProfit = totalPortfolioProfit,
+        TotalDifferenceWithDividendsPercentage = totalDifferenceWithDividendsPercentage,
+        TotalDividendsPercentage = totalDividendsPercentage,
+        TotalDividends = totalDividends,
+        ItemPercentages = itemPercentages
       };
-      return overallStats;
     }
+
 
     public PortfolioStatisticsDto GetPortfolioStatistics()
     {
-      // Fetch and calculate portfolio statistics
+      // Dummy data for illustration
       var totalValue = 42820.00;
       var totalSymbols = 8258;
       var items = new List<PortfolioItemDto>
@@ -110,7 +141,7 @@ namespace MarketAnalyticHub.Services
       decimal currentMarketValue = portfolios.Sum(p => p.CurrentMarketValue);
       decimal dividends = portfolios.Sum(p => p.Items.Sum(i => i.Dividends.Sum(d => d.Amount)));
       decimal profit = currentMarketValue - totalInvestment;
-      int? payments  = portfolios.Select(x => x.Items.Sum(st => st.StockEvents?.Count())).Sum(); ; // This should be replaced with actual payments data
+      int? payments = portfolios.Select(x => x.Items.Sum(st => st.StockEvents?.Count() ?? 0)).Sum(); // This should be replaced with actual payments data
       int? operations = portfolios.Sum(p => p.Items.Count()); // This should be replaced with actual operations data
       decimal yearlyReport = 0; // This should be replaced with actual yearly report data
       decimal growth = totalInvestment > 0 ? (profit / totalInvestment) * 100 : 0;
@@ -122,28 +153,23 @@ namespace MarketAnalyticHub.Services
         Dividends = dividends,
         Payments = payments,
         Operations = operations,
-        TotalRevenue = currentMarketValue, // Example data
+        TotalRevenue = currentMarketValue,
         Growth = growth,
         PortfolioGrowth = portfolioGrowth,
         YearlyReport = yearlyReport
       };
     }
+
     public async Task<IEnumerable<PurchaseData>> GetPurchaseDatesForSymbol(string userId, string symbol, DateTime startDate, DateTime endDate)
     {
-      var portfolios = await _context.Portfolios
-                                    .Include(p => p.Items)
-                                    .ThenInclude(pi => pi.Dividends)
-                                    .Include(p => p.Items)
-                                    .ThenInclude(pi => pi.StockEvents)
-                                    .Where(p => p.UserId == userId)
-                                    .ToListAsync();
+      var portfolios = await GetPortfoliosByUserAsync(userId);
 
       var purchaseData = portfolios
           .SelectMany(p => p.Items)
           .Where(pi => pi.Symbol == symbol && pi.PurchaseDate >= startDate && pi.PurchaseDate <= endDate)
           .Select(pi => new PurchaseData
           {
-            OperationType=pi.OperationType,
+            OperationType = pi.OperationType,
             Date = pi.PurchaseDate,
             Quantity = pi.Quantity
           });
@@ -151,12 +177,6 @@ namespace MarketAnalyticHub.Services
       return purchaseData;
     }
 
-    public class PurchaseData
-    {
-      public DateTime Date { get; set; }
-      public int Quantity { get; set; }
-      public string OperationType { get; internal set; }
-    }
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
     {
       var portfolios = await _context.Portfolios
@@ -167,18 +187,8 @@ namespace MarketAnalyticHub.Services
                                      .Where(p => p.UserId == userId)
                                      .ToListAsync();
 
-      // Update current prices and calculate fields
-      // Create a dictionary to store stock data by symbol
-      var symbolStockData = new Dictionary<string, StockData>();
+      var symbolStockData = await GetStockDataForPortfolios(portfolios);
 
-      // Fetch the real-time price for each unique symbol once
-      foreach (var symbol in portfolios.SelectMany(p => p.Items).Select(i => i.Symbol).Distinct())
-      {
-        var stockData = await GetCurrentPriceAsync(symbol);
-        symbolStockData[symbol] = stockData;
-      }
-
-      // Update the portfolio items with the fetched stock data
       foreach (var portfolio in portfolios)
       {
         foreach (var item in portfolio.Items)
@@ -206,9 +216,11 @@ namespace MarketAnalyticHub.Services
 
       if (portfolio != null)
       {
+        var symbolStockData = await GetStockDataForPortfolioItems(portfolio.Items);
+
         foreach (var item in portfolio.Items)
         {
-          var stockData = await GetCurrentPriceAsync(item.Symbol);
+          var stockData = symbolStockData[item.Symbol];
           item.CurrentPrice = (decimal)stockData.CurrentPrice;
           item.Change = (decimal)stockData.Change;
           item.PercentChange = (decimal)stockData.PercentChange;
@@ -222,7 +234,30 @@ namespace MarketAnalyticHub.Services
       return portfolio;
     }
 
-    private async Task<StockData> GetCurrentPriceAsync(string symbol)
+    public async Task<decimal> GrowthPercentage(string userId)
+    {
+      var portfolios = await GetPortfoliosByUserAsync(userId);
+      var portfolioItems = portfolios.SelectMany(p => p.Items).ToList();
+
+      var symbols = portfolioItems.Select(item => item.Symbol).Distinct().ToList();
+      var symbolToCurrentPrice = await GetCurrentPricesAsync(symbols);
+
+      var totalCurrentMarketValue = portfolioItems
+          .Sum(item => item.Quantity * symbolToCurrentPrice[item.Symbol].CurrentPrice);
+
+      var totalInitialInvestment = portfolioItems
+          .Sum(item => item.TotalInvestment);
+
+      decimal growthPercentage = 0;
+      if (totalInitialInvestment > 0)
+      {
+        growthPercentage = (((decimal)totalCurrentMarketValue - totalInitialInvestment) / totalInitialInvestment) * 100;
+      }
+
+      return growthPercentage;
+    }
+
+    public async Task<StockData> GetCurrentPriceAsync(string symbol)
     {
       try
       {
@@ -231,7 +266,6 @@ namespace MarketAnalyticHub.Services
       }
       catch (Exception ex)
       {
-        // Log the exception (optional)
         _logger.LogError(ex, $"Failed to get current price for symbol: {symbol}");
         return new StockData
         {
@@ -244,6 +278,34 @@ namespace MarketAnalyticHub.Services
           PreviousClosePrice = 0
         };
       }
+    }
+
+    private async Task<Dictionary<string, StockData>> GetStockDataForPortfolioItems(IEnumerable<PortfolioItem> items)
+    {
+      var symbols = items.Select(i => i.Symbol).Distinct();
+      var symbolStockData = new Dictionary<string, StockData>();
+
+      foreach (var symbol in symbols)
+      {
+        var stockData = await GetCurrentPriceAsync(symbol);
+        symbolStockData[symbol] = stockData;
+      }
+
+      return symbolStockData;
+    }
+
+    private async Task<Dictionary<string, StockData>> GetStockDataForPortfolios(IEnumerable<Portfolio> portfolios)
+    {
+      var symbols = portfolios.SelectMany(p => p.Items).Select(i => i.Symbol).Distinct();
+      var symbolStockData = new Dictionary<string, StockData>();
+
+      foreach (var symbol in symbols)
+      {
+        var stockData = await GetCurrentPriceAsync(symbol);
+        symbolStockData[symbol] = stockData;
+      }
+
+      return symbolStockData;
     }
 
     public async Task AddPortfolioAsync(Portfolio portfolio)
@@ -264,16 +326,14 @@ namespace MarketAnalyticHub.Services
       _context.Portfolios.Remove(portfolio);
       await _context.SaveChangesAsync();
     }
+
     public async Task DeletePortfolioAllAsync(string userId)
     {
       var portfolios = await _context.Portfolios.Where(p => p.UserId == userId).ToListAsync();
-      foreach (var portfolio in portfolios)
-      {
-        _context.Portfolios.Remove(portfolio);
-        await _context.SaveChangesAsync();
-      }
-
+      _context.Portfolios.RemoveRange(portfolios);
+      await _context.SaveChangesAsync();
     }
+
     public async Task<IEnumerable<Portfolio>> GetPortfoliosAsync()
     {
       return await _context.Portfolios.Include(p => p.Items).ToListAsync();
@@ -288,10 +348,7 @@ namespace MarketAnalyticHub.Services
       {
         foreach (var item in portfolio.Items)
         {
-          csvBuilder.AppendLine($"{portfolio.Name},{item.Symbol}" +
-            $",{item.Quantity}," +
-            $"{item.PurchasePrice},{item.PurchaseDate}" +
-            $",{item.Commission}");
+          csvBuilder.AppendLine($"{portfolio.Name},{item.Symbol},{item.Quantity},{item.PurchasePrice},{item.PurchaseDate},{item.Commission}");
         }
       }
 
@@ -325,7 +382,7 @@ namespace MarketAnalyticHub.Services
 
       return workbook;
     }
-  
+
     public async Task ImportYahooFromCsv(string csvData, string userId)
     {
       var lines = csvData.Split('\n').Skip(1); // Skip header line
@@ -352,6 +409,7 @@ namespace MarketAnalyticHub.Services
         var itemPurchasePrice = Converter.ConvertToDecimal(parts[10].Trim());
         var itemPurchaseDate = Converter.ConvertToDateTime(parts[9].Trim());
         var itemCommission = Converter.ConvertToDecimal(parts[12].Trim());
+
         portfolio.Items.Add(new PortfolioItem
         {
           Symbol = itemSymbol,
@@ -398,15 +456,15 @@ namespace MarketAnalyticHub.Services
             PurchasePrice = itemPurchasePrice,
             PurchaseDate = itemPurchaseDate,
             UserId = userId,
-            OperationType="Buy"
+            OperationType = "Buy"
           });
         }
 
         await _context.SaveChangesAsync();
       }
     }
-  
-  public async Task ImportFromCsv(string csvData, string userId)
+
+    public async Task ImportFromCsv(string csvData, string userId)
     {
       var lines = csvData.Split('\n').Skip(1); // Skip header line
 
@@ -487,129 +545,154 @@ namespace MarketAnalyticHub.Services
       }
       catch (Exception ex)
       {
-        // Log the exception
         _logger.LogError(ex, $"Failed to get candlestick data for symbol: {symbol}");
-
-        // Return an empty list or handle the error as needed
         return new List<CandlestickData>();
       }
     }
 
-    // New Method to Calculate Original Market Value
     public double CalculateOriginalMarketValue(double currentMarketValue, double percentageIncrease)
     {
       return currentMarketValue / (1 + (percentageIncrease / 100));
     }
 
-    // New Method to Calculate Percentage Change
     public double CalculatePercentageChange(double originalMarketValue, double currentMarketValue)
     {
       return ((currentMarketValue - originalMarketValue) / originalMarketValue) * 100;
     }
+ 
+    public async Task<List<TotalPortfolioPercentageResponse>> CalculatePortfolioPercentagesAsync(List<Portfolio> portfolios)
+    {
+      var portfolioPercentageResponses = new List<TotalPortfolioPercentageResponse>();
 
-    // New Method to Calculate Portfolio Item Percentages
-    public PortfolioPercentageResponse CalculatePortfolioPercentages(Portfolio portfolio)
+      foreach (var portfolio in portfolios)
+      {
+        var totalPortfolioPercentageResponse = await CalculateTotalPortfolioPercentagesAsync(portfolio);
+        portfolioPercentageResponses.Add(totalPortfolioPercentageResponse);
+      }
+
+      return portfolioPercentageResponses;
+    }
+
+    public List<TotalRevenueByYearDto> GetTotalRevenueByYear(List<Portfolio> portfolios)
+    {
+      return portfolios
+          .SelectMany(p => p.Items)
+          .GroupBy(item => item.PurchaseDate.Year)
+          .Select(g => new TotalRevenueByYearDto
+          {
+            Year = g.Key,
+            TotalRevenue = g.Sum(item => item.CurrentMarketValue)
+          })
+          .ToList();
+    }
+
+    public async Task<decimal> CalculatePortfolioGrowthPercentage(string userId)
+    {
+      var portfolioGrowthPercentage = await GrowthPercentage(userId);
+      return Math.Round(portfolioGrowthPercentage, 3);
+    }
+
+    public List<AmountTotalYearDto> GetAmountTotalYearByItems(List<Portfolio> portfolios)
+    {
+      return portfolios
+          .SelectMany(p => p.Items)
+          .GroupBy(item => item.PurchaseDate.Year)
+          .Select(g => new AmountTotalYearDto
+          {
+            Year = g.Key,
+            TotalInvestment = g.Sum(item => item.TotalInvestment)
+          })
+          .ToList();
+    }
+
+    public List<Portfolio> GetProfileReportCurrentYear(List<Portfolio> portfolios)
+    {
+      var currentYear = DateTime.Now.Year;
+      return portfolios
+          .Where(p => p.CreationDate.HasValue && p.CreationDate.Value.Year == currentYear)
+          .ToList();
+    }
+
+    public List<TransactionDto> GetRecentTransactions(List<Portfolio> portfolios)
+    {
+      var fromDate = DateTime.Now.AddDays(-28);
+      return portfolios
+          .SelectMany(p => p.Items)
+          .Where(item => item.PurchaseDate >= fromDate)
+          .Select(item => new TransactionDto
+          {
+            Type = item.OperationType,
+            Description = item.Symbol,
+            Icon = PortfolioHelpers.GetIconForTransaction(item.Symbol),
+            Amount = item.Quantity * item.PurchasePrice,
+            Currency = "€",
+            Date = item.PurchaseDate,
+            Source = item.Symbol
+          })
+          .ToList();
+    }
+
+    public async Task<TotalPortfolioPercentageResponse> CalculateTotalPortfolioPercentagesAsync(Portfolio portfolio)
     {
       if (portfolio == null || portfolio.Items == null || !portfolio.Items.Any())
         return null;
 
-      // Create a dictionary to store the real-time prices
-      var symbolPrices = new Dictionary<string, decimal>();
+      var symbolPrices = await GetCurrentPricesAsync(portfolio.Items.Select(item => item.Symbol).Distinct());
 
-      // Fetch the real-time price for each unique symbol once
-      foreach (var symbol in portfolio.Items.Select(item => item.Symbol).Distinct())
-      {
-        var realTimePrice = _yahooFinanceService.GetRealTimePriceAsync(symbol).Result.CurrentPrice;
-        symbolPrices[symbol] = (decimal)realTimePrice;
-      }
-
-      // Calculate total customer market value (initial investment cost including commissions)
       var totalCustMarketValue = portfolio.Items.Sum(item => item.PurchasePrice * item.Quantity + (item.Commission ?? 0));
-
-      // Calculate total dividends
-      var totalDividends = portfolio.Items.Sum(item => (item.Dividends?.Sum(s => s.Amount)) ?? 0);
-
-      // Calculate total market value (current market value without dividends)
-      var totalMarketValue = portfolio.Items.Sum(item => symbolPrices[item.Symbol] * item.Quantity);
-
-      // Calculate total market value with dividends
-      var totalWithDividendsMarketValue = totalMarketValue + totalDividends;
-
-      // Calculate total difference in value and percentage
-      var totalDifferenceValue = totalMarketValue - totalCustMarketValue;
+      var totalDividends = portfolio.Items.Sum(item => item.Dividends?.Sum(d => d.Amount) ?? 0);
+      var totalMarketValue = portfolio.Items.Sum(item => symbolPrices[item.Symbol].CurrentPrice * item.Quantity);
+      var totalWithDividendsMarketValue =(decimal) totalMarketValue + totalDividends;
+      var totalDifferenceValue = (decimal)totalMarketValue - totalCustMarketValue;
       var totalDifferencePercentage = (totalCustMarketValue != 0) ? (totalDifferenceValue / totalCustMarketValue) * 100 : 0;
-
-      // Calculate total difference in value dividends and percentage
       var totalDifferenceDividendsValue = totalWithDividendsMarketValue - totalCustMarketValue;
       var totalDifferenceDividendsPercentage = (totalCustMarketValue != 0) ? (totalDifferenceDividendsValue / totalCustMarketValue) * 100 : 0;
+      var totalDividendsPercentage = (totalCustMarketValue != 0) ? (totalDividends / totalCustMarketValue) * 100 : 0;
 
-      // Calculate item percentages
-      var itemPercentages = portfolio.Items.Select(item =>
-      {
-        var currentPrice = symbolPrices[item.Symbol];
-        var currentMarketValue = currentPrice * item.Quantity;
-        var customMarketValue = item.PurchasePrice * item.Quantity + (item.Commission ?? 0);
-        var differenceValue = currentMarketValue - customMarketValue;
-        var differencePercentage = (customMarketValue != 0) ? (differenceValue / customMarketValue) * 100 : 0;
-        var itemDividends = (item.Dividends?.Sum(s => s.Amount)) ?? 0;
-        var currentMarketValueWithDividends = currentMarketValue + itemDividends;
-
-        return new PortfolioItemPercentage
-        {
-          Symbol = item.Symbol,
-          CurrentPercentage = (totalMarketValue != 0) ? (currentMarketValue / totalMarketValue) * 100 : 0,
-          CustomPercentage = (totalCustMarketValue != 0) ? (customMarketValue / totalCustMarketValue) * 100 : 0,
-          CurrentWithDividendsPercentage = (totalWithDividendsMarketValue != 0) ? (currentMarketValueWithDividends / totalWithDividendsMarketValue) * 100 : 0,
-          CustomWithDividendsPercentage = (totalCustMarketValue != 0) ? (customMarketValue / totalCustMarketValue) * 100 : 0,
-          DifferenceValue = differenceValue,
-          DifferencePercentage = differencePercentage,
-          DifferenceWithDividendsValue = currentMarketValueWithDividends - customMarketValue,
-          DifferenceWithDividendsPercentage = (customMarketValue != 0) ? ((currentMarketValueWithDividends - customMarketValue) / customMarketValue) * 100 : 0
-        };
-      }).ToList();
-
-      // Return the portfolio percentage response
-      return new PortfolioPercentageResponse
+      return new TotalPortfolioPercentageResponse
       {
         PortfolioId = portfolio.Id,
-        TotalMarketValue = totalMarketValue,
+        TotalMarketValue = (decimal)totalMarketValue,
         TotalCustMarketValue = totalCustMarketValue,
         TotalPortfolioProfit = totalDifferenceDividendsValue,
         TotalDifferenceValue = totalDifferenceValue,
         TotalDifferenceWithDividendsPercentage = totalDifferenceDividendsPercentage,
         TotalDifferencePercentage = totalDifferencePercentage,
-        ItemPercentages = itemPercentages
+        TotalDividendsPercentage = totalDividendsPercentage,
+        TotalDividends = totalDividends
       };
     }
 
+    private async Task<Dictionary<string, StockData>> GetCurrentPricesAsync(IEnumerable<string> symbols)
+    {
+      var symbolToStockData = new Dictionary<string, StockData>();
 
-    // New Method to Map Sentiment to Portfolio
+      foreach (var symbol in symbols)
+      {
+        symbolToStockData[symbol] = await GetCurrentPriceAsync(symbol);
+      }
+
+      return symbolToStockData;
+    }
+
     public async Task<PortfolioSentimentImpactResponse> MapSentimentToPortfolioAsync(string userId, string newsText)
     {
-      // Step 1: Analyze sentiment
       var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsText);
-
-      // Step 2: Get associated symbols (keywords) from sentiment analysis (assuming this functionality exists)
       var keywords = await _openAIService.GenerateKeywordsAsync(newsText);
-
-      // Step 3: Get portfolios for the user
       var portfolios = await GetPortfoliosByUserAsync(userId);
 
-      // Step 4: Map sentiment to relevant portfolio items
       foreach (var portfolio in portfolios)
       {
         foreach (var item in portfolio.Items)
         {
           if (keywords.Contains(item.Symbol))
           {
-            // Assuming the sentiment score is between -1 (negative) to 1 (positive)
             item.SentimentImpact = sentimentResult.Score;
             item.AdjustedPrice = item.CurrentPrice * (decimal?)(1 + item.SentimentImpact);
           }
         }
       }
 
-      // Step 5: Calculate the overall impact on the portfolio
       var totalMarketValueBeforeImpact = portfolios.Sum(p => p.Items.Sum(i => i.CurrentPrice * i.Quantity));
       var totalMarketValueAfterImpact = portfolios.Sum(p => p.Items.Sum(i => (i.AdjustedPrice ?? i.CurrentPrice) * i.Quantity));
 
@@ -623,39 +706,64 @@ namespace MarketAnalyticHub.Services
 
     public async Task<int?> TotalTransactions(string userId)
     {
-      var portfolios = await _context.Portfolios
-                                    .Include(p => p.Items)
-                                    .ThenInclude(pi => pi.Dividends)
-                                    .Include(p => p.Items)
-                                    .ThenInclude(pi => pi.StockEvents)
-                                    .Where(p => p.UserId == userId)
-                                    .ToListAsync();
-     var totalTransactions= portfolios.Select(x => x.Items.Count()).Sum();
+      var portfolios = await GetPortfoliosByUserAsync(userId);
+      var totalTransactions = portfolios.Select(x => x.Items.Count()).Sum();
 
-      return  totalTransactions;
+      return totalTransactions;
     }
 
     public async Task<int?> TotalStockEvents(string userId)
     {
-      var portfolios = await _context.Portfolios
-                                    .Include(p => p.Items)
-                                    .ThenInclude(pi => pi.Dividends)
-                                    .Include(p => p.Items)
-                                    .ThenInclude(pi => pi.StockEvents)
-                                    .Where(p => p.UserId == userId)
-                                    .ToListAsync();
-      var totalStockEvents = portfolios.Select(x => x.Items.Sum(st=>st.StockEvents?.Count())).Sum();
+      var portfolios = await GetPortfoliosByUserAsync(userId);
+      var totalStockEvents = portfolios.Select(x => x.Items.Sum(st => st.StockEvents?.Count() ?? 0)).Sum();
 
       return totalStockEvents;
     }
-  }
 
-  // New DTOs
-  public class PortfolioSentimentImpactResponse
-  {
-    public double TotalMarketValueBeforeImpact { get; set; }
-    public double TotalMarketValueAfterImpact { get; set; }
-    public List<Models.Portfolio.PortfolioItem> PortfolioItems { get; set; }
-  }
+    public IEnumerable<dynamic> GetTotalRevenueByMonth(List<Portfolio> portfolios)
+    {
+      return portfolios
+          .SelectMany(p => p.Items)
+          .GroupBy(item => new { item.PurchaseDate.Year, item.PurchaseDate.Month })
+          .Select(g => new
+          {
+            Year = g.Key.Year,
+            Month = g.Key.Month,
+            TotalRevenue = g.Sum(item => item.CurrentMarketValue)
+          })
+          .ToList();
+    }
 
+    public (decimal currentMonthRevenue, decimal previousMonthRevenue) GetMonthRevenues(IEnumerable<dynamic> totalRevenueByMonth)
+    {
+      var currentYear = DateTime.Now.Year;
+      var currentMonth = DateTime.Now.Month;
+      var previousMonth = currentMonth == 1 ? 12 : currentMonth - 1;
+      var previousMonthYear = currentMonth == 1 ? currentYear - 1 : currentYear;
+
+      var currentMonthRevenue = totalRevenueByMonth
+          .FirstOrDefault(x => x.Year == currentYear && x.Month == currentMonth)?.TotalRevenue ?? 0;
+      var previousMonthRevenue = totalRevenueByMonth
+          .FirstOrDefault(x => x.Year == previousMonthYear && x.Month == previousMonth)?.TotalRevenue ?? 0;
+
+      return (currentMonthRevenue, previousMonthRevenue);
+    }
+
+   
+
+    // DTOs
+    public class PortfolioSentimentImpactResponse
+    {
+      public double TotalMarketValueBeforeImpact { get; set; }
+      public double TotalMarketValueAfterImpact { get; set; }
+      public List<Models.Portfolio.PortfolioItem> PortfolioItems { get; set; }
+    }
+
+    public class PurchaseData
+    {
+      public DateTime Date { get; set; }
+      public int Quantity { get; set; }
+      public string OperationType { get; internal set; }
+    }
+  }
 }

@@ -310,13 +310,24 @@ namespace MarketAnalyticHub.Controllers.api
     [HttpGet("growth")]
     public async Task<IActionResult> GetGrowthData()
     {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+      // Fetch the portfolios first
+      decimal growthPercentage = await _portfolioService.GrowthPercentage(userId);
+
       var growthData = new
       {
-        Growth = 78
+        Growth = Math.Round(growthPercentage, 3)
       };
 
       return Ok(growthData);
     }
+
+    
     [HttpGet("GetPortfoliosByUserAsync")]
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
     {
@@ -344,28 +355,26 @@ namespace MarketAnalyticHub.Controllers.api
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
       var portfolios = await _context.Portfolios
-                                        .Include(p => p.Items)
-                                        .ThenInclude(pi => pi.Dividends)
-                                        .Where(p => p.UserId == userId)
-                                        .ToListAsync();
-
+                                      .Include(p => p.Items)
+                                      .ThenInclude(pi => pi.Dividends)
+                                      .Where(p => p.UserId == userId)
+                                      .ToListAsync();
+     
       var portfolioStatistics = portfolios.Select(p => new PortfolioStatistic
       {
         Name = p.Name,
         TotalInvestment = (decimal)overallStats.TotalCustMarketValue,
         CurrentMarketValue = (decimal)overallStats.TotalMarketValue,
-        Items = p.Items.Select(i => new PortfolioItemDetail
-        {
-          Symbol = i.Symbol,
-          Id = i.Id,
-          TotalInvestment = i.TotalInvestment,
-          CurrentMarketValue = i.CurrentMarketValue,
-          Dividends = i.Dividends.Sum(d => d.Amount)
-        }).ToList()
+        TotalDifferenceValue = (decimal)overallStats.TotalDifferenceValue,
+        TotalDividends = (decimal)overallStats.TotalDividends,
+        TotalProfit = (decimal)overallStats.TotalPortfolioProfit,
+        TotalDifferencePercentage = (decimal)overallStats.TotalDifferencePercentage,
+        TotalProfitDifferencePercentage = (decimal)overallStats.TotalDifferenceWithDividendsPercentage,
       });
-
+      
       return Ok(portfolioStatistics);
     }
+
 
     private async Task<DashboardData> GetDashboardDataAsync(string userId)
     {
@@ -386,6 +395,7 @@ namespace MarketAnalyticHub.Controllers.api
         Profit = profit,
         ProfitPercentage= overallStats.TotalDifferencePercentage,
         Dividends = dividends,
+        DividendsPercentage= overallStats.TotalDifferencePercentage,
         Payments = payments,
         Operations = operations,
         TotalRevenue = (decimal)overallStats.TotalMarketValue, // Example data

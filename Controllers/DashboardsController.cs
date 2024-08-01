@@ -68,7 +68,7 @@ namespace MarketAnalyticHub.Controllers
           {
             Type = item.OperationType,
             Description = item.Symbol,
-            Icon = GetIconForTransaction(item.Symbol),
+            Icon = PortfolioHelpers.GetIconForTransaction(item.Symbol),
             Amount = item.Quantity * item.PurchasePrice,
             Currency = "€",
             Date = item.PurchaseDate,
@@ -224,6 +224,58 @@ namespace MarketAnalyticHub.Controllers
         return Unauthorized();
       }
 
+      var portfolios = await _context.Portfolios
+          .Where(p => p.UserId == userId)
+          .Include(p => p.Items)
+          .ToListAsync();
+
+      if (portfolios == null || !portfolios.Any())
+      {
+        return NotFound();
+      }
+
+      var portfolioPercentageResponses = await _portfolioService.CalculatePortfolioPercentagesAsync(portfolios);
+      var portfolioPercentageResponsesTotal = portfolioPercentageResponses.Sum(s => s.TotalDividendsPercentage);
+
+      var totalRevenueByYear = _portfolioService.GetTotalRevenueByYear(portfolios);
+      var totalRevenueByMonth = _portfolioService.GetTotalRevenueByMonth(portfolios);
+
+      var (currentMonthRevenue, previousMonthRevenue) = _portfolioService.GetMonthRevenues(totalRevenueByMonth);
+
+      var portfolioGrowthPercentage = await _portfolioService.CalculatePortfolioGrowthPercentage(userId);
+      var dashboardData = await _portfolioService.GetDashboardDataAsync(userId);
+      dashboardData.DividendsPercentage = portfolioPercentageResponsesTotal;
+
+      var amountTotalYearByItems = _portfolioService.GetAmountTotalYearByItems(portfolios);
+      var profileReportCurrentYear = _portfolioService.GetProfileReportCurrentYear(portfolios);
+      var transactions = _portfolioService.GetRecentTransactions(portfolios);
+
+      var symbols = portfolios.SelectMany(p => p.Items).Select(i => i.Symbol).Distinct().ToList();
+      var realTimeData = await FetchRealTimeData(symbols);
+
+      var model = new DashboardViewModel
+      {
+        Transactions = transactions,
+        PortfolioGrowthPercentage = portfolioGrowthPercentage,
+        TotalRevenueByYear = totalRevenueByYear,
+        DashboardData = dashboardData,
+        AmountTotalYear = amountTotalYearByItems,
+        ProfileReportCurrentYear = profileReportCurrentYear,
+        RealTimeData = realTimeData,
+      };
+
+      return View(model);
+    }
+
+
+    public async Task<IActionResult> IndexOld()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
       // Fetch the portfolios first
       var portfolios = await _context.Portfolios
           .Where(p => p.UserId == userId)
@@ -280,7 +332,7 @@ namespace MarketAnalyticHub.Controllers
           {
             Type = item.OperationType,
             Description = item.Symbol,
-            Icon = GetIconForTransaction(item.Symbol),
+            Icon = PortfolioHelpers.GetIconForTransaction(item.Symbol),
             Amount = item.Quantity * item.PurchasePrice,
             Currency = "€",
             Date = item.PurchaseDate,
@@ -302,18 +354,7 @@ namespace MarketAnalyticHub.Controllers
      
       return View(model);
     }
-    public string GetIconUrl(string symbol)
-    {
-      // Return the URL of the icon based on the symbol
-      // Replace with your logic to get the correct icon URL
-      return symbol switch
-      {
-        "AAPL" => "/path/to/apple-icon.png",
-        "GOOG" => "/path/to/google-icon.png",
-        "MSFT" => "/path/to/microsoft-icon.png",
-        _ => "/path/to/default-icon.png"
-      };
-    }
+   
 
     private async Task<Dictionary<string, RealTimeDataDto>> FetchRealTimeData(List<string> symbols)
     {
@@ -354,16 +395,7 @@ namespace MarketAnalyticHub.Controllers
       return realTimeData;
     }
 
-    private string GetIconForTransaction(string symbol)
-    {
-      // You can map symbols to specific icons if needed
-      return symbol switch
-      {
-        "AAPL" => "/img/icons/unicons/apple.png",
-        "GOOGL" => "/img/icons/unicons/google.png",
-        _ => "/img/icons/unicons/wallet.png",
-      };
-    }
+   
 
   }
 

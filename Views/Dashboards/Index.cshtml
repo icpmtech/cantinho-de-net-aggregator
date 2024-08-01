@@ -68,7 +68,9 @@
                         </div>
                         <span class="fw-medium d-block mb-1">Profit</span>
                         <h3 id="profit" class="card-title mb-2">€0</h3>
-                        <small id="profit_percentage" class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +0%</small>
+                        <small id="profit_percentage" class="text-success fw-medium">
+                            <i class='bx bx-up-arrow-alt'></i> @Model.DashboardData.DividendsPercentage%
+                        </small>
                     </div>
                 </div>
             </div>
@@ -90,7 +92,10 @@
                         </div>
                         <span>Dividends</span>
                         <h3 id="dividends" class="card-title text-nowrap mb-1">€0</h3>
-                        <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
+                        <small class="@(Model.DashboardData.DividendsPercentage > 0 ? "text-success" : "text-danger") fw-medium">
+                            <i class='@(Model.DashboardData.DividendsPercentage > 0 ? "bx bx-up-arrow-alt" : "bx bx-down-arrow-alt")'></i>
+                            @Model.DashboardData.DividendsPercentage%
+                        </small>
                     </div>
                 </div>
             </div>
@@ -157,7 +162,10 @@
                                     <span class="badge bg-label-warning rounded-pill">Year @(Model.TotalRevenueByYear.OrderByDescending(y => y.Year).FirstOrDefault()?.Year.ToString() ?? "No Year")</span>
                                 </div>
                                 <div class="mt-sm-auto">
-                                    <small class="text-success text-nowrap fw-medium"><i class='bx bx-chevron-up'></i> @Model.PortfolioGrowthPercentage%</small>
+                                    <small class="@(Model.PortfolioGrowthPercentage > 0 ? "text-success" : "text-danger") text-nowrap fw-medium">
+                                        <i class='bx @(Model.PortfolioGrowthPercentage > 0 ? "bx-chevron-up" : "bx-chevron-down")'></i>
+                                        @Model.PortfolioGrowthPercentage%
+                                    </small>
                                     <h3 class="mb-0">€@(Model.AmountTotalYear.OrderByDescending(y => y.Year).FirstOrDefault()?.TotalInvestment.ToString() ?? "No Year")</h3>
                                 </div>
                             </div>
@@ -171,7 +179,7 @@
 </div>
 <div class="row">
     <!-- Portfolios Statistics -->
-    @Html.Partial("_PortfoliosStatistics",Model)
+    @Html.Partial("_PortfoliosStatistics", Model)
     <!--/ Portfolios Statistics -->
     <!-- Expense Overview -->
     @Html.Partial("_ExpenseOverview", Model)

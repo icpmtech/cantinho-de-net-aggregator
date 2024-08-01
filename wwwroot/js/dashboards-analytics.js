@@ -315,12 +315,28 @@
   function updateGrowthChart(data) {
     const growthChartEl = document.querySelector('#growthChart');
 
+    // Validate the data
+    const growthValue = (typeof data.growth === 'number' && !isNaN(data.growth)) ? data.growth : 0;
+
     const growthChartOptions = {
-      series: [data.growth],
+      series: [growthValue],
       labels: ['Growth'],
       chart: {
         height: 240,
-        type: 'radialBar'
+        type: 'radialBar',
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800,
+          animateGradually: {
+            enabled: true,
+            delay: 150
+          },
+          dynamicAnimation: {
+            enabled: true,
+            speed: 350
+          }
+        }
       },
       plotOptions: {
         radialBar: {

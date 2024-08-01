@@ -10,6 +10,7 @@ namespace MarketAnalyticHub.Models
     public List<PortfolioItemPercentage> ItemPercentages { get; set; }
     public decimal TotalDifferenceWithDividendsPercentage { get; internal set; }
     public decimal TotalPortfolioProfit { get; internal set; }
+    public decimal TotalDividendsPercentage { get; internal set; }
   }
 
   public class PortfolioItemPercentage

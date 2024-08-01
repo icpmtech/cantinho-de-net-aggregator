@@ -127,8 +127,8 @@ async function loadDashboardData() {
 async function loadTotalPortfolioPercentage() {
   try {
     const data = await fetchData('/api/Portfolio/total-percentage');
-    document.getElementById('totalPortfolioPercentage').innerText = `${data.totalPercentage?.toFixed(3)}%`;
-    document.getElementById('totalProfitDifferencePercentage').innerText = `${data.totalWithDividendsPercentage?.toFixed(3)}%`;
+    document.getElementById('totalPortfolioPercentage').innerText = `${data.totalDifferencePercentage?.toFixed(3)}%`;
+    document.getElementById('totalProfitDifferencePercentage').innerText = `${data.totalProfitDifferencePercentage?.toFixed(3)}%`;
     document.getElementById('totalProfit').innerText = `€${data.totalProfit?.toFixed(3)}`;
   } catch (error) {
     alert(error.message);
