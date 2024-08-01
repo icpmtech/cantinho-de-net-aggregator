@@ -1,40 +1,36 @@
-@model PaginatedList<MarketAnalyticHub.Models.Portfolio.PortfolioItem>
-
-@{
-    var groupedItems = Model.GroupBy(item => item.Symbol);
-}
+@model PaginatedList<GroupedPortfolioItems>
 
 <div class="row">
     <div class="col-md-12">
-        <div class="container mt-4">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <a class="btn btn-primary" asp-action="Create">
-                        <i class='bx bx-plus'></i> Create New
-                    </a>
-                    <div>
-                        <label for="pageSizeSelect" class="form-label">Page Size:</label>
-                        <select id="pageSizeSelect" class="form-select d-inline-block w-auto">
-                            <option value="5" selected=@(ViewData["CurrentPageSize"].ToString() == "10" ? "selected" : "")>10</option>
-                            <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "20" ? "selected" : "")>20</option>
-                            <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "50" ? "selected" : "")>50</option>
-                            <option value="50" selected=@(ViewData["CurrentPageSize"].ToString() == "100" ? "selected" : "")>100</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="list-group">
-                        @foreach (var group in groupedItems)
-                        {
-                            <div class="list-group-item">
-                                <h5 class="mb-1">
-                                    <a data-bs-toggle="collapse" href="#collapse-@group.Key" role="button" aria-expanded="false" aria-controls="collapse-@group.Key">
-                                        @group.Key
-                                    </a>
-                                </h5>
-                                <div class="collapse" id="collapse-@group.Key">
-                                    @foreach (var item in group)
-                                    {
+        <div class="d-flex justify-content-between align-items-center my-3">
+            <a class="btn btn-primary" asp-action="Create">
+                <i class='bx bx-plus'></i> Create New
+            </a>
+            <div>
+                <label for="pageSizeSelect" class="form-label">Page Size:</label>
+                <select id="pageSizeSelect" class="form-select d-inline-block w-auto" onchange="location.href='@Url.Action("Index", new { pageNumber = Model.PageIndex, pageSize = ViewData["CurrentPageSize"], sortOrder = ViewData["CurrentSort"], tab = "list" })'">
+                    <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "10" ? "selected" : "")>10</option>
+                    <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "20" ? "selected" : "")>20</option>
+                    <option value="50" selected=@(ViewData["CurrentPageSize"].ToString() == "50" ? "selected" : "")>50</option>
+                    <option value="100" selected=@(ViewData["CurrentPageSize"].ToString() == "100" ? "selected" : "")>100</option>
+                </select>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-body">
+                <div class="list-group">
+                    @foreach (var group in Model)
+                    {
+                        <div class="list-group-item">
+                            <h5 class="mb-1">
+                                <a data-bs-toggle="collapse" href="#collapse-@group.Symbol" role="button" aria-expanded="false" aria-controls="collapse-@group.Symbol">
+                                    @group.Symbol <span class="badge bg-secondary">@group.Items.Count</span>
+                                </a>
+                            </h5>
+                            <div class="collapse" id="collapse-@group.Symbol">
+                                @foreach (var item in @group.Items)
+                                {
+                                    <div class="mt-2">
                                         <div class="d-flex w-100 justify-content-between">
                                             <small>@item.PurchaseDate.ToShortDateString()</small>
                                         </div>
@@ -78,27 +74,16 @@
                                                                 sparkline: { enabled: true }
                                                             },
                                                             markers: {
-                                                                size: 6,
-                                                                colors: "transparent",
-                                                                strokeColors: "transparent",
-                                                                strokeWidth: 4,
-                                                                discrete: [
-                                                                    {
-                                                                        fillColor: "#FFFFFF",
-                                                                        seriesIndex: 0,
-                                                                        dataPointIndex: 3,
-                                                                        strokeColor: "#FF4560",
-                                                                        strokeWidth: 4,
-                                                                        size: 6,
-                                                                        radius: 2
-                                                                    }
-                                                                ],
+                                                                size: 4,
+                                                                colors: ["#FF4560"],
+                                                                strokeColors: "#fff",
+                                                                strokeWidth: 2,
                                                                 hover: { size: 7 }
                                                             },
                                                             grid: { show: false, padding: { right: 8 } },
                                                             colors: ["#FF4560"],
                                                             dataLabels: { enabled: false },
-                                                            stroke: { width: 5, curve: "smooth" },
+                                                            stroke: { width: 2, curve: "smooth" },
                                                             series: [{
                                                                 name: 'Close Prices',
                                                                 data: data.closes
@@ -107,12 +92,27 @@
                                                                 type: 'datetime',
                                                                 categories: data.dates,
                                                                 labels: {
-                                                                    format: 'yyyy-MM-dd'
+                                                                    format: 'yyyy-MM-dd',
+                                                                    rotate: -45,
+                                                                    rotateAlways: true
+                                                                },
+                                                                title: {
+                                                                    text: 'Date'
                                                                 }
                                                             },
                                                             yaxis: {
                                                                 title: {
                                                                     text: 'Price'
+                                                                },
+                                                                labels: {
+                                                                    formatter: function (value) {
+                                                                        return "$" + value.toFixed(2);
+                                                                    }
+                                                                }
+                                                            },
+                                                            tooltip: {
+                                                                x: {
+                                                                    format: 'yyyy-MM-dd'
                                                                 }
                                                             },
                                                             legend: {
@@ -121,17 +121,19 @@
                                                                 horizontalAlign: 'left'
                                                             }
                                                         };
-                                                        null !== d && new ApexCharts(d, c).render();
+                                                        if (d) {
+                                                            new ApexCharts(d, c).render();
+                                                        }
                                                     })
                                                     .catch(error => console.error('Error fetching chart data:', error));
                                             });
                                         </script>
-                                    }
+                                    </div>
                                     <hr />
-                                </div>
+                                }
                             </div>
-                        }
-                    </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>

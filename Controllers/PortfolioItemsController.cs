@@ -25,6 +25,7 @@ namespace MarketAnalyticHub.Controllers
     }
 
     // GET: PortfolioItems
+    // GET: PortfolioItems
     public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber, int pageSize = 10, string tab = "list")
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -36,8 +37,7 @@ namespace MarketAnalyticHub.Controllers
       ViewData["OperationTypeSortParm"] = String.IsNullOrEmpty(sortOrder) ? "operationType_desc" : "";
       ViewData["UserIdSortParm"] = sortOrder == "UserId" ? "userId_desc" : "UserId";
 
-      var portfolios = from p in _context.PortfolioItems.Include(p => p.Industry)
-                      .Include(p => p.Portfolio)
+      var portfolios = from p in _context.PortfolioItems.Include(p => p.Industry).Include(p => p.Portfolio)
                        where p.UserId == userId
                        select p;
 
@@ -63,9 +63,17 @@ namespace MarketAnalyticHub.Controllers
           break;
       }
 
-      var model = await PaginatedList<PortfolioItem>.CreateAsync(portfolios.AsNoTracking(), pageNumber ?? 1, pageSize);
+      var portfolioItems = await portfolios.AsNoTracking().ToListAsync();
 
+      var groupedPortfolios = portfolioItems
+                              .GroupBy(p => p.Symbol)
+                              .Select(g => new GroupedPortfolioItems
+                              {
+                                Symbol = g.Key,
+                                Items = g.ToList()
+                              });
 
+      var model = PaginatedList<GroupedPortfolioItems>.Create(groupedPortfolios.AsQueryable(), pageNumber ?? 1, pageSize);
 
       return View(model);
     }

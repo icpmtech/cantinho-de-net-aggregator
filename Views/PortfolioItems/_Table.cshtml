@@ -1,4 +1,4 @@
-@model PaginatedList<MarketAnalyticHub.Models.Portfolio.PortfolioItem>
+@model PaginatedList<GroupedPortfolioItems>
 
 <div class="container mt-4">
     <div class="card">
@@ -8,7 +8,7 @@
             </a>
             <div>
                 <label for="pageSizeSelect" class="form-label">Page Size:</label>
-                <select id="pageSizeSelect" class="form-select d-inline-block w-auto">
+                <select id="pageSizeSelect" class="form-select d-inline-block w-auto" onchange="location.href='@Url.Action("Index", new { pageNumber = Model.PageIndex, pageSize = ViewData["CurrentPageSize"], sortOrder = ViewData["CurrentSort"], tab = "table" })'">
                     <option value="5" selected=@(ViewData["CurrentPageSize"].ToString() == "5" ? "selected" : "")>5</option>
                     <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "10" ? "selected" : "")>10</option>
                     <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "20" ? "selected" : "")>20</option>
@@ -21,9 +21,7 @@
                 <table id="investmentTable" class="table table-striped table-bordered">
                     <thead>
                         <tr>
-                            <th>
-                                <a asp-action="Index" asp-route-sortOrder="@ViewData["OperationTypeSortParm"]" asp-route-tab="table">Symbol</a>
-                            </th>
+                            <th>Symbol</th>
                             <th>Purchase Date</th>
                             <th>Quantity</th>
                             <th>Purchase Price</th>
@@ -35,31 +33,39 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var item in Model)
+                        @foreach (var group in Model)
                         {
                             <tr>
-                                <td>@item.Symbol</td>
-                                <td>@item.PurchaseDate.ToShortDateString()</td>
-                                <td>@item.Quantity</td>
-                                <td>@item.PurchasePrice</td>
-                                <td>@item.CurrentPrice</td>
-                                <td>@item.Commission</td>
-                                <td>@(item.Industry != null ? item.Industry.Name : "N/A")</td>
-                                <td>@(item.Portfolio != null ? item.Portfolio.Name : "N/A")</td>
-                                <td>
-                                    <div class="btn-group" role="group" aria-label="Basic example">
-                                        <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
-                                            <i class='bx bx-edit'></i> Edit
-                                        </a>
-                                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
-                                            <i class='bx bx-detail'></i> Details
-                                        </a>
-                                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
-                                            <i class='bx bx-trash'></i> Delete
-                                        </a>
-                                    </div>
+                                <td colspan="9" class="bg-light">
+                                    <strong>@group.Symbol</strong> <span class="badge bg-secondary">@group.Items.Count</span>
                                 </td>
                             </tr>
+                            @foreach (var item in group.Items)
+                            {
+                                <tr>
+                                    <td>@item.Symbol</td>
+                                    <td>@item.PurchaseDate.ToShortDateString()</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@item.PurchasePrice</td>
+                                    <td>@item.CurrentPrice</td>
+                                    <td>@item.Commission</td>
+                                    <td>@(item.Industry != null ? item.Industry.Name : "N/A")</td>
+                                    <td>@(item.Portfolio != null ? item.Portfolio.Name : "N/A")</td>
+                                    <td>
+                                        <div class="btn-group" role="group" aria-label="Basic example">
+                                            <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
+                                                <i class='bx bx-edit'></i> Edit
+                                            </a>
+                                            <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
+                                                <i class='bx bx-detail'></i> Details
+                                            </a>
+                                            <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
+                                                <i class='bx bx-trash'></i> Delete
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
                         }
                     </tbody>
                 </table>
