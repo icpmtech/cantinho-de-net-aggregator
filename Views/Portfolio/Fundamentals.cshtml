@@ -1,24 +1,57 @@
+@model MarketAnalyticHub.Models.PortfolioListViewModel
+
 @{
-    Layout = "_BlankLayout";
-    ViewData["Title"] = "Under Maintenance - Market Analytics Hub";
+    ViewBag.Title = "Fundamentals";
 }
 
-@section PageStyles {
-    <link rel="stylesheet" href="~/vendor/css/pages/page-misc.css">
-}
+<h2>Fundamentals</h2>
 
-@* ************** Content ************** *@
-<!--Under Maintenance -->
-<div class="container-xxl container-p-y">
-    <div class="misc-wrapper">
-        <h2 class="mb-2 mx-2">Under Maintenance!</h2>
-        <p class="mb-4 mx-2">
-            Sorry for the inconvenience but we're performing some maintenance at the moment
-        </p>
-        <a href="/" class="btn btn-primary">Back to home</a>
-        <div class="mt-4">
-            <img src="~/img/illustrations/girl-doing-yoga-light.png" alt="girl-doing-yoga-light" width="500" class="img-fluid" data-app-dark-img="illustrations/girl-doing-yoga-dark.png" data-app-light-img="illustrations/girl-doing-yoga-light.png">
-        </div>
+@foreach (var portfolio in Model.Portfolios)
+{
+    <h3>@portfolio.Name</h3>
+    <p><strong>Created On:</strong> @portfolio.CreationDate?.ToString("dd MMM yyyy")</p>
+
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Status</th>
+                <th>Shares</th>
+                <th>Last Price</th>
+                <th>Average Cost / Share</th>
+                <th>Total Cost</th>
+                <th>Market Value</th>
+                <th>Total Dividend Income</th>
+                <th>Today's Gain (Unrealized)</th>
+                <th>Total Gain (Unrealized)</th>
+                <th>Total Return</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in portfolio.Items)
+            {
+                <tr>
+                    <td>@item.Symbol</td>
+                    <td>@item.Status</td>
+                    <td>@item.Shares</td>
+                    <td>@item.LastPrice</td>
+                    <td>@item.AverageCost</td>
+                    <td>@item.TotalInvestment</td>
+                    <td>@item.CurrentMarketValue</td>
+                    <td>@item.TotalDividendIncome</td>
+                    <td>@item.TodaysGain</td>
+                    <td>@item.TotalGain</td>
+                    <td>@item.TotalReturn</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div>
+        <h4>Summary</h4>
+        <p><strong>Total Investment:</strong> @portfolio.TotalInvestment</p>
+        <p><strong>Current Market Value:</strong> @portfolio.CurrentMarketValue</p>
+        <p><strong>Total Gains/Losses:</strong> @portfolio.TotalGainsLosses</p>
+        <p><strong>Total Dividend Income:</strong> @portfolio.TotalDividendIncome</p>
     </div>
-</div>
-<!-- /Under Maintenance -->
+}

@@ -13,6 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AspnetCoreMvcFull.Services;
 using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Models.Portfolio.Entities;
 
 namespace MarketAnalyticHub.Services
 {
@@ -98,7 +99,7 @@ namespace MarketAnalyticHub.Services
         TotalDifferenceValue = totalDifferenceValue,
         TotalDifferencePercentage = Math.Round(totalDifferencePercentage, 3),
         TotalPortfolioProfit = totalPortfolioProfit,
-        TotalDifferenceWithDividendsPercentage = totalDifferenceWithDividendsPercentage,
+        TotalDifferenceWithDividendsPercentage = Math.Round(totalDifferenceWithDividendsPercentage, 3),
         TotalDividendsPercentage = totalDividendsPercentage,
         TotalDividends = totalDividends,
         ItemPercentages = itemPercentages
@@ -758,7 +759,7 @@ namespace MarketAnalyticHub.Services
     {
       public double TotalMarketValueBeforeImpact { get; set; }
       public double TotalMarketValueAfterImpact { get; set; }
-      public List<Models.Portfolio.PortfolioItem> PortfolioItems { get; set; }
+      public List<PortfolioItem> PortfolioItems { get; set; }
     }
 
     public class PurchaseData

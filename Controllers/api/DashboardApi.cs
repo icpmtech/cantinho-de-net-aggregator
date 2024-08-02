@@ -380,6 +380,36 @@ namespace MarketAnalyticHub.Controllers.api
       return Ok(portfolioStatistics);
     }
 
+    [HttpGet("portfolio-statistics-overall")]
+    public async Task<ActionResult<PortfolioStatistic>> GetPortfolioStatisticsOverall()
+    {
+      // Replace with actual user ID from your authentication context
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
+      // Get portfolios for the user along with their items and dividends
+      var portfolios = await _context.Portfolios
+                                      .Include(p => p.Items)
+                                      .ThenInclude(pi => pi.Dividends)
+                                      .Where(p => p.UserId == userId)
+                                      .ToListAsync();
+
+
+
+      var overallStatistic = new PortfolioStatistic
+      {
+        Name = "Overall Portfolio",
+        TotalInvestment = overallStats.TotalCustMarketValue,
+        CurrentMarketValue = overallStats.TotalMarketValue,
+        TotalDifferenceValue = overallStats.TotalDifferenceValue,
+        TotalDividends = overallStats.TotalDividends,
+        TotalProfit = overallStats.TotalPortfolioProfit,
+        TotalDifferencePercentage = overallStats.TotalDifferencePercentage,
+        TotalProfitDifferencePercentage = overallStats.TotalDifferenceWithDividendsPercentage
+      };
+
+      return Ok(overallStatistic);
+    }
+
 
     private async Task<DashboardData> GetDashboardDataAsync(string userId)
     {

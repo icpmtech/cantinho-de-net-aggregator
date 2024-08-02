@@ -1,11 +1,10 @@
-using MarketAnalyticHub.Models.Portfolio;
 using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Security.Claims;
-using MarketAnalyticHub.Models.Portfolio;
+using MarketAnalyticHub.Models.Portfolio.Entities;
 
 [Route("api/[controller]")]
 [Authorize]

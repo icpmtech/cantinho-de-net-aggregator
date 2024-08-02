@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using MarketAnalyticHub.Models.Portfolio;
+using MarketAnalyticHub.Models.Portfolio.Entities;
 
 namespace MarketAnalyticHub.Controllers.Configurations.Portfolio
 {

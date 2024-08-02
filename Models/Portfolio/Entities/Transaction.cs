@@ -1,6 +1,4 @@
-using MarketAnalyticHub.Models.Portfolio;
-
-namespace MarketAnalyticHub.Models.Portfolio
+namespace MarketAnalyticHub.Models.Portfolio.Entities
 {
   public class Transaction
   {

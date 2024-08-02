@@ -1,10 +1,8 @@
-using MarketAnalyticHub.Models.Portfolio;
-using MarketAnalyticHub.Models;
 using static MarketAnalyticHub.Controllers.SocialSentimentService;
 using System.ComponentModel.DataAnnotations.Schema;
 using MarketAnalyticHub.Models.SetupDb;
 
-namespace MarketAnalyticHub.Models.Portfolio
+namespace MarketAnalyticHub.Models.Portfolio.Entities
 {
   public class PortfolioItem
   {

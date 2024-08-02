@@ -1,6 +1,6 @@
 namespace MarketAnalyticHub.Services.Utils
 {
-  using MarketAnalyticHub.Models.Portfolio;
+  using MarketAnalyticHub.Models.Portfolio.Entities;
   using System.Collections.Generic;
 
   public class PortfolioItemSymbolEqualityComparer : IEqualityComparer<PortfolioItem>

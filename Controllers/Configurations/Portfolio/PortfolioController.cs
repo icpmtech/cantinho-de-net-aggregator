@@ -2,6 +2,9 @@ using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;
+using MarketAnalyticHub.Controllers.Configurations.Portfolio;
+using MarketAnalyticHub.Models.Portfolio;
+using System.Security.Claims;
 
 namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 {
@@ -31,10 +34,22 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
       var statistics = _portfolioService.GetPortfolioStatistics();
       return Ok(statistics);
     }
-    public IActionResult Fundamentals()
+    public async Task<IActionResult> Fundamentals()
     {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
 
-      return View();
+
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+      var model = new PortfolioListViewModel
+      {
+        Portfolios = portfolios
+      };
+
+      return View(model);
     }
 
     public IActionResult Qualitatives()
@@ -46,6 +61,15 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     {
       return View();
     }
+
+  
+
+
+
+
   }
+
+ 
+
 }
 

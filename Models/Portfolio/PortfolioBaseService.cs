@@ -1,4 +1,5 @@
 using DocumentFormat.OpenXml.Spreadsheet;
+using MarketAnalyticHub.Models.Portfolio.Entities;
 using System.Collections.Generic;
 using static MarketAnalyticHub.Models.Portfolio.Portfolio;
 

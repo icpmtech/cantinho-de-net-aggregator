@@ -1,4 +1,4 @@
-using MarketAnalyticHub.Models.Portfolio;
+using MarketAnalyticHub.Models.Portfolio.Entities;
 
 namespace MarketAnalyticHub.Controllers
 {

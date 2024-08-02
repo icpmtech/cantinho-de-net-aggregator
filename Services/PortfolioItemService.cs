@@ -1,7 +1,6 @@
 namespace MarketAnalyticHub.Services
 {
-  using MarketAnalyticHub.Models.Portfolio;
-  using MarketAnalyticHub.Models.Portfolio;
+  using MarketAnalyticHub.Models.Portfolio.Entities;
   using MarketAnalyticHub.Models.SetupDb;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;

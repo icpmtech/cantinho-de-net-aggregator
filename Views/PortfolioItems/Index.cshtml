@@ -64,25 +64,25 @@
         });
         function updateCardValues() {
             // Fetch data from your API
-            fetch('/api/Dashboards/portfolio-statistics')
+            fetch('/api/Dashboards/portfolio-statistics-overall')
                 .then(response => response.json())
                 .then(data => {
                     // Calculate total values
                    
-                    document.getElementById('totalCustMarketValue').textContent = `€${data[0].currentMarketValue.toFixed(2)
+                    document.getElementById('totalCustMarketValue').textContent = `€${data.totalInvestment.toFixed(2)
                 }`;
-                    document.getElementById('totalMarketValue').textContent = `€${data[0].totalInvestment.toFixed(2)}`;
-                    document.getElementById('totalPortfolioPercentage').textContent = `${data[0].totalDifferencePercentage.toFixed(2)}%`;
-                    document.getElementById('dividends').textContent = `€${data[0].totalDividends.toFixed(2)}`;
-                    document.getElementById('totalDifferenceValue').textContent = `€${data[0].totalDifferenceValue.toFixed(2)}`;
-                    document.getElementById('totalProfit').textContent = `${data[0].totalProfitDifferencePercentage.toFixed(2)}`;
+                    document.getElementById('totalMarketValue').textContent = `€${data.currentMarketValue.toFixed(2)}`;
+                    document.getElementById('totalPortfolioPercentage').textContent = `${data.totalDifferencePercentage.toFixed(2)}%`;
+                    document.getElementById('dividends').textContent = `€${data.totalDividends.toFixed(2)}`;
+                    document.getElementById('totalDifferenceValue').textContent = `€${data.totalDifferenceValue.toFixed(2)}`;
+                    document.getElementById('totalProfit').textContent = `${data.totalProfitDifferencePercentage.toFixed(2)}`;
 
                     // Update difference icons and percentages
-                    document.getElementById('totalDifferenceIcon').className = data[0].totalDifferenceValue >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
-                    document.getElementById('totalDifferencePercentage').textContent = `${data[0].totalDifferencePercentage.toFixed(2)}%`;
+                    document.getElementById('totalDifferenceIcon').className = data.totalDifferenceValue >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
+                    document.getElementById('totalDifferencePercentage').textContent = `${data.totalDifferencePercentage.toFixed(2)}%`;
 
-                    document.getElementById('totalProfitIcon').className = data[0].totalProfit >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
-                    document.getElementById('totalProfitDifferencePercentage').textContent = `${data[0].totalProfitDifferencePercentage.toFixed(2)}%`;
+                    document.getElementById('totalProfitIcon').className = data.totalProfit >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
+                    document.getElementById('totalProfitDifferencePercentage').textContent = `${data.totalProfitDifferencePercentage.toFixed(2)}%`;
                 })
                 .catch(error => console.error('Error fetching portfolio summary:', error));
         }

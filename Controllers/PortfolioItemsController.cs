@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using MarketAnalyticHub.Models.Portfolio;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Models;
 using System.Security.Claims;
 using MarketAnalyticHub.Services;
+using MarketAnalyticHub.Models.Portfolio.Entities;
 
 namespace MarketAnalyticHub.Controllers
 {
