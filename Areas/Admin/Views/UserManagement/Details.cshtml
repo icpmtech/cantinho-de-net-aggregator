@@ -1,0 +1,107 @@
+@model MarketAnalyticHub.Models.UserProfile
+
+@{
+    ViewBag.Title = "User Profile Details";
+}
+
+<h2>User Profile Details</h2>
+
+<div>
+    <h4>UserProfile</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>@Html.DisplayNameFor(model => model.FirstName)</dt>
+        <dd>@Html.DisplayFor(model => model.FirstName)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.LastName)</dt>
+        <dd>@Html.DisplayFor(model => model.LastName)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Email)</dt>
+        <dd>@Html.DisplayFor(model => model.Email)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Organization)</dt>
+        <dd>@Html.DisplayFor(model => model.Organization)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.PhoneNumber)</dt>
+        <dd>@Html.DisplayFor(model => model.PhoneNumber)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Address)</dt>
+        <dd>@Html.DisplayFor(model => model.Address)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.State)</dt>
+        <dd>@Html.DisplayFor(model => model.State)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ZipCode)</dt>
+        <dd>@Html.DisplayFor(model => model.ZipCode)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Country)</dt>
+        <dd>@Html.DisplayFor(model => model.Country)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Language)</dt>
+        <dd>@Html.DisplayFor(model => model.Language)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.TimeZone)</dt>
+        <dd>@Html.DisplayFor(model => model.TimeZone)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Currency)</dt>
+        <dd>@Html.DisplayFor(model => model.Currency)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.AvatarUrl)</dt>
+        <dd>@Html.DisplayFor(model => model.AvatarUrl)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Username)</dt>
+        <dd>@Html.DisplayFor(model => model.Username)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Status)</dt>
+        <dd>@Html.DisplayFor(model => model.Status)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Role)</dt>
+        <dd>@Html.DisplayFor(model => model.Role)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.TaxId)</dt>
+        <dd>@Html.DisplayFor(model => model.TaxId)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Contact)</dt>
+        <dd>@Html.DisplayFor(model => model.Contact)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Plan)</dt>
+        <dd>@Html.DisplayFor(model => model.Plan)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.PlanExpiry)</dt>
+        <dd>@Html.DisplayFor(model => model.PlanExpiry)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.PaymentMethod)</dt>
+        <dd>@Html.DisplayFor(model => model.PaymentMethod)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.BillingAddress)</dt>
+        <dd>@Html.DisplayFor(model => model.BillingAddress)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.TasksDone)</dt>
+        <dd>@Html.DisplayFor(model => model.TasksDone)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ProjectsDone)</dt>
+        <dd>@Html.DisplayFor(model => model.ProjectsDone)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Languages)</dt>
+        <dd>@Html.DisplayFor(model => model.Languages)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.PaymentMethods)</dt>
+        <dd>@Html.DisplayFor(model => model.PaymentMethods)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Addresses)</dt>
+        <dd>@Html.DisplayFor(model => model.Addresses)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.UserId)</dt>
+        <dd>@Html.DisplayFor(model => model.UserId)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ActivationKey)</dt>
+        <dd>@Html.DisplayFor(model => model.ActivationKey)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.IsActivated)</dt>
+        <dd>@Html.DisplayFor(model => model.IsActivated)</dd>
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id, area = "Admin" }) |
+    @Html.ActionLink("Back to List", "Index", new { area = "Admin" })
+</p>

@@ -1,0 +1,27 @@
+@model UserProfile
+
+@{
+    ViewBag.Title = "Delete Activation Key";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="text-center">Delete Activation Key</h3>
+                </div>
+                <div class="card-body">
+                    <p>Are you sure you want to delete the activation key?</p>
+                    @using (Html.BeginForm("DeleteActivationKey", "UserProfile", FormMethod.Post))
+                    {
+                        <div class="text-center mt-3">
+                            <button type="submit" class="btn btn-danger">Delete</button>
+                            <a href="@Url.Action("Index", "UserProfile")" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

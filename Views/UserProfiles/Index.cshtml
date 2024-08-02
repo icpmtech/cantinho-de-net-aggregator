@@ -1,4 +1,4 @@
-@model UserProfileApp.Models.UserProfile
+@model MarketAnalyticHub.Models.UserProfile
 
 <div class="content-wrapper">
     <div class="container-xxl flex-grow-1 container-p-y">
@@ -302,9 +302,9 @@
                                 <div class="position-relative">
                                     <div class="position-relative">
                                         <select id="modalEditUserStatus" name="Status" class="form-select">
-                                            <option value="Active" @(Model.Status == "Active" ? "selected" : "")>Active</option>
-                                            <option value="Inactive" @(Model.Status == "Inactive" ? "selected" : "")>Inactive</option>
-                                            <option value="Suspended" @(Model.Status == "Suspended" ? "selected" : "")>Suspended</option>
+                                            <option value="Active" selected=@(Model.Status == "Active" ? "selected" : "")>Active</option>
+                                            <option value="Inactive" selected=@(Model.Status == "Inactive" ? "selected" : "")>Inactive</option>
+                                            <option value="Suspended" selected=@(Model.Status == "Suspended" ? "selected" : "")>Suspended</option>
                                         </select>
                                     </div>
                                 </div>
@@ -325,14 +325,14 @@
                                 <div class="position-relative">
                                     <div class="position-relative">
                                         <select id="modalEditUserLanguage" name="Languages" class="form-select" multiple>
-                                            <option value="English" @(Model.Languages.Contains("English") ? "selected" : "")>English</option>
-                                            <option value="Spanish" @(Model.Languages.Contains("Spanish") ? "selected" : "")>Spanish</option>
-                                            <option value="French" @(Model.Languages.Contains("French") ? "selected" : "")>French</option>
-                                            <option value="German" @(Model.Languages.Contains("German") ? "selected" : "")>German</option>
-                                            <option value="Dutch" @(Model.Languages.Contains("Dutch") ? "selected" : "")>Dutch</option>
-                                            <option value="Hebrew" @(Model.Languages.Contains("Hebrew") ? "selected" : "")>Hebrew</option>
-                                            <option value="Sanskrit" @(Model.Languages.Contains("Sanskrit") ? "selected" : "")>Sanskrit</option>
-                                            <option value="Hindi" @(Model.Languages.Contains("Hindi") ? "selected" : "")>Hindi</option>
+                                            <option value="English" selected=@(Model.Languages.Contains("English") ? "selected" : "")>English</option>
+                                            <option value="Spanish" selected=@(Model.Languages.Contains("Spanish") ? "selected" : "")>Spanish</option>
+                                            <option value="French" selected=@(Model.Languages.Contains("French") ? "selected" : "")>French</option>
+                                            <option value="German" selected=@(Model.Languages.Contains("German") ? "selected" : "")>German</option>
+                                            <option value="Dutch" selected=@(Model.Languages.Contains("Dutch") ? "selected" : "")>Dutch</option>
+                                            <option value="Hebrew" selected=@(Model.Languages.Contains("Hebrew") ? "selected" : "")>Hebrew</option>
+                                            <option value="Sanskrit" selected=@(Model.Languages.Contains("Sanskrit") ? "selected" : "")>Sanskrit</option>
+                                            <option value="Hindi" selected=@(Model.Languages.Contains("Hindi") ? "selected" : "")>Hindi</option>
                                         </select>
                                     </div>
                                 </div>
@@ -342,30 +342,30 @@
                                 <div class="position-relative">
                                     <div class="position-relative">
                                         <select id="modalEditUserCountry" name="Country" class="form-select">
-                                            <option value="Australia" @(Model.Country == "Australia" ? "selected" : "")>Australia</option>
-                                            <option value="Bangladesh" @(Model.Country == "Bangladesh" ? "selected" : "")>Bangladesh</option>
-                                            <option value="Belarus" @(Model.Country == "Belarus" ? "selected" : "")>Belarus</option>
-                                            <option value="Brazil" @(Model.Country == "Brazil" ? "selected" : "")>Brazil</option>
-                                            <option value="Canada" @(Model.Country == "Canada" ? "selected" : "")>Canada</option>
-                                            <option value="China" @(Model.Country == "China" ? "selected" : "")>China</option>
-                                            <option value="France" @(Model.Country == "France" ? "selected" : "")>France</option>
-                                            <option value="Germany" @(Model.Country == "Germany" ? "selected" : "")>Germany</option>
-                                            <option value="India" @(Model.Country == "India" ? "selected" : "")>India</option>
-                                            <option value="Indonesia" @(Model.Country == "Indonesia" ? "selected" : "")>Indonesia</option>
-                                            <option value="Israel" @(Model.Country == "Israel" ? "selected" : "")>Israel</option>
-                                            <option value="Italy" @(Model.Country == "Italy" ? "selected" : "")>Italy</option>
-                                            <option value="Japan" @(Model.Country == "Japan" ? "selected" : "")>Japan</option>
-                                            <option value="Korea" @(Model.Country == "Korea" ? "selected" : "")>Korea, Republic of</option>
-                                            <option value="Mexico" @(Model.Country == "Mexico" ? "selected" : "")>Mexico</option>
-                                            <option value="Philippines" @(Model.Country == "Philippines" ? "selected" : "")>Philippines</option>
-                                            <option value="Russia" @(Model.Country == "Russia" ? "selected" : "")>Russian Federation</option>
-                                            <option value="South Africa" @(Model.Country == "South Africa" ? "selected" : "")>South Africa</option>
-                                            <option value="Thailand" @(Model.Country == "Thailand" ? "selected" : "")>Thailand</option>
-                                            <option value="Turkey" @(Model.Country == "Turkey" ? "selected" : "")>Turkey</option>
-                                            <option value="Ukraine" @(Model.Country == "Ukraine" ? "selected" : "")>Ukraine</option>
-                                            <option value="United Arab Emirates" @(Model.Country == "United Arab Emirates" ? "selected" : "")>United Arab Emirates</option>
-                                            <option value="United Kingdom" @(Model.Country == "United Kingdom" ? "selected" : "")>United Kingdom</option>
-                                            <option value="United States" @(Model.Country == "United States" ? "selected" : "")>United States</option>
+                                            <option value="Australia" selected=@(Model.Country == "Australia" ? "selected" : "")>Australia</option>
+                                            <option value="Bangladesh" selected=@(Model.Country == "Bangladesh" ? "selected" : "")>Bangladesh</option>
+                                            <option value="Belarus" selected=@(Model.Country == "Belarus" ? "selected" : "")>Belarus</option>
+                                            <option value="Brazil" selected=@(Model.Country == "Brazil" ? "selected" : "")>Brazil</option>
+                                            <option value="Canada" selected=@(Model.Country == "Canada" ? "selected" : "")>Canada</option>
+                                            <option value="China" selected=@(Model.Country == "China" ? "selected" : "")>China</option>
+                                            <option value="France" selected=@(Model.Country == "France" ? "selected" : "")>France</option>
+                                            <option value="Germany" selected=@(Model.Country == "Germany" ? "selected" : "")>Germany</option>
+                                            <option value="India" selected=@(Model.Country == "India" ? "selected" : "")>India</option>
+                                            <option value="Indonesia" selected=@(Model.Country == "Indonesia" ? "selected" : "")>Indonesia</option>
+                                            <option value="Israel" selected=@(Model.Country == "Israel" ? "selected" : "")>Israel</option>
+                                            <option value="Italy" selected=@(Model.Country == "Italy" ? "selected" : "")>Italy</option>
+                                            <option value="Japan" selected=@(Model.Country == "Japan" ? "selected" : "")>Japan</option>
+                                            <option value="Korea" selected=@(Model.Country == "Korea" ? "selected" : "")>Korea, Republic of</option>
+                                            <option value="Mexico" selected=@(Model.Country == "Mexico" ? "selected" : "")>Mexico</option>
+                                            <option value="Philippines" selected=@(Model.Country == "Philippines" ? "selected" : "")>Philippines</option>
+                                            <option value="Russia" selected=@(Model.Country == "Russia" ? "selected" : "")>Russian Federation</option>
+                                            <option value="South Africa" selected=@(Model.Country == "South Africa" ? "selected" : "")>South Africa</option>
+                                            <option value="Thailand" selected=@(Model.Country == "Thailand" ? "selected" : "")>Thailand</option>
+                                            <option value="Turkey" selected=@(Model.Country == "Turkey" ? "selected" : "")>Turkey</option>
+                                            <option value="Ukraine" selected=@(Model.Country == "Ukraine" ? "selected" : "")>Ukraine</option>
+                                            <option value="United Arab Emirates" selected=@(Model.Country == "United Arab Emirates" ? "selected" : "")>United Arab Emirates</option>
+                                            <option value="United Kingdom" selected=@(Model.Country == "United Kingdom" ? "selected" : "")>United Kingdom</option>
+                                            <option value="United States" selected=@(Model.Country == "United States" ? "selected" : "")>United States</option>
                                         </select>
                                     </div>
                                 </div>

@@ -194,17 +194,19 @@ using (var scope = app.Services.CreateScope())
       Cron.Daily); // or any cron expression
 }
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.UseEndpoints(endpoints =>
 {
-  endpoints.MapHub<ChatHub>("/chathub");
+  
   endpoints.MapControllerRoute(
       name: "areas",
       pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
   );
+  endpoints.MapHub<ChatHub>("/chathub");
+  endpoints.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
 });
 
 app.MapCompanyEndpoints();

@@ -50,8 +50,11 @@ namespace MarketAnalyticHub.Models
     public int TasksDone { get; set; }
     public int ProjectsDone { get; set; }
     public List<string> Languages { get; set; }
-    public List<PaymentMethod> PaymentMethods { get; internal set; }
-    public List<Address> Addresses { get; internal set; }
+    public List<PaymentMethod> PaymentMethods { get;  set; }
+    public List<Address> Addresses { get;  set; }
+    public string UserId { get;  set; } // Foreign key to ApplicationUser
+    public string ActivationKey { get;  set; }
+    public bool IsActivated { get;  set; }
   }
 
 }

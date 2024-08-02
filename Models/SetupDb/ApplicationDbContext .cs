@@ -5,6 +5,7 @@ using MarketAnalyticHub.Models.News;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using MarketAnalyticHub.Models.Portfolio;
+using MarketAnalyticHub.Controllers;
 
 namespace MarketAnalyticHub.Models.SetupDb
 {
@@ -26,6 +27,8 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<SymbolItem> Symbols { get; set; }
     public DbSet<NewsScrapingItem> NewsScrapingItem { get; set; }
     public DbSet<UserProfile> UserProfiles { get;  set; }
+    public DbSet<PaymentMethod> PaymentMethods { get; set; }
+    public DbSet<Address> Addresses { get; set; }
     public DbSet<QualitativeEvent> QualitativeEvents { get; internal set; }
 
     public DbSet<StockEvent> StockEvents { get; set; }
