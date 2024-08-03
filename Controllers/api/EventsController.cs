@@ -21,28 +21,32 @@ namespace MarketAnalyticHub.Controllers.api
 
     // GET: api/Events
     [HttpGet]
-    public ActionResult<IEnumerable<Event>> GetEvents()
+    public async Task<ActionResult<IEnumerable<Event>>> GetEvents()
     {
-     var result=  _context.StockEvents?.Select(s => new Event
+      var events = await _context.StockEvents.Select(e => new Event
       {
-        Id = s.Id,
-        Title = s.EventName,
-        Start = DateTime.Parse(s.Date), // Assuming Date is a string in a format that JavaScript can parse
-        End = DateTime.Parse(s.Date),
-        Calendar = "Other", // Default category
-        Location = s.Source,
-        Guests = s.Sentiment, // Mapping Sentiment to Guests for demonstration
-        Description = s.Details,
-        AllDay = false, // Assuming events are not all-day events by default
-        ExtendedProps = new ExtendedProps 
+        Id = e.Id,
+        Url = e.Url,
+        Title = e.Title,
+        Start = e.Start,
+        End = e.End,
+        AllDay = e.AllDay,
+        ExtendedProps = new ExtendedProps
         {
-          Impact = s.Impact,
-          Price = (decimal)s.Price,
-          PriceChange = (decimal)s.PriceChange,
-          PortfolioItemId = s.PortfolioItemId
+          Calendar = e.Calendar,
+          Location = e.Location,
+          Guests = e.Guests,
+          Description = e.Description,
+          Impact = e.Impact,
+          Sentiment = e.Sentiment,
+          Source = e.Source,
+          Price = e.Price,
+          PriceChange = e.PriceChange,
+          PortfolioItemId = e.PortfolioItemId
         }
-      }).ToList();
-      return result;
+      }).ToListAsync();
+
+      return events;
     }
 
     // GET: api/Events/5
@@ -59,19 +63,22 @@ namespace MarketAnalyticHub.Controllers.api
       return new Event
       {
         Id = eventItem.Id,
-        Title = eventItem.EventName,
-        Start = DateTime.Parse(eventItem.Date),
-        End = DateTime.Parse(eventItem.Date),
-        Calendar = "Other",
-        Location = eventItem.Source,
-        Guests = eventItem.Sentiment,
-        Description = eventItem.Details,
-        AllDay = false,
-        ExtendedProps = new ExtendedProps
+        Url = eventItem.Url,
+        Title = eventItem.Title,
+        Start = eventItem.Start,
+        End = eventItem.End,
+        AllDay = eventItem.AllDay,
+        ExtendedProps = new ExtendedProps()
         {
+          Calendar = eventItem.Calendar,
+          Location = eventItem.Location,
+          Guests = eventItem.Guests,
+          Description = eventItem.Description,
           Impact = eventItem.Impact,
-          Price = (decimal)eventItem.Price,
-          PriceChange = (decimal)eventItem.PriceChange,
+          Sentiment = eventItem.Sentiment,
+          Source = eventItem.Source,
+          Price = eventItem.Price,
+          PriceChange = eventItem.PriceChange,
           PortfolioItemId = eventItem.PortfolioItemId
         }
       };
@@ -81,7 +88,8 @@ namespace MarketAnalyticHub.Controllers.api
     [HttpPut("{id}")]
     public async Task<IActionResult> PutEvent(int id, Event eventItem)
     {
-      if (id != eventItem.Id)
+      Event eventItem1 = eventItem;
+      if (id != eventItem1.Id)
       {
         return BadRequest();
       }
@@ -92,15 +100,21 @@ namespace MarketAnalyticHub.Controllers.api
         return NotFound();
       }
 
-      stockEvent.EventName = eventItem.Title;
-      stockEvent.Date = eventItem.Start.ToString();
-      stockEvent.Source = eventItem.Location;
-      stockEvent.Sentiment = eventItem.Guests;
-      stockEvent.Details = eventItem.Description;
-      stockEvent.Impact = eventItem.ExtendedProps?.Impact;
-      stockEvent.Price = eventItem.ExtendedProps?.Price;
-      stockEvent.PriceChange = eventItem.ExtendedProps?.PriceChange;
-      stockEvent.PortfolioItemId = eventItem.ExtendedProps?.PortfolioItemId ?? stockEvent.PortfolioItemId;
+      stockEvent.Url = eventItem1.Url;
+      stockEvent.Title = eventItem1.Title;
+      stockEvent.Start = eventItem1.Start;
+      stockEvent.End = eventItem1.End;
+      stockEvent.AllDay = eventItem1.AllDay;
+      stockEvent.Calendar = eventItem1.ExtendedProps.Calendar;
+      stockEvent.Location = eventItem1.ExtendedProps.Location;
+      stockEvent.Guests = eventItem1.ExtendedProps.Guests;
+      stockEvent.Description = eventItem1.ExtendedProps.Description;
+      stockEvent.Impact = eventItem1.ExtendedProps.Impact;
+      stockEvent.Sentiment = eventItem1.ExtendedProps.Sentiment;
+      stockEvent.Source = eventItem1.ExtendedProps.Source;
+      stockEvent.Price = eventItem1.ExtendedProps.Price;
+      stockEvent.PriceChange = eventItem1.ExtendedProps.PriceChange;
+      stockEvent.PortfolioItemId = eventItem1.ExtendedProps.PortfolioItemId;
 
       _context.Entry(stockEvent).State = EntityState.Modified;
 
@@ -129,23 +143,29 @@ namespace MarketAnalyticHub.Controllers.api
     {
       var stockEvent = new StockEvent
       {
-        EventName = eventItem.Title,
-        Date = eventItem.Start.ToString(),
-        Source = eventItem.Location,
-        Sentiment = eventItem.Guests,
-        Details = eventItem.Description,
-        Impact = eventItem.ExtendedProps?.Impact,
-        Price = eventItem.ExtendedProps?.Price,
-        PriceChange = eventItem.ExtendedProps?.PriceChange,
-        PortfolioItemId = eventItem.ExtendedProps?.PortfolioItemId ?? 0
+        Url = eventItem.Url,
+        Title = eventItem.Title,
+        Start = eventItem.Start,
+        End = eventItem.End,
+        AllDay = eventItem.AllDay,
+        Calendar = eventItem.ExtendedProps.Calendar,
+        Location = eventItem.ExtendedProps.Location,
+        Guests = eventItem.ExtendedProps.Guests,
+        Description = eventItem.ExtendedProps.Description,
+        Impact = eventItem.ExtendedProps.Impact,
+        Sentiment = eventItem.ExtendedProps.Sentiment,
+        Source = eventItem.ExtendedProps.Source,
+        Price = eventItem.ExtendedProps.Price,
+        PriceChange = eventItem.ExtendedProps.PriceChange,
+        PortfolioItemId = eventItem.ExtendedProps.PortfolioItemId
       };
 
       _context.StockEvents.Add(stockEvent);
       await _context.SaveChangesAsync();
 
-      eventItem.Id = stockEvent.Id;
+      eventItem.Id = stockEvent.Id; // Update the eventItem with the generated ID
 
-      return CreatedAtAction("GetEvent", new { id = eventItem.Id }, eventItem);
+      return CreatedAtAction("GetEvent", new { id = stockEvent.Id }, eventItem);
     }
 
     // DELETE: api/Events/5

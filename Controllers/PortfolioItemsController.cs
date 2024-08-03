@@ -10,6 +10,7 @@ using MarketAnalyticHub.Models;
 using System.Security.Claims;
 using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models.Portfolio.Entities;
+using MarketAnalyticHub.Controllers.api;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -24,7 +25,6 @@ namespace MarketAnalyticHub.Controllers
       _portfolioService = portfolioService;
     }
 
-    // GET: PortfolioItems
     // GET: PortfolioItems
     public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber, int pageSize = 10, string tab = "list")
     {
@@ -47,28 +47,35 @@ namespace MarketAnalyticHub.Controllers
                                || p.OperationType.Contains(searchQuery));
       }
 
-      switch (sortOrder)
+      portfolios = sortOrder switch
       {
-        case "operationType_desc":
-          portfolios = portfolios.OrderByDescending(p => p.OperationType);
-          break;
-        case "UserId":
-          portfolios = portfolios.OrderBy(p => p.UserId);
-          break;
-        case "userId_desc":
-          portfolios = portfolios.OrderByDescending(p => p.UserId);
-          break;
-        default:
-          portfolios = portfolios.OrderBy(p => p.OperationType);
-          break;
-      }
+        "operationType_desc" => portfolios.OrderByDescending(p => p.OperationType),
+        "UserId" => portfolios.OrderBy(p => p.UserId),
+        "userId_desc" => portfolios.OrderByDescending(p => p.UserId),
+        _ => portfolios.OrderBy(p => p.OperationType),
+      };
 
       var portfolioItems = await portfolios.AsNoTracking().ToListAsync();
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
+
+      var portfolioStatistics = portfolioItems.Select(p => new PortfolioStatistic
+      {
+
+        TotalInvestment = (decimal)overallStats.TotalMarketValue,
+        CurrentMarketValue = (decimal)overallStats.TotalCustMarketValue,
+        TotalDifferenceValue = (decimal)overallStats.TotalDifferenceValue,
+        TotalDividends = (decimal)overallStats.TotalDividends,
+        TotalProfit = (decimal)overallStats.TotalPortfolioProfit,
+        TotalDifferencePercentage = (decimal)overallStats.TotalDifferencePercentage,
+        TotalProfitDifferencePercentage = (decimal)overallStats.TotalDifferenceWithDividendsPercentage,
+      });
 
       var groupedPortfolios = portfolioItems
                               .GroupBy(p => p.Symbol)
                               .Select(g => new GroupedPortfolioItems
                               {
+                                TotalInvestment = g.Sum(p => p.TotalInvestment),
+                                CurrentMarketValue = g.Sum(p => p.CurrentMarketValue),
                                 Symbol = g.Key,
                                 Items = g.ToList()
                               });
@@ -77,6 +84,8 @@ namespace MarketAnalyticHub.Controllers
 
       return View(model);
     }
+
+
 
 
     // GET: PortfolioItems/PortfolioItems/Details/5

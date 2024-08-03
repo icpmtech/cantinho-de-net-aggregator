@@ -27,6 +27,9 @@
     <div class="col-md-12">
         <div class="card mb-4">
             <div class="card-body" id="portfolioList">
+                <div id="loading-indicator" class="spinner-grow text-primary text-center" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
                 <!-- Portfolio list will be rendered here -->
             </div>
         </div>
@@ -95,7 +98,7 @@
                     </div>
                     <div class="form-group">
                         <label for="dividendAmount">Dividend Amount</label>
-                        <input type="number" class="form-control" id="dividendAmount" required>
+                        <input type="number" step="0.0001" class="form-control" id="dividendAmount" required>
                     </div>
                     <div class="form-group">
                         <label for="dividendExDate">Ex Date</label>
@@ -131,7 +134,7 @@
                     </div>
                     <div class="form-group">
                         <label for="editDividendAmount">Dividend Amount</label>
-                        <input type="number" class="form-control" id="editDividendAmount" required>
+                        <input type="number" step="0.0001" class="form-control" id="editDividendAmount" required>
                     </div>
                     <div class="form-group">
                         <label for="editDividendExDate">Ex Date</label>
@@ -291,7 +294,7 @@
                                     </div>
                                     <span>Current Market Value</span>
                                     <h3 class="card-title text-nowrap mb-1">€${portfolio.currentMarketValue.toFixed(3)}</h3>
-                                    <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +28.42%</small>
+                                    <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> </small>
                                     <ul class="list-group list-group-flush">
                                         ${portfolio.items?.map(item => `
                                             <li class="list-group-item">
@@ -299,9 +302,9 @@
                                                     <div>
                                                         <strong>Symbol:</strong> ${item.symbol} <br>
                                                         <strong>Quantity:</strong> ${item.quantity} <br>
-                                                        <strong>Total Investment:</strong> ${item.totalInvestment.toFixed(2)} <br>
-                                                        <strong>Current Market Value:</strong> ${item.currentMarketValue.toFixed(2)} <br>
-                                                        <strong>Total Dividend Income:</strong> ${item.totalDividendIncome.toFixed(2)} <br>
+                                                        <strong>Total Investment:</strong> ${item.totalInvestment.toFixed(3)} <br>
+                                                        <strong>Current Market Value:</strong> ${item.currentMarketValue.toFixed(3)} <br>
+                                                        <strong>Total Dividend Income:</strong> ${item.totalDividendIncome.toFixed(3)} <br>
                                                         <a class="btn btn-primary btn-sm" href="javascript:showAddDividendModal(${item.id});">Add Dividends</a>
                                                         <ul class="list-group list-group-flush">
                                                             ${item.dividends?.map(dividend => `
@@ -309,7 +312,7 @@
                                                                     <div class="d-flex justify-content-between">
                                                                         <div>
                                                                             <strong>Symbol:</strong> ${dividend.symbol} <br>
-                                                                            <strong>Dividend Amount:</strong> ${dividend.amount.toFixed(2)} <br>
+                                                                            <strong>Dividend Amount:</strong> ${dividend.amount.toFixed(4)} <br>
                                                                             <strong>Ex Date:</strong> ${formatDate(dividend.exDate)} <br>
                                                                             <strong>Payment Date:</strong> ${formatDate(dividend.paymentDate)} <br>
                                                                         </div>
@@ -454,13 +457,24 @@
 
     async function loadDividendsByPortfolio(portfolioId) {
         try {
+            // Show loading indicator
+            showLoadingIndicator(true);
+
             const dividends = await fetchData(`/api/Dividend/ByPortfolio/${portfolioId}`);
             renderDividends(dividends);
         } catch (error) {
             showToast('Failed to load dividends for portfolio', 'danger');
+        } finally {
+            // Hide loading indicator
+            showLoadingIndicator(false);
         }
     }
-
+    function showLoadingIndicator(show) {
+        const loadingElement = document.getElementById('loading-indicator');
+        if (loadingElement) {
+            loadingElement.style.display = show ? 'block' : 'none';
+        }
+    }
     function renderDividends(dividends) {
         const portfolioList = document.getElementById('portfolioList');
         portfolioList.innerHTML = dividends.map(dividend => `

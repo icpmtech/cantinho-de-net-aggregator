@@ -5,8 +5,10 @@ namespace MarketAnalyticHub.Controllers
   using Microsoft.AspNetCore.Identity;
   using Microsoft.AspNetCore.Mvc;
   using Microsoft.EntityFrameworkCore;
-  using System.Net;
+  using System.Linq;
   using System.Security.Claims;
+  using System.Threading.Tasks;
+
   public class UserProfilesController : Controller
   {
     private readonly ApplicationDbContext _context;
@@ -22,25 +24,68 @@ namespace MarketAnalyticHub.Controllers
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       var user = await _userManager.FindByIdAsync(userId);
+
       var userProfile = await _context.UserProfiles
           .Where(p => p.UserId == userId)
           .Include(up => up.Addresses)
           .Include(up => up.PaymentMethods)
-          .FirstOrDefaultAsync(); // Retrieve the user's profile
+          .FirstOrDefaultAsync();
 
       if (userProfile is null)
-        return View("NoProfile");
+      {
+        userProfile = MapToUserProfile(user);
+        userProfile.UserId = userId;
+        _context.UserProfiles.Add(userProfile);
+        await _context.SaveChangesAsync();
+      }
 
       return View(userProfile);
     }
 
-    [HttpPost]
-    public IActionResult Edit(UserProfile model)
+    public UserProfile MapToUserProfile(ApplicationUser appUser)
     {
-      var userProfile = _context.UserProfiles
+      return new UserProfile
+      {
+        FirstName = appUser.FirstName,
+        LastName = appUser.LastName,
+        Email = appUser.Email,
+        Organization = appUser.Organization,
+        PhoneNumber = appUser.PhoneNumber,
+        Address = appUser.Address,
+        State = appUser.State,
+        ZipCode = appUser.ZipCode,
+        Country = appUser.Country,
+        Language = appUser.Language,
+        TimeZone = appUser.TimeZone,
+        Currency = appUser.Currency,
+        AvatarUrl = appUser.AvatarUrl,
+        UserId = appUser.Id,
+        Username = appUser.UserName,
+        Status = "Active",
+        Role = "User",
+        TaxId = string.Empty,
+        Contact = appUser.PhoneNumber,
+        Plan = "Free",
+        PlanExpiry = DateTime.MaxValue,
+        PaymentMethod = string.Empty,
+        BillingAddress = appUser.Address,
+        TasksDone = 0,
+        ProjectsDone = 0,
+        Languages = new List<string> { appUser.Language },
+        PaymentMethods = new List<PaymentMethod>(),
+        Addresses = new List<Address>(),
+        ActivationKey = string.Empty,
+        IsActivated = true
+      };
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Edit(UserProfile model)
+    {
+      var userProfile = await _context.UserProfiles
           .Include(up => up.Addresses)
           .Include(up => up.PaymentMethods)
-          .FirstOrDefault(up => up.Id == model.Id);
+          .FirstOrDefaultAsync(up => up.Id == model.Id);
 
       if (userProfile != null)
       {
@@ -54,35 +99,35 @@ namespace MarketAnalyticHub.Controllers
         userProfile.Languages = model.Languages;
         userProfile.Country = model.Country;
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
       }
 
       return View("Index", userProfile);
     }
 
     [HttpPost]
-    public IActionResult AddPaymentMethod(PaymentMethod method)
+    public async Task<IActionResult> AddPaymentMethod(PaymentMethod method)
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-      var userProfile = _context.UserProfiles.FirstOrDefault(up => up.UserId == userId);
+      var userProfile = await _context.UserProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
 
       if (userProfile != null)
       {
         method.UserProfileId = userProfile.Id;
         _context.PaymentMethods.Add(method);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
       }
 
       return RedirectToAction("Index");
     }
 
     [HttpPost]
-    public IActionResult EditAddress(Address address)
+    public async Task<IActionResult> EditAddress(Address address)
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-      var userProfile = _context.UserProfiles
+      var userProfile = await _context.UserProfiles
           .Include(up => up.Addresses)
-          .FirstOrDefault(up => up.UserId == userId);
+          .FirstOrDefaultAsync(up => up.UserId == userId);
 
       if (userProfile != null)
       {
@@ -105,23 +150,23 @@ namespace MarketAnalyticHub.Controllers
           userProfile.Addresses.Add(address);
         }
 
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
       }
 
       return RedirectToAction("Index");
     }
 
     [HttpPost]
-    public IActionResult UpgradePlan(string plan)
+    public async Task<IActionResult> UpgradePlan(string plan)
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-      var userProfile = _context.UserProfiles.FirstOrDefault(up => up.UserId == userId);
+      var userProfile = await _context.UserProfiles.FirstOrDefaultAsync(up => up.UserId == userId);
 
       if (userProfile != null)
       {
         // Add logic to update the user's plan
         // userProfile.Plan = plan; // Assuming a Plan property exists in UserProfile
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
       }
 
       return RedirectToAction("Index");
@@ -150,7 +195,6 @@ namespace MarketAnalyticHub.Controllers
       return View();
     }
 
-    // CRUD for Activation Keys
     [HttpGet]
     public IActionResult CreateActivationKey()
     {
@@ -224,5 +268,4 @@ namespace MarketAnalyticHub.Controllers
       return RedirectToAction("Index");
     }
   }
-
 }

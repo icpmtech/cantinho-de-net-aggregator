@@ -262,38 +262,41 @@ namespace MarketAnalyticHub.Controllers
       }
 
       var portfolioPercentageResponses = await _portfolioService.CalculatePortfolioPercentagesAsync(portfolios);
-      var portfolioPercentageResponsesTotal = portfolioPercentageResponses.Sum(s => s?.TotalDividendsPercentage);
-
       var totalRevenueByYear = _portfolioService.GetTotalRevenueByYear(portfolios);
       var totalRevenueByMonth = _portfolioService.GetTotalRevenueByMonth(portfolios);
-
       var (currentMonthRevenue, previousMonthRevenue) = _portfolioService.GetMonthRevenues(totalRevenueByMonth);
-
       var portfolioGrowthPercentage = await _portfolioService.CalculatePortfolioGrowthPercentage(userId);
       var dashboardData = await _portfolioService.GetDashboardDataAsync(userId);
-      dashboardData.DividendsPercentage = portfolioPercentageResponsesTotal;
 
-      var amountTotalYearByItems = _portfolioService.GetAmountTotalYearByItems(portfolios);
-      var profileReportCurrentYear = _portfolioService.GetProfileReportCurrentYear(portfolios);
-      var transactions = _portfolioService.GetRecentTransactions(portfolios);
+      dashboardData.DividendsPercentage = portfolioPercentageResponses.Sum(s => s?.TotalDividendsPercentage);
+
+      var amountTotalYearByItemsTask = Task.Run(() => _portfolioService.GetAmountTotalYearByItems(portfolios));
+      var profileReportCurrentYearTask = Task.Run(() => _portfolioService.GetProfileReportCurrentYear(portfolios));
+      var transactionsTask = Task.Run(() => _portfolioService.GetRecentTransactions(portfolios));
 
       var symbols = portfolios.SelectMany(p => p.Items).Select(i => i.Symbol).Distinct().ToList();
-      var realTimeData = await FetchRealTimeData(symbols);
+      var realTimeDataTask = FetchRealTimeData(symbols);
+
+      await Task.WhenAll(
+          amountTotalYearByItemsTask,
+          profileReportCurrentYearTask,
+          transactionsTask,
+          realTimeDataTask
+      );
 
       var model = new DashboardViewModel
       {
-        Transactions = transactions,
+        Transactions = transactionsTask.Result,
         PortfolioGrowthPercentage = portfolioGrowthPercentage,
         TotalRevenueByYear = totalRevenueByYear,
         DashboardData = dashboardData,
-        AmountTotalYear = amountTotalYearByItems,
-        ProfileReportCurrentYear = profileReportCurrentYear,
-        RealTimeData = realTimeData,
+        AmountTotalYear = amountTotalYearByItemsTask.Result,
+        ProfileReportCurrentYear = profileReportCurrentYearTask.Result,
+        RealTimeData = realTimeDataTask.Result,
       };
 
       return View(model);
     }
-
 
     public async Task<IActionResult> IndexOld()
     {

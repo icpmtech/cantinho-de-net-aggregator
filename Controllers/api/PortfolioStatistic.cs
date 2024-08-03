@@ -13,6 +13,7 @@ namespace MarketAnalyticHub.Controllers.api
     public decimal? TotalProfit { get; internal set; }
     public decimal? TotalDifferencePercentage { get; internal set; }
     public decimal? TotalProfitDifferencePercentage { get; internal set; }
+    public decimal? TotalProfitWithDividends { get; internal set; }
   }
 
 

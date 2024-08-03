@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (eventStartDateInput) {
     startDatePicker = eventStartDateInput.flatpickr({
       enableTime: true,
-      altFormat: "Y-m-dTH:i:S",
+      dateFormat: "Y-m-d\\TH:i:S", // Correct date format
       onReady: function (dates, dateStr, instance) {
         if (instance.isMobile) {
           instance.mobileInput.setAttribute("step", null);
@@ -139,7 +139,7 @@ document.addEventListener("DOMContentLoaded", async function () {
   if (eventEndDateInput) {
     endDatePicker = eventEndDateInput.flatpickr({
       enableTime: true,
-      altFormat: "Y-m-dTH:i:S",
+      dateFormat: "Y-m-d\\TH:i:S", // Correct date format
       onReady: function (dates, dateStr, instance) {
         if (instance.isMobile) {
           instance.mobileInput.setAttribute("step", null);
@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     events: function (fetchInfo, successCallback) {
       let selectedCategories = [].slice.call(document.querySelectorAll(".input-filter:checked")).map(input => input.getAttribute("data-value"));
       let filteredEvents = eventsList.filter(event => {
-        return event.calendar && selectedCategories.includes(event.calendar.toLowerCase());
+        return event.extendedProps.calendar && selectedCategories.includes(event.extendedProps.calendar.toLowerCase());
       });
       successCallback(filteredEvents);
     },
@@ -182,7 +182,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     initialDate: new Date(),
     navLinks: true,
     eventClassNames: function ({ event }) {
-      return ["fc-event-" + eventCategories[event.calendar]];
+      return ["fc-event-" + eventCategories[event.extendedProps.calendar]];
     },
     dateClick: function (info) {
       let selectedDate = moment(info.date).format("YYYY-MM-DD");
@@ -216,15 +216,15 @@ document.addEventListener("DOMContentLoaded", async function () {
       } else {
         endDatePicker.setDate(selectedEvent.start, true, "Y-m-d");
       }
-      eventLabelSelect.val(selectedEvent.calendar).trigger("change");
-      if (selectedEvent.location) {
-        eventLocationInput.value = selectedEvent.location;
+      eventLabelSelect.val(selectedEvent.extendedProps.calendar).trigger("change");
+      if (selectedEvent.extendedProps.location) {
+        eventLocationInput.value = selectedEvent.extendedProps.location;
       }
-      if (selectedEvent.guests) {
-        eventGuestsSelect.val(selectedEvent.guests).trigger("change");
+      if (selectedEvent.extendedProps.guests) {
+        eventGuestsSelect.val(selectedEvent.extendedProps.guests).trigger("change");
       }
-      if (selectedEvent.description) {
-        eventDescriptionInput.value = selectedEvent.description;
+      if (selectedEvent.extendedProps.description) {
+        eventDescriptionInput.value = selectedEvent.extendedProps.description;
       }
       if (selectedEvent.extendedProps) {
         eventImpactInput.value = selectedEvent.extendedProps.impact;
@@ -319,19 +319,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         start: eventStartDateInput.value,
         end: eventEndDateInput.value,
         url: eventURLInput.value,
-        location: eventLocationInput.value,
-        guests: eventGuestsSelect.val(),
-        calendar: eventLabelSelect.val(),
-        description: eventDescriptionInput.value,
-        allDay: allDaySwitch.checked,
         extendedProps: {
+          location: eventLocationInput.value,
+          guests: eventGuestsSelect.val(),
+          calendar: eventLabelSelect.val(),
+          description: eventDescriptionInput.value,
           impact: eventImpactInput.value,
           sentiment: eventSentimentInput.value,
           source: eventSourceInput.value,
           price: eventPriceInput.value,
           priceChange: eventPriceChangeInput.value,
           portfolioItemId: eventPortfolioItemIdInput.value
-        }
+        },
+        allDay: allDaySwitch.checked
       };
 
       let response = await fetch(apiUrl, {
@@ -356,19 +356,19 @@ document.addEventListener("DOMContentLoaded", async function () {
         start: eventStartDateInput.value,
         end: eventEndDateInput.value,
         url: eventURLInput.value,
-        location: eventLocationInput.value,
-        guests: eventGuestsSelect.val(),
-        calendar: eventLabelSelect.val(),
-        description: eventDescriptionInput.value,
-        allDay: !!allDaySwitch.checked,
         extendedProps: {
+          location: eventLocationInput.value,
+          guests: eventGuestsSelect.val(),
+          calendar: eventLabelSelect.val(),
+          description: eventDescriptionInput.value,
           impact: eventImpactInput.value,
           sentiment: eventSentimentInput.value,
           source: eventSourceInput.value,
           price: eventPriceInput.value,
           priceChange: eventPriceChangeInput.value,
           portfolioItemId: eventPortfolioItemIdInput.value
-        }
+        },
+        allDay: !!allDaySwitch.checked
       };
 
       let response = await fetch(`${apiUrl}/${selectedEvent.id}`, {

@@ -19,6 +19,14 @@ namespace MarketAnalyticHub.Models
 
     // Navigation property
     public PortfolioItem? PortfolioItem { get; set; }
-
+    public string? Url { get; internal set; }
+    public string? Title { get; internal set; }
+    public DateTime? End { get; internal set; }
+    public DateTime? Start { get; internal set; }
+    public bool? AllDay { get; internal set; }
+    public string? Calendar { get; internal set; }
+    public string? Location { get; internal set; }
+    public string? Guests { get; internal set; }
+    public string? Description { get; internal set; }
   }
 }

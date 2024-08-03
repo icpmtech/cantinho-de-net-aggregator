@@ -403,6 +403,7 @@ namespace MarketAnalyticHub.Controllers.api
         TotalDifferenceValue = overallStats.TotalDifferenceValue,
         TotalDividends = overallStats.TotalDividends,
         TotalProfit = overallStats.TotalPortfolioProfit,
+        TotalProfitWithDividends = overallStats.TotalMarketValue + overallStats.TotalDividends,
         TotalDifferencePercentage = overallStats.TotalDifferencePercentage,
         TotalProfitDifferencePercentage = overallStats.TotalDifferenceWithDividendsPercentage
       };
