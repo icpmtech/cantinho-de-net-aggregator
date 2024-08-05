@@ -71,9 +71,9 @@ namespace MarketAnalyticHub.Services.News
       // Sort the filtered data
       newsItems = sortOrder switch
       {
-        "asc" => newsItems.OrderBy(n => n.Category).ToList(),
-        "desc" => newsItems.OrderByDescending(n => n.Category).ToList(),
-        _ => newsItems.OrderBy(n => DateTime.TryParse(n.Date, out var date) ? date : DateTime.MaxValue).ToList()
+        "asc" => newsItems.OrderBy(n => n.Date).ToList(),
+        "desc" => newsItems.OrderByDescending(n => n.Date).ToList(),
+        _ => newsItems.OrderByDescending(n => DateTime.TryParse(n.Date, out var date) ? date : DateTime.MaxValue).ToList()
       };
 
       // Apply pagination
@@ -115,7 +115,7 @@ namespace MarketAnalyticHub.Services.News
       {
         "asc" => query.OrderBy(n => n.Category),
         "desc" => query.OrderByDescending(n => n.Category),
-        _ => query.OrderBy(n => n.Date)
+        _ => query.OrderByDescending(n => n.Date)
       };
 
       return await PaginatedList<NewsItem>.CreateAsync(query.AsNoTracking(), pageNumber, pageSize);

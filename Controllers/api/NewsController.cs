@@ -9,6 +9,8 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AspnetCoreMvcFull.Services;
+using System.Text.RegularExpressions;
+using MarketAnalyticHub.Services.Jobs;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -199,7 +201,9 @@ namespace MarketAnalyticHub.Controllers.api
             Date = date ?? DateTime.Now.ToString(),
             Category = itemNews.Category // Use the category from the itemNews
           };
-
+          var content= NewsScraper.FetchContentFromPage(newsItem.Link).Result;
+          var summary = await _openAIService.SummarizeContent(content);
+          newsItem.Summary = summary;
           // Analyze sentiment of the news title or description
           var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
           newsItem.Sentiment = sentimentResult.Compound;
@@ -216,7 +220,7 @@ namespace MarketAnalyticHub.Controllers.api
       _context.SaveChanges();
       return newsItems;
     }
-
+    
 
     [HttpPost("news-post")]
     public async Task<NewsItem> SaveNewsItem(NewsItemViewModel newsItemViewModel)

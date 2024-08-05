@@ -21,9 +21,15 @@ public class SourcesController : Controller
   public IActionResult Blank() => View();
   public IActionResult Container() => View();
   public IActionResult Fluid() => View();
-  public  async Task<IActionResult> News(string category, string sortOrder, int pageNumber = 1, int pageSize = 50, string searchQuery = "") {
-
-    var paginatedNews = await _newsService.GetPaginatedNewsAsync(category, sortOrder, pageNumber, pageSize, searchQuery);
+  public async Task<IActionResult> News(string category, string sortOrder, int pageNumber = 1, int pageSize = 50, string searchQuery = "", DateTime? startDate = null, DateTime? endDate = null)
+  {
+    var paginatedNews = await _newsService.GetPaginatedNewsAsync(category, sortOrder, pageNumber, pageSize, searchQuery, startDate, endDate);
+    ViewBag.PageSize = pageSize; // Pass pageSize to view
+    ViewBag.SearchQuery = searchQuery; // Pass searchQuery to view
+    ViewBag.Category = category; // Pass category to view
+    ViewBag.SortOrder = sortOrder; // Pass sortOrder to view
+    ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd"); // Pass startDate to view
+    ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd"); // Pass endDate to view
     ViewBag.PageSize = pageSize; // Pass pageSize to view
     ViewBag.SearchQuery = searchQuery; // Pass searchQuery to view
     return View(paginatedNews);

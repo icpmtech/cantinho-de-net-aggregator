@@ -1,0 +1,201 @@
+@model PaginatedList<MarketAnalyticHub.Models.News.NewsItem>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<!-- Loading Icon Overlay -->
+<div id="loadingOverlay" style="display: none;">
+    <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
+<style>
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .stars {
+        font-size: 1.5rem;
+    }
+
+    .text-wrap {
+        white-space: normal;
+    }
+
+    .details-row {
+        background-color: #f9f9f9;
+    }
+
+    .details-content {
+        padding: 10px;
+    }
+</style>
+
+
+<!-- News Table -->
+<div class="card">
+    <h5 class="card-header">News</h5>
+    <div class="table-responsive text-nowrap">
+        <table class="table" id="newsTable">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">
+                        Category
+                       
+                    </th>
+                    <th style="width: 10%;">Sentiment</th>
+                    <th style="width: 30%;">Title</th>
+                    <th style="width: 30%;">Keywords</th>
+                    <th style="width: 10%;">
+                        Date
+                        <a href="javascript:void(0);" onclick="sortByCategory('asc')">▲</a>
+                        <a href="javascript:void(0);" onclick="sortByCategory('desc')">▼</a>
+                    </th>
+                    <th style="width: 10%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+                @foreach (var news in Model)
+                {
+                    <tr id="row-@news.Id">
+                        <td>
+                            <i class="bx bx-news bx-sm text-primary me-3"></i>
+                            <span class="fw-medium category-display">@news.Category</span>
+                        </td>
+                        <td id="newsSentiment-@news.Id">
+                            <span class="stars">@news.Sentiment</span>
+                            <span class="fw-bold sentiment-label" data-sentiment="@news.Sentiment"></span>
+                        </td>
+                        <td>
+                            <span onclick="toggleDetails(@news.Id)" class="title-display text-wrap"><i class="bx bx-chevron-down toggle-icon"></i>@news.Title</span>
+                        </td>
+                        <td>
+                            <span class="keywords-display text-wrap">@(news.Keywords != null ? string.Join(", ", news.Keywords) : string.Empty)</span>
+                        </td>
+                        <td>
+                            <span class="date-display">@news.Date</span>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                    <i class="bx bx-dots-vertical-rounded"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <a class="dropdown-item edit-btn" href="javascript:void(0);" onclick="editRow(@news.Id)">
+                                        <i class="bx bx-edit-alt me-1"></i> Edit
+                                    </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="deleteNews(@news.Id)">
+                                        <i class="bx bx-trash me-1"></i> Delete
+                                    </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="openAssociateCompaniesModal(@news.Id)">
+                                        <i class="bx bx-link me-1"></i> Associate Companies
+                                    </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="analyzeSentiment(@news.Id)">
+                                        <i class="bx bx-analyze me-1"></i> Analyze Sentiment
+                                    </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="toggleDetails(@news.Id)">
+                                        <i class="bx bx-analyze me-1"></i> View More
+                                    </a>
+                                    <a class="dropdown-item" href="javascript:void(0);" onclick="openAddStockEventModal(@news.Id)">
+                                        <i class="bx bx-analyze me-1"></i> Add Stock Event
+                                    </a>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr id="details-@news.Id" class="details-row" style="display: none;">
+                        <td colspan="8">
+                            <div class="details-content">
+                                <p><strong>Description:</strong></p>
+                                <div id="description-content-@news.Id" class="markdown-content">@news.Description</div>
+                                <p><strong>Link:</strong> <a href="@news.Link" target="_blank">@news.Link</a></p>
+                                <p><strong>Keywords:</strong> @(news.Keywords != null ? string.Join(", ", news.Keywords) : string.Empty)</p>
+                                <div>
+                                    <p><strong>Sentiment Impact:</strong></p>
+                                    <div id="sentiment-impact-content-@news.Id" class="markdown-content">@news.SentimentImpact</div>
+                                </div>
+                                <div>
+                                    <p><strong>Industries Impact:</strong></p>
+                                    <div id="industries-impact-content-@news.Id" class="markdown-content">@news.IndustriesImpact</div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+        </table>
+      
+      
+              
+                
+    </div>
+  
+</div>
+<div class="card">
+    <h5 class="card-header">Pagination</h5>
+    <!-- Pagination Controls -->
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+            @if (Model.HasPreviousPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("News", new { pageNumber = Model.PageIndex - 1, pageSize = ViewBag.PageSize, searchQuery = ViewBag.SearchQuery, category = ViewBag.Category, sortOrder = ViewBag.SortOrder, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate })">Previous</a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+            }
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                if (i == Model.PageIndex)
+                {
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">@i</span>
+                    </li>
+                }
+                else
+                {
+                    <li class="page-item">
+                        <a class="page-link" href="@Url.Action("News", new { pageNumber = i, pageSize = ViewBag.PageSize, searchQuery = ViewBag.SearchQuery, category = ViewBag.Category, sortOrder = ViewBag.SortOrder, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate })">@i</a>
+                    </li>
+                }
+            }
+
+            @if (Model.HasNextPage)
+            {
+                <li class="page-item">
+                    <a class="page-link" href="@Url.Action("News", new { pageNumber = Model.PageIndex + 1, pageSize = ViewBag.PageSize, searchQuery = ViewBag.SearchQuery, category = ViewBag.Category, sortOrder = ViewBag.SortOrder, startDate = ViewBag.StartDate, endDate = ViewBag.EndDate })">Next</a>
+                </li>
+            }
+            else
+            {
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+            }
+            <li class="page-item">
+                <div class="mb-4" style="margin-left: 1rem;">
+                    <select id="pageSizeSelect" class="form-select" onchange="setPageSize()">
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                    </select>
+                </div>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+

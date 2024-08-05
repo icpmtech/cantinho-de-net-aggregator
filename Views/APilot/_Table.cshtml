@@ -1,44 +1,22 @@
 @model PaginatedList<MarketAnalyticHub.Models.News.NewsItem>
 
-<div class="mb-4">
-    <label for="filters" class="form-label">Filters</label>
-    <div class="row g-3">
-        <div class="col-md-3">
-            <select id="categorySelect" class="form-select">
-                <option value="">All Categories</option>
-                <option value="Tech">Tech</option>
-                <option value="Economy">Economy</option>
-                <option value="Energy and Environment">Energy and Environment</option>
-            </select>
-        </div>
-        <div class="col-md-6">
-            <div class="input-group">
-                <input type="date" id="startDate" class="form-control">
-                <span class="input-group-text">to</span>
-                <input type="date" id="endDate" class="form-control">
-            </div>
-        </div>
-        <div class="col-md-3">
-            <button class="btn btn-primary w-100" onclick="applyFilters()">Apply Filters</button>
-        </div>
-    </div>
-</div>
-
 <!-- News Table -->
 <div class="card">
     <h5 class="card-header">News</h5>
-    <div class="table-responsive text-nowrap">
+    <div class="table-responsive">
         <table class="table" id="newsTable">
             <thead>
                 <tr>
                     <th style="width: 10%;">
                         Category
-                        <a href="javascript:void(0);" onclick="sortByCategory('asc')">▲</a>
-                        <a href="javascript:void(0);" onclick="sortByCategory('desc')">▼</a>
                     </th>
                     <th style="width: 10%;">Sentiment</th>
                     <th style="width: 50%;">Title</th>
-                    <th style="width: 20%;">Date</th>
+                    <th style="width: 20%;">Date
+                        <a href="javascript:void(0);" onclick="sortByDate('asc')">▲</a>
+                        <a href="javascript:void(0);" onclick="sortByDate('desc')">▼</a>
+
+                    </th>
                     <th style="width: 10%;">Actions</th>
                 </tr>
             </thead>
@@ -80,17 +58,17 @@
                             </div>
                         </td>
                     </tr>
-                    <tr class="collapse" id="desc-@news.Id">
+                    <tr class="collapse text-wrap" id="desc-@news.Id">
                         <td colspan="5">
                             <div class="card mb-2">
                                 <div class="card-header">
-                                    <h3 class="card-title">@news.Title</h3>
+                                    <h3 class="text-wrap card-title">@news.Title</h3>
                                 </div>
                                 <div class="card-body">
-                                    <p class="card-text">@news.Description</p>
+                                    <p class="text-wrap card-text">@news.Description</p>
                                 </div>
                                 <div class="card-footer">
-                                    <span class="link-display">
+                                    <span class="text-wrap  link-display">
                                         <a href="@news.Link" target="_blank">@news.Link</a>
                                     </span>
                                 </div>
@@ -161,50 +139,7 @@
         </ul>
     </nav>
 </div>
-<!-- Edit News Modal -->
-<div class="modal fade" id="editNewsModal" tabindex="-1" aria-labelledby="editNewsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editNewsModalLabel">Edit News</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="editNewsId">
-                <div class="mb-3">
-                    <label for="editNewsCategory" class="form-label">Category</label>
-                    <select id="editNewsCategory" class="form-select">
-                        <option value="Economy">Economy</option>
-                        <option value="Sports">Sports</option>
-                        <option value="Energy and Environment">Energy and Environment</option>
-                        <!-- Add other categories as needed -->
-                    </select>
-                </div>
 
-                <div class="mb-3">
-                    <label for="editNewsTitle" class="form-label">Title</label>
-                    <input type="text" class="form-control" id="editNewsTitle" required>
-                </div>
-                <div class="mb-3">
-                    <label for="editNewsDescription" class="form-label">Description</label>
-                    <textarea class="form-control" id="editNewsDescription" required></textarea>
-                </div>
-                <div class="mb-3">
-                    <label for="editNewsLink" class="form-label">Link</label>
-                    <input type="url" class="form-control" id="editNewsLink" required>
-                </div>
-                <div class="mb-3">
-                    <label for="editNewsDate" class="form-label">Date</label>
-                    <input type="date" class="form-control" id="editNewsDate" required>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" onclick="saveNews()">Save changes</button>
-            </div>
-        </div>
-    </div>
-</div>
 <style>
     .title-container {
         max-width: 300px;
@@ -245,7 +180,7 @@
         window.location.href = url;
     }
 
-    function sortByCategory(order) {
+    function sortByDate(order) {
         var category = document.getElementById('categorySelect').value;
         var startDate = document.getElementById('startDate').value;
         var endDate = document.getElementById('endDate').value;

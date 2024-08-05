@@ -9,7 +9,75 @@
 <h4 class="py-3 mb-4">
     <span class="text-muted fw-light">Sources /</span> News
 </h4>
+<!-- Edit News Modal -->
+<div class="modal fade" id="editNewsModal" tabindex="-1" aria-labelledby="editNewsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editNewsModalLabel">Edit News</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editNewsId">
+                <div class="mb-3">
+                    <label for="editNewsCategory" class="form-label">Category</label>
+                    <select id="editNewsCategory" class="form-select">
+                        <option value="Economy">Economy</option>
+                        <option value="Sports">Sports</option>
+                        <option value="Energy and Environment">Energy and Environment</option>
+                        <!-- Add other categories as needed -->
+                    </select>
+                </div>
 
+                <div class="mb-3">
+                    <label for="editNewsTitle" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="editNewsTitle" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsDescription" class="form-label">Description</label>
+                    <textarea class="form-control" id="editNewsDescription" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsLink" class="form-label">Link</label>
+                    <input type="url" class="form-control" id="editNewsLink" required>
+                </div>
+                <div class="mb-3">
+                    <label for="editNewsDate" class="form-label">Date</label>
+                    <input type="date" class="form-control" id="editNewsDate" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveNews()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row card card-body mb-4">
+    <div class="mb-4">
+        <label for="filters" class="form-label">Filters</label>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <select id="categorySelect" class="form-select">
+                    <option value="">All Categories</option>
+                    <option value="Tech">Tech</option>
+                    <option value="Economy">Economy</option>
+                    <option value="Energy and Environment">Energy and Environment</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <div class="input-group">
+                    <input type="date" id="startDate" class="form-control">
+                    <span class="input-group-text">to</span>
+                    <input type="date" id="endDate" class="form-control">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="col-12">
     <h6 class="text-muted">Research</h6>
     <div class="nav-align-top mb-4">
