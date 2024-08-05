@@ -108,7 +108,7 @@ namespace MarketAnalyticHub.Controllers.api
           Link = link,
           Description = description,
           Author = author,
-          Date = date,
+          Date = date??DateTime.Now.ToString(),
           Category = "Economy" // Use the category from the itemNews
         };
 
@@ -192,11 +192,11 @@ namespace MarketAnalyticHub.Controllers.api
 
           var newsItem = new NewsItem
           {
-            Title = title,
-            Link = link,
-            Description = description??"EMPTY",
-            Author = author,
-            Date = date,
+            Title = title ?? "EMPTY",
+            Link = link ?? "EMPTY",
+            Description = description ?? "EMPTY",
+            Author = author ?? "EMPTY",
+            Date = date ?? DateTime.Now.ToString(),
             Category = itemNews.Category // Use the category from the itemNews
           };
 
@@ -215,6 +215,37 @@ namespace MarketAnalyticHub.Controllers.api
       _context.News.AddRange(newsItems);
       _context.SaveChanges();
       return newsItems;
+    }
+
+
+    [HttpPost("news-post")]
+    public async Task<NewsItem> SaveNewsItem(NewsItemViewModel newsItemViewModel)
+    {
+     
+      _logger.LogInformation("Save news item post.");
+
+      var newsItem = new NewsItem
+        {
+          Title = newsItemViewModel.Title,
+          Link = newsItemViewModel.Link,
+          Description = newsItemViewModel.Description,
+          Author = newsItemViewModel.Author,
+          Date = newsItemViewModel.Date,
+          Category = newsItemViewModel.Category  // Use the category from the itemNews
+      };
+
+        // Analyze sentiment of the news title or description
+        var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
+        newsItem.Sentiment = sentimentResult.Compound;
+        var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
+        newsItem.Keywords = keywords.ToList();
+        var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
+        newsItem.SentimentImpact = impact;
+        var IndustriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
+        newsItem.IndustriesImpact = IndustriesImpact;
+      _context.News.Add(newsItem);
+      _context.SaveChanges();
+      return newsItem;
     }
 
     [HttpGet("scraped-env")]
@@ -275,11 +306,11 @@ namespace MarketAnalyticHub.Controllers.api
         }
         var newsItem = new NewsItem
         {
-          Title = title,
-          Link = link,
-          Description = description,
-          Author = author,
-          Date = date,
+          Title = title ?? "EMPTY",
+          Link = link ?? "EMPTY",
+          Description = description ?? "EMPTY",
+          Author = author ?? "EMPTY",
+          Date = date ?? DateTime.Now.ToString(),
           Category = "Energy and Environment"  // Use the category from the itemNews
         };
 

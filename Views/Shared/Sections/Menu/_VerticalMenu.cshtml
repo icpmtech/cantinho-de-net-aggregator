@@ -118,19 +118,38 @@
         <li class='menu-item@(currentPage.StartsWith("/SentimentAnalizer") ? " active open" : "")'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-cube-alt"></i>
-                <div>SentimentAnalizer</div>
+                <div>Analizer</div>
             </a>
 
             <ul class="menu-sub">
-
+                <li class='menu-item@(currentPage == "/SentimentAnalizer/SearchNews" ? " active" : "")'>
+                    <a asp-controller="SentimentAnalizer" asp-action="SearchNews" class="menu-link">
+                        <div>News</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/SentimentAnalizer/SearchSymbols" ? " active" : "")'>
+                    <a asp-controller="SentimentAnalizer" asp-action="SearchSymbols" class="menu-link">
+                        <div>Symbols</div>
+                    </a>
+                </li>
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/Index" ? " active" : "")'>
                     <a asp-controller="SentimentAnalizer" asp-action="Index" class="menu-link">
-                        <div>SentimentAnalizer</div>
+                        <div>Analytics</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/SentimentAnalizer/Investors" ? " active" : "")'>
+                    <a asp-controller="SentimentAnalizer" asp-action="Investors" class="menu-link">
+                        <div>Investors</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Search/Index" ? " active" : "")'>
+                    <a asp-controller="Search" asp-action="Index" class="menu-link">
+                        <div>Search Stock Events</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/Calendar" ? " active" : "")'>
                     <a asp-controller="SentimentAnalizer" asp-action="Calendar" class="menu-link">
-                        <div>Calendar</div>
+                        <div>Events</div>
                     </a>
                 </li>
 

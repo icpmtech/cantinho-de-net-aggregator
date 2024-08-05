@@ -118,7 +118,6 @@ function generatePortfolioHTML(portfolio) {
                 <div class="ms-3">
                   <span class="fw-medium d-block text-muted">Total Investment</span>
                   <h3 class="mb-0">€${portfolio.totalInvestment.toFixed(3)}</h3>
-                  <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +€0</small>
                 </div>
               </div>
              
@@ -148,6 +147,7 @@ function generatePortfolioHTML(portfolio) {
 
 function generateGroupedItemsHTML(group, portfolioId) {
   const sanitizedSymbol = sanitizeSymbol(group.symbol);
+  const { roi, currentMarketValue, totalInvestment } = calculateROIandValue(group.items);
   return `
     <div class="card mt-3 shadow-sm rounded border-1">
       <div data-bs-toggle="collapse" data-bs-target="#group-${sanitizedSymbol}" aria-expanded="false" aria-controls="group-${sanitizedSymbol}" class=" text-white d-flex justify-content-between align-items-center rounded" id="group-header-${sanitizedSymbol}">
@@ -157,7 +157,16 @@ function generateGroupedItemsHTML(group, portfolioId) {
           <button class="btn btn-link p-0 ms-1" type="button">
             <span class="badge bg-white text-primary ms-1">
               <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
-                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${group.items[0].change}% </br>Op. €${(group.items[0].purchasePrice * group.items[0].quantity).toFixed(3)}
+                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i>
+                Today. ${group.items[0].change.toFixed(3) }%
+              </small>
+                </br>
+               <small class="${roi > 0 ? 'text-success' : 'text-danger'} fw-medium">
+                <i class='bx ${roi > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i>
+               Roi. ${(roi)}%
+                 </br>Invest. V. € ${(totalInvestment)}
+                </br>Market V. € ${(currentMarketValue)}
+                </br>Diff V. € ${(currentMarketValue - totalInvestment).toFixed(3)}
               </small>
             </span>
           </button>
@@ -171,16 +180,16 @@ function generateGroupedItemsHTML(group, portfolioId) {
             <p>
               <strong>Percent Change:</strong>
               <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
-                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${group.items[0].change}%
+                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> ${group.items[0].change.toFixed(3) }%
               </small>
               <div class="progress mt-2">
-                <div class="progress-bar ${group.items[0].change > 0 ? 'bg-success' : 'bg-danger'}" role="progressbar" style="width: ${Math.abs(group.items[0].change)}%;" aria-valuenow="${group.items[0].change}" aria-valuemin="0" aria-valuemax="100"></div>
+                <div class="progress-bar ${group.items[0].change > 0 ? 'bg-success' : 'bg-danger'}" role="progressbar" style="width: ${Math.abs(group.items[0].change)}%;" aria-valuenow="${group.items[0].change.toFixed(3) }" aria-valuemin="0" aria-valuemax="100"></div>
               </div>
             </p>
-            <p><strong>High Price:</strong> ${group.items[0].highPrice}</p>
-            <p><strong>Low Price:</strong> ${group.items[0].lowPrice}</p>
-            <p><strong>Open Price:</strong> ${group.items[0].openPrice}</p>
-            <p><strong>Previous Close Price:</strong> ${group.items[0].previousClosePrice}</p>
+            <p><strong>High Price:</strong> ${group.items[0].highPrice.toFixed(3) }</p>
+            <p><strong>Low Price:</strong> ${group.items[0].lowPrice.toFixed(3) }</p>
+            <p><strong>Open Price:</strong> ${group.items[0].openPrice.toFixed(3) }</p>
+            <p><strong>Previous Close Price:</strong> ${group.items[0].previousClosePrice.toFixed(3) }</p>
           </div>
           <div id="candlestick-chart-${sanitizedSymbol}" class="img-fluid mb-3"></div>
           <ul class="list-group list-group-flush">
@@ -193,13 +202,15 @@ function generateGroupedItemsHTML(group, portfolioId) {
 }
 
 function generatePortfolioItemHTML(item) {
-  const roiValue = item.quantity * item.currentPrice - item.purchasePrice * item.quantity;
-  const totalValue = item.purchasePrice * item.quantity;
-  const roiPercentage = ((item.currentPrice - item.purchasePrice) / item.purchasePrice) * 100;
+  const roiValue = (item.quantity * item.currentPrice) - (item.purchasePrice * item.quantity) + item.commission;
+  const totalValue = (item.purchasePrice * item.quantity) + item.commission;
+  const roiPercentage = ((item.currentPrice - item.purchasePrice) + item.commission / item.purchasePrice) * 100;
+
 
   return `
     <li style="background-color:#ff4560;" class="list-group-item text-white d-flex justify-content-between align-items-center rounded mb-2">
       <div>
+        <p class="mb-1"><strong>Commission:</strong> ${item.commission}</p>
         <p class="mb-1"><strong>Quantity:</strong> ${item.quantity}</p>
         <p class="mb-1"><strong>Total Op.:</strong> €${totalValue.toFixed(2)}</p>
         <p class="mb-1"><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
@@ -220,6 +231,28 @@ function generatePortfolioItemHTML(item) {
       </div>
     </li>
   `;
+}
+
+// Function to calculate ROI and value
+function calculateROIandValue(groupItems) {
+  let totalInvestment = 0;
+  let totalCurrentMarketValue = 0;
+
+  groupItems.forEach(transaction => {
+    const investment = (transaction.purchasePrice * transaction.quantity) + transaction.commission;
+    const currentMarketValue = transaction.currentPrice * transaction.quantity;
+
+    totalInvestment += investment;
+    totalCurrentMarketValue += currentMarketValue;
+  });
+
+  const roi = ((totalCurrentMarketValue - totalInvestment) / totalInvestment) * 100;
+
+  return {
+    roi: roi.toFixed(2), // ROI rounded to two decimal places
+    currentMarketValue: totalCurrentMarketValue.toFixed(2),
+    totalInvestment: totalInvestment.toFixed(2)// Value rounded to two decimal places
+  };
 }
 
 

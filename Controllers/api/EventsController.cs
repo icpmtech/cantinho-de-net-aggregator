@@ -2,6 +2,7 @@ using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -139,33 +140,40 @@ namespace MarketAnalyticHub.Controllers.api
 
     // POST: api/Events
     [HttpPost]
-    public async Task<ActionResult<Event>> PostEvent(Event eventItem)
+    public async Task<ActionResult<Event>> PostEvent(EventModelView eventModel)
     {
+      if (eventModel == null)
+      {
+        return BadRequest();
+      }
       var stockEvent = new StockEvent
       {
-        Url = eventItem.Url,
-        Title = eventItem.Title,
-        Start = eventItem.Start,
-        End = eventItem.End,
-        AllDay = eventItem.AllDay,
-        Calendar = eventItem.ExtendedProps.Calendar,
-        Location = eventItem.ExtendedProps.Location,
-        Guests = eventItem.ExtendedProps.Guests,
-        Description = eventItem.ExtendedProps.Description,
-        Impact = eventItem.ExtendedProps.Impact,
-        Sentiment = eventItem.ExtendedProps.Sentiment,
-        Source = eventItem.ExtendedProps.Source,
-        Price = eventItem.ExtendedProps.Price,
-        PriceChange = eventItem.ExtendedProps.PriceChange,
-        PortfolioItemId = eventItem.ExtendedProps.PortfolioItemId
+        EventName= eventModel.EventName,
+        Date =eventModel.Date ?? DateTime.Now.ToString(),
+        Details=eventModel.Details,
+        Url = eventModel.Url,
+        Title = eventModel.Title,
+        Start = eventModel.Start ?? DateTime.Now,
+        End = eventModel.End ?? DateTime.Now,
+        AllDay = eventModel.AllDay ?? true,
+        Calendar = eventModel.Calendar,
+        Location = eventModel.Location,
+        Guests = eventModel.Guests,
+        Description = eventModel.Description,
+        Impact = eventModel.Impact,
+        Sentiment = eventModel.Sentiment,
+        Source = eventModel.Source,
+        Price = eventModel.Price,
+        PriceChange = eventModel.PriceChange,
+        PortfolioItemId = eventModel.PortfolioItemId
       };
 
       _context.StockEvents.Add(stockEvent);
       await _context.SaveChangesAsync();
 
-      eventItem.Id = stockEvent.Id; // Update the eventItem with the generated ID
+      eventModel.Id = stockEvent.Id; // Update the eventItem with the generated ID
 
-      return CreatedAtAction("GetEvent", new { id = stockEvent.Id }, eventItem);
+      return CreatedAtAction("GetEvent", new { id = stockEvent.Id }, eventModel);
     }
 
     // DELETE: api/Events/5

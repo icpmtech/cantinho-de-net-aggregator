@@ -1,0 +1,60 @@
+@model SearchViewModel
+@{
+    ViewData["Title"] = "Search with Natural Language";
+}
+
+<h1>@ViewData["Title"]</h1>
+<form method="get" asp-action="Index">
+    <div class="form-group">
+        <label for="query">Search Query</label>
+        <input type="text" class="form-control" id="query" name="query" value="@Model.Query" />
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+@if (Model.Error != null)
+{
+    <div class="alert alert-danger" role="alert">
+        @Model.Error
+    </div>
+}
+
+@if (Model.SqlQuery != null)
+{
+    <div class="card mt-4">
+        <div class="card-body">
+            <h5 class="card-title">Generated SQL Query</h5>
+            <p class="card-text"><code>@Model.SqlQuery</code></p>
+        </div>
+    </div>
+}
+
+@if (Model.Results != null)
+{
+    <h2 class="mt-4">Results:</h2>
+    <div class="row">
+        @foreach (var item in Model.Results)
+        {
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        @foreach (var prop in (IDictionary<string, object>)item)
+                        {
+                            <h5 class="card-title">@prop.Key: @prop.Value</h5>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Summary))
+    {
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">Summary</h5>
+                <p class="card-text">@Model.Summary</p>
+            </div>
+        </div>
+    }
+}

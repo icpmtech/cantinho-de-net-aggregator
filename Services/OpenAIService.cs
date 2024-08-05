@@ -110,5 +110,41 @@ namespace AspnetCoreMvcFull.Services
       var resultText = result.ToString().Trim();
       return resultText;
     }
+    public async Task<string> SummarizeContent(string content)
+    {
+      var api = new OpenAIAPI(_apiKey);
+      var completionRequest = new CompletionRequest
+      {
+        Prompt = $"Summarize the following content:\n\n{content}",
+        MaxTokens = 150
+      };
+
+      var result = await api.Completions.CreateCompletionAsync(completionRequest);
+      return result.Completions.FirstOrDefault()?.Text.Trim();
+    }
+    public async Task<string> GenerateSQLQuery(string naturalLanguageQuery)
+    {
+      var _api = new OpenAIAPI(_apiKey);
+      var completionRequest = new CompletionRequest
+      {
+        Prompt = $"Translate the following natural language query into SQL: \"{naturalLanguageQuery}\"",
+        MaxTokens = 100
+      };
+
+      var result = await _api.Completions.CreateCompletionAsync(completionRequest);
+      return result.Completions.FirstOrDefault()?.Text.Trim();
+    }
+    public async Task<string> GetSearchQueryResponse(string query)
+    {
+      var api = new OpenAIAPI(_apiKey);
+      var completionRequest = new CompletionRequest
+      {
+        Prompt = query,
+        MaxTokens = 100
+      };
+
+      var result = await api.Completions.CreateCompletionAsync(completionRequest);
+      return result.Completions.FirstOrDefault()?.Text.Trim();
+    }
   }
 }

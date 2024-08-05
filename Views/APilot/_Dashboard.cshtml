@@ -1,0 +1,103 @@
+@model PaginatedList<MarketAnalyticHub.Models.News.NewsItem>
+
+<div id="bubbleChart"></div>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    // Convert the C# model data to a JavaScript variable
+    var newsItems = @Html.Raw(Json.Serialize(Model));
+
+    // Prepare the data for the bubble chart
+    var seriesData = newsItems.map(item => ({
+        x: item.title,
+        y: item.sentiment,
+        z: item.keywords ? item.keywords.length : 1, // Size of the bubble can be based on the number of keywords
+        name: item.category
+    }));
+
+    var options = {
+        chart: {
+            height: 350,
+            type: 'bubble'
+        },
+        dataLabels: {
+            enabled: false
+        },
+        series: [{
+            name: 'Sentiment',
+            data: seriesData
+        }],
+        xaxis: {
+            type: 'category'
+        },
+        yaxis: {
+            max: 1,
+            min: -1
+        },
+        title: {
+            text: 'News Sentiment Analysis'
+        }
+    };
+
+    var chart = new ApexCharts(document.querySelector("#bubbleChart"), options);
+    chart.render();
+</script>
+<div id="grouped-bar-chart"></div>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    // Convert the C# model data to JavaScript variables
+    var positiveData = JSON.parse('@Html.Raw(ViewBag.PositiveDataJson)');
+    var negativeData = JSON.parse('@Html.Raw(ViewBag.NegativeDataJson)');
+
+    // Extract the symbols and counts
+    var symbols = positiveData.map(item => item.Symbol);
+    var positiveCounts = positiveData.map(item => item.Count);
+    var negativeCounts = negativeData.map(item => item.Count);
+
+    // Prepare the options for the grouped bar chart
+    var options = {
+        chart: {
+            type: 'bar',
+            height: 400,
+            stacked: false
+        },
+        series: [
+            {
+                name: 'Positive News',
+                data: positiveCounts
+            },
+            {
+                name: 'Negative News',
+                data: negativeCounts
+            }
+        ],
+        xaxis: {
+            categories: symbols,
+            title: {
+                text: 'Stock Symbol'
+            }
+        },
+        yaxis: {
+            title: {
+                text: 'Number of Articles'
+            }
+        },
+        title: {
+            text: 'Positive and Negative News Sentiments for Stocks'
+        },
+        tooltip: {
+            y: {
+                formatter: function (value) {
+                    return value + " articles";
+                }
+            }
+        },
+        legend: {
+            position: 'top'
+        },
+        colors: ['#00E396', '#FF4560']
+    };
+
+    // Render the chart
+    var chart = new ApexCharts(document.querySelector("#grouped-bar-chart"), options);
+    chart.render();
+</script>

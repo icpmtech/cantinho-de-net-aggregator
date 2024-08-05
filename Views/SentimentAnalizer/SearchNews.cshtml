@@ -1,0 +1,336 @@
+@{
+    ViewData["Title"] = "SearchNews";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>@ViewData["Title"]</h1>
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="Search news" id="searchInput">
+            <input type="date" class="form-control ml-2" id="startDate">
+            <input type="date" class="form-control ml-2" id="endDate">
+            <button class="btn btn-primary" type="button" onclick="searchNews()">Search</button>
+        </div>
+        <div id="resultsAccordion">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">No Results</h5>
+                </div>
+                <div class="card-body mb-2">
+                    <p>Use the search form above to find news articles.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="portfolioModal" tabindex="-1" role="dialog" aria-labelledby="portfolioModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="portfolioModalLabel">Select Portfolio Items</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="portfolioForm">
+                        <div class="form-group">
+                            <label for="portfolioSelect">Portfolio</label>
+                            <select class="form-control" id="portfolioSelect">
+                                <!-- Options will be populated here -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="modalTitle">Title</label>
+                            <input type="text" class="form-control" id="modalTitle" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="modalUrl">URL</label>
+                            <input type="text" class="form-control" id="modalUrl" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="modalDescription">Description</label>
+                            <textarea class="form-control" id="modalDescription" rows="3" readonly></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="modalAuthor">Author</label>
+                            <input type="text" class="form-control" id="modalAuthor" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label"><i class="bi bi-graph-up"></i> Impact</label>
+                            <select id="modalImpact" class="form-control">
+                                <option value="">-- Select Impact --</option>
+                                <option value="High">High</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Low">Low</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label"><i class="bi bi-emoji-smile"></i> Sentiment</label>
+                            <select id="modalSentiment" class="form-control">
+                                <option value="">-- Select Sentiment --</option>
+                                <option value="Positive">Positive</option>
+                                <option value="Negative">Negative</option>
+                                <option value="Neutral">Neutral</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label"><i class="bi bi-newspaper"></i> Source</label>
+                            <input type="text" id="modalSource" class="form-control" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label"><i class="bi bi-currency-dollar"></i> Price</label>
+                            <input type="number" id="modalPrice" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="control-label"><i class="bi bi-arrow-up-down"></i> Price Change</label>
+                            <input type="number" id="modalPriceChange" class="form-control">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="saveSelectedPortfolio()" id="savePortfolioButton">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function sanitize(text) {
+            const element = document.createElement('div');
+            element.innerText = text;
+            return element.innerHTML;
+        }
+
+        async function searchNews() {
+            const query = sanitize(document.getElementById('searchInput').value);
+            const startDate = sanitize(document.getElementById('startDate').value);
+            const endDate = sanitize(document.getElementById('endDate').value);
+            const resultsAccordion = document.getElementById('resultsAccordion');
+            resultsAccordion.innerHTML = '';
+
+            if (!query) {
+                resultsAccordion.innerHTML = '<p>Please enter a search query.</p>';
+                return;
+            }
+
+            const loadingCard = document.createElement('div');
+            loadingCard.className = 'card';
+            loadingCard.innerHTML = `
+                        <div class="card-header">
+                            <h5 class="mb-0">Loading...</h5>
+                        </div>
+                        <div class="card-body mb-2">
+                            <p>Please wait while we fetch the news articles.</p>
+                        </div>
+                    `;
+            resultsAccordion.appendChild(loadingCard);
+
+            let url = `/api/NewsApi/search?query=${encodeURIComponent(query)}`;
+            if (startDate) {
+                url += `&startDate=${startDate}`;
+            }
+            if (endDate) {
+                url += `&endDate=${endDate}`;
+            }
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const articles = await response.json();
+
+                resultsAccordion.innerHTML = '';
+
+                if (articles.length === 0) {
+                    resultsAccordion.innerHTML = '<p>No results found.</p>';
+                    return;
+                }
+
+                articles.forEach((article, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'card mb-2';
+
+                    const cardHeader = document.createElement('div');
+                    cardHeader.className = 'card-header';
+                    cardHeader.onclick = () => toggleCardBody(index);
+
+                    const h5 = document.createElement('h5');
+                    h5.className = 'mb-0';
+                    h5.innerHTML = `${sanitize(article.title)} <span class="badge badge-secondary ml-2">${sanitize(article.source.name)}</span>`;
+
+                    cardHeader.appendChild(h5);
+                    card.appendChild(cardHeader);
+
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body mb-2';
+                    cardBody.id = `cardBody${index}`;
+                    cardBody.style.display = 'none';
+                    cardBody.innerHTML = `
+                                <p>${sanitize(article.description)}</p>
+                                <div class="btn-group">
+                                    <a href="${sanitize(article.url)}" target="_blank" class="btn btn-secondary">Read More</a>
+                                    <button type="button" class="btn btn-primary" onclick="savePost('${sanitize(article.title).replace(/'/g, "\\'")}', '${sanitize(article.url).replace(/'/g, "\\'")}', '${sanitize(article.description).replace(/'/g, "\\'")}', '${sanitize(article.source.name).replace(/'/g, "\\'")}', this)">Save</button>
+                                    <button type="button" class="btn btn-primary" onclick="openModal('${sanitize(article.title).replace(/'/g, "\\'")}', '${sanitize(article.url).replace(/'/g, "\\'")}', '${sanitize(article.description).replace(/'/g, "\\'")}', '${sanitize(article.source.name).replace(/'/g, "\\'")}')">Save Stock Event</button>
+                                </div>
+                            `;
+
+                    card.appendChild(cardBody);
+                    resultsAccordion.appendChild(card);
+                });
+            } catch (error) {
+                console.error('Error fetching news:', error);
+                resultsAccordion.innerHTML = '<p>Error fetching news. Please try again later.</p>';
+            }
+        }
+
+        function toggleCardBody(index) {
+            const cardBody = document.getElementById(`cardBody${index}`);
+            cardBody.style.display = cardBody.style.display === 'none' || cardBody.style.display === '' ? 'block' : 'none';
+        }
+
+        function openModal(title, url, description, author) {
+            document.getElementById('modalTitle').value = title;
+            document.getElementById('modalUrl').value = url;
+            document.getElementById('modalDescription').value = description;
+            document.getElementById('modalAuthor').value = author;
+            document.getElementById('modalSource').value = 'NewsAPI';
+
+            $('#portfolioModal').modal('show');
+        }
+
+        async function populatePortfolioOptions() {
+            const portfolioSelect = document.getElementById('portfolioSelect');
+            portfolioSelect.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/Portfolio');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const portfolios = await response.json();
+
+                portfolios.forEach(portfolio => {
+                    const optGroup = document.createElement('optgroup');
+                    optGroup.label = sanitize(portfolio.name);
+
+                    portfolio.items.forEach(item => {
+                        const opt = document.createElement('option');
+                        opt.value = item.id;
+                        opt.innerHTML = `${sanitize(item.symbol)} (${sanitize(item.operationType)})`;
+                        optGroup.appendChild(opt);
+                    });
+
+                    portfolioSelect.appendChild(optGroup);
+                });
+            } catch (error) {
+                console.error('Error fetching portfolios:', error);
+            }
+        }
+
+        window.onload = populatePortfolioOptions;
+
+        async function saveSelectedPortfolio() {
+            const saveButton = document.getElementById('savePortfolioButton');
+            saveButton.innerHTML = 'Saving...';
+            saveButton.disabled = true;
+
+            const title = sanitize(document.getElementById('modalTitle').value);
+            const url = sanitize(document.getElementById('modalUrl').value);
+            const description = sanitize(document.getElementById('modalDescription').value);
+            const author = sanitize(document.getElementById('modalAuthor').value);
+            const impact = sanitize(document.getElementById('modalImpact').value);
+            const sentiment = sanitize(document.getElementById('modalSentiment').value);
+            const source = sanitize(document.getElementById('modalSource').value);
+            const price = sanitize(document.getElementById('modalPrice').value);
+            const priceChange = sanitize(document.getElementById('modalPriceChange').value);
+            const selectedPortfolioId = sanitize(document.getElementById('portfolioSelect').value);
+
+            const stockEvent = {
+                eventName: title,
+                title: title,
+                url: url,
+                details: description,
+                description: description,
+                author: author,
+                start: new Date().toISOString(),
+                end: new Date().toISOString(),
+                date: new Date().toISOString(),
+                allDay: true,
+                impact: impact,
+                sentiment: sentiment,
+                source: source,
+                price: parseFloat(price),
+                priceChange: parseFloat(priceChange),
+                portfolioItemId: selectedPortfolioId
+            };
+
+            try {
+                const response = await fetch('/api/Events', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(stockEvent)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const savedEvent = await response.json();
+                alert(`Stock event saved: ${savedEvent.title}`);
+                $('#portfolioModal').modal('hide');
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            } finally {
+                saveButton.innerHTML = 'Save';
+                saveButton.disabled = false;
+            }
+        }
+
+        async function savePost(title, link, description, author, button) {
+            button.innerHTML = 'Saving...';
+            button.disabled = true;
+
+            const newsItemViewModel = {
+                title: sanitize(title),
+                link: sanitize(link),
+                description: sanitize(description),
+                author: sanitize(author),
+                date: new Date().toISOString().split('T')[0],
+                category: 'General'
+            };
+
+            try {
+                const response = await fetch('/api/News/news-post', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newsItemViewModel)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok ' + response.statusText);
+                }
+
+                const newsItem = await response.json();
+                alert(`Post URL saved: ${newsItem.link}`);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            } finally {
+                button.innerHTML = 'Save';
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

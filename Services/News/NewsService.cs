@@ -45,6 +45,57 @@ namespace MarketAnalyticHub.Services.News
       await _context.SaveChangesAsync();
       return true;
     }
+    public async Task<PaginatedList<NewsItem>> GetPaginatedNewsAsync(string category, string sortOrder, int pageNumber, int pageSize, string searchQuery, DateTime? startDate = null, DateTime? endDate = null)
+    {
+      var query = _context.News.AsQueryable();
+
+      if (!string.IsNullOrEmpty(category))
+      {
+        query = query.Where(n => n.Category == category);
+      }
+
+      if (!string.IsNullOrEmpty(searchQuery))
+      {
+        query = query.Where(n => n.Title.Contains(searchQuery) || n.Description.Contains(searchQuery));
+      }
+
+      // Fetch data from the database first
+      var newsItems = await query.AsNoTracking().ToListAsync();
+
+      // Filter dates after fetching
+      if (startDate.HasValue || endDate.HasValue)
+      {
+        newsItems = newsItems.Where(n => IsDateInRange(n.Date, startDate, endDate)).ToList();
+      }
+
+      // Sort the filtered data
+      newsItems = sortOrder switch
+      {
+        "asc" => newsItems.OrderBy(n => n.Category).ToList(),
+        "desc" => newsItems.OrderByDescending(n => n.Category).ToList(),
+        _ => newsItems.OrderBy(n => DateTime.TryParse(n.Date, out var date) ? date : DateTime.MaxValue).ToList()
+      };
+
+      // Apply pagination
+      return PaginatedList<NewsItem>.Create(newsItems, pageNumber, pageSize);
+    }
+
+    public static bool IsDateInRange(string dateStr, DateTime? startDate, DateTime? endDate)
+    {
+      if (DateTime.TryParse(dateStr, out var date))
+      {
+        if (startDate.HasValue && date < startDate.Value)
+        {
+          return false;
+        }
+        if (endDate.HasValue && date > endDate.Value)
+        {
+          return false;
+        }
+        return true;
+      }
+      return false;
+    }
 
     public async Task<PaginatedList<NewsItem>> GetPaginatedNewsAsync(string category, string sortOrder, int pageNumber, int pageSize, string searchQuery)
     {

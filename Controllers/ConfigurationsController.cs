@@ -8,6 +8,8 @@ using Microsoft.Extensions.Logging;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Models.News;
 using ApplicationDbContext = MarketAnalyticHub.Models.SetupDb.ApplicationDbContext;
+using Hangfire;
+using MarketAnalyticHub.Services.Jobs;
 
 namespace MarketAnalyticHub.Controllers;
 
@@ -50,6 +52,37 @@ public class ConfigurationsController : Controller
 
     return Json(new { success = false, message = "Invalid data received.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
   }
+  [HttpPost("runnews/{id}")]
+  public IActionResult RunJob(int id)
+  {
+    using (var scope = HttpContext.RequestServices.CreateScope())
+    {
+      var serviceProvider = scope.ServiceProvider;
+      var recurringJobManager = serviceProvider.GetRequiredService<IRecurringJobManager>();
+      var newsScraper = serviceProvider.GetRequiredService<NewsScraper>();
+
+      try
+      {
+        // Schedule the scraping job to run immediately
+        recurringJobManager.AddOrUpdate(
+            "scrape-news-"+id,
+            () => newsScraper.ScrapeNewsAsync(id), // Pass the id if necessary
+            Cron.Never); // Run once immediately
+
+        // Trigger the job manually for immediate execution
+        BackgroundJob.Enqueue(() => newsScraper.ScrapeNewsAsync(id));
+
+        return Json(new { success = true, message = "Run successfully!" });
+      }
+      catch (Exception ex)
+      {
+        // Handle any errors that occur during the job scheduling
+        return Json(new { success = false, message = $"Error: {ex.Message}" });
+      }
+    }
+  }
+
+
 
   [HttpDelete("deletenews/{id}")]
   public IActionResult Delete(int id)

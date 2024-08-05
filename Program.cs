@@ -30,6 +30,8 @@ using MarketAnalyticHub.Controllers;
 using AspnetCoreMvcFull.Services;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using MarketAnalyticHub.Controllers.api;
+using MarketAnalyticHub.Services.ApiDataApp.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -96,11 +98,12 @@ builder.Services.AddDbContext<AppIdentityDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppIdentityDbContext>().AddDefaultUI()
     .AddDefaultTokenProviders();
-
+builder.Services.Configure<NewsApiSettings>(builder.Configuration.GetSection("NewsApi"));
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<SentimentAnalysisService>();
 builder.Services.AddTransient<NewsScraper>();
 builder.Services.AddScoped<AppNewsService>();
+builder.Services.AddScoped<ApiService>();
 builder.Services.AddScoped<PortfolioService>();
 builder.Services.AddScoped<PortfolioItemService>();
 builder.Services.AddScoped<MarketAnalyticHub.Services.ISymbolService, MarketAnalyticHub.Services.SymbolService>();

@@ -32,6 +32,24 @@ namespace MarketAnalyticHub.Controllers
 
         return View(portfolios);
       }
+    public async Task<IActionResult> Investors()
+    {
+      return View();
+    }
+    public async Task<IActionResult> SearchAIPilot()
+    {
+      return View();
+    }
+    public async Task<IActionResult> SearchNews()
+    {
+      return View();
+    }
+    
+    public async Task<IActionResult> SearchSymbols()
+    {
+
+      return View();
+    }
 
     public async Task<IActionResult> Calendar()
     {

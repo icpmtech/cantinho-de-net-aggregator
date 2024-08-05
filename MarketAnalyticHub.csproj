@@ -36,6 +36,7 @@
     <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="2.16.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.16.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.3" />
+    <PackageReference Include="NewsAPI" Version="0.7.0" />
     <PackageReference Include="OpenAI" Version="1.11.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
     <PackageReference Include="VaderSharp2" Version="3.3.2.1" />

@@ -1,0 +1,145 @@
+@{
+    ViewData["Title"] = "Search Symbols";
+    ViewData["isNavbar"] = false;
+    ViewData["navbarType"] = "layout-navbar-hidden";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+<div class="container mt-5">
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Search symbols" id="searchInput">
+        <div class="input-group-append">
+            <span class="input-group-text"><i class="fas fa-search"></i></span>
+        </div>
+    </div>
+    <div id="loadingIcon" class="text-center my-3" style="display: none;">
+        <i class="fas fa-spinner fa-spin fa-2x"></i>
+    </div>
+    <div id="resultsAccordion">
+        <!-- Search results will appear here -->
+    </div>
+</div>
+
+<script>
+    let debounceTimer;
+
+    document.getElementById('searchInput').addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => searchSymbols(), 300);
+    });
+
+    async function searchSymbols() {
+        const query = document.getElementById('searchInput').value;
+        const resultsAccordion = document.getElementById('resultsAccordion');
+        const loadingIcon = document.getElementById('loadingIcon');
+        resultsAccordion.innerHTML = '';
+
+        if (!query) {
+            resultsAccordion.innerHTML = '<p>Please enter a search query.</p>';
+            return;
+        }
+
+        loadingIcon.style.display = 'block';
+
+        let url = `/api/SymbolsApi/search?query=${encodeURIComponent(query)}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            const articles = data["bestMatches"] || [];
+
+            loadingIcon.style.display = 'none';
+
+            if (articles.length === 0) {
+                resultsAccordion.innerHTML = '<p>No results found.</p>';
+                return;
+            }
+
+            articles.forEach(async (article, index) => {
+                const quoteData = await fetchQuoteData(article["1. symbol"]);
+                const change = quoteData["09. change"];
+                const changePercent = quoteData["10. change percent"];
+                const arrowIcon = change >= 0 ? 'fas fa-arrow-up text-success' : 'fas fa-arrow-down text-danger';
+
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const cardHeader = document.createElement('div');
+                cardHeader.className = 'card-header';
+                cardHeader.id = `heading${index}`;
+
+                const h5 = document.createElement('h5');
+                h5.className = 'mb-0';
+
+                const button = document.createElement('button');
+                button.className = 'btn btn-link';
+                button.type = 'button';
+                button.setAttribute('data-toggle', 'collapse');
+                button.setAttribute('data-target', `#collapse${index}`);
+                button.setAttribute('aria-expanded', 'true');
+                button.setAttribute('aria-controls', `collapse${index}`);
+                button.textContent = article["1. symbol"];
+
+                const badge = document.createElement('span');
+                badge.className = 'badge badge-primary badge-pill ml-2';
+                badge.textContent = article["2. name"];
+
+                button.appendChild(badge);
+                h5.appendChild(button);
+                cardHeader.appendChild(h5);
+                card.appendChild(cardHeader);
+
+                const collapseDiv = document.createElement('div');
+                collapseDiv.id = `collapse${index}`;
+                collapseDiv.className = 'collapse';
+                collapseDiv.setAttribute('aria-labelledby', `heading${index}`);
+                collapseDiv.setAttribute('data-parent', '#resultsAccordion');
+
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body';
+                cardBody.innerHTML = `
+                                <p>Region: ${article["4. region"]}</p>
+                                <p>Market Open: ${article["5. marketOpen"]}</p>
+                                <p>Market Close: ${article["6. marketClose"]}</p>
+                                <p>Quote: ${quoteData["05. price"]}</p>
+                                <p>Change: ${change} (${changePercent}) <i class="${arrowIcon}"></i></p>
+                                <div class="btn-group" role="group">
+                                    <a href="https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${article["1. symbol"]}&apikey=O831EHVCJBFEHUKE" target="_blank" class="btn btn-primary">Get Quote</a>
+                                    <button type="button" class="btn btn-secondary" onclick="savePost('${article["1. symbol"]}')">Save</button>
+                                </div>
+                            `;
+
+                collapseDiv.appendChild(cardBody);
+                card.appendChild(collapseDiv);
+                resultsAccordion.appendChild(card);
+            });
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            resultsAccordion.innerHTML = '<p>Error fetching data. Please try again later.</p>';
+            loadingIcon.style.display = 'none';
+        }
+    }
+
+    async function fetchQuoteData(symbol) {
+        const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=O831EHVCJBFEHUKE`;
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data["Global Quote"];
+    }
+
+    function savePost(postUrl) {
+        alert(`Post URL saved: ${postUrl}`);
+        // Implement further save functionality here
+    }
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>

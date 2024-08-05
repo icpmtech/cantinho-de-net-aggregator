@@ -21,6 +21,9 @@
                 <div class="list-group">
                     @foreach (var group in Model)
                     {
+  
+
+
                         <div class="list-group-item">
                             <h5 class="mb-1">
                                 <a data-bs-toggle="collapse" href="#collapse-@group.Symbol" role="button" aria-expanded="false" aria-controls="collapse-@group.Symbol">
@@ -28,6 +31,7 @@
                                     <span class="badge bg-primary rounded-pill">@group.Items.Count</span>
                                     <span class="badge bg-secondary rounded-pill">@group.TotalInvestment</span>
                                     <span class="badge bg-secondary rounded-pill">@group.CurrentMarketValue</span>
+
                                 </a>
                             </h5>
                             <div class="collapse" id="collapse-@group.Symbol">
