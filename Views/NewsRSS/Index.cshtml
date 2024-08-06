@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RSS News</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Add some basic styling */
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 16px;
+            margin: 16px;
+        }
+
+        .table-responsive {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .table {
+            width: 100%;
+            margin-bottom: 1rem;
+            color: #212529;
+        }
+
+            .table th, .table td {
+                padding: 0.75rem;
+                vertical-align: top;
+                border-top: 1px solid #dee2e6;
+            }
+
+            .table thead th {
+                vertical-align: bottom;
+                border-bottom: 2px solid #dee2e6;
+            }
+
+            .table tbody + tbody {
+                border-top: 2px solid #dee2e6;
+            }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,.15);
+        }
+
+        .dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .pagination {
+            display: flex;
+            padding-left: 0;
+            list-style: none;
+            border-radius: 0.25rem;
+        }
+
+            .pagination li {
+                display: block;
+            }
+
+                .pagination li a {
+                    position: relative;
+                    display: block;
+                    padding: 0.5rem 0.75rem;
+                    margin-left: -1px;
+                    line-height: 1.25;
+                    color: #007bff;
+                    background-color: #fff;
+                    border: 1px solid #dee2e6;
+                }
+
+                    .pagination li a:hover {
+                        z-index: 2;
+                        color: #0056b3;
+                        text-decoration: none;
+                        background-color: #e9ecef;
+                        border-color: #dee2e6;
+                    }
+
+            .pagination .disabled a {
+                color: #6c757d;
+                pointer-events: none;
+                cursor: auto;
+                background-color: #fff;
+                border-color: #dee2e6;
+            }
+
+            .pagination .active a {
+                z-index: 1;
+                color: #fff;
+                background-color: #007bff;
+                border-color: #007bff;
+            }
+
+        .filter-container, .search-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+            .filter-container select, .search-container input {
+                width: 200px;
+                padding: 10px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                margin-right: 10px;
+            }
+
+            .filter-container button, .search-container button {
+                padding: 10px 20px;
+                border: none;
+                border-radius: 4px;
+                background-color: #007bff;
+                color: #fff;
+                cursor: pointer;
+            }
+
+                .filter-container button:hover, .search-container button:hover {
+                    background-color: #0056b3;
+                }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h5 class="card-header">RSS</h5>
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search for news...">
+            <button onclick="searchNews()">Search</button>
+        </div>
+        <div class="filter-container">
+            <select id="categoryFilter" onchange="filterNews()">
+                <option value="">All Categories</option>
+                <option value="Technology">Technology</option>
+                <option value="Business">Business</option>
+                <!-- Add more categories as needed -->
+            </select>
+            <select id="dateFilter" onchange="filterNews()">
+                <option value="">All Dates</option>
+                <option value="Today">Today</option>
+                <option value="Last7Days">Last 7 Days</option>
+                <option value="Last30Days">Last 30 Days</option>
+            </select>
+            <button onclick="sortNewsByDate()">Sort by Date</button>
+        </div>
+        <div class="table-responsive" id="newsTableContainer">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Category</th>
+                        <th>Title</th>
+                        <th>Short Description</th>
+                        <th>Link</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="table-border-bottom-0" id="newsTableBody">
+                    <!-- News items will be appended here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center" id="paginationControls">
+                <!-- Pagination items will be appended here by JavaScript -->
+            </ul>
+        </nav>
+        <button onclick="fetchRssUrls()">Load RSS Feeds</button>
+    </div>
+
+    <script>
+        let allNewsItems = [];
+
+        async function fetchRssUrls() {
+            const response = await fetch('/api/NewsRSSApi/GetRssUrls');
+            if (response.ok) {
+                const urls = await response.json();
+                for (const [category, url] of Object.entries(urls)) {
+                    fetchRssFeed(category, url);
+                }
+            } else {
+                console.error('Failed to fetch RSS URLs');
+            }
+        }
+
+        async function fetchRssFeed(category, url) {
+            const response = await fetch(`/api/NewsRSSApi/FetchRssFeed?category=${category}&url=${encodeURIComponent(url)}`);
+            if (response.ok) {
+                const newsItems = await response.json();
+                allNewsItems = allNewsItems.concat(newsItems);
+                updateTable(allNewsItems);
+            } else {
+                console.error(`Failed to fetch RSS feed for category ${category}`);
+            }
+        }
+
+        function updateTable(newsItems) {
+            const tbody = document.getElementById('newsTableBody');
+            tbody.innerHTML = ''; // Clear existing rows
+            newsItems.forEach(news => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                                    <td>
+                                        ${news.imageUrl ? `<img src="${news.ImageUrl}" alt="Image" style="width: 100px; height: auto;" />` : `<i class="fas fa-newspaper" style="font-size: 100px; color: gray;"></i>`}
+                                    </td>
+                                    <td>${news.category}</td>
+                                    <td>${news.title ?? "No title"}</td>
+                                    <td>${news.description ?? "No description"}</td>
+                                    <td><a href="${news.link}" target="_blank">${news.link ?? "No link"}</a></td>
+                                    <td>${news.date ?? "No date"}</td>
+                                    <td>
+                                        <div class="dropdown">
+                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item" href="javascript:void(0);" onclick="editNews('${news.title}')"><i class="fas fa-edit"></i> Edit</a>
+                                                <a class="dropdown-item" href="javascript:void(0);" onclick="deleteNews('${news.title}')"><i class="fas fa-trash"></i> Delete</a>
+                                                <a class="dropdown-item" href="javascript:void(0);" onclick="runJob('${news.title}')"><i class="fas fa-play"></i> Run Job</a>
+                                            </div>
+                                        </div>
+                                    </td>
+                                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function searchNews() {
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const filteredNews = allNewsItems.filter(news =>
+                news.title?.toLowerCase().includes(searchInput) ||
+                news.description?.toLowerCase().includes(searchInput) ||
+                news.category?.toLowerCase().includes(searchInput)
+            );
+            updateTable(filteredNews);
+        }
+
+        function filterNews() {
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+
+            let filteredNews = allNewsItems;
+
+            if (categoryFilter) {
+                filteredNews = filteredNews.filter(news => news.category === categoryFilter);
+            }
+
+            if (dateFilter) {
+                const now = new Date();
+                filteredNews = filteredNews.filter(news => {
+                    const newsDate = new Date(news.date);
+                    switch (dateFilter) {
+                        case 'Today':
+                            return newsDate.toDateString() === now.toDateString();
+                        case 'Last7Days':
+                            const last7Days = new Date(now);
+                            last7Days.setDate(now.getDate() - 7);
+                            return newsDate >= last7Days && newsDate <= now;
+                        case 'Last30Days':
+                            const last30Days = new Date(now);
+                            last30Days.setDate(now.getDate() - 30);
+                            return newsDate >= last30Days && newsDate <= now;
+                        default:
+                            return true;
+                    }
+                });
+            }
+
+            updateTable(filteredNews);
+        }
+
+        function sortNewsByDate() {
+            const sortedNews = [...allNewsItems].sort((a, b) => new Date(b.date) - new Date(a.date));
+            updateTable(sortedNews);
+        }
+
+        async function loadPage(page) {
+            const pageSize = 10; // Adjust as needed
+            const response = await fetch(`/api/NewsRSSApi?page=${page}&pageSize=${pageSize}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                updateTable(data.NewsItems);
+                updatePagination(data.CurrentPage, data.PageSize, data.TotalItems);
+            } else {
+                console.error('Failed to load data');
+            }
+        }
+
+        function updatePagination(currentPage, pageSize, totalItems) {
+            const totalPages = Math.ceil(totalItems / pageSize);
+            const paginationControls = document.getElementById('paginationControls');
+            paginationControls.innerHTML = `
+                                <li class="page-item ${currentPage == 1 ? "disabled" : ""}">
+                                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(${currentPage - 1})" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            `;
+            for (let i = 1; i <= totalPages; i++) {
+                paginationControls.innerHTML += `
+                                    <li class="page-item ${currentPage == i ? "active" : ""}">
+                                        <a class="page-link" href="javascript:void(0);" onclick="loadPage(${i})">${i}</a>
+                                    </li>
+                                `;
+            }
+            paginationControls.innerHTML += `
+                                <li class="page-item ${currentPage == totalPages ? "disabled" : ""}">
+                                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(${currentPage + 1})" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            `;
+        }
+
+        async function editNews(id) {
+            const response = await fetch('/api/NewsRSSApi/EditNews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id })
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                console.error('Edit failed');
+            }
+        }
+
+        async function deleteNews(id) {
+            const response = await fetch('/api/NewsRSSApi/DeleteNews', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id })
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                console.error('Delete failed');
+            }
+        }
+
+        async function runJob(id) {
+            const response = await fetch('/api/NewsRSSApi/RunJob', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id })
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                console.error('Run job failed');
+            }
+        }
+    </script>
+</body>
+</html>

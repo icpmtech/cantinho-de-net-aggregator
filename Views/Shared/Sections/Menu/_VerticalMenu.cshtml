@@ -173,6 +173,11 @@
                         <div>News</div>
                     </a>
                 </li>
+                <li class='menu-item@(currentPage == "/NewsRSS/Index" ? " active" : "")'>
+                    <a asp-controller="NewsRSS" asp-action="Index" class="menu-link">
+                        <div>Rss News</div>
+                    </a>
+                </li>
                 <li class='menu-item@(currentPage == "/Reddit/Index" ? " active" : "")'>
                     <a asp-controller="Reddit" asp-action="Index" class="menu-link">
                         <div>Reddit</div>

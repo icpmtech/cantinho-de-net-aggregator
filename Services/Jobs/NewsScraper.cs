@@ -149,9 +149,9 @@ namespace MarketAnalyticHub.Services.Jobs
           };
 
           // Analyze sentiment of the news title or description
+          if (newsItem.Title!="EMPTY" && newsItem.Description != "EMPTY") {
           var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
           newsItem.Sentiment = sentimentResult.Compound;
-
           var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
           newsItem.Keywords = keywords.ToList();
 
@@ -160,8 +160,10 @@ namespace MarketAnalyticHub.Services.Jobs
 
           var industriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
           newsItem.IndustriesImpact = industriesImpact;
-
           newsItems.Add(newsItem);
+          }
+
+         
         }
       }
 

@@ -17,6 +17,6 @@ namespace MarketAnalyticHub.Models.News
     public List<string>? Keywords { get;  set; }
     public string? SentimentImpact { get;  set; }
     public string? IndustriesImpact { get; internal set; }
-    public string Summary { get; internal set; }
+    public string? Summary { get; internal set; }
   }
 }

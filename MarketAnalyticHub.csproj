@@ -39,6 +39,7 @@
     <PackageReference Include="NewsAPI" Version="0.7.0" />
     <PackageReference Include="OpenAI" Version="1.11.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="System.ServiceModel.Syndication" Version="8.0.0" />
     <PackageReference Include="VaderSharp2" Version="3.3.2.1" />
     <PackageReference Include="YahooFinanceApi" Version="2.3.3" />
   </ItemGroup>
