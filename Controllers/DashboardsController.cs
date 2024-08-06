@@ -186,10 +186,82 @@ namespace MarketAnalyticHub.Controllers
 
       return Ok(new { series2021, series2020 });
     }
-  
+   
 
+    [HttpGet("year-heatmap/{year}")]
+    public async Task<IActionResult> GetHeatmapByYear(int year)
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
 
-      [HttpGet("GetYearlyData/{year}")]
+      // Fetch the portfolios
+      var portfolios = await _context.Portfolios
+          .Where(p => p.UserId == userId)
+          .Include(p => p.Items)
+          .ToListAsync();
+
+      // Fetch real-time prices for each item and update the item price
+      foreach (var portfolio in portfolios)
+      {
+        foreach (var item in portfolio.Items)
+        {
+          var price = await _yahooFinanceService.GetRealTimePriceAsync(item.Symbol);
+          item.CurrentPrice = (decimal)price.CurrentPrice;
+        }
+      }
+
+      // Get total revenue and investment data grouped by month and symbol for the specified year
+      var totalRevenueByMonthAndSymbol = portfolios
+          .SelectMany(p => p.Items)
+          .Where(item => item.PurchaseDate.Year == year)
+          .GroupBy(item => new { item.PurchaseDate.Month, item.Symbol })
+          .Select(g => new
+          {
+            Month = g.Key.Month,
+            Symbol = g.Key.Symbol,
+            TotalRevenue = g.Sum(item => item.CurrentPrice * item.Quantity),
+            TotalInvestment = g.Sum(item => item.TotalInvestment),
+            Difference = g.Sum(item => item.CurrentPrice * item.Quantity) - g.Sum(item => item.TotalInvestment)
+          })
+          .OrderBy(x => x.Month)
+          .ThenBy(x => x.Symbol)
+          .ToList();
+
+      // Prepare data for the chart
+      var seriesRevenue = new decimal[12];
+      var seriesInvestment = new decimal[12];
+      var seriesDifference = new decimal[12];
+
+      foreach (var item in totalRevenueByMonthAndSymbol)
+      {
+        seriesRevenue[item.Month - 1] += item.TotalRevenue;
+        seriesInvestment[item.Month - 1] += item.TotalInvestment;
+        seriesDifference[item.Month - 1] += item.Difference;
+      }
+
+      // Include Symbol data in the response
+      var symbolData = totalRevenueByMonthAndSymbol
+          .GroupBy(x => x.Symbol)
+          .Select(g => new
+          {
+            Symbol = g.Key,
+            Data = g.Select(x => new
+            {
+              x.Month,
+              x.TotalRevenue,
+              x.TotalInvestment,
+              x.Difference
+            }).OrderBy(x => x.Month).ToList()
+          })
+          .ToList();
+
+      return Ok(new { seriesRevenue, seriesInvestment, seriesDifference, symbolData });
+    }
+
+    [HttpGet("GetYearlyData/{year}")]
     public async Task<IActionResult> GetYearlyData(int year)
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

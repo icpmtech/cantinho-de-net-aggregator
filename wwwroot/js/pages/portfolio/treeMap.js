@@ -1,14 +1,3 @@
-document.getElementById('exportCsvButton').addEventListener('click', () => {
-  // Collect data for export (this example assumes `portfolios` variable is available globally)
-  const data = portfolios.flatMap(portfolio => portfolio.items);
-  exportToCsv('portfolio_details.csv', data);
-});
-
-document.getElementById('exportExcelButton').addEventListener('click', () => {
-  // Collect data for export (this example assumes `portfolios` variable is available globally)
-  const data = portfolios.flatMap(portfolio => portfolio.items);
-  exportToExcel('portfolio_details.xlsx', data);
-});
 
 function exportToCsv(filename, data) {
   const csvContent = [
@@ -83,10 +72,9 @@ function exportToExcel(filename, data) {
 
       // Convert grouped data into array format for ApexCharts
       const treeMapData = Object.values(groupedData).map(data => ({
-        x: `${data.symbol}
-        ${data.percentageChange.toFixed(2)}%
+        x: `${data.symbol}-
         €${data.revenue.toFixed(2)}`,
-        y: data.y,
+        y: data.revenue,
         investment: data.investment,
         revenue: data.revenue,
         percentageChange: data.percentageChange,
@@ -113,7 +101,7 @@ function exportToExcel(filename, data) {
           data: treeMapData
         }],
         title: {
-          text: `Portfolio ${portfolio.name} Tree Map`
+          text: `Portfolio ${portfolio.name} revenue`
         },
         tooltip: {
           y: {
@@ -139,7 +127,7 @@ function exportToExcel(filename, data) {
                   color: '#CD363A' // Red for negative values
                 },
                 {
-                  from: 0.1,
+                  from: 0.001,
                   to: maxRevenue,
                   color: '#52B12C' // Green for positive values
                 }
@@ -205,7 +193,7 @@ function renderRevenueTreeMap(portfolios) {
         data: treeMapData
       }],
       title: {
-        text: `Portfolio ${portfolio.name} Revenue Tree Map`
+        text: `Portfolio ${portfolio.name} transactions revenue`
       },
       tooltip: {
         y: {

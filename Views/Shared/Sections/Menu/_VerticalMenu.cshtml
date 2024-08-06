@@ -90,7 +90,11 @@
                         <div>News</div>
                     </a>
                 </li>
-
+                <li class='menu-item@(currentPage == "/NewsRSS/Index" ? " active" : "")'>
+                    <a asp-controller="NewsRSS" asp-action="Index" class="menu-link">
+                        <div>Rss Search</div>
+                    </a>
+                </li>
                 <li class='menu-item@(currentPage == "/ChatApp/Index" ? " active" : "")'>
                     <a asp-controller="ChatApp" asp-action="Index" class="menu-link">
                         <div>Chat</div>
@@ -173,9 +177,10 @@
                         <div>News</div>
                     </a>
                 </li>
-                <li class='menu-item@(currentPage == "/NewsRSS/Index" ? " active" : "")'>
-                    <a asp-controller="NewsRSS" asp-action="Index" class="menu-link">
-                        <div>Rss News</div>
+              
+                <li class='menu-item@(currentPage == "/RSSLinks/Index" ? " active" : "")'>
+                    <a asp-controller="RSSLinks" asp-action="Index" class="menu-link">
+                        <div>Rss Setup</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/Reddit/Index" ? " active" : "")'>

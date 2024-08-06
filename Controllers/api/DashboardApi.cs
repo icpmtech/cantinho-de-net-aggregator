@@ -14,6 +14,7 @@ using System.Security.Claims;
 using MarketAnalyticHub.Models.Portfolio;
 using AspnetCoreMvcFull.Models;
 using static MarketAnalyticHub.Models.Portfolio.Portfolio;
+using Newtonsoft.Json;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -22,11 +23,14 @@ namespace MarketAnalyticHub.Controllers.api
   [Authorize]
   public class DashboardsController : ControllerBase
   {
+    private readonly IHttpClientFactory _httpClientFactory;
+
     private readonly ApplicationDbContext _context;
     private readonly PortfolioService _portfolioService;
     private readonly IYahooFinanceService _yahooFinanceService;
-    public DashboardsController(ApplicationDbContext context, PortfolioService portfolioService, IYahooFinanceService yahooFinanceService)
+    public DashboardsController(ApplicationDbContext context, IHttpClientFactory httpClientFactory,PortfolioService portfolioService, IYahooFinanceService yahooFinanceService)
     {
+      _httpClientFactory = httpClientFactory;
       _context = context;
       _portfolioService = portfolioService;
       _yahooFinanceService = yahooFinanceService;
@@ -126,6 +130,116 @@ namespace MarketAnalyticHub.Controllers.api
 
       return Ok(incomeData);
     }
+    [HttpGet("all-time-data")]
+    public async Task<IActionResult> GetAllTimeData()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+      // Fetch the portfolios
+      var portfolios = await _context.Portfolios
+          .Where(p => p.UserId == userId)
+          .Include(p => p.Items)
+          .ToListAsync();
+
+      // Fetch real-time prices for each item and update the item price
+      foreach (var portfolio in portfolios)
+      {
+        foreach (var item in portfolio.Items)
+        {
+          var price = await _yahooFinanceService.GetRealTimePriceAsync(item.Symbol);
+          item.CurrentPrice = (decimal)price.CurrentPrice;
+        }
+      }
+
+      // Get total revenue and investment data grouped by month and symbol
+      var totalRevenueByMonthAndSymbol = portfolios
+          .SelectMany(p => p.Items)
+          .GroupBy(item => new { item.PurchaseDate.Year, item.PurchaseDate.Month, item.Symbol })
+          .Select(g => new
+          {
+            Year = g.Key.Year,
+            Month = g.Key.Month,
+            Symbol = g.Key.Symbol,
+            TotalRevenue = g.Sum(item => item.CurrentPrice * item.Quantity),
+            TotalInvestment = g.Sum(item => item.TotalInvestment),
+            Difference = g.Sum(item => item.CurrentPrice * item.Quantity) - g.Sum(item => item.TotalInvestment)
+          })
+          .OrderBy(x => x.Year)
+          .ThenBy(x => x.Month)
+          .ThenBy(x => x.Symbol)
+          .ToList();
+
+      // Prepare data for the chart
+      var monthlyData = totalRevenueByMonthAndSymbol
+          .GroupBy(x => new { x.Year, x.Month })
+          .Select(g => new
+          {
+            g.Key.Year,
+            g.Key.Month,
+            TotalRevenue = g.Sum(x => x.TotalRevenue),
+            TotalInvestment = g.Sum(x => x.TotalInvestment),
+            Difference = g.Sum(x => x.Difference)
+          })
+          .OrderBy(x => x.Year)
+          .ThenBy(x => x.Month)
+          .ToList();
+
+      var seriesRevenue = new List<decimal>();
+      var seriesInvestment = new List<decimal>();
+      var seriesDifference = new List<decimal>();
+      var labels = new List<string>();
+
+      foreach (var item in monthlyData)
+      {
+        seriesRevenue.Add(item.TotalRevenue);
+        seriesInvestment.Add(item.TotalInvestment);
+        seriesDifference.Add(item.Difference);
+        labels.Add($"{item.Year}-{item.Month:D2}");
+      }
+
+      // Include Symbol data in the response
+      var symbolData = totalRevenueByMonthAndSymbol
+          .GroupBy(x => x.Symbol)
+          .Select(g => new
+          {
+            Symbol = g.Key,
+            Data = g.Select(x => new
+            {
+              x.Year,
+              x.Month,
+              x.TotalRevenue,
+              x.TotalInvestment,
+              x.Difference
+            }).OrderBy(x => x.Year).ThenBy(x => x.Month).ToList()
+          })
+          .ToList();
+
+      return Ok(new { labels, seriesRevenue, seriesInvestment, seriesDifference, symbolData });
+    }
+
+    [HttpGet("Stock/{symbol}")]
+    public async Task<IActionResult> GetStockData(string symbol, [FromQuery] string interval = "5m")
+    {
+      var client = _httpClientFactory.CreateClient();
+      var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval={interval}";
+      var response = await client.GetAsync(url);
+
+      if (response.IsSuccessStatusCode)
+      {
+        var jsonResponse = await response.Content.ReadAsStringAsync();
+        var stockData = JsonConvert.DeserializeObject<YahooFinanceResponse>(jsonResponse);
+        return Ok(stockData);
+      }
+      else
+      {
+        return StatusCode((int)response.StatusCode, response.ReasonPhrase);
+      }
+    }
+
 
     [HttpGet("dividends")]
     public async Task<IActionResult> GetDividendsData()
@@ -224,7 +338,7 @@ namespace MarketAnalyticHub.Controllers.api
         return StatusCode(StatusCodes.Status500InternalServerError, new { error = "An error occurred while processing your request." });
       }
     }
-
+ 
     // GET: api/Dashboards/dividends-week
     [HttpGet("dividends-week")]
     public async Task<IActionResult> GetDividendsDataWeek()

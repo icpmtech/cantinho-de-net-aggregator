@@ -13,6 +13,7 @@ using System.Text.RegularExpressions;
 using MarketAnalyticHub.Services.Jobs;
 using System.Xml;
 using System.ServiceModel.Syndication;
+using System.Collections.Concurrent;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -53,160 +54,133 @@ namespace MarketAnalyticHub.Controllers.api
     [HttpGet("fetch-rss-news-multiple")]
     public async Task<IEnumerable<NewsItem>> GetRssNewsAsync()
     {
-      var urls = new Dictionary<string, string>
-    {
-        { "Technology", "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml" },
-        { "Business", "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml" },
-        { "YourMoney", "https://rss.nytimes.com/services/xml/rss/nyt/YourMoney.xml" },
-        { "SmallBusiness", "https://rss.nytimes.com/services/xml/rss/nyt/SmallBusiness.xml" },
-        { "Economy", "https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml" },
-        { "TechCrunch", "https://techcrunch.com/feed/" },
-        { "Wired", "https://www.wired.com/feed/rss" },
-        { "The Verge", "https://www.theverge.com/rss/index.xml" },
-        { "Forbes", "https://www.forbes.com/business/feed/" },
-        { "Bloomberg", "https://www.bloomberg.com/feed/podcast/stephanomics.xml" },
-        { "Reuters", "http://feeds.reuters.com/reuters/businessNews" },
-        { "Economist", "http://www.economist.com/sections/economics/rss.xml" },
-        { "FT", "http://www.ft.com/rss/home/us" },
-        { "MarketWatch", "http://feeds.marketwatch.com/marketwatch/topstories/" },
-        { "Entrepreneur", "https://www.entrepreneur.com/latest/rss" },
-        { "Inc", "https://www.inc.com/rss" },
-        { "Mashable", "http://feeds.mashable.com/Mashable" },
-        { "CNET", "https://www.cnet.com/rss/news/" },
-        { "Ars Technica", "http://feeds.arstechnica.com/arstechnica/index/" },
-        { "CNBC", "https://www.cnbc.com/id/10001147/device/rss/rss.html" },
-        { "Fortune", "http://fortune.com/feed/" },
-        { "Business Insider", "https://www.businessinsider.com/sai/rss" },
-        { "World Bank", "https://www.worldbank.org/en/news/rss" },
-        { "IMF", "https://www.imf.org/external/np/exr/rss/whatnew.xml" },
-        { "OECD", "https://www.oecd.org/newsroom/news-releases-rss.xml" },
-        { "Small Business Trends", "https://smallbiztrends.com/feed" },
-        { "AllBusiness", "https://www.allbusiness.com/feed" },
-        { "BBC News", "http://feeds.bbci.co.uk/news/rss.xml" },
-        { "CNN", "http://rss.cnn.com/rss/edition.rss" },
-        { "Al Jazeera", "https://www.aljazeera.com/xml/rss/all.xml" }
-    };
+      var newsItems = new ConcurrentBag<NewsItem>();
 
-      var newsItems = new List<NewsItem>();
-      var tasks = urls.Select(async kvp =>
+      try
       {
-        var category = kvp.Key;
-        var url = kvp.Value;
+        var urls = await _context.RSSLinks.ToListAsync();
 
-        try
+        var tasks = urls.Select(async kvp =>
         {
-          var response = await _httpClient.GetAsync(url);
-          response.EnsureSuccessStatusCode();
+          var category = kvp.Category;
+          var url = kvp.Url;
 
-          var responseBody = await response.Content.ReadAsStringAsync();
-          using (var stringReader = new System.IO.StringReader(responseBody))
-          using (var xmlReader = XmlReader.Create(stringReader))
+          try
           {
-            var feed = SyndicationFeed.Load(xmlReader);
-            foreach (var item in feed.Items)
+            var response = await _httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            using (var stringReader = new System.IO.StringReader(responseBody))
+            using (var xmlReader = XmlReader.Create(stringReader))
             {
-              try
+              var feed = SyndicationFeed.Load(xmlReader);
+              foreach (var item in feed.Items)
               {
-                var newsItem = new NewsItem
+                try
                 {
-                  Title = item.Title.Text,
-                  Link = item.Links.FirstOrDefault()?.Uri.ToString(),
-                  Description = item.Summary?.Text ?? item.Content?.ToString() ?? "EMPTY_SUMMARY",
-                  Author = item.Authors.FirstOrDefault()?.Name,
-                  Date = item.PublishDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                  Category = category
-                };
+                  var newsItem = new NewsItem
+                  {
+                    Title = item.Title.Text,
+                    Link = item.Links.FirstOrDefault()?.Uri.ToString(),
+                    Description = item.Summary?.Text ?? item.Content?.ToString() ?? "EMPTY_SUMMARY",
+                    Author = item.Authors.FirstOrDefault()?.Name,
+                    Date = item.PublishDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    Category = category
+                  };
 
-                // Check if the news item already exists
-                bool exists = false;
-                lock (_context)
-                {
-                  exists = _context.News.Any(n => n.Title == newsItem.Title);
-                }
+                  var exists = await _context.News.AnyAsync(n => n.Title == newsItem.Title);
+                  if (!exists)
+                  {
+                    try
+                    {
+                      var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
+                      newsItem.Sentiment = sentimentResult.Compound;
+                    }
+                    catch (Exception ex)
+                    {
+                      _logger.LogError(ex, $"Error analyzing sentiment for news item '{newsItem.Title}' in category {category}. Setting sentiment to 0.");
+                      newsItem.Sentiment = 0;
+                    }
 
-                if (!exists)
-                {
-                  try
-                  {
-                    var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
-                    newsItem.Sentiment = sentimentResult.Compound;
-                  }
-                  catch (Exception ex)
-                  {
-                    _logger.LogError(ex, $"Error analyzing sentiment for news item '{newsItem.Title}' in category {category}. Setting sentiment to 0.");
-                    newsItem.Sentiment = 0;
-                  }
+                    try
+                    {
+                      var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
+                      newsItem.Keywords = keywords.ToList();
+                    }
+                    catch (Exception ex)
+                    {
+                      _logger.LogError(ex, $"Error generating keywords for news item '{newsItem.Title}' in category {category}. Setting keywords to empty.");
+                      newsItem.Keywords = new List<string>();
+                    }
 
-                  try
-                  {
-                    var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
-                    newsItem.Keywords = keywords.ToList();
-                  }
-                  catch (Exception ex)
-                  {
-                    _logger.LogError(ex, $"Error generating keywords for news item '{newsItem.Title}' in category {category}. Setting keywords to empty.");
-                    newsItem.Keywords = new List<string>();
-                  }
+                    try
+                    {
+                      var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
+                      newsItem.SentimentImpact = impact;
+                    }
+                    catch (Exception ex)
+                    {
+                      _logger.LogError(ex, $"Error generating sentiment impacts for news item '{newsItem.Title}' in category {category}. Setting sentiment impact to empty.");
+                      newsItem.SentimentImpact = "";
+                    }
 
-                  try
-                  {
-                    var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
-                    newsItem.SentimentImpact = impact;
-                  }
-                  catch (Exception ex)
-                  {
-                    _logger.LogError(ex, $"Error generating sentiment impacts for news item '{newsItem.Title}' in category {category}. Setting sentiment impact to empty.");
-                    newsItem.SentimentImpact = "";
-                  }
+                    try
+                    {
+                      var industriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
+                      newsItem.IndustriesImpact = industriesImpact;
+                    }
+                    catch (Exception ex)
+                    {
+                      _logger.LogError(ex, $"Error generating industry impacts for news item '{newsItem.Title}' in category {category}. Setting industries impact to empty.");
+                      newsItem.IndustriesImpact = "";
+                    }
 
-                  try
-                  {
-                    var industriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
-                    newsItem.IndustriesImpact = industriesImpact;
-                  }
-                  catch (Exception ex)
-                  {
-                    _logger.LogError(ex, $"Error generating industry impacts for news item '{newsItem.Title}' in category {category}. Setting industries impact to empty.");
-                    newsItem.IndustriesImpact = "";
-                  }
-
-                  lock (newsItems)
-                  {
                     newsItems.Add(newsItem);
-                  }
 
-                  lock (_context)
+                    try
+                    {
+                      _context.News.Add(newsItem);
+                      await _context.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                      _logger.LogError(ex, $"Error saving news item '{newsItem.Title}' to the database.");
+                    }
+                  }
+                  else
                   {
-                    _context.News.Add(newsItem);
-                     _context.SaveChangesAsync();
+                    _logger.LogInformation($"News item with title '{newsItem.Title}' already exists. Skipping.");
                   }
                 }
-                else
+                catch (Exception ex)
                 {
-                  _logger.LogInformation($"News item with title '{newsItem.Title}' already exists. Skipping.");
+                  _logger.LogError(ex, $"Error processing news item for category {category}.");
                 }
-              }
-              catch (Exception ex)
-              {
-                _logger.LogError(ex, $"Error processing news item for category {category}.");
               }
             }
           }
-        }
-        catch (HttpRequestException ex)
-        {
-          _logger.LogError(ex, $"Error fetching RSS feed for category {category}.");
-        }
-        catch (Exception ex)
-        {
-          _logger.LogError(ex, $"Error reading RSS feed for category {category}.");
-        }
-      });
+          catch (HttpRequestException ex)
+          {
+            _logger.LogError(ex, $"Error fetching RSS feed for category {category}.");
+          }
+          catch (Exception ex)
+          {
+            _logger.LogError(ex, $"Error reading RSS feed for category {category}.");
+          }
+        });
 
-      await Task.WhenAll(tasks);
+        await Task.WhenAll(tasks);
 
-      return newsItems;
+        return newsItems;
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error retrieving RSS URLs.");
+        return newsItems;
+      }
     }
+
 
 
     [HttpGet("fetch-rss-news-nytimes")]

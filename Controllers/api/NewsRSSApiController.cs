@@ -5,9 +5,9 @@ using System.Xml;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Collections.Concurrent;
 using System.Linq;
-using HtmlAgilityPack;
+using MarketAnalyticHub.Models.SetupDb;
+using Microsoft.EntityFrameworkCore;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -17,49 +17,29 @@ namespace MarketAnalyticHub.Controllers
   {
     private readonly HttpClient _httpClient;
     private readonly ILogger<NewsRSSApiController> _logger;
+    private readonly ApplicationDbContext _context;
 
-    public NewsRSSApiController(HttpClient httpClient, ILogger<NewsRSSApiController> logger)
+    public NewsRSSApiController(HttpClient httpClient, ApplicationDbContext context, ILogger<NewsRSSApiController> logger)
     {
       _httpClient = httpClient;
       _logger = logger;
+      _context = context;
     }
 
     [HttpGet("GetRssUrls")]
-    public IActionResult GetRssUrls()
+    public async Task<IActionResult> GetRssUrls()
     {
-      var urls = new Dictionary<string, string>
-            {
-                { "Technology", "https://rss.nytimes.com/services/xml/rss/nyt/Technology.xml" },
-                { "Business", "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml" },
-                { "YourMoney", "https://rss.nytimes.com/services/xml/rss/nyt/YourMoney.xml" },
-                { "SmallBusiness", "https://rss.nytimes.com/services/xml/rss/nyt/SmallBusiness.xml" },
-                { "Economy", "https://rss.nytimes.com/services/xml/rss/nyt/Economy.xml" },
-                { "TechCrunch", "https://techcrunch.com/feed/" },
-                { "Wired", "https://www.wired.com/feed/rss" },
-                { "The Verge", "https://www.theverge.com/rss/index.xml" },
-                { "Forbes", "https://www.forbes.com/business/feed/" },
-                { "Reuters", "http://feeds.reuters.com/reuters/businessNews" },
-                { "Economist", "http://www.economist.com/sections/economics/rss.xml" },
-                { "FT", "http://www.ft.com/rss/home/us" },
-                { "MarketWatch", "http://feeds.marketwatch.com/marketwatch/topstories/" },
-                { "Entrepreneur", "https://www.entrepreneur.com/latest/rss" },
-                { "Inc", "https://www.inc.com/rss" },
-                { "Mashable", "http://feeds.mashable.com/Mashable" },
-                { "CNET", "https://www.cnet.com/rss/news/" },
-                { "Ars Technica", "http://feeds.arstechnica.com/arstechnica/index/" },
-                { "CNBC", "https://www.cnbc.com/id/10001147/device/rss/rss.html" },
-                { "Fortune", "http://fortune.com/feed/" },
-                { "Business Insider", "https://www.businessinsider.com/sai/rss" },
-                { "IMF", "https://www.imf.org/external/np/exr/rss/whatnew.xml" },
-                { "OECD", "https://www.oecd.org/newsroom/news-releases-rss.xml" },
-                { "Small Business Trends", "https://smallbiztrends.com/feed" },
-                { "AllBusiness", "https://www.allbusiness.com/feed" },
-                { "BBC News", "http://feeds.bbci.co.uk/news/rss.xml" },
-                { "CNN", "http://rss.cnn.com/rss/edition.rss" },
-                { "Al Jazeera", "https://www.aljazeera.com/xml/rss/all.xml" }
-            };
-
-      return Ok(urls);
+      try
+      {
+        var rssLinks = await _context.RSSLinks.ToListAsync();
+        var urls = rssLinks.ToDictionary(link => link.Category, link => link.Url);
+        return Ok(urls);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error retrieving RSS URLs.");
+        return StatusCode(500, "Error retrieving RSS URLs.");
+      }
     }
 
     [HttpGet("FetchRssFeed")]
@@ -83,8 +63,6 @@ namespace MarketAnalyticHub.Controllers
           using (var xmlReader = XmlReader.Create(stringReader, settings))
           {
             var feed = SyndicationFeed.Load(xmlReader);
-            var imageTasks = new List<Task>();
-
             foreach (var item in feed.Items)
             {
               var newsItem = new RssNewsItem
@@ -93,15 +71,12 @@ namespace MarketAnalyticHub.Controllers
                 Link = item.Links.FirstOrDefault()?.Uri.ToString(),
                 Description = item.Summary?.Text,
                 Author = item.Authors.FirstOrDefault()?.Name,
-                Date = item.PublishDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                Date = item.PublishDate.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Category = category
               };
 
               newsItems.Add(newsItem);
-              // imageTasks.Add(SetImageUrlAsync(newsItem));
             }
-
-            await Task.WhenAll(imageTasks);
           }
         }
       }
@@ -120,29 +95,69 @@ namespace MarketAnalyticHub.Controllers
     }
 
     [HttpPost("EditNews")]
-    public IActionResult EditNews(string id)
+    public async Task<IActionResult> EditNews([FromBody] RssNewsItem updatedNewsItem)
     {
-      // Implement edit functionality
-      return NoContent();
+      try
+      {
+        var newsItem = await _context.News.FindAsync(updatedNewsItem.Id);
+        if (newsItem == null)
+        {
+          return NotFound("News item not found.");
+        }
+
+        newsItem.Title = updatedNewsItem.Title;
+        newsItem.Link = updatedNewsItem.Link;
+        newsItem.Description = updatedNewsItem.Description;
+        newsItem.Author = updatedNewsItem.Author;
+        newsItem.Date = updatedNewsItem.Date;
+        newsItem.Category = updatedNewsItem.Category;
+
+        await _context.SaveChangesAsync();
+
+        return Ok(newsItem);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error editing news item.");
+        return StatusCode(500, "Error editing news item.");
+      }
     }
 
     [HttpPost("DeleteNews")]
-    public IActionResult DeleteNews(string id)
+    public async Task<IActionResult> DeleteNews([FromBody] string id)
     {
-      // Implement delete functionality
-      return NoContent();
+      try
+      {
+        var newsItem = await _context.News.FindAsync(id);
+        if (newsItem == null)
+        {
+          return NotFound("News item not found.");
+        }
+
+        _context.News.Remove(newsItem);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Error deleting news item.");
+        return StatusCode(500, "Error deleting news item.");
+      }
     }
 
     [HttpPost("RunJob")]
     public IActionResult RunJob(string id)
     {
       // Implement run job functionality
+      // This could trigger some background job or process.
       return NoContent();
     }
   }
 
   public class RssNewsItem
   {
+    public string Id { get; set; }
     public string Title { get; set; }
     public string Link { get; set; }
     public string Description { get; set; }
