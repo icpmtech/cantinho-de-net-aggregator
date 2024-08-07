@@ -1,0 +1,464 @@
+@using MarketAnalyticHub.Models.Portfolio.Entities
+@model Dividend
+
+@section VendorStyles{
+    <link rel="stylesheet" href="~/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/typeahead-js/typeahead.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/fullcalendar/fullcalendar.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/flatpickr/flatpickr.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/select2/select2.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/quill/editor.css" />
+    <link rel="stylesheet" href="~/assets/vendor/libs/@@form-validation/form-validation.css" />
+}
+
+@section PageStyles {
+    <link rel="stylesheet" href="~/assets/vendor/css/pages/app-calendar.css" />
+}
+
+
+    <div class="card app-calendar-wrapper">
+        <div class="row g-0">
+            <div class="col app-calendar-sidebar border-end" id="app-calendar-sidebar">
+                <div class="border-bottom p-6 my-sm-0 mb-4">
+                    <button class="btn btn-primary btn-toggle-sidebar w-100" data-bs-toggle="offcanvas" data-bs-target="#addEventSidebar" aria-controls="addEventSidebar">
+                        <i class="bx bx-plus bx-16px me-2"></i>
+                        <span class="align-middle">Add Dividend</span>
+                    </button>
+                </div>
+                <div class="px-3 pt-2">
+                    <div class="inline-calendar"></div>
+                </div>
+                <hr class="mb-6 mx-n4 mt-3">
+                <div class="px-6 pb-2">
+                    <div>
+                        <h5>Event Filters</h5>
+                    </div>
+                    <div class="form-check form-check-secondary mb-5 ms-2">
+                        <input class="form-check-input select-all" type="checkbox" id="selectAll" data-value="all" checked>
+                        <label class="form-check-label" for="selectAll">View All</label>
+                    </div>
+                    <div class="app-calendar-events-filter text-heading">
+                        <div class="form-check form-check-danger mb-5 ms-2">
+                            <input class="form-check-input input-filter" type="checkbox" id="select-dividend" data-value="dividend" checked>
+                            <label class="form-check-label" for="select-dividend">Dividend</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col app-calendar-content">
+                <div class="card shadow-none border-0">
+                    <div class="card-body pb-0">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+                <div class="app-overlay"></div>
+
+                <div class="offcanvas offcanvas-end event-sidebar" tabindex="-1" id="addEventSidebar" aria-labelledby="addEventSidebarLabel">
+                    <div class="offcanvas-header border-bottom">
+                        <h5 class="offcanvas-title" id="addEventSidebarLabel">Add Dividend</h5>
+                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                    </div>
+                    <div class="offcanvas-body">
+                        <form class="event-form pt-0" id="eventForm" onsubmit="return false">
+                            <div class="mb-6">
+                                <label class="form-label" for="dividendSymbol">Symbol</label>
+                                <input type="text" class="form-control" id="dividendSymbol" name="symbol" placeholder="Symbol" />
+                            </div>
+                            <div class="mb-6">
+                                <label class="form-label" for="dividendAmount">Amount</label>
+                                <input type="number" step="0.01" class="form-control" id="dividendAmount" name="amount" placeholder="Amount" />
+                            </div>
+                            <div class="mb-6">
+                                <label class="form-label" for="dividendExDate">Ex-Date</label>
+                                <input type="date" class="form-control" id="dividendExDate" name="exDate" placeholder="Ex-Date" />
+                            </div>
+                            <div class="mb-6">
+                                <label class="form-label" for="dividendPaymentDate">Payment Date</label>
+                                <input type="date" class="form-control" id="dividendPaymentDate" name="paymentDate" placeholder="Payment Date" />
+                            </div>
+                            <div class="mb-6">
+                                <label class="form-label" for="dividendPortfolioItemId">Portfolio Item ID</label>
+                                <input type="number" class="form-control" id="dividendPortfolioItemId" name="portfolioItemId" placeholder="Portfolio Item ID" />
+                            </div>
+                            <div class="d-flex justify-content-sm-between justify-content-start mt-6 gap-2">
+                                <div class="d-flex">
+                                    <button type="submit" id="addEventBtn" class="btn btn-primary btn-add-event me-4">Add</button>
+                                    <button type="reset" class="btn btn-label-secondary btn-cancel me-sm-0 me-1" data-bs-dismiss="offcanvas">Cancel</button>
+                                </div>
+                                <button class="btn btn-label-danger btn-delete-event d-none">Delete</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+@section VendorScripts {
+    <script src="~/assets/vendor/libs/fullcalendar/fullcalendar.js"></script>
+    <script src="~/assets/vendor/libs/@@form-validation/popular.js"></script>
+    <script src="~/assets/vendor/libs/@@form-validation/bootstrap5.js"></script>
+    <script src="~/assets/vendor/libs/@@form-validation/auto-focus.js"></script>
+    <script src="~/assets/vendor/libs/select2/select2.js"></script>
+    <script src="~/assets/vendor/libs/moment/moment.js"></script>
+    <script src="~/assets/vendor/libs/flatpickr/flatpickr.js"></script>
+}
+
+@section PageScripts {
+    <script>
+        const apiUrl = '/api/Dividends';
+
+        async function fetchDividends() {
+            try {
+                const response = await fetch(apiUrl);
+                return await response.json();
+            } catch (error) {
+                console.error('Error fetching dividends:', error);
+                return [];
+            }
+        }
+
+        const assetsPath = '~/assets';
+
+        function validateAssetsPath(path) {
+            if (!path || typeof path !== 'string' || !path.trim()) {
+                console.error('Error: Invalid assetsPath. Please ensure it is set correctly.');
+                return false;
+            }
+            return true;
+        }
+
+        let direction = "ltr";
+
+        document.addEventListener("DOMContentLoaded", async function () {
+            if (!validateAssetsPath(assetsPath)) {
+                return;
+            }
+
+            let dividendsList = await fetchDividends();
+
+            let calendarElement = document.getElementById("calendar"),
+                sidebarElement = document.querySelector(".app-calendar-sidebar"),
+                addEventSidebarElement = document.getElementById("addEventSidebar"),
+                overlayElement = document.querySelector(".app-overlay"),
+                offcanvasTitleElement = document.querySelector(".offcanvas-title"),
+                toggleSidebarButton = document.querySelector(".btn-toggle-sidebar"),
+                addEventButton = document.querySelector("#addEventBtn"),
+                deleteEventButton = document.querySelector(".btn-delete-event"),
+                cancelButton = document.querySelector(".btn-cancel"),
+                dividendSymbolInput = document.querySelector("#dividendSymbol"),
+                dividendAmountInput = document.querySelector("#dividendAmount"),
+                dividendExDateInput = document.querySelector("#dividendExDate"),
+                dividendPaymentDateInput = document.querySelector("#dividendPaymentDate"),
+                dividendPortfolioItemIdInput = document.querySelector("#dividendPortfolioItemId"),
+                allDaySwitch = document.querySelector(".allDay-switch"),
+                selectAllCheckbox = document.querySelector(".select-all"),
+                filterInputs = [].slice.call(document.querySelectorAll(".input-filter")),
+                inlineCalendarElement = document.querySelector(".inline-calendar"),
+                selectedEvent,
+                isFormValid = false,
+                inlineCalendarInstance,
+                offcanvasInstance = new bootstrap.Offcanvas(addEventSidebarElement);
+
+            function customizeSidebarToggleButton() {
+                var sidebarToggleButton = document.querySelector(".fc-sidebarToggle-button");
+                if (sidebarToggleButton) {
+                    sidebarToggleButton.classList.remove("fc-button-primary");
+                    sidebarToggleButton.classList.add("d-lg-none", "d-inline-block", "ps-0");
+
+                    while (sidebarToggleButton.firstChild) {
+                        sidebarToggleButton.firstChild.remove();
+                    }
+
+                    sidebarToggleButton.setAttribute("data-bs-toggle", "sidebar");
+                    sidebarToggleButton.setAttribute("data-overlay", "");
+                    sidebarToggleButton.setAttribute("data-target", "#app-calendar-sidebar");
+                    sidebarToggleButton.insertAdjacentHTML("beforeend", '<i class="bx bx-menu bx-lg text-heading"></i>');
+                }
+            }
+
+            if (dividendExDateInput) {
+                dividendExDateInput.flatpickr({
+                    enableTime: false,
+                    dateFormat: "Y-m-d",
+                });
+            }
+
+            if (dividendPaymentDateInput) {
+                dividendPaymentDateInput.flatpickr({
+                    enableTime: false,
+                    dateFormat: "Y-m-d",
+                });
+            }
+
+            if (inlineCalendarElement) {
+                inlineCalendarInstance = inlineCalendarElement.flatpickr({
+                    monthSelectorType: "static",
+                    inline: true
+                });
+            }
+            // Convert dividends data to FullCalendar event format
+            function convertDividendsToEvents(dividends) {
+                return dividends.map(dividend => ({
+                    id: dividend.id,
+                    title: dividend.symbol,
+                    start: dividend.exDate,
+                    end: dividend.paymentDate,
+                    extendedProps: {
+                        amount: dividend.amount,
+                        paymentDate: dividend.paymentDate,
+                        portfolioItemId: dividend.portfolioItemId
+                    },
+                    allDay: true // Assuming dividends span full days
+                }));
+            }
+            let calendarInstance = new Calendar(calendarElement, {
+                initialView: "dayGridMonth",
+                events: function (fetchInfo, successCallback) {
+                    successCallback(convertDividendsToEvents(dividendsList));
+                },
+                plugins: [dayGridPlugin, interactionPlugin, listPlugin, timegridPlugin],
+                editable: true,
+                dragScroll: true,
+                dayMaxEvents: 2,
+                eventResizableFromStart: true,
+                customButtons: {
+                    sidebarToggle: {
+                        text: "Sidebar"
+                    }
+                },
+                headerToolbar: {
+                    start: "sidebarToggle, prev,next, title",
+                    end: "dayGridMonth,timeGridWeek,timeGridDay,listMonth"
+                },
+                direction: direction,
+                initialDate: new Date(),
+                navLinks: true,
+                eventClassNames: function ({ event }) {
+                    return ["fc-event-dividend"];
+                },
+                dateClick: function (info) {
+                    let selectedDate = moment(info.date).format("YYYY-MM-DD");
+                    resetEventForm();
+                    offcanvasInstance.show();
+                    if (offcanvasTitleElement) offcanvasTitleElement.innerHTML = "Add Dividend";
+                    addEventButton.innerHTML = "Add";
+                    addEventButton.classList.remove("btn-update-event");
+                    addEventButton.classList.add("btn-add-event");
+                    deleteEventButton.classList.add("d-none");
+                    dividendExDateInput.value = selectedDate;
+                    dividendPaymentDateInput.value = selectedDate;
+                },
+                eventClick: function (info) {
+                    selectedEvent = info.event;
+                    if (selectedEvent.url) {
+                        info.jsEvent.preventDefault();
+                        window.open(selectedEvent.url, "_blank");
+                    }
+                    offcanvasInstance.show();
+                    if (offcanvasTitleElement) offcanvasTitleElement.innerHTML = "Update Dividend";
+                    addEventButton.innerHTML = "Update";
+                    addEventButton.classList.add("btn-update-event");
+                    addEventButton.classList.remove("btn-add-event");
+                    deleteEventButton.classList.remove("d-none");
+                    dividendSymbolInput.value = selectedEvent.title;
+                    dividendAmountInput.value = selectedEvent.extendedProps.amount;
+                    dividendExDateInput.value = selectedEvent.startStr;
+                    dividendPaymentDateInput.value = selectedEvent.extendedProps.paymentDate;
+                    dividendPortfolioItemIdInput.value = selectedEvent.extendedProps.portfolioItemId;
+                },
+                datesSet: function () {
+                    customizeSidebarToggleButton();
+                },
+                viewDidMount: function () {
+                    customizeSidebarToggleButton();
+                }
+            });
+
+            calendarInstance.render();
+            customizeSidebarToggleButton();
+
+            var eventForm = document.getElementById("eventForm");
+
+            function resetEventForm() {
+                dividendSymbolInput.value = "";
+                dividendAmountInput.value = "";
+                dividendExDateInput.value = "";
+                dividendPaymentDateInput.value = "";
+                dividendPortfolioItemIdInput.value = "";
+            }
+
+            FormValidation.formValidation(eventForm, {
+                fields: {
+                    dividendSymbol: {
+                        validators: {
+                            notEmpty: {
+                                message: "Please enter symbol"
+                            }
+                        }
+                    },
+                    dividendAmount: {
+                        validators: {
+                            notEmpty: {
+                                message: "Please enter amount"
+                            }
+                        }
+                    },
+                    dividendExDate: {
+                        validators: {
+                            notEmpty: {
+                                message: "Please enter ex-date"
+                            }
+                        }
+                    },
+                    dividendPaymentDate: {
+                        validators: {
+                            notEmpty: {
+                                message: "Please enter payment date"
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    trigger: new FormValidation.plugins.Trigger(),
+                    bootstrap5: new FormValidation.plugins.Bootstrap5({
+                        eleValidClass: "",
+                        rowSelector: function (field, element) {
+                            return ".mb-6";
+                        }
+                    }),
+                    submitButton: new FormValidation.plugins.SubmitButton(),
+                    autoFocus: new FormValidation.plugins.AutoFocus()
+                }
+            }).on("core.form.valid", function () {
+                isFormValid = true;
+            }).on("core.form.invalid", function () {
+                isFormValid = false;
+            });
+
+            if (toggleSidebarButton) {
+                toggleSidebarButton.addEventListener("click", () => {
+                    cancelButton.classList.remove("d-none");
+                });
+            }
+
+            addEventButton.addEventListener("click", async () => {
+                if (addEventButton.classList.contains("btn-add-event") && isFormValid) {
+                    let newDividend = {
+                        symbol: dividendSymbolInput.value,
+                        exDate: dividendExDateInput.value,
+                        amount: dividendAmountInput.value,
+                        portfolioItemId: dividendPortfolioItemIdInput.value,
+                        paymentDate: dividendPaymentDateInput.value
+                    };
+
+                    let response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(newDividend)
+                    });
+
+                    if (response.ok) {
+                        dividendsList = await fetchDividends();
+                        calendarInstance.refetchEvents();
+                        offcanvasInstance.hide();
+                    } else {
+                        console.error('Error saving dividend:', response.statusText);
+                    }
+                } else if (isFormValid) {
+                    let updatedDividend = {
+                        id: selectedEvent.id,
+                        symbol: dividendSymbolInput.value,
+                        exDate: dividendExDateInput.value,
+                        amount: dividendAmountInput.value,
+                        portfolioItemId: dividendPortfolioItemIdInput.value,
+                        paymentDate: dividendPaymentDateInput.value
+                        
+                    };
+                    
+                    let response = await fetch(`${apiUrl}/${selectedEvent.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(updatedDividend)
+                    });
+
+                    if (response.ok) {
+                        dividendsList = await fetchDividends();
+                        calendarInstance.refetchEvents();
+                        offcanvasInstance.hide();
+                    } else {
+                        console.error('Error updating dividend:', response.statusText);
+                    }
+                }
+            });
+
+            deleteEventButton.addEventListener("click", async () => {
+                let response = await fetch(`${apiUrl}/${selectedEvent.id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    dividendsList = await fetchDividends();
+                    calendarInstance.refetchEvents();
+                    offcanvasInstance.hide();
+                } else {
+                    console.error('Error deleting dividend:', response.statusText);
+                }
+            });
+
+            addEventSidebarElement.addEventListener("hidden.bs.offcanvas", resetEventForm);
+
+            toggleSidebarButton.addEventListener("click", () => {
+                if (offcanvasTitleElement) offcanvasTitleElement.innerHTML = "Add Dividend";
+                addEventButton.innerHTML = "Add";
+                addEventButton.classList.remove("btn-update-event");
+                addEventButton.classList.add("btn-add-event");
+                deleteEventButton.classList.add("d-none");
+                sidebarElement.classList.remove("show");
+                overlayElement.classList.remove("show");
+            });
+
+            if (selectAllCheckbox) {
+                selectAllCheckbox.addEventListener("click", (event) => {
+                    if (event.currentTarget.checked) {
+                        document.querySelectorAll(".input-filter").forEach(input => input.checked = true);
+                    } else {
+                        document.querySelectorAll(".input-filter").forEach(input => input.checked = false);
+                    }
+                    calendarInstance.refetchEvents();
+                });
+            }
+
+            if (filterInputs) {
+                filterInputs.forEach(input => {
+                    input.addEventListener("click", () => {
+                        if (document.querySelectorAll(".input-filter:checked").length < document.querySelectorAll(".input-filter").length) {
+                            selectAllCheckbox.checked = false;
+                        } else {
+                            selectAllCheckbox.checked = true;
+                        }
+                        calendarInstance.refetchEvents();
+                    });
+                });
+            }
+
+            if (inlineCalendarInstance) {
+                inlineCalendarInstance.config.onChange.push(function (selectedDates) {
+                    calendarInstance.changeView(calendarInstance.view.type, moment(selectedDates[0]).format("YYYY-MM-DD"));
+                    customizeSidebarToggleButton();
+                    sidebarElement.classList.remove("show");
+                    overlayElement.classList.remove("show");
+                });
+            }
+        });
+    </script>
+}
+
+
+

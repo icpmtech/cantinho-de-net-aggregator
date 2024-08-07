@@ -1,14 +1,12 @@
 @model MarketAnalyticHub.Models.RegisterViewModel
 @{
     Layout = "_BlankLayout";
-    ViewData["Title"] = "Register Basic - Pages";
+    ViewData["Title"] = "Register - Market Analytics Hub!";
 }
 
 @section PageStyles {
     <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
 }
-
-@* ************** Content ************** *@
 
 <div class="container-xxl">
     <div class="authentication-wrapper authentication-basic container-p-y">
@@ -29,6 +27,7 @@
                     <p class="mb-4">Make your app management easy and fun!</p>
 
                     <form id="formAuthentication" class="mb-3" asp-action="Register" method="post">
+                        @Html.AntiForgeryToken()
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
@@ -82,3 +81,12 @@
         </div>
     </div>
 </div>
+
+@section PageScripts {
+    <script>
+        document.getElementById('formAuthentication').addEventListener('submit', function () {
+            document.getElementById('spinner').style.display = 'inline-block';
+            document.getElementById('submit-button').disabled = true;
+        });
+    </script>
+}

@@ -1,7 +1,7 @@
 @model MarketAnalyticHub.Models.LoginViewModel
 @{
     Layout = "_BlankLayout";
-    ViewData["Title"] = "Login  - Market Analytics Hub!";
+    ViewData["Title"] = "Login - Market Analytics Hub!";
 }
 
 @section PageStyles {
@@ -9,14 +9,20 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMYyC7P0Qb6DjuTF/u3I5c9H4NX3kxV8NcVOep7" crossorigin="anonymous">
 }
 
-@* ************** Content ************** *@
-
 <div class="container-xxl">
     <div class="authentication-wrapper authentication-basic container-p-y">
         <div class="authentication-inner">
-            <!-- Register -->
+            <!-- Login -->
             <div class="card">
                 <div class="card-body">
+                    <!-- Error Message -->
+                    @if (ViewData["LoginError"] != null)
+                    {
+                        <div class="alert alert-danger text-center">
+                            <p>@ViewData["LoginError"]</p>
+                        </div>
+                    }
+                    <!-- /Error Message -->
                     <!-- Logo -->
                     <div class="app-brand justify-content-center">
                         <a href="/" class="app-brand-link gap-2">
@@ -28,10 +34,12 @@
                     <h4 class="mb-2">Welcome to @TempData.Peek("appName")! 👋</h4>
                     <p class="mb-4">Please sign-in to your account and start the adventure</p>
 
-                    <form id="formAuthentication" class="mb-3" action="/Account/Login" method="POST">
+                    <form id="formAuthentication" class="mb-3" asp-action="Login" method="post">
+                        @Html.AntiForgeryToken()
                         <div class="mb-3">
                             <label for="email" class="form-label">Email or Username</label>
-                            <input type="text" class="form-control" id="email" name="email" placeholder="Enter your email or username" autofocus>
+                            <input type="text" class="form-control" id="email" name="Email" placeholder="Enter your email or username" value="@Model?.Email" autofocus>
+                            <span asp-validation-for="Email" class="text-danger"></span>
                         </div>
                         <div class="mb-3 form-password-toggle">
                             <div class="d-flex justify-content-between">
@@ -41,13 +49,14 @@
                                 </a>
                             </div>
                             <div class="input-group input-group-merge">
-                                <input type="password" id="password" class="form-control" name="password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
+                                <input type="password" id="password" class="form-control" name="Password" placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" aria-describedby="password" />
                                 <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                             </div>
+                            <span asp-validation-for="Password" class="text-danger"></span>
                         </div>
                         <div class="mb-3">
                             <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="remember-me">
+                                <input class="form-check-input" type="checkbox" id="remember-me" name="RememberMe" />
                                 <label class="form-check-label" for="remember-me">
                                     Remember Me
                                 </label>
@@ -80,7 +89,7 @@
                     </p>
                 </div>
             </div>
-            <!-- /Register -->
+            <!-- /Login -->
         </div>
     </div>
 </div>

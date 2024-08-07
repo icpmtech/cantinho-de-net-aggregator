@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using MarketAnalyticHub.Controllers.Configurations.Portfolio;
 using MarketAnalyticHub.Models.Portfolio;
 using System.Security.Claims;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 {
@@ -61,8 +62,11 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     {
       return View();
     }
+    public IActionResult DividendsCalendar()
+    {
+      return View();
+    }
 
-  
 
 
 

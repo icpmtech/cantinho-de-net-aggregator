@@ -84,11 +84,22 @@ namespace MarketAnalyticHub.Controllers
     }
 
     public IActionResult ForgotPasswordBasic() => View();
-    public IActionResult Register() => View();
+    [HttpGet]
+    public IActionResult Register()
+    {
+      return View();
+    }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+      if (model == null)
+      {
+        _logger.LogWarning("Register model is null.");
+        return View(new RegisterViewModel());
+      }
+
       if (ModelState.IsValid)
       {
         var user = new ApplicationUser { UserName = model.Username, Email = model.Email };
@@ -109,6 +120,7 @@ namespace MarketAnalyticHub.Controllers
           }
 
           await _signInManager.SignInAsync(user, isPersistent: false);
+          _logger.LogInformation("User created a new account with password.");
           return RedirectToAction("Index", "Dashboards");
         }
         foreach (var error in result.Errors)
@@ -116,29 +128,56 @@ namespace MarketAnalyticHub.Controllers
           ModelState.AddModelError(string.Empty, error.Description);
         }
       }
+      else
+      {
+        _logger.LogWarning("Invalid model state. Validation failed.");
+        foreach (var value in ModelState.Values)
+        {
+          foreach (var error in value.Errors)
+          {
+            _logger.LogWarning(error.ErrorMessage);
+          }
+        }
+      }
       return View(model);
     }
 
+
     [HttpGet]
-    public IActionResult Login()
-    {
-      return View();
-    }
-    public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+    public IActionResult Login(string returnUrl = null)
     {
       ViewData["ReturnUrl"] = returnUrl;
+      return View(new LoginViewModel());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+    {
+      if (model == null)
+      {
+        _logger.LogWarning("Login model is null.");
+        return View(new LoginViewModel());
+      }
+
+      ViewData["ReturnUrl"] = returnUrl;
+
       if (ModelState.IsValid)
       {
-        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
+
         if (result.Succeeded)
         {
           _logger.LogInformation("User logged in.");
-          return LocalRedirect(returnUrl ?? "/Dashboard/Index");
+          return LocalRedirect(returnUrl ?? Url.Action("Index", "Dashboards"));
         }
+
         if (result.RequiresTwoFactor)
         {
+          _logger.LogInformation("User needs to do two-factor authentication.");
           return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
         }
+
         if (result.IsLockedOut)
         {
           _logger.LogWarning("User account locked out.");
@@ -146,8 +185,20 @@ namespace MarketAnalyticHub.Controllers
         }
         else
         {
-          ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-          return View(model);
+          _logger.LogWarning("Invalid login attempt.");
+          ModelState.AddModelError(string.Empty, "Invalid login attempt. Please check your credentials and try again.");
+          ViewData["LoginError"] = "Invalid login attempt. Please check your credentials and try again.";
+        }
+      }
+      else
+      {
+        _logger.LogWarning("Invalid model state. Validation failed.");
+        foreach (var value in ModelState.Values)
+        {
+          foreach (var error in value.Errors)
+          {
+            _logger.LogWarning(error.ErrorMessage);
+          }
         }
       }
 
@@ -155,21 +206,12 @@ namespace MarketAnalyticHub.Controllers
       return View(model);
     }
 
-
-    [HttpPost]
-    public async Task<IActionResult> Login(LoginViewModel model)
+    private bool IsLocalUrl(string url)
     {
-      if (ModelState.IsValid)
-      {
-        var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
-        if (result.Succeeded)
-        {
-          return RedirectToAction("Index", "Dashboards");
-        }
-        ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-      }
-      return View(model);
+      return !string.IsNullOrEmpty(url) && (url.StartsWith("/") && !url.StartsWith("//") && !url.StartsWith("/\\"));
     }
+
+    
 
     [HttpGet]
     public async Task<IActionResult> Logout()
