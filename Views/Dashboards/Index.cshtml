@@ -2,189 +2,229 @@
 @{
     ViewData["Title"] = "Dashboard - Analytics";
 }
+
 @section VendorStyles {
+    <link href="https://unpkg.com/intro.js/minified/introjs.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/intro.js/minified/intro.min.js"></script>
+
     <link rel="stylesheet" href="~/vendor/libs/apex-charts/apex-charts.css" />
 }
 @section VendorScripts {
     <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
 }
-@section PageScripts {
+@if (Model == null)
+{
+    <div class="container-xxl container-p-y">
+        <div class="misc-wrapper">
+            <h2 class="mb-2 mx-2" data-intro="This is where you will see your portfolio data.">No Portfolio Data Available</h2>
+            <p class="mb-4 mx-2" data-intro="Sorry, but no portfolio data is available at the moment.">
+                Sorry, but no portfolio data is available at the moment.
+            </p>
+            <a href="/Portfolio" class="btn btn-primary" data-intro="Create your portfolio by clicking here!">Create your portfolio!</a>
+            <div class="mt-4">
+                <img src="~/img/illustrations/girl-doing-yoga-light.png" alt="girl-doing-yoga-light" width="500" class="img-fluid" data-app-dark-img="illustrations/girl-doing-yoga-dark.png" data-app-light-img="illustrations/girl-doing-yoga-light.png">
+            </div>
+        </div>
+    </div>
+}
+else
+{
+   
+    @section PageScripts {
     <script src="~/js/dashboards-analytics.js"></script>
     <script src="~/js/pages/dashboard/dashboard.js"></script>
+    }
+    <div id="toast-container" aria-live="polite" aria-atomic="true" class="position-relative">
+        <!-- Position it -->
+        <div class="toast-container position-absolute p-3" style="top: 0; right: 0;" id="toastPlacement">
+        </div>
+    </div>
+    @Html.Partial("_Ticker", Model)
+    <!-- TradingView Widget END -->
+    @* ************** Content ************** *@
+    <div class="row">
+        <div class="col-lg-12 mb-4 order-0">
+            <div class="card-body">
+                <div class="text-center">
+                    <div id="spinner" class="spinner-grow text-primary" role="status" style="display: none;" data-intro="Please wait while data is loading.">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-8 mb-4 order-0" data-intro="This is your main dashboard with various stats.">
+            <div class="card">
+                <div class="d-flex align-items-end row">
+                    <div class="col-sm-7">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">Congratulations @User.Identity.Name! 🎉</h5>
+                            <p class="mb-4">You have done <span class="fw-medium">72%</span> more news today. Check your news source in your sentiment Analyzer.</p>
+                            <a href="/SentimentAnalizer" class="btn btn-sm btn-outline-primary" data-intro="View impacts in the Sentiment Analyzer by clicking here.">View Impacts</a>
+                        </div>
+                    </div>
+                    <div class="col-sm-5 text-center text-sm-left">
+                        <div class="card-body pb-0 px-0 px-md-4">
+                            <img src="~/img/illustrations/man-with-laptop-light.png" height="140" alt="View Badge User" data-app-dark-img="illustrations/man-with-laptop-dark.png" data-app-light-img="illustrations/man-with-laptop-light.png">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 col-md-4 order-1">
+            <div class="row">
+                <div class="col-lg-6 col-md-12 col-6 mb-4" data-intro="Here you can see your profit.">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <img src="~/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
+                                        <a class="dropdown-item" href="/Portfolio/Index">View More</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="fw-medium d-block mb-1">Profit</span>
+                            <h3 id="profit" class="card-title mb-2">€0</h3>
+                            <small id="profit_percentage" class="text-success fw-medium">
+                                <i class='bx bx-up-arrow-alt'></i> @Model.DashboardData.DividendsPercentage%
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-12 col-6 mb-4" data-intro="Here you can see your dividends.">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
+                                        <a class="dropdown-item" href="/Portfolio/Dividends">View More</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <span>Dividends</span>
+                            <h3 id="dividends" class="card-title text-nowrap mb-1">€0</h3>
+                            <small class="@(Model.DashboardData.DividendsPercentage >= 0 ? "text-success" : "text-danger") fw-medium">
+                                <i class='@(Model.DashboardData.DividendsPercentage >= 0 ? "bx bx-up-arrow-alt" : "bx bx-down-arrow-alt")'></i>
+                                @Model.DashboardData.DividendsPercentage%
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Total Revenue -->
+        @Html.Partial("_TotalRevenue", Model)
+        <!--/ Total Revenue -->
+        <div class="col-12 col-md-8 col-lg-4 order-3 order-md-2">
+            <div class="row">
+                <div class="col-6 mb-4" data-intro="Stock events information can be seen here.">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <img src="~/img/icons/unicons/uil--channel.png" alt="Stock Events Icon" class="rounded">
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt4">
+                                        <a class="dropdown-item" href="/StockEvents/Index">View More</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="d-block mb-1">Stock Events</span>
+                            <h3 id="payments" class="card-title text-nowrap mb-2">N/A</h3>
+                            <small class="text-danger fw-medium"><i class='bx bx-cube'></i> </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6 mb-4" data-intro="Your transactions are shown here.">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="card-title d-flex align-items-start justify-content-between">
+                                <div class="avatar flex-shrink-0">
+                                    <img src="~/img/icons/unicons/cc-primary.png" alt="Credit Card" class="rounded">
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn p-0" type="button" id="cardOpt1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="bx bx-dots-vertical-rounded"></i>
+                                    </button>
+                                    <div class="dropdown-menu" aria-labelledby="cardOpt1">
+                                        <a class="dropdown-item" href="javascript:void(0);">View More</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="fw-medium d-block mb-1">Transactions</span>
+                            <h3 id="operations" class="card-title mb-2">N/A</h3>
+                            <small class="text-success fw-medium"><i class='bx bx-cube'></i> </small>
+                        </div>
+                    </div>
+                </div>
+                <!-- </div>
+                <div class="row"> -->
+                <div class="col-12 mb-4" data-intro="Here you can find your profile report.">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between flex-sm-row flex-column gap-3">
+                                <div class="d-flex flex-sm-column flex-row align-items-start justify-content-between">
+                                    <div class="card-title">
+                                        <h5 class="text-nowrap mb-2">Profile Report</h5>
+                                        <span class="badge bg-label-warning rounded-pill">Year @(Model.TotalRevenueByYear.OrderByDescending(y => y.Year).FirstOrDefault()?.Year.ToString() ?? "No Year")</span>
+                                    </div>
+                                    <div class="mt-sm-auto">
+                                        <small class="@(Model.PortfolioGrowthPercentage >= 0 ? "text-success" : "text-danger") text-nowrap fw-medium">
+                                            <i class='bx @(Model.PortfolioGrowthPercentage >= 0 ? "bx-chevron-up" : "bx-chevron-down")'></i>
+                                            @Model.PortfolioGrowthPercentage%
+                                        </small>
+                                        <h3 class="mb-0">€@(Model.AmountTotalYear.OrderByDescending(y => y.Year).FirstOrDefault()?.TotalInvestment.ToString() ?? "No Year")</h3>
+                                    </div>
+                                </div>
+                                <div id="profileReportChart"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Portfolios Statistics -->
+        @Html.Partial("_PortfoliosStatistics", Model)
+        <!--/ Portfolios Statistics -->
+        <!-- Expense Overview -->
+        @Html.Partial("_ExpenseOverview", Model)
+        <!--/ Expense Overview -->
+        <!-- Transactions -->
+        @Html.Partial("_Transactions", Model)
+        <!--/ Transactions -->
+    </div>
+
+   
 }
-<div id="toast-container" aria-live="polite" aria-atomic="true" class="position-relative">
-    <!-- Position it -->
-    <div class="toast-container position-absolute p-3" style="top: 0; right: 0;" id="toastPlacement">
-    </div>
-</div>
-@Html.Partial("_Ticker", Model)
-<!-- TradingView Widget END -->
-@* ************** Content ************** *@
-<div class="row">
-    <div class="col-lg-12 mb-4   order-0">
-        <div class="card-body">
-            <div class="text-center">
-                <div id="spinner" class="spinner-grow text-primary" role="status" style="display: none;">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-8 mb-4 order-0">
-        <div class="card">
-            <div class="d-flex align-items-end row">
-                <div class="col-sm-7">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary">Congratulations @User.Identity.Name! 🎉</h5>
-                        <p class="mb-4">You have done <span class="fw-medium">72%</span> more news today. Check your news source in your sentiment Analyzer.</p>
-                        <a href="/SentimentAnalizer" class="btn btn-sm btn-outline-primary">View Impacts</a>
-                    </div>
-                </div>
-                <div class="col-sm-5 text-center text-sm-left">
-                    <div class="card-body pb-0 px-0 px-md-4">
-                        <img src="~/img/illustrations/man-with-laptop-light.png" height="140" alt="View Badge User" data-app-dark-img="illustrations/man-with-laptop-dark.png" data-app-light-img="illustrations/man-with-laptop-light.png">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4 col-md-4 order-1">
-        <div class="row">
-            <div class="col-lg-6 col-md-12 col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <img src="~/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                                    <a class="dropdown-item" href="/Portfolio/Index">View More</a>
-                                </div>
-                            </div>
-                        </div>
-                        <span class="fw-medium d-block mb-1">Profit</span>
-                        <h3 id="profit" class="card-title mb-2">€0</h3>
-                        <small id="profit_percentage" class="text-success fw-medium">
-                            <i class='bx bx-up-arrow-alt'></i> @Model.DashboardData.DividendsPercentage%
-                        </small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-12 col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
-                                    <a class="dropdown-item" href="/Portfolio/Dividends">View More</a>
-                                </div>
-                            </div>
-                        </div>
-                        <span>Dividends</span>
-                        <h3 id="dividends" class="card-title text-nowrap mb-1">€0</h3>
-                        <small class="@(Model.DashboardData.DividendsPercentage >= 0 ? "text-success" : "text-danger") fw-medium">
-                            <i class='@(Model.DashboardData.DividendsPercentage >= 0 ? "bx bx-up-arrow-alt" : "bx bx-down-arrow-alt")'></i>
-                            @Model.DashboardData.DividendsPercentage%
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Total Revenue -->
-    @Html.Partial("_TotalRevenue", Model)
-    <!--/ Total Revenue -->
-    <div class="col-12 col-md-8 col-lg-4 order-3 order-md-2">
-        <div class="row">
-            <div class="col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <img src="~/img/icons/unicons/uil--channel.png" alt="Stock Events Icon" class="rounded">
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt4">
-                                    <a class="dropdown-item" href="/StockEvents/Index">View More</a>
-                                </div>
-                            </div>
-                        </div>
-                        <span class="d-block mb-1">Stock Events</span>
-                        <h3 id="payments" class="card-title text-nowrap mb-2">N/A</h3>
-                        <small class="text-danger fw-medium"><i class='bx bx-cube'></i> </small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="card-title d-flex align-items-start justify-content-between">
-                            <div class="avatar flex-shrink-0">
-                                <img src="~/img/icons/unicons/cc-primary.png" alt="Credit Card" class="rounded">
-                            </div>
-                            <div class="dropdown">
-                                <button class="btn p-0" type="button" id="cardOpt1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="bx bx-dots-vertical-rounded"></i>
-                                </button>
-                                <div class="dropdown-menu" aria-labelledby="cardOpt1">
-                                    <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                </div>
-                            </div>
-                        </div>
-                        <span class="fw-medium d-block mb-1">Transactions</span>
-                        <h3 id="operations" class="card-title mb-2">N/A</h3>
-                        <small class="text-success fw-medium"><i class='bx bx-cube'></i> </small>
-                    </div>
-                </div>
-            </div>
-            <!-- </div>
-            <div class="row"> -->
-            <div class="col-12 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between flex-sm-row flex-column gap-3">
-                            <div class="d-flex flex-sm-column flex-row align-items-start justify-content-between">
-                                <div class="card-title">
-                                    <h5 class="text-nowrap mb-2">Profile Report</h5>
-                                    <span class="badge bg-label-warning rounded-pill">Year @(Model.TotalRevenueByYear.OrderByDescending(y => y.Year).FirstOrDefault()?.Year.ToString() ?? "No Year")</span>
-                                </div>
-                                <div class="mt-sm-auto">
-                                    <small class="@(Model.PortfolioGrowthPercentage >= 0 ? "text-success" : "text-danger") text-nowrap fw-medium">
-                                        <i class='bx @(Model.PortfolioGrowthPercentage >= 0 ? "bx-chevron-up" : "bx-chevron-down")'></i>
-                                        @Model.PortfolioGrowthPercentage%
-                                    </small>
-                                    <h3 class="mb-0">€@(Model.AmountTotalYear.OrderByDescending(y => y.Year).FirstOrDefault()?.TotalInvestment.ToString() ?? "No Year")</h3>
-                                </div>
-                            </div>
-                            <div id="profileReportChart"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="row">
-    <!-- Portfolios Statistics -->
-    @Html.Partial("_PortfoliosStatistics", Model)
-    <!--/ Portfolios Statistics -->
-    <!-- Expense Overview -->
-    @Html.Partial("_ExpenseOverview", Model)
-    <!--/ Expense Overview -->
-    <!-- Transactions -->
-    @Html.Partial("_Transactions", Model)
-    <!--/ Transactions -->
-</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Check if the tour has been completed
+        if (!localStorage.getItem('dashboardTourCompleted')) {
+            // Start the tour
+            introJs().start().oncomplete(function () {
+                // Set the tour as completed in localStorage
+                localStorage.setItem('dashboardTourCompleted', 'true');
+            }).onexit(function () {
+                // Set the tour as completed in localStorage if the user exits the tour
+                localStorage.setItem('dashboardTourCompleted', 'true');
+            });
+        }
+    });
+</script>

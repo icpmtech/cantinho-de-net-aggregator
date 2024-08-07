@@ -5,7 +5,7 @@ namespace MarketAnalyticHub.Models
   public class StockEvent
   {
     public int Id { get; set; }
-    public string Date { get; set; }
+    public DateTime Date { get; set; }
     public string EventName { get; set; }
     public string Details { get; set; }
     public string Impact { get; set; }

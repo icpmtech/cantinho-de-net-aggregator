@@ -21,7 +21,7 @@
 }
 
 
-<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>
+<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="top:84px"></div>
 
 <div class="row">
     <div class="col-md-12">
@@ -270,8 +270,10 @@
                                     </div>
                                     <span class="fw-medium d-block mb-1">Total Investment</span>
                                     <h3 class="card-title mb-2">€ ${portfolio.totalInvestment.toFixed(3)}</h3>
-                                    <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +72.80%</small>
-                                    <canvas id="chart-${portfolio.id}"></canvas>
+                                          ${portfolio.portfolioPercentage >= 0
+                    ? `<small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +${portfolio.portfolioPercentage.toFixed(3)}%</small>`
+                    : `<small class="text-danger fw-medium"><i class='bx bx-down-arrow-alt'></i> ${portfolio.portfolioPercentage.toFixed(3)}%</small>`}
+                    <canvas id="chart-${portfolio.id}"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -294,7 +296,9 @@
                                     </div>
                                     <span>Current Market Value</span>
                                     <h3 class="card-title text-nowrap mb-1">€${portfolio.currentMarketValue.toFixed(3)}</h3>
-                                    <small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> </small>
+                                       ${portfolio.portfolioPercentage >= 0
+                    ? `<small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +${portfolio.portfolioPercentage.toFixed(3)}%</small>`
+                    : `<small class="text-danger fw-medium"><i class='bx bx-down-arrow-alt'></i> ${portfolio.portfolioPercentage.toFixed(3)}%</small>`}
                                     <ul class="list-group list-group-flush">
                                         ${portfolio.items?.map(item => `
                                             <li class="list-group-item">

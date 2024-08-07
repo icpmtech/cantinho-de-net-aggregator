@@ -149,7 +149,7 @@ namespace MarketAnalyticHub.Controllers.api
       var stockEvent = new StockEvent
       {
         EventName= eventModel.EventName,
-        Date =eventModel.Date ?? DateTime.Now.ToString(),
+        Date =eventModel.Date ?? DateTime.Now,
         Details=eventModel.Details,
         Url = eventModel.Url,
         Title = eventModel.Title,

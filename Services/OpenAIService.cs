@@ -88,7 +88,25 @@ namespace AspnetCoreMvcFull.Services
       var resultText = result.ToString().Trim();
       return resultText;
     }
+    public async Task<string> GenerateScoreImpacts(string description, string symbol)
+    {
+      var api = new OpenAIAPI(_apiKey);
 
+      var result = await api.Chat.CreateChatCompletionAsync(new OpenAI_API.Chat.ChatRequest()
+      {
+        Model = Model.GPT4_Turbo,
+        Temperature = 0.1,
+        MaxTokens = 500,
+        Messages = new OpenAI_API.Chat.ChatMessage[] {
+      new OpenAI_API.Chat.ChatMessage(ChatMessageRole.User,  $"impact of the folloing text in stock market " +
+      $"{symbol} give a score number betteen 1 and 5 only the number and a why short   : {description} "
+    )
+    }
+      }) ;
+
+      var resultText = result.ToString().Trim();
+      return resultText;
+    }
     public async Task<string> GenerateIndustryImpacts(string description)
     {
       var api = new OpenAIAPI(_apiKey);

@@ -23,22 +23,24 @@
             width: 100%;
             margin-bottom: 1rem;
             color: #212529;
+            table-layout: fixed;
         }
 
-            .table th, .table td {
-                padding: 0.75rem;
-                vertical-align: top;
-                border-top: 1px solid #dee2e6;
-            }
+        .table th, .table td {
+            padding: 0.75rem;
+            vertical-align: top;
+            border-top: 1px solid #dee2e6;
+            word-wrap: break-word;
+        }
 
-            .table thead th {
-                vertical-align: bottom;
-                border-bottom: 2px solid #dee2e6;
-            }
+        .table thead th {
+            vertical-align: bottom;
+            border-bottom: 2px solid #dee2e6;
+        }
 
-            .table tbody + tbody {
-                border-top: 2px solid #dee2e6;
-            }
+        .table tbody + tbody {
+            border-top: 2px solid #dee2e6;
+        }
 
         .dropdown-menu {
             display: none;
@@ -59,73 +61,185 @@
             border-radius: 0.25rem;
         }
 
-            .pagination li {
-                display: block;
-            }
+        .pagination li {
+            display: block;
+        }
 
-                .pagination li a {
-                    position: relative;
-                    display: block;
-                    padding: 0.5rem 0.75rem;
-                    margin-left: -1px;
-                    line-height: 1.25;
-                    color: #007bff;
-                    background-color: #fff;
-                    border: 1px solid #dee2e6;
-                }
+        .pagination li a {
+            position: relative;
+            display: block;
+            padding: 0.5rem 0.75rem;
+            margin-left: -1px;
+            line-height: 1.25;
+            color: #007bff;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+        }
 
-                    .pagination li a:hover {
-                        z-index: 2;
-                        color: #0056b3;
-                        text-decoration: none;
-                        background-color: #e9ecef;
-                        border-color: #dee2e6;
-                    }
+        .pagination li a:hover {
+            z-index: 2;
+            color: #0056b3;
+            text-decoration: none;
+            background-color: #e9ecef;
+            border-color: #dee2e6;
+        }
 
-            .pagination .disabled a {
-                color: #6c757d;
-                pointer-events: none;
-                cursor: auto;
-                background-color: #fff;
-                border-color: #dee2e6;
-            }
+        .pagination .disabled a {
+            color: #6c757d;
+            pointer-events: none;
+            cursor: auto;
+            background-color: #fff;
+            border-color: #dee2e6;
+        }
 
-            .pagination .active a {
-                z-index: 1;
-                color: #fff;
-                background-color: #007bff;
-                border-color: #007bff;
-            }
+        .pagination .active a {
+            z-index: 1;
+            color: #fff;
+            background-color: #007bff;
+            border-color: #007bff;
+        }
 
         .filter-container, .search-container {
             display: flex;
             justify-content: center;
             margin-bottom: 20px;
+            flex-wrap: wrap;
         }
 
+        .filter-container select, .search-container input {
+            width: 200px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .filter-container button, .search-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: #fff;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .filter-container button:hover, .search-container button:hover {
+            background-color: #0056b3;
+        }
+
+        @@media (max-width: 768px) {
             .filter-container select, .search-container input {
-                width: 200px;
-                padding: 10px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                margin-right: 10px;
+                width: 100%;
+                margin-right: 0;
             }
 
             .filter-container button, .search-container button {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 4px;
-                background-color: #007bff;
-                color: #fff;
-                cursor: pointer;
+                width: 100%;
             }
 
-                .filter-container button:hover, .search-container button:hover {
-                    background-color: #0056b3;
-                }
+            .card {
+                padding: 8px;
+                margin: 8px;
+            }
+
+            .table thead {
+                display: none;
+            }
+
+            .table tbody, .table tr, .table td {
+                display: block;
+                width: 100%;
+            }
+
+            .table tr {
+                margin-bottom: 15px;
+            }
+
+            .table td {
+                text-align: right;
+                padding-left: 50%;
+                position: relative;
+            }
+
+            .table td::before {
+                content: attr(data-label);
+                position: absolute;
+                left: 0;
+                width: 50%;
+                padding-left: 15px;
+                font-weight: bold;
+                text-align: left;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
+            }
+
+            .pagination li {
+                margin: 2px;
+            }
+        }
+
+        @@media (min-width: 769px) and (max-width: 1024px) {
+            .filter-container, .search-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .filter-container select, .search-container input, .filter-container button, .search-container button {
+                width: 50%;
+                margin-bottom: 10px;
+            }
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <div class="spinner" id="loadingSpinner" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+
     <div class="card">
         <h5 class="card-header">RSS</h5>
         <div class="search-container">
@@ -135,9 +249,7 @@
         <div class="filter-container">
             <select id="categoryFilter" onchange="filterNews()">
                 <option value="">All Categories</option>
-                <option value="Technology">Technology</option>
-                <option value="Business">Business</option>
-                <!-- Add more categories as needed -->
+                <!-- Dynamic categories will be added here -->
             </select>
             <select id="dateFilter" onchange="filterNews()">
                 <option value="">All Dates</option>
@@ -158,6 +270,7 @@
                         <th>Link</th>
                         <th>Date</th>
                         <th>Actions</th>
+                        <th>AI Analysis</th>
                     </tr>
                 </thead>
                 <tbody class="table-border-bottom-0" id="newsTableBody">
@@ -173,8 +286,23 @@
         <button onclick="fetchRssUrls()">Load RSS Feeds</button>
     </div>
 
+    <!-- The Modal -->
+    <div id="analysisModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Analyze News</h2>
+            <p>Select a ticker symbol for analysis:</p>
+            <select id="symbolSelect">
+                <!-- Symbols will be loaded here -->
+            </select>
+            <button onclick="performAnalysis()">Analyze</button>
+        </div>
+    </div>
+
     <script>
         let allNewsItems = [];
+        let categories = new Set();
+        let currentNewsForAnalysis = null;
 
         async function fetchRssUrls() {
             const response = await fetch('/api/NewsRSSApi/GetRssUrls');
@@ -193,10 +321,23 @@
             if (response.ok) {
                 const newsItems = await response.json();
                 allNewsItems = allNewsItems.concat(newsItems);
+                categories.add(category);
+                updateCategoriesDropdown();
                 updateTable(allNewsItems);
             } else {
                 console.error(`Failed to fetch RSS feed for category ${category}`);
             }
+        }
+
+        function updateCategoriesDropdown() {
+            const categoryFilter = document.getElementById('categoryFilter');
+            categoryFilter.innerHTML = '<option value="">All Categories</option>'; // Clear existing options
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
         }
 
         function updateTable(newsItems) {
@@ -205,27 +346,77 @@
             newsItems.forEach(news => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                                    <td>
-                                        ${news.imageUrl ? `<img src="${news.ImageUrl}" alt="Image" style="width: 100px; height: auto;" />` : `<i class="fas fa-newspaper" style="font-size: 100px; color: gray;"></i>`}
-                                    </td>
-                                    <td>${news.category}</td>
-                                    <td>${news.title ?? "No title"}</td>
-                                    <td>${news.description ?? "No description"}</td>
-                                    <td><a href="${news.link}" target="_blank">${news.link ?? "No link"}</a></td>
-                                    <td>${news.date ?? "No date"}</td>
-                                    <td>
-                                        <div class="dropdown">
-                                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
-                                            <div class="dropdown-menu">
-                                                <a class="dropdown-item" href="javascript:void(0);" onclick="editNews('${news.title}')"><i class="fas fa-edit"></i> Edit</a>
-                                                <a class="dropdown-item" href="javascript:void(0);" onclick="deleteNews('${news.title}')"><i class="fas fa-trash"></i> Delete</a>
-                                                <a class="dropdown-item" href="javascript:void(0);" onclick="runJob('${news.title}')"><i class="fas fa-play"></i> Run Job</a>
-                                            </div>
-                                        </div>
-                                    </td>
-                                `;
+                    <td data-label="Image">
+                        ${news.imageUrl ? `<img src="${news.imageUrl}" alt="Image" style="width: 100px; height: auto;" />` : `<i class="fas fa-newspaper" style="font-size: 100px; color: gray;"></i>`}
+                    </td>
+                    <td data-label="Category">${news.category}</td>
+                    <td data-label="Title">${news.title ?? "No title"}</td>
+                    <td data-label="Short Description">${news.description ?? "No description"}</td>
+                    <td data-label="Link"><a href="${news.link}" target="_blank">${news.link ?? "No link"}</a></td>
+                    <td data-label="Date">${news.date ?? "No date"}</td>
+                    <td data-label="Actions">
+                        <div class="dropdown">
+                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="javascript:void(0);" onclick="editNews('${news.title}')"><i class="fas fa-edit"></i> Edit</a>
+                                <a class="dropdown-item" href="javascript:void(0);" onclick="deleteNews('${news.title}')"><i class="fas fa-trash"></i> Delete</a>
+                                <a class="dropdown-item" href="javascript:void(0);" onclick="runJob('${news.title}')"><i class="fas fa-play"></i> Run Job</a>
+                            </div>
+                        </div>
+                    </td>
+                    <td data-label="AI Analysis">
+                        <button onclick="showAnalysisModal('${news.title}', '${news.description}', '${news.link}')" class="btn p-0"><i class="fas fa-magic" style="font-size: 24px; color: #007bff;"></i></button>
+                    </td>
+                `;
                 tbody.appendChild(row);
             });
+        }
+
+        async function fetchSymbols() {
+            const response = await fetch('/api/symbolsAPI');
+            if (response.ok) {
+                const symbols = await response.json();
+                const symbolSelect = document.getElementById('symbolSelect');
+                symbolSelect.innerHTML = ''; // Clear existing options
+                symbols.forEach(symbol => {
+                    const option = document.createElement('option');
+                    option.value = symbol;
+                    option.textContent = symbol;
+                    symbolSelect.appendChild(option);
+                });
+            } else {
+                console.error('Failed to fetch symbols');
+            }
+        }
+
+        function showAnalysisModal(title, description, link) {
+            currentNewsForAnalysis = { title, description, link };
+            fetchSymbols();
+            document.getElementById('analysisModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('analysisModal').style.display = 'none';
+        }
+
+        async function performAnalysis() {
+            const tickerSymbol = document.getElementById('symbolSelect').value;
+            if (!tickerSymbol) return;
+
+            const response = await fetch(`/api/SentimentAnalyzerApi/analise-score-impact?inputTextToAnalise=${encodeURIComponent(currentNewsForAnalysis.tilte + currentNewsForAnalysis.description)}&symbol=${tickerSymbol}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                alert(`Analysis result for ${tickerSymbol}: ${result.analysis}`);
+                closeModal();
+            } else {
+                console.error('Failed to analyze news');
+            }
         }
 
         function searchNews() {
@@ -295,26 +486,26 @@
             const totalPages = Math.ceil(totalItems / pageSize);
             const paginationControls = document.getElementById('paginationControls');
             paginationControls.innerHTML = `
-                                <li class="page-item ${currentPage == 1 ? "disabled" : ""}">
-                                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(${currentPage - 1})" aria-label="Previous">
-                                        <span aria-hidden="true">&laquo;</span>
-                                    </a>
-                                </li>
-                            `;
+                <li class="page-item ${currentPage == 1 ? "disabled" : ""}">
+                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(${currentPage - 1})" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            `;
             for (let i = 1; i <= totalPages; i++) {
                 paginationControls.innerHTML += `
-                                    <li class="page-item ${currentPage == i ? "active" : ""}">
-                                        <a class="page-link" href="javascript:void(0);" onclick="loadPage(${i})">${i}</a>
-                                    </li>
-                                `;
+                    <li class="page-item ${currentPage == i ? "active" : ""}">
+                        <a class="page-link" href="javascript:void(0);" onclick="loadPage(${i})">${i}</a>
+                    </li>
+                `;
             }
             paginationControls.innerHTML += `
-                                <li class="page-item ${currentPage == totalPages ? "disabled" : ""}">
-                                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(${currentPage + 1})" aria-label="Next">
-                                        <span aria-hidden="true">&raquo;</span>
-                                    </a>
-                                </li>
-                            `;
+                <li class="page-item ${currentPage == totalPages ? "disabled" : ""}">
+                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(${currentPage + 1})" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            `;
         }
 
         async function editNews(id) {

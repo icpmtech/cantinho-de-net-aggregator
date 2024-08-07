@@ -288,7 +288,7 @@ namespace MarketAnalyticHub.Controllers.api
 
         var lastWeekEvents = portfolios
             .SelectMany(p => p.Items.SelectMany(i => i.StockEvents))
-            .Where(e => DateTime.Parse(e.Date) >= startOfWeek && DateTime.Parse(e.Date) < startOfWeek.AddDays(7))
+            .Where(e =>e.Date >= startOfWeek && e.Date < startOfWeek.AddDays(7))
             .ToList();
 
         var eventsData = new

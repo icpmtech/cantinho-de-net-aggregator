@@ -330,7 +330,8 @@ namespace MarketAnalyticHub.Controllers
 
       if (portfolios == null || !portfolios.Any())
       {
-        return NotFound();
+        
+        return View(null);
       }
 
       var portfolioPercentageResponses = await _portfolioService.CalculatePortfolioPercentagesAsync(portfolios);

@@ -47,8 +47,56 @@
 <h4 class="py-3 mb-4">
     <span class="text-muted fw-light">@Localizer["StockEvents Manager"] /</span> @Localizer["StockEvents"]
 </h4>
+<div class="card mb-3">
+    <div class="card-header">
+        Filter Stock Events
+    </div>
+    <div class="card-body">
+        <form asp-action="Index" method="get" class="row g-3">
+            <div class="col-md-4">
+                <label for="EventName" class="form-label">Event Name</label>
+                <input type="text" class="form-control" id="EventName" name="EventName" value="@ViewData["CurrentEventName"]">
+            </div>
+            <div class="col-md-4">
+                <label for="Date" class="form-label">Date</label>
+                <input type="date" class="form-control" id="Date" name="Date" value="@ViewData["CurrentDate"]">
+            </div>
+            <div class="col-md-4">
+                <label for="Impact" class="form-label">Impact</label>
+                <select id="Impact" name="Impact" class="form-select">
+                    <option value="">All</option>
+                    <option value="High" selected=@(ViewData["CurrentImpact"]?.ToString() == "High" ? "selected" : "")>High</option>
+                    <option value="Medium" selected=@(ViewData["CurrentImpact"]?.ToString() == "Medium" ? "selected" : "")>Medium</option>
+                    <option value="Low" selected=@(ViewData["CurrentImpact"]?.ToString() == "Low" ? "selected" : "")>Low</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="Sentiment" class="form-label">Sentiment</label>
+                <select id="Sentiment" name="Sentiment" class="form-select">
+                    <option value="">All</option>
+                    <option value="Positive" selected=@(ViewData["CurrentSentiment"]?.ToString() == "Positive" ? "selected" : "")>Positive</option>
+                    <option value="Neutral" selected=@(ViewData["CurrentSentiment"]?.ToString() == "Neutral" ? "selected" : "")>Neutral</option>
+                    <option value="Negative" selected=@(ViewData["CurrentSentiment"]?.ToString() == "Negative" ? "selected" : "")>Negative</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="Source" class="form-label">Source</label>
+                <input type="text" class="form-control" id="Source" name="Source" value="@ViewData["CurrentSource"]">
+            </div>
+            <div class="col-md-4">
+                <label for="PriceRange" class="form-label">Price Range</label>
+                <input type="text" class="form-control" id="PriceRange" name="PriceRange" value="@ViewData["CurrentPriceRange"]">
+            </div>
+            <div class="col-md-12 text-end">
+                <button type="submit" class="btn btn-primary mt-3">
+                    <i class="bx bx-filter"></i> Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
-@Html.Partial("_Cards", Model)
+
 <div class="col-12">
     <h6 class="text-muted">My Events</h6>
     <div class="nav-align-top mb-4">
@@ -78,7 +126,7 @@
 </div>
 
 @section VendorScripts {
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+   
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 }
 
@@ -114,43 +162,7 @@
                     window.location.href = url.toString();
                 });
             });
-            function updateCardValues() {
-                // Fetch data from your API
-                fetch('/api/Dashboards/portfolio-statistics')
-                    .then(response => response.json())
-                    .then(data => {
-                        // Calculate total values
-                        const totalCustMarketValue = data.reduce((acc, portfolio) => acc + portfolio.currentMarketValue, 0);
-                        const totalInvestment = data.reduce((acc, portfolio) => acc + portfolio.totalInvestment, 0);
-                        const totalDividends = data.reduce((acc, portfolio) => acc + portfolio.items.reduce((itemAcc, item) => itemAcc + item.dividends, 0), 0);
-                        const totalDifferenceValue = totalCustMarketValue - totalInvestment;
-                        const totalProfit = (totalCustMarketValue / totalInvestment) - 1;
-                        const totalDifferencePercentage = (totalDifferenceValue / totalInvestment) * 100;
-                        const totalProfitDifferencePercentage = totalProfit * 100;
-
-                        document.getElementById('totalCustMarketValue').textContent = `€${totalCustMarketValue.toFixed(2)}`;
-                        document.getElementById('totalMarketValue').textContent = `€${totalInvestment.toFixed(2)}`;
-                        document.getElementById('totalPortfolioPercentage').textContent = `${totalDifferencePercentage.toFixed(2)}%`;
-                        document.getElementById('dividends').textContent = `€${totalDividends.toFixed(2)}`;
-                        document.getElementById('totalDifferenceValue').textContent = `€${totalDifferenceValue.toFixed(2)}`;
-                        document.getElementById('totalProfit').textContent = `${totalProfitDifferencePercentage.toFixed(2)}%`;
-
-                        // Update difference icons and percentages
-                        document.getElementById('totalDifferenceIcon').className = totalDifferenceValue >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
-                        document.getElementById('totalDifferencePercentage').textContent = `${totalDifferencePercentage.toFixed(2)}%`;
-
-                        document.getElementById('totalProfitIcon').className = totalProfit >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
-                        document.getElementById('totalProfitDifferencePercentage').textContent = `${totalProfitDifferencePercentage.toFixed(2)}%`;
-                    })
-                    .catch(error => console.error('Error fetching portfolio summary:', error));
-            }
-
-            // Call the function to update card values
-            updateCardValues();
-
-            // Optionally, set an interval to refresh data periodically
-            setInterval(updateCardValues, 60000); // Refresh every 60 seconds
-
+           
 
         });
        

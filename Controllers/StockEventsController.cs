@@ -25,56 +25,107 @@ namespace AspnetCoreMvcFull.Controllers
       _context = context;
         }
 
-        // GET: StockEvents
-     public async Task<IActionResult> Index(string sortOrder, string searchQuery, int? pageNumber, int pageSize = 10, string tab = "list")
-{
-    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-    var applicationDbContext = _context.StockEvents
-                                      .Include(s => s.PortfolioItem)
-                                      .Where(s => s.PortfolioItem.Portfolio.UserId == userId);
-    // Adjust this if UserId is directly in PortfolioItem
-    ViewData["CurrentSort"] = sortOrder;
-    ViewData["CurrentFilter"] = searchQuery;
-    ViewData["CurrentPageSize"] = pageSize;
-    ViewData["CurrentTab"] = tab;
-
-    ViewData["OperationTypeSortParm"] = String.IsNullOrEmpty(sortOrder) ? "operationType_desc" : "";
-    ViewData["UserIdSortParm"] = sortOrder == "UserId" ? "userId_desc" : "UserId";
-
-    // Filtering logic
-    if (!String.IsNullOrEmpty(searchQuery))
+    // GET: StockEvents
+    public async Task<IActionResult> Index(
+    string sortOrder,
+    string EventName,
+    string Date,
+    string Impact,
+    string Sentiment,
+    string Source,
+    string PriceRange,
+    int? pageNumber,
+    int pageSize = 10,
+    string tab = "list")
     {
-        applicationDbContext = applicationDbContext.Where(s => s.EventName.Contains(searchQuery));
-    }
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var applicationDbContext = _context.StockEvents
+                                        .Include(s => s.PortfolioItem)
+                                        .Where(s => s.PortfolioItem.Portfolio.UserId == userId);
 
-    // Sorting logic
-    switch (sortOrder)
-    {
+      ViewData["CurrentSort"] = sortOrder;
+      ViewData["CurrentEventName"] = EventName;
+      ViewData["CurrentDate"] = Date;
+      ViewData["CurrentImpact"] = Impact;
+      ViewData["CurrentSentiment"] = Sentiment;
+      ViewData["CurrentSource"] = Source;
+      ViewData["CurrentPriceRange"] = PriceRange;
+      ViewData["CurrentPageSize"] = pageSize;
+      ViewData["CurrentTab"] = tab;
+
+      ViewData["OperationTypeSortParm"] = String.IsNullOrEmpty(sortOrder) ? "operationType_desc" : "";
+      ViewData["UserIdSortParm"] = sortOrder == "UserId" ? "userId_desc" : "UserId";
+
+      // Filtering logic
+      if (!String.IsNullOrEmpty(EventName))
+      {
+        applicationDbContext = applicationDbContext.Where(s => s.EventName.Contains(EventName));
+      }
+
+      if (!String.IsNullOrEmpty(Date))
+      {
+        DateTime eventDate;
+        if (DateTime.TryParse(Date, out eventDate))
+        {
+          applicationDbContext = applicationDbContext.Where(s => s.Date == eventDate);
+        }
+      }
+
+      if (!String.IsNullOrEmpty(Impact))
+      {
+        applicationDbContext = applicationDbContext.Where(s => s.Impact == Impact);
+      }
+
+      if (!String.IsNullOrEmpty(Sentiment))
+      {
+        applicationDbContext = applicationDbContext.Where(s => s.Sentiment == Sentiment);
+      }
+
+      if (!String.IsNullOrEmpty(Source))
+      {
+        applicationDbContext = applicationDbContext.Where(s => s.Source.Contains(Source));
+      }
+
+      if (!String.IsNullOrEmpty(PriceRange))
+      {
+        // Assume PriceRange is in format "min-max"
+        var priceParts = PriceRange.Split('-');
+        if (priceParts.Length == 2)
+        {
+          decimal minPrice, maxPrice;
+          if (decimal.TryParse(priceParts[0], out minPrice) && decimal.TryParse(priceParts[1], out maxPrice))
+          {
+            applicationDbContext = applicationDbContext.Where(s => s.Price >= minPrice && s.Price <= maxPrice);
+          }
+        }
+      }
+
+      // Sorting logic
+      switch (sortOrder)
+      {
         case "operationType_desc":
-            applicationDbContext = applicationDbContext.OrderByDescending(s => s.Date);
-            break;
+          applicationDbContext = applicationDbContext.OrderByDescending(s => s.Date);
+          break;
         case "UserId":
-            applicationDbContext = applicationDbContext.OrderBy(s => s.PortfolioItem.Portfolio.UserId);
-            break;
+          applicationDbContext = applicationDbContext.OrderBy(s => s.PortfolioItem.Portfolio.UserId);
+          break;
         case "userId_desc":
-            applicationDbContext = applicationDbContext.OrderByDescending(s => s.PortfolioItem.Portfolio.UserId);
-            break;
+          applicationDbContext = applicationDbContext.OrderByDescending(s => s.PortfolioItem.Portfolio.UserId);
+          break;
         default:
-            applicationDbContext = applicationDbContext.OrderBy(s => s.Date);
-            break;
+          applicationDbContext = applicationDbContext.OrderBy(s => s.Date);
+          break;
+      }
+
+      // Pagination logic
+      var pageIndex = pageNumber ?? 1;
+      var model = await PaginatedList<StockEvent>.CreateAsync(applicationDbContext.AsNoTracking(), pageIndex, pageSize);
+
+      return View(model);
     }
 
-    // Pagination logic
-    var pageIndex = pageNumber ?? 1;
-    var model = await PaginatedList<StockEvent>.CreateAsync(applicationDbContext.AsNoTracking(), pageIndex, pageSize);
-
-    
-
-    return View(model);
-}
-
-        // GET: StockEvents/PortfolioItems/Details/5
-        public async Task<IActionResult> Details(int? id)
+    // GET: StockEvents/PortfolioItems/Details/5
+    public async Task<IActionResult> Details(int? id)
         {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       if (id == null)

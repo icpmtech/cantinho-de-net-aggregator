@@ -3,6 +3,8 @@ using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models.SetupDb;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -11,10 +13,13 @@ namespace MarketAnalyticHub.Controllers
   public class SentimentAnalyzerApiController : ControllerBase
   {
     private readonly PortfolioService _portfolioService;
-
-    public SentimentAnalyzerApiController(PortfolioService portfolioService)
+    private readonly OpenAIService _openAIService;
+    public SentimentAnalyzerApiController(PortfolioService portfolioService, OpenAIService openAIService)
     {
       _portfolioService = portfolioService;
+
+      _openAIService = openAIService;
+   
     }
 
     [HttpGet("GetStockData")]
@@ -39,5 +44,19 @@ namespace MarketAnalyticHub.Controllers
 
       return Ok(stockData);
     }
+
+    [HttpGet("analise-score-impact")]
+    public async Task<IActionResult> GetScoreImpact(string inputTextToAnalise, string symbol)
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+      // Perform the analysis
+      var analysisResult = await _openAIService.GenerateScoreImpacts(inputTextToAnalise, symbol);
+
+      // Return the analysis result
+      return Ok(new { Analysis = analysisResult });
+    }
+
   }
 }

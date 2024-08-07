@@ -85,11 +85,63 @@
 </style>
 
 <h4 class="py-3 mb-4"><span class="text-muted fw-light">Sentiment Analysis /</span> Sentiment Analyzer</h4>
-
-<div class="row mb-5">
-    @Html.Partial("_Chart", Model)
-    @Html.Partial("_Table", Model)
-    @Html.Partial("_List", Model)
+<div class="col-12">
+    <!-- Modal for displaying full details -->
+    <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailsModalLabel">Event Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p id="detailsModalContent"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h6 class="text-muted">Analizer</h6>
+    <div class="nav-align-top mb-4">
+        <ul class="nav nav-tabs nav-fill" role="tablist">
+            <li class="nav-item">
+                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-justified-home" aria-controls="navs-justified-home" aria-selected="true">
+                  <i class="tf-icons bx bx-chart me-1"></i>
+                  <span class="d-none d-sm-block"> Chart</span>
+                    <span class="badge rounded-pill badge-center h-px-20 w-px-20 bg-label-danger ms-1">@Model.Count</span>
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-justified-profile" aria-controls="navs-justified-profile" aria-selected="false">
+                  <i class="tf-icons bx bx-table me-1"></i>
+                  <span class="d-none d-sm-block"> Table</span>
+                    <span class="badge rounded-pill badge-center h-px-20 w-px-20 bg-label-danger ms-1">@Model.Count</span>
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-justified-messages" aria-controls="navs-justified-messages" aria-selected="false">
+                  <i class="tf-icons bx bx-news me-1"></i>
+                  <span class="d-none d-sm-block"> List</span>
+                    <span class="badge rounded-pill badge-center h-px-20 w-px-20 bg-label-danger ms-1">@Model.Count</span>
+                  </button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="navs-justified-home" role="tabpanel">
+                @Html.Partial("_Chart", Model)
+            </div>
+            <div class="tab-pane fade" id="navs-justified-profile" role="tabpanel">
+                @Html.Partial("_Table", Model)
+            </div>
+            <div class="tab-pane fade" id="navs-justified-messages" role="tabpanel">
+                @Html.Partial("_List", Model)
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -100,7 +152,7 @@
         return stockData;
     }
 
-    function createChart(stockData) {
+    function createBubbleChart(stockData) {
         const { startDate, endDate } = getDateRange();
 
         // Show the loading spinner
@@ -113,23 +165,16 @@
             return fetch(apiUrl)
                 .then(response => response.json())
                 .then(data => {
-                    const historicalData = data.map(item => ({
-                        x: new Date(item.date),
-                        y: item.close
-                    }));
-
                     const eventData = stock.stockEvents.map(event => ({
                         x: new Date(event.date),
                         y: event.price,
-                        label: event.eventName
+                        z: event.priceChange, // Bubble size, you can adjust this based on the importance of the event
+                        label: stock.symbol
                     }));
-
-                    // Combine historicalData and eventData into a single dataset
-                    const combinedData = [...historicalData, ...eventData].sort((a, b) => a.x - b.x);
 
                     return {
                         symbol: stock.symbol,
-                        combinedData: combinedData
+                        eventData: eventData
                     };
                 })
                 .catch(error => {
@@ -141,21 +186,28 @@
         Promise.all(fetchPromises).then(results => {
             const series = results.filter(item => item !== null).map(item => ({
                 name: item.symbol,
-                data: item.combinedData
+                type: 'bubble',
+                data: item.eventData
             }));
 
             const options = {
                 series: series,
                 chart: {
-                    type: 'line',
-                    height: 350
+                    type: 'bubble',
+                    height: 500, // Increased height for better readability
+                    toolbar: {
+                        show: true
+                    }
                 },
                 title: {
-                    text: 'Stock Data',
+                    text: 'Stock Events Based in Price Change',
                     align: 'left'
                 },
                 xaxis: {
-                    type: 'datetime'
+                    type: 'datetime',
+                    labels: {
+                        format: 'dd MMM yyyy'
+                    }
                 },
                 yaxis: {
                     labels: {
@@ -175,6 +227,16 @@
                         formatter: function (value) {
                             return value.toFixed(2);
                         }
+                    },
+                    custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+                        const data = w.globals.initialSeries[seriesIndex].data[dataPointIndex];
+                        return `
+                            <div class="apexcharts-tooltip-bubble">
+                                <span><strong>${w.globals.seriesNames[seriesIndex]}</strong></span><br>
+                                <span>Date: ${new Date(data.x).toLocaleDateString()}</span><br>
+                                <span>Price: ${data.y}</span><br>
+                            </div>
+                        `;
                     }
                 },
                 dataLabels: {
@@ -182,12 +244,31 @@
                     formatter: function (value, opts) {
                         const dataPoint = opts.w.config.series[opts.seriesIndex].data[opts.dataPointIndex];
                         return dataPoint?.label ? dataPoint.label : '';
+                    },
+                    style: {
+                        colors: ['#000'],
+                        fontSize: '14px',
+                        fontWeight: 'bold'
+                    },
+                    background: {
+                        enabled: false
                     }
                 },
-            
                 markers: {
-                    size: 6,
-                    shape: "circle"
+                    size: 20, // Adjust the size of the bubbles
+                    shape: "circle",
+                    strokeColors: '#fff',
+                    strokeWidth: 2,
+                    hover: {
+                        size: 25
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'center',
+                    floating: true,
+                    offsetY: -10,
+                    offsetX: -5
                 }
             };
 
@@ -219,6 +300,6 @@
 
     document.addEventListener('DOMContentLoaded', async () => {
         const stockData = await fetchStockData();
-        createChart(stockData);
+        createBubbleChart(stockData);
     });
 </script>
