@@ -87,9 +87,8 @@ namespace MarketAnalyticHub.Controllers.api
 
     // PUT: api/Events/5
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutEvent(int id, Event eventItem)
+    public async Task<IActionResult> PutEvent(int id, EventModelView eventItem1)
     {
-      Event eventItem1 = eventItem;
       if (id != eventItem1.Id)
       {
         return BadRequest();
@@ -100,22 +99,30 @@ namespace MarketAnalyticHub.Controllers.api
       {
         return NotFound();
       }
+      if (eventItem1.Url!= "NOT_CHANGE")
+      {
+        stockEvent.Url = eventItem1.Url;
+      }
+      if (eventItem1.Source != "NOT_CHANGE")
+      {
+        stockEvent.Source = eventItem1.Source;
+      }
+      if (eventItem1.Details != "NOT_CHANGE")
+      {
+        stockEvent.Details = eventItem1.Details;
+      }
 
-      stockEvent.Url = eventItem1.Url;
       stockEvent.Title = eventItem1.Title;
       stockEvent.Start = eventItem1.Start;
       stockEvent.End = eventItem1.End;
       stockEvent.AllDay = eventItem1.AllDay;
-      stockEvent.Calendar = eventItem1.ExtendedProps.Calendar;
-      stockEvent.Location = eventItem1.ExtendedProps.Location;
-      stockEvent.Guests = eventItem1.ExtendedProps.Guests;
-      stockEvent.Description = eventItem1.ExtendedProps.Description;
-      stockEvent.Impact = eventItem1.ExtendedProps.Impact;
-      stockEvent.Sentiment = eventItem1.ExtendedProps.Sentiment;
-      stockEvent.Source = eventItem1.ExtendedProps.Source;
-      stockEvent.Price = eventItem1.ExtendedProps.Price;
-      stockEvent.PriceChange = eventItem1.ExtendedProps.PriceChange;
-      stockEvent.PortfolioItemId = eventItem1.ExtendedProps.PortfolioItemId;
+    
+      stockEvent.Impact = eventItem1.Impact;
+      stockEvent.Sentiment = eventItem1.Sentiment;
+     
+      stockEvent.Price = eventItem1.Price;
+      stockEvent.PriceChange = eventItem1.PriceChange;
+      stockEvent.PortfolioItemId = eventItem1.PortfolioItemId;
 
       _context.Entry(stockEvent).State = EntityState.Modified;
 

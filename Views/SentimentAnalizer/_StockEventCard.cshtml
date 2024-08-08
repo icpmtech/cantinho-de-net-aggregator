@@ -1,0 +1,12 @@
+@model MarketAnalyticHub.Models.StockEvent
+
+<li class="list-group-item">
+    <div class="card">
+        <div class="card-body">
+            <p class="card-text"><i class="fas fa-calendar-day"></i> <strong>Date:</strong> <span>@Model.Date.ToString("yyyy-MM-dd")</span></p>
+            <p class="card-text"><i class="fas fa-chart-line"></i> <strong>Price Change:</strong> <span class="@Model.Sentiment.ToLower()">@Model.PriceChange%</span></p>
+            <p class="card-text"><i class="fas fa-calendar-check"></i> <strong>Events:</strong> <a href="@Model.Source" class="text-@Model.Sentiment.ToLower()">Link</a></p>
+            <p class="card-text"><i class="fas fa-@Model.Sentiment.ToLower()"></i> <strong>Sentiment:</strong> <span class="@Model.Sentiment.ToLower()">@Model.Sentiment</span></p>
+        </div>
+    </div>
+</li>

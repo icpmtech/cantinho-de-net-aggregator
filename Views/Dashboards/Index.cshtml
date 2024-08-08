@@ -31,6 +31,21 @@ else
 {
    
     @section PageScripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Check if the tour has been completed
+            if (!localStorage.getItem('dashboardTourCompleted')) {
+                // Start the tour
+                introJs().start().oncomplete(function () {
+                    // Set the tour as completed in localStorage
+                    localStorage.setItem('dashboardTourCompleted', 'true');
+                }).onexit(function () {
+                    // Set the tour as completed in localStorage if the user exits the tour
+                    localStorage.setItem('dashboardTourCompleted', 'true');
+                });
+            }
+        });
+    </script>
     <script src="~/js/dashboards-analytics.js"></script>
     <script src="~/js/pages/dashboard/dashboard.js"></script>
     }
@@ -213,18 +228,4 @@ else
 
    
 }
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Check if the tour has been completed
-        if (!localStorage.getItem('dashboardTourCompleted')) {
-            // Start the tour
-            introJs().start().oncomplete(function () {
-                // Set the tour as completed in localStorage
-                localStorage.setItem('dashboardTourCompleted', 'true');
-            }).onexit(function () {
-                // Set the tour as completed in localStorage if the user exits the tour
-                localStorage.setItem('dashboardTourCompleted', 'true');
-            });
-        }
-    });
-</script>
+

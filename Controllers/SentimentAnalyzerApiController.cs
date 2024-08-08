@@ -35,6 +35,10 @@ namespace MarketAnalyticHub.Controllers
                                    StockEvents = s?.StockEvents?.OrderBy(e => e.Date).Select(e => new
                                    {
                                      e.Date,
+                                     e.Impact,
+                                     e.Sentiment,
+                                     e.Id,
+                                     e.PortfolioItemId,
                                      e.Price,
                                      e.EventName,
                                      e.Source,
