@@ -61,6 +61,18 @@ namespace MarketAnalyticHub.Controllers
       // Return the analysis result
       return Ok(new { Analysis = analysisResult });
     }
+    [HttpGet("analise-score-impact-json")]
+    public async Task<IActionResult> GetScoreImpactJson(string inputTextToAnalise, string symbol)
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+      // Perform the analysis
+      var analysisResult = await _openAIService.GenerateScoreImpactsJson(inputTextToAnalise, symbol);
+
+      // Return the analysis result
+      return Ok(new { Analysis = analysisResult });
+    }
 
   }
 }

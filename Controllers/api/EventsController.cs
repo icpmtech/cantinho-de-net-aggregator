@@ -119,7 +119,8 @@ namespace MarketAnalyticHub.Controllers.api
     
       stockEvent.Impact = eventItem1.Impact;
       stockEvent.Sentiment = eventItem1.Sentiment;
-     
+      stockEvent.Score = eventItem1.Score;
+      stockEvent.SummaryAnalisys = eventItem1.SummaryAnalisys;
       stockEvent.Price = eventItem1.Price;
       stockEvent.PriceChange = eventItem1.PriceChange;
       stockEvent.PortfolioItemId = eventItem1.PortfolioItemId;

@@ -131,6 +131,37 @@
 
 @section PageScripts {
     <script>
+
+        let categories = new Set();
+
+        async function fetchRssCategories() {
+            showLoading();
+            try {
+                const response = await fetch('/api/NewsRSSApi/GetRssUrls');
+                if (response.ok) {
+                    const urls = await response.json();
+                    for (const [category, url] of Object.entries(urls)) {
+                        categories.add(category);
+                        updateCategoriesDropdown();
+                    }
+                } else {
+                    console.error('Failed to fetch RSS URLs Categories');
+                }
+            } finally {
+                hideLoading()
+            }
+        }
+        function updateCategoriesDropdown() {
+            const categoryFilter = document.getElementById('categorySelect');
+            categoryFilter.innerHTML = '<option value="">All Categories</option>'; // Clear existing options
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = sanitize(category);
+                option.textContent = sanitize(category);
+                categoryFilter.appendChild(option);
+            });
+        }
+
         function filterByCategory() {
             var selectedCategory = document.getElementById("categorySelect").value;
             var url = new URL(window.location.href);
@@ -141,7 +172,7 @@
             }
             window.location.href = url.toString();
         }
-
+        fetchRssCategories();
         function resetForm() {
             document.getElementById('newsForm').reset();
             document.getElementById('newsId').value = '';

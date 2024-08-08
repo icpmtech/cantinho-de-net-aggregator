@@ -10,6 +10,7 @@ namespace MarketAnalyticHub.Services
     Task<StockData> GetRealTimePriceAsync(string symbol);
     Task<List<HistoricalData>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate, Period period);
     Task<List<HistoricalData>> GetDailyHistoricalDataAsync(string symbol, DateTime startDate, DateTime now);
+    Task<List<HistoricalData>> GetDailyHistoricalDataAsync(string symbol, DateTime dateTime);
     Task<IEnumerable<Dividend>> GetDividendsAsync(string symbol);
   }
 
@@ -109,6 +110,29 @@ public class YahooFinanceService : IYahooFinanceService
       try
       {
         var data = await Yahoo.GetHistoricalAsync(symbol, startDate, now, Period.Daily);
+        return data.Select(data => new HistoricalData
+        {
+          Date = data.DateTime,
+          Open = data.Open,
+          High = data.High,
+          Low = data.Low,
+          Close = data.Close,
+          Volume = data.Volume
+        }).ToList();
+      }
+      catch (Exception ex)
+      {
+        // Log the exception (optional)
+        //_logger.LogError(ex, $"Failed to get historical data for symbol: {symbol}");
+        return new List<HistoricalData>();
+      }
+    }
+
+    public async Task<List<HistoricalData>> GetDailyHistoricalDataAsync(string symbol, DateTime dateTime)
+    {
+      try
+      {
+        var data = await Yahoo.GetHistoricalAsync(symbol, dateTime);
         return data.Select(data => new HistoricalData
         {
           Date = data.DateTime,

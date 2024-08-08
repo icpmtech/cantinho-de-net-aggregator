@@ -1,10 +1,13 @@
 using MarketAnalyticHub.Models.News;
 using MarketAnalyticHub.Services.News;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MarketAnalyticHub.Controllers
 {
+
   [Route("news")]
   public class NewsController : Controller
   {
@@ -14,16 +17,15 @@ namespace MarketAnalyticHub.Controllers
     {
       _newsService = newsService;
     }
+    
 
     [HttpGet("get")]
     public async Task<IActionResult> Get()
     {
-      var newsItem = await _newsService.Get();
-      if (newsItem == null)
-      {
-        return NotFound();
-      }
-      return Json(newsItem);
+      var newsItems = await _newsService.Get();
+    
+
+      return Json(newsItems);
     }
 
     [HttpGet("get/{id}")]

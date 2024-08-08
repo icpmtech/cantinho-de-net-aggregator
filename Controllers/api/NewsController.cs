@@ -14,6 +14,7 @@ using MarketAnalyticHub.Services.Jobs;
 using System.Xml;
 using System.ServiceModel.Syndication;
 using System.Collections.Concurrent;
+using System.Text;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -51,15 +52,18 @@ namespace MarketAnalyticHub.Controllers.api
       return Ok(keywords);
     }
 
+    
+
+
     [HttpGet("fetch-rss-news-multiple")]
     public async Task<IEnumerable<NewsItem>> GetRssNewsAsync()
     {
       var newsItems = new ConcurrentBag<NewsItem>();
+      var symbols = _context.Symbols.Select(s => s.Title).ToList();
 
       try
       {
         var urls = await _context.RSSLinks.ToListAsync();
-
         var tasks = urls.Select(async kvp =>
         {
           var category = kvp.Category;
@@ -77,86 +81,7 @@ namespace MarketAnalyticHub.Controllers.api
               var feed = SyndicationFeed.Load(xmlReader);
               foreach (var item in feed.Items)
               {
-                try
-                {
-                  var newsItem = new NewsItem
-                  {
-                    Title = item.Title.Text,
-                    Link = item.Links.FirstOrDefault()?.Uri.ToString(),
-                    Description = item.Summary?.Text ?? item.Content?.ToString() ?? "EMPTY_SUMMARY",
-                    Author = item.Authors.FirstOrDefault()?.Name,
-                    Date = item.PublishDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
-                    Category = category
-                  };
-
-                  var exists = await _context.News.AnyAsync(n => n.Title == newsItem.Title);
-                  if (!exists)
-                  {
-                    try
-                    {
-                      var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
-                      newsItem.Sentiment = sentimentResult.Compound;
-                    }
-                    catch (Exception ex)
-                    {
-                      _logger.LogError(ex, $"Error analyzing sentiment for news item '{newsItem.Title}' in category {category}. Setting sentiment to 0.");
-                      newsItem.Sentiment = 0;
-                    }
-
-                    try
-                    {
-                      var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
-                      newsItem.Keywords = keywords.ToList();
-                    }
-                    catch (Exception ex)
-                    {
-                      _logger.LogError(ex, $"Error generating keywords for news item '{newsItem.Title}' in category {category}. Setting keywords to empty.");
-                      newsItem.Keywords = new List<string>();
-                    }
-
-                    try
-                    {
-                      var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
-                      newsItem.SentimentImpact = impact;
-                    }
-                    catch (Exception ex)
-                    {
-                      _logger.LogError(ex, $"Error generating sentiment impacts for news item '{newsItem.Title}' in category {category}. Setting sentiment impact to empty.");
-                      newsItem.SentimentImpact = "";
-                    }
-
-                    try
-                    {
-                      var industriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
-                      newsItem.IndustriesImpact = industriesImpact;
-                    }
-                    catch (Exception ex)
-                    {
-                      _logger.LogError(ex, $"Error generating industry impacts for news item '{newsItem.Title}' in category {category}. Setting industries impact to empty.");
-                      newsItem.IndustriesImpact = "";
-                    }
-
-                    newsItems.Add(newsItem);
-
-                    try
-                    {
-                      _context.News.Add(newsItem);
-                      await _context.SaveChangesAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                      _logger.LogError(ex, $"Error saving news item '{newsItem.Title}' to the database.");
-                    }
-                  }
-                  else
-                  {
-                    _logger.LogInformation($"News item with title '{newsItem.Title}' already exists. Skipping.");
-                  }
-                }
-                catch (Exception ex)
-                {
-                  _logger.LogError(ex, $"Error processing news item for category {category}.");
-                }
+                await ProcessNewsItem(item, category, symbols, newsItems);
               }
             }
           }
@@ -171,13 +96,108 @@ namespace MarketAnalyticHub.Controllers.api
         });
 
         await Task.WhenAll(tasks);
-
-        return newsItems;
       }
       catch (Exception ex)
       {
         _logger.LogError(ex, "Error retrieving RSS URLs.");
-        return newsItems;
+      }
+
+      return newsItems;
+    }
+
+    private async Task ProcessNewsItem(SyndicationItem item, string category, List<string> symbols, ConcurrentBag<NewsItem> newsItems)
+    {
+      try
+      {
+        var newsItem = new NewsItem
+        {
+          Title = item.Title.Text,
+          Link = item.Links.FirstOrDefault()?.Uri.ToString(),
+          Description = item.Summary?.Text ?? item.Content?.ToString() ?? "EMPTY_SUMMARY",
+          Author = item.Authors.FirstOrDefault()?.Name,
+          Date = item.PublishDate.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+          Category = category
+        };
+
+        if (!await _context.News.AnyAsync(n => n.Title == newsItem.Title))
+        {
+          await AnalyzeNewsItem(newsItem, symbols);
+          newsItems.Add(newsItem);
+
+          _context.News.Add(newsItem);
+          await _context.SaveChangesAsync();
+        }
+        else
+        {
+          _logger.LogInformation($"News item with title '{newsItem.Title}' already exists. Skipping.");
+        }
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, $"Error processing news item for category {category}.");
+      }
+    }
+
+    private async Task AnalyzeNewsItem(NewsItem newsItem, List<string> symbols)
+    {
+      try
+      {
+        var analysis = new StringBuilder();
+        foreach (var symbol in symbols)
+        {
+          var _analysis = await _openAIService.GenerateScoreImpactsJson(symbol, newsItem.Title + newsItem.Description);
+          analysis.AppendLine($"{symbol}-{_analysis.ToString()}");
+        }
+        newsItem.Summary = analysis.ToString();
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, $"Error analyzing sentiment for news item '{newsItem.Title}' in category {newsItem.Category}. Setting sentiment to 0.");
+        newsItem.Sentiment = 0;
+      }
+
+      try
+      {
+        var sentimentResult = await _sentimentAnalysisService.AnalyzeSentimentAsync(newsItem.Description ?? newsItem.Title);
+        newsItem.Sentiment = sentimentResult.Compound;
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, $"Error analyzing sentiment for news item '{newsItem.Title}' in category {newsItem.Category}. Setting sentiment to 0.");
+        newsItem.Sentiment = 0;
+      }
+
+      try
+      {
+        var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
+        newsItem.Keywords = keywords.ToList();
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, $"Error generating keywords for news item '{newsItem.Title}' in category {newsItem.Category}. Setting keywords to empty.");
+        newsItem.Keywords = new List<string>();
+      }
+
+      try
+      {
+        var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
+        newsItem.SentimentImpact = impact;
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, $"Error generating sentiment impacts for news item '{newsItem.Title}' in category {newsItem.Category}. Setting sentiment impact to empty.");
+        newsItem.SentimentImpact = "";
+      }
+
+      try
+      {
+        var industriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
+        newsItem.IndustriesImpact = industriesImpact;
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, $"Error generating industry impacts for news item '{newsItem.Title}' in category {newsItem.Category}. Setting industries impact to empty.");
+        newsItem.IndustriesImpact = "";
       }
     }
 

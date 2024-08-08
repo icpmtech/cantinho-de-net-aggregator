@@ -1,3 +1,13 @@
+@{
+    ViewData["navbarWithOutSearch"] = true;
+}
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> _userManager
+@{
+    var user = await _userManager.GetUserAsync(User);
+    var avatarUrl = user?.AvatarUrl ?? "/img/avatars/default-avatar.png";
+}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -208,131 +218,142 @@
                 }
         }
 
-        /* Modal styles */
-        .modal {
+        .panel {
             display: none;
             position: fixed;
             z-index: 1000;
-            left: 0;
+            right: 0;
             top: 0;
-            width: 100%;
+            width: 400px;
             height: 100%;
-            overflow: auto;
-            background-color: rgb(0, 0, 0);
-            background-color: rgba(0, 0, 0, 0.4);
-            padding-top: 60px;
-        }
-
-        .modal-content {
             background-color: #fefefe;
-            margin: 5% auto;
+            border-left: 1px solid #888;
+            overflow-y: auto;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.5);
             padding: 20px;
-            border: 1px solid #888;
-            width: 80%;
-            max-width: 500px;
         }
 
-        .close {
+            .panel.show {
+                display: block;
+            }
+
+        .close-btn {
             color: #aaa;
             float: right;
             font-size: 28px;
             font-weight: bold;
         }
 
-            .close:hover,
-            .close:focus {
+            .close-btn:hover,
+            .close-btn:focus {
                 color: black;
                 text-decoration: none;
                 cursor: pointer;
             }
+
+        .textarea-container {
+            position: relative;
+        }
+
+        .textarea-container .spinner {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            display: none;
+        }
+
+        .textarea-container .spinner.show {
+            display: inline-block;
+        }
     </style>
 </head>
 
 <body>
-    <div class="card">
-        <h5 class="card-header">Search RSS</h5>
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search for news...">
-            <button onclick="searchNews()">Search</button>
+   
+  <div class="container">
+        <div class="card">
+            <h5 class="card-header">Search RSS</h5>
+            <div class="search-container">
+                <input type="text" id="searchInput" placeholder="Search for news...">
+                <button onclick="searchNews()">Search</button>
+            </div>
+            <div class="filter-container">
+                <select id="categoryFilter" onchange="filterNews()">
+                    <option value="">All Categories</option>
+                    <!-- Dynamic categories will be added here -->
+                </select>
+                <select id="dateFilter" onchange="filterNews()">
+                    <option value="">All Dates</option>
+                    <option value="Today">Today</option>
+                    <option value="Last7Days">Last 7 Days</option>
+                    <option value="Last30Days">Last 30 Days</option>
+                </select>
+                <button onclick="sortNewsByDate()">Sort by Date</button>
+            </div>
         </div>
-        <div class="filter-container">
-            <select id="categoryFilter" onchange="filterNews()">
-                <option value="">All Categories</option>
-                <!-- Dynamic categories will be added here -->
-            </select>
-            <select id="dateFilter" onchange="filterNews()">
-                <option value="">All Dates</option>
-                <option value="Today">Today</option>
-                <option value="Last7Days">Last 7 Days</option>
-                <option value="Last30Days">Last 30 Days</option>
-            </select>
-            <button onclick="sortNewsByDate()">Sort by Date</button>
+        <div class="spinner" id="loadingSpinner" style="display: none;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
         </div>
-    </div>
-    <div class="spinner" id="loadingSpinner" style="display: none;">
-        <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Loading...</span>
+        <div class="card">
+            <h5 class="card-header">RSS News</h5>
+            <div class="table-responsive" id="newsTableContainer">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Category</th>
+                            <th>Title</th>
+                            <th>Short Description</th>
+                            <th>Link</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                            <th>AI Analysis</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0" id="newsTableBody">
+                        <!-- News items will be appended here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center" id="paginationControls">
+                    <!-- Pagination items will be appended here by JavaScript -->
+                </ul>
+            </nav>
+            <button class="btn btn-primary" onclick="fetchRssUrls()">Load RSS Feeds</button>
         </div>
-    </div>
-    <div class="card">
-        <h5 class="card-header">RSS News</h5>
-        <div class="table-responsive" id="newsTableContainer">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Category</th>
-                        <th>Title</th>
-                        <th>Short Description</th>
-                        <th>Link</th>
-                        <th>Date</th>
-                        <th>Actions</th>
-                        <th>AI Analysis</th>
-                    </tr>
-                </thead>
-                <tbody class="table-border-bottom-0" id="newsTableBody">
-                    <!-- News items will be appended here by JavaScript -->
-                </tbody>
-            </table>
-        </div>
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center" id="paginationControls">
-                <!-- Pagination items will be appended here by JavaScript -->
-            </ul>
-        </nav>
-        <button class="btn btn-primary" onclick="fetchRssUrls()">Load RSS Feeds</button>
-    </div>
 
-    <!-- The Modal -->
-    <div id="analysisModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2>Analyze News</h2>
-            <div class="form-group">
-                <p>Select a ticker symbol for analysis:</p>
+        <!-- Analysis Modal -->
+        <div id="analysisModal" class="modal">
+            <div class="modal-content">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <h2>Analyze News</h2>
                 <div class="form-group">
-                    <label class="control-label"><i class="bi bi-graph-up"></i> Symbol</label>
-                    <select class="form-control" id="symbolSelect">
-                        <!-- Symbols will be loaded here -->
-                    </select>
-                </div>
-                <div class="form-group">
-                    <button class="btn btn-primary" onclick="performAnalysis()">Analyze</button>
-                    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <p>Select a ticker symbol for analysis:</p>
+                    <div class="form-group">
+                        <label class="control-label"><i class="bi bi-graph-up"></i> Symbol</label>
+                        <select class="form-control" id="symbolSelect">
+                            <!-- Symbols will be loaded here -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-primary" onclick="performAnalysis()">Analyze</button>
+                        <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- The Modal for saving StockEvent -->
-    <div id="saveStockEventModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeSaveStockEventModal()">&times;</span>
-            <h2>Save as Stock Event</h2>
+        <!-- Save Stock Event Panel -->
+        <div id="saveStockEventPanel" class="panel">
+            <span class="close-btn" onclick="closeSaveStockEventPanel()">&times;</span>
+            <h3>Stock Event</h3>
             <p>Select a ticker symbol and enter sentiment score:</p>
             <div class="form-group">
                 <label class="control-label"><i class="bi bi-graph-up"></i> Symbol</label>
-                <select class="form-control" id="saveSymbolSelect">
+                <select class="form-control" id="saveSymbolSelect" onchange="updateCurrentPrice(); updateSentimentScore()">
                     <!-- Symbols will be loaded here -->
                 </select>
             </div>
@@ -345,6 +366,13 @@
             <div class="form-group">
                 <label class="control-label"><i class="bi bi-graph-up"></i> Score</label>
                 <input type="text" class="form-control" id="sentimentScoreInput" placeholder="Sentiment Score">
+            </div>
+            <div class="form-group textarea-container">
+                <label for="modalSummary">Summary</label>
+                <textarea class="form-control" id="modalSummary" rows="3" readonly></textarea>
+                <div class="spinner-border text-primary spinner" role="status" id="summarySpinner">
+                    <span class="sr-only">Loading...</span>
+                </div>
             </div>
             <div class="form-group">
                 <label for="modalTitle">Title</label>
@@ -378,19 +406,21 @@
             </div>
             <div class="form-group">
                 <label class="control-label"><i class="bi bi-currency-dollar"></i> Price</label>
-                <input type="number" id="modalPrice" class="form-control">
+                <input type="number" step="0.0001" id="modalPrice" class="form-control">
             </div>
             <div class="form-group">
                 <label class="control-label"><i class="bi bi-arrow-up-down"></i> Price Change</label>
-                <input type="number" id="modalPriceChange" class="form-control">
+                <input type="number" step="0.0001" id="modalPriceChange" class="form-control">
             </div>
             <div class="form-group mb-1">
                 <button class="btn btn-primary" onclick="performSaveStockEvent()">Save</button>
-                <button class="btn btn-secondary" onclick="closeSaveStockEventModal()">Cancel</button>
+                <button class="btn btn-secondary" onclick="closeSaveStockEventPanel()">Cancel</button>
             </div>
         </div>
-    </div>
 
+
+  </div>
+  
     <script>
         let allNewsItems = [];
         let categories = new Set();
@@ -458,23 +488,23 @@
             newsItems.forEach(news => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                                                                    <td data-label="Image">
-                                                                        ${news.imageUrl ? `<img src="${sanitize(news.imageUrl)}" alt="Image" style="width: 100px; height: auto;" />` : `<i class="fas fa-newspaper" style="font-size: 100px; color: gray;"></i>`}
-                                                                    </td>
-                                                                    <td data-label="Category">${sanitize(news.category)}</td>
-                                                                    <td data-label="Title">${sanitize(news.title ?? "No title")}</td>
-                                                                    <td data-label="Short Description">${sanitize(news.description ?? "No description")}</td>
-                                                                    <td data-label="Link"><a href="${sanitize(news.link)}" target="_blank">${sanitize(news.link ?? "No link")}</a></td>
-                                                                    <td data-label="Date">${sanitize(news.date ?? "No date")}</td>
-                                                                    <td data-label="Actions">
-                                                                        <div>
-                                                                            <a class="dropdown-item" href="javascript:void(0);" onclick="showSaveStockEventModal('${sanitize(news.title)}', '${sanitize(news.description)}', '${sanitize(news.link)}', '${sanitize(news.date)}')"><i class="fas fa-save"></i> Save as StockEvent</a>
-                                                                        </div>
-                                                                    </td>
-                                                                    <td data-label="AI Analysis">
-                                                                        <button onclick="showAnalysisModal('${sanitize(news.title)}', '${sanitize(news.description)}', '${sanitize(news.link)}')" class="btn p-0"><i class="fas fa-magic" style="font-size: 24px; color: #007bff;"></i></button>
-                                                                    </td>
-                                                                `;
+                                        <td data-label="Image">
+                                            ${news.imageUrl ? `<img src="${sanitize(news.imageUrl)}" alt="Image" style="width: 100px; height: auto;" />` : `<i class="fas fa-newspaper" style="font-size: 100px; color: gray;"></i>`}
+                                        </td>
+                                        <td data-label="Category">${sanitize(news.category)}</td>
+                                        <td data-label="Title">${sanitize(news.title ?? "No title")}</td>
+                                        <td data-label="Short Description">${sanitize(news.description ?? "No description")}</td>
+                                        <td data-label="Link"><a href="${sanitize(news.link)}" target="_blank">${sanitize(news.link ?? "No link")}</a></td>
+                                        <td data-label="Date">${sanitize(news.date ?? "No date")}</td>
+                                        <td data-label="Actions">
+                                            <div>
+                                                <a class="dropdown-item" href="javascript:void(0);" onclick="showSaveStockEventPanel('${sanitize(news.title)}', '${sanitize(news.description)}', '${sanitize(news.link)}', '${sanitize(news.date)}')"><i class="fas fa-save"></i> Save as StockEvent</a>
+                                            </div>
+                                        </td>
+                                        <td data-label="AI Analysis">
+                                            <button onclick="showAnalysisModal('${sanitize(news.title)}', '${sanitize(news.description)}', '${sanitize(news.link)}')" class="btn p-0"><i class="fas fa-magic" style="font-size: 24px; color: #007bff;"></i></button>
+                                        </td>
+                                    `;
                 tbody.appendChild(row);
             });
         }
@@ -504,7 +534,7 @@
             }
         }
 
-        async function fetchPortfolios() {
+        async function fetchPortfolios(date) {
             showSpinner();
             try {
                 const response = await fetch('/api/Portfolio');
@@ -541,19 +571,70 @@
             document.getElementById('analysisModal').style.display = 'none';
         }
 
-        function showSaveStockEventModal(title, description, link, date) {
+        function showSaveStockEventPanel(title, description, link, date) {
             currentNewsForStockEvent = { title: sanitize(title), description: sanitize(description), link: sanitize(link), date: sanitize(date) };
 
             document.getElementById('modalTitle').value = sanitize(title);
             document.getElementById('modalUrl').value = sanitize(link);
             document.getElementById('modalDescription').value = sanitize(description);
             fetchSymbols();
-            fetchPortfolios();
-            document.getElementById('saveStockEventModal').style.display = 'block';
+            fetchPortfolios(date);
+            document.getElementById('saveStockEventPanel').classList.add('show');
         }
 
-        function closeSaveStockEventModal() {
-            document.getElementById('saveStockEventModal').style.display = 'none';
+        function closeSaveStockEventPanel() {
+            document.getElementById('saveStockEventPanel').classList.remove('show');
+        }
+
+        async function fetchCurrentPrice(symbol, date) {
+            showSpinner();
+            try {
+                const response = await fetch(`/api/PriceApi/getCurrentPrice?symbol=${sanitize(symbol)}&dateValue=${sanitize(date)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const price = data.currentStockData.close; // Assuming the response has a 'close' field for the price
+                    document.getElementById('modalPrice').value = price;
+                } else {
+                    console.error('Failed to fetch current price');
+                }
+            } finally {
+                hideSpinner();
+            }
+        }
+
+        async function updateCurrentPrice() {
+            const symbol = document.getElementById('saveSymbolSelect').value;
+            const date = currentNewsForStockEvent.date;
+            if (symbol) {
+                await fetchCurrentPrice(symbol, date);
+            }
+        }
+
+        async function fetchSentimentScore(symbol, text) {
+            const summarySpinner = document.getElementById('summarySpinner');
+            summarySpinner.classList.add('show');
+            try {
+                const response = await fetch(`/api/SentimentAnalyzerApi/analise-score-impact?inputTextToAnalise=${encodeURIComponent(text)}&symbol=${sanitize(symbol)}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('sentimentScoreInput').value = parseInt(data.analysis[0], 10);
+                    document.getElementById('modalSummary').value = `${data.analysis}`;
+                } else {
+                    console.error('Failed to fetch sentiment score');
+                }
+            } catch (error) {
+                console.error('Error fetching sentiment score:', error);
+            } finally {
+                summarySpinner.classList.remove('show');
+            }
+        }
+
+        async function updateSentimentScore() {
+            const symbol = document.getElementById('saveSymbolSelect').value;
+            const text = `${currentNewsForStockEvent.title} ${currentNewsForStockEvent.description}`;
+            if (symbol) {
+                await fetchSentimentScore(symbol, text);
+            }
         }
 
         async function performAnalysis() {
@@ -634,7 +715,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     alert("Saved.");
-                    closeSaveStockEventModal();
+                    closeSaveStockEventPanel();
                 } else {
                     const errorResult = await response.json();
                     alert("Error.");
@@ -718,26 +799,26 @@
             const totalPages = Math.ceil(totalItems / pageSize);
             const paginationControls = document.getElementById('paginationControls');
             paginationControls.innerHTML = `
-                                                                <li class="page-item ${currentPage == 1 ? "disabled" : ""}">
-                                                                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(${sanitize(currentPage - 1)})" aria-label="Previous">
-                                                                        <span aria-hidden="true">&laquo;</span>
-                                                                    </a>
-                                                                </li>
-                                                            `;
+                                        <li class="page-item ${currentPage == 1 ? "disabled" : ""}">
+                                            <a class="page-link" href="javascript:void(0);" onclick="loadPage(${sanitize(currentPage - 1)})" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    `;
             for (let i = 1; i <= totalPages; i++) {
                 paginationControls.innerHTML += `
-                                                                    <li class="page-item ${currentPage == i ? "active" : ""}">
-                                                                        <a class="page-link" href="javascript:void(0);" onclick="loadPage(${sanitize(i)})">${sanitize(i)}</a>
-                                                                    </li>
-                                                                `;
+                                            <li class="page-item ${currentPage == i ? "active" : ""}">
+                                                <a class="page-link" href="javascript:void(0);" onclick="loadPage(${sanitize(i)})">${sanitize(i)}</a>
+                                            </li>
+                                        `;
             }
             paginationControls.innerHTML += `
-                                                                <li class="page-item ${currentPage == totalPages ? "disabled" : ""}">
-                                                                    <a class="page-link" href="javascript:void(0);" onclick="loadPage(${sanitize(currentPage + 1)})" aria-label="Next">
-                                                                        <span aria-hidden="true">&raquo;</span>
-                                                                    </a>
-                                                                </li>
-                                                            `;
+                                        <li class="page-item ${currentPage == totalPages ? "disabled" : ""}">
+                                            <a class="page-link" href="javascript:void(0);" onclick="loadPage(${sanitize(currentPage + 1)})" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    `;
         }
 
         async function editNews(id) {

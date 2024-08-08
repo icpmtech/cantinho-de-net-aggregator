@@ -27,5 +27,8 @@ namespace MarketAnalyticHub.Controllers.api
     public string? Location { get; internal set; }
     public string? Guests { get; internal set; }
     public string? Description { get; internal set; }
+
+    public int? Score { get; internal set; }
+    public string? SummaryAnalisys { get; internal set; }
   }
 }

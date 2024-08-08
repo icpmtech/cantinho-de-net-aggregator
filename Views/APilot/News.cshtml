@@ -60,9 +60,6 @@
             <div class="col-md-3">
                 <select id="categorySelect" class="form-select">
                     <option value="">All Categories</option>
-                    <option value="Tech">Tech</option>
-                    <option value="Economy">Economy</option>
-                    <option value="Energy and Environment">Energy and Environment</option>
                 </select>
             </div>
             <div class="col-md-6">
@@ -96,13 +93,13 @@
             </li>
             <li class="nav-item">
                 <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-justified-messages" aria-controls="navs-justified-messages" aria-selected="false">
-                  <i class="tf-icons bx bx-message-square me-1"></i>
-                  <span class="d-none d-sm-block"> Ai-Pilot</span></button>
+                    <i class="tf-icons bx bx-message-square me-1"></i>
+                    <span class="d-none d-sm-block"> Ai-Pilot</span>
+                </button>
             </li>
         </ul>
         <div class="tab-content">
             <div class="tab-pane fade show active" id="navs-justified-home" role="tabpanel">
-               
                 @Html.Partial("_Table", Model)
             </div>
             <div class="tab-pane fade" id="navs-justified-profile" role="tabpanel">
@@ -115,8 +112,45 @@
     </div>
 </div>
 @section PageScripts {
-  
-   
+    <script>
+        let categories = new Set();
+
+        async function fetchRssCategories() {
+            try {
+                const response = await fetch('/api/NewsRSSApi/GetRssUrls');
+                if (response.ok) {
+                    const urls = await response.json();
+                    for (const [category, url] of Object.entries(urls)) {
+                        categories.add(category);
+                    }
+                    updateCategoriesDropdown();
+                } else {
+                    console.error('Failed to fetch RSS URLs Categories');
+                }
+            } catch (error) {
+                console.error('Error fetching RSS URLs Categories:', error);
+            }
+        }
+
+        function updateCategoriesDropdown() {
+            const categoryFilter = document.getElementById('categorySelect');
+            categoryFilter.innerHTML = '<option value="">All Categories</option>';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
+        }
+
+        function sanitize(str) {
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        }
+
+        fetchRssCategories();
+    </script>
 }
 
 @section PageStyles {

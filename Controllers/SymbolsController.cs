@@ -14,10 +14,11 @@ namespace MarketAnalyticHub.Controllers
   {
     private readonly ISymbolService _symbolService;
     private readonly ApplicationDbContext _context;
-
-    public SymbolsAPIController(ApplicationDbContext context, ISymbolService symbolService)
+    private readonly IYahooFinanceService _yahooFinanceService;
+    public SymbolsAPIController(ApplicationDbContext context, ISymbolService symbolService, IYahooFinanceService  yahooFinanceService)
     {
       _symbolService = symbolService;
+      _yahooFinanceService = yahooFinanceService;
       _context = context;
     }
 
@@ -26,9 +27,25 @@ namespace MarketAnalyticHub.Controllers
     public async Task<IActionResult> GetSymbols()
     {
       var symbols = await _symbolService.GetSymbolsAsync();
+     var symbolsData= symbols.Select(s =>new
+     {
+       symbol = s,
+       currentStockData = _yahooFinanceService.GetRealTimePriceAsync(s)
+     });
       return Ok(symbols);
     }
-
+    // GET: api/symbols
+    [HttpGet("symbols-current-data")]
+    public async Task<IActionResult> GetSymbolsCurrentData(DateTime dateValue)
+    {
+      var symbols = await _symbolService.GetSymbolsAsync();
+      var symbolsData = symbols.Select(s => new
+      {
+        symbol = s,
+        currentStockData = _yahooFinanceService.GetDailyHistoricalDataAsync(s, dateValue)
+      });
+      return Ok(symbolsData);
+    }
     // GET: api/symbols/{id}
     [HttpGet("{id}")]
     public async Task<IActionResult> GetSymbol(int id)

@@ -154,8 +154,9 @@ namespace MarketAnalyticHub.Services.Jobs
           newsItem.Sentiment = sentimentResult.Compound;
           var keywords = await _openAIService.GenerateKeywordsAsync(newsItem.Description);
           newsItem.Keywords = keywords.ToList();
-
-          var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
+           
+         
+            var impact = await _openAIService.GenerateSentimentImpacts(newsItem.Description);
           newsItem.SentimentImpact = impact;
 
           var industriesImpact = await _openAIService.GenerateIndustryImpacts(newsItem.Description);
