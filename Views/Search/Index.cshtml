@@ -1,60 +1,316 @@
-@model SearchViewModel
 @{
-    ViewData["Title"] = "Search with Natural Language";
+    ViewData["navbarWithOutSearch"] = true;
 }
-
-<h1>@ViewData["Title"]</h1>
-<form method="get" asp-action="Index">
-    <div class="form-group">
-        <label for="query">Search Query</label>
-        <input type="text" class="form-control" id="query" name="query" value="@Model.Query" />
-    </div>
-    <button type="submit" class="btn btn-primary">Search</button>
-</form>
-
-@if (Model.Error != null)
-{
-    <div class="alert alert-danger" role="alert">
-        @Model.Error
-    </div>
-}
-
-@if (Model.SqlQuery != null)
-{
-    <div class="card mt-4">
-        <div class="card-body">
-            <h5 class="card-title">Generated SQL Query</h5>
-            <p class="card-text"><code>@Model.SqlQuery</code></p>
-        </div>
-    </div>
-}
-
-@if (Model.Results != null)
-{
-    <h2 class="mt-4">Results:</h2>
-    <div class="row">
-        @foreach (var item in Model.Results)
-        {
-            <div class="col-md-4">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        @foreach (var prop in (IDictionary<string, object>)item)
-                        {
-                            <h5 class="card-title">@prop.Key: @prop.Value</h5>
-                        }
-                    </div>
-                </div>
-            </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Interface</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTTXxT+6z4oF2+h6bb+3se2S/s91N6w0VsXl5e0a5GshyQErIHvX1EXR7fReGZ8RQQM5pJ3A1A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-    </div>
 
-    @if (!string.IsNullOrEmpty(Model.Summary))
-    {
-        <div class="card mt-4">
-            <div class="card-body">
-                <h5 class="card-title">Summary</h5>
-                <p class="card-text">@Model.Summary</p>
+        .search-container {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 50px;
+            position: relative;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            padding: 10px 15px;
+            background-color: #fff;
+            box-shadow: 0px 1px 6px rgba(32, 33, 36, 0.28);
+            position: relative;
+        }
+
+            .search-box input[type="text"] {
+                border: none;
+                outline: none;
+                font-size: 16px;
+                width: 100%;
+                padding: 8px;
+            }
+
+                .search-box input[type="text"]::placeholder {
+                    color: #a0a0a0;
+                }
+
+            .search-box button {
+                border: none;
+                background: none;
+                padding: 0;
+                cursor: pointer;
+                color: #4285f4;
+                font-size: 20px;
+            }
+
+        .loading-spinner {
+            position: absolute;
+            right: 45px;
+            display: none;
+        }
+
+            .loading-spinner i {
+                font-size: 18px;
+                color: #4285f4;
+                animation: spin 1s linear infinite;
+            }
+
+            @@keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+
+        #autocompleteContainer {
+            position: absolute;
+            top: 55px;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background-color: #fff;
+            border: 1px solid #dfe1e5;
+            border-top: none;
+            box-shadow: 0px 4px 6px rgba(32, 33, 36, 0.28);
+            border-radius: 0 0 8px 8px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+            #autocompleteContainer .autocomplete-suggestion {
+                padding: 10px 15px;
+                cursor: pointer;
+            }
+
+                #autocompleteContainer .autocomplete-suggestion:hover {
+                    background-color: #e8f0fe;
+                }
+
+        #suggestionContainer {
+            margin-top: 20px;
+        }
+
+        #resultsContainer {
+            margin-top: 30px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .result-card {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            box-shadow: 0px 2px 6px rgba(32, 33, 36, 0.28);
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+
+        .result-card h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #1a0dab;
+        }
+
+        .result-card p {
+            margin: 5px 0;
+            color: #545454;
+        }
+
+        .result-card a {
+            color: #1a0dab;
+            text-decoration: none;
+        }
+
+            .result-card a:hover {
+                text-decoration: underline;
+            }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+            .pagination button {
+                background-color: #f1f3f4;
+                border: 1px solid #dadce0;
+                color: #3c4043;
+                margin: 0 5px;
+                padding: 10px 15px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+                .pagination button:hover {
+                    background-color: #e8eaed;
+                }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="searchQuery" placeholder="Search..." autocomplete="off" />
+            <button id="searchButton">
+                <i class="fas fa-search"></i>
+            </button>
+            <div class="loading-spinner" id="loadingSpinner">
+                <i class="fas fa-spinner"></i>
             </div>
         </div>
-    }
-}
+        <div id="autocompleteContainer"></div>
+    </div>
+
+    <div id="suggestionContainer"></div>
+    <div id="resultsContainer"></div>
+
+    <script>
+        const searchQueryInput = document.getElementById('searchQuery');
+        const searchButton = document.getElementById('searchButton');
+        const autocompleteContainer = document.getElementById('autocompleteContainer');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        let debounceTimer;
+
+        searchButton.addEventListener('click', function () {
+            performSearch();
+        });
+
+        searchQueryInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                performSearch();
+            }, 300); // Debounce input to prevent too many API calls
+        });
+
+        searchQueryInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+
+        function performSearch(page = 1) {
+            const query = searchQueryInput.value;
+            const pageSize = 10;
+
+            if (!query) {
+                document.getElementById('resultsContainer').innerHTML = '';
+                return;
+            }
+
+            showLoadingSpinner();
+
+            fetch(`/api/search/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data);
+                    hideLoadingSpinner();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    hideLoadingSpinner();
+                });
+        }
+
+        function showLoadingSpinner() {
+            loadingSpinner.style.display = 'block';
+        }
+
+        function hideLoadingSpinner() {
+            loadingSpinner.style.display = 'none';
+        }
+
+        function displayResults(data) {
+            const resultsContainer = document.getElementById('resultsContainer');
+            const suggestionContainer = document.getElementById('suggestionContainer');
+
+            resultsContainer.innerHTML = '';
+            suggestionContainer.innerHTML = '';
+
+            if (data.suggestions) {
+                suggestionContainer.innerHTML = `<p>Did you mean: <strong>${data.suggestions}</strong>?</p>`;
+            }
+
+            if (data.results.length > 0) {
+                const resultList = document.createElement('div');
+
+                data.results.forEach(result => {
+                    const card = document.createElement('div');
+                    card.classList.add('result-card');
+
+                    const title = document.createElement('h3');
+                    title.innerHTML = result.title;
+
+                    const bodyContent = result.highlights?.body?.[0] || result.body;
+                    const truncatedBody = truncateText(bodyContent, 200);
+
+                    const body = document.createElement('p');
+                    body.innerHTML = truncatedBody;
+
+                    const tags = document.createElement('p');
+                    tags.innerHTML = `<strong>Tags:</strong> ${result.tags}`;
+
+                    const link = document.createElement('a');
+                    link.href = result.url;
+                    link.innerText = 'Read more';
+
+                    card.appendChild(title);
+                    card.appendChild(body);
+                    card.appendChild(tags);
+                    card.appendChild(link);
+
+                    resultList.appendChild(card);
+                });
+
+                resultsContainer.appendChild(resultList);
+
+                // Pagination
+                const paginationContainer = document.createElement('div');
+                paginationContainer.classList.add('pagination');
+
+                if (data.currentPage > 1) {
+                    const prevButton = document.createElement('button');
+                    prevButton.innerText = 'Previous';
+                    prevButton.addEventListener('click', () => performSearch(data.currentPage - 1));
+                    paginationContainer.appendChild(prevButton);
+                }
+
+                const pageInfo = document.createElement('span');
+                pageInfo.innerText = `Page ${data.currentPage} of ${data.totalPages}`;
+                paginationContainer.appendChild(pageInfo);
+
+                if (data.currentPage < data.totalPages) {
+                    const nextButton = document.createElement('button');
+                    nextButton.innerText = 'Next';
+                    nextButton.addEventListener('click', () => performSearch(data.currentPage + 1));
+                    paginationContainer.appendChild(nextButton);
+                }
+
+                resultsContainer.appendChild(paginationContainer);
+            } else {
+                resultsContainer.innerHTML = '<p>No results found.</p>';
+            }
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        }
+    </script>
+</body>
+</html>

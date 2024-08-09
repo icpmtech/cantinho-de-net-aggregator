@@ -19,7 +19,10 @@ namespace MarketAnalyticHub.Controllers.AIPilot
       _configuration = configuration;
       _httpClient = httpClient;
     }
-
+    public async Task SendNewsUpdate(string category)
+    {
+      await Clients.All.SendAsync("ReceiveNewsUpdate", category);
+    }
     public async Task SendMessage(string user, string message)
     {
       var aiResponse = await GetOpenAIResponse(message);

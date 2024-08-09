@@ -32,6 +32,9 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using MarketAnalyticHub.Controllers.api;
 using MarketAnalyticHub.Services.ApiDataApp.Services;
+using Nest;
+using Elasticsearch.Net;
+using MarketAnalyticHub.Services.Elastic;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -132,6 +135,8 @@ builder.Services.AddHangfire(configuration => configuration
       DisableGlobalLocks = true
     }));
 
+
+builder.Services.AddSingleton<ElasticSearchService>();
 builder.Services.AddAuthorization();
 builder.Services.AddHangfireServer();
 

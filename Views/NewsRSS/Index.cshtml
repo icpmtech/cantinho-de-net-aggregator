@@ -266,13 +266,90 @@
             display: inline-block;
         }
     </style>
+
+    <style>
+        /* Card Layout Styles */
+        .news-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .news-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+            .news-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            }
+
+            .news-card img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+            }
+
+        .news-card-content {
+            padding: 15px;
+        }
+
+        .news-card-category {
+            font-size: 14px;
+            color: #007bff;
+            font-weight: bold;
+        }
+
+        .news-card-title {
+            font-size: 18px;
+            margin: 10px 0;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .news-card-description {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .news-card-date {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .news-card-actions {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 15px 15px 15px;
+        }
+
+            .news-card-actions a,
+            .news-card-actions button {
+                font-size: 14px;
+                color: #007bff;
+                background: none;
+                border: none;
+                cursor: pointer;
+            }
+
+                .news-card-actions a:hover,
+                .news-card-actions button:hover {
+                    text-decoration: underline;
+                }
+    </style>
+
 </head>
 
 <body>
-   
   <div class="container">
         <div class="card">
-            <h5 class="card-header">Search RSS</h5>
             <div class="search-container">
                 <input type="text" id="searchInput" placeholder="Search for news...">
                 <button onclick="searchNews()">Search</button>
@@ -288,34 +365,19 @@
                     <option value="Last7Days">Last 7 Days</option>
                     <option value="Last30Days">Last 30 Days</option>
                 </select>
+                <div class="text-center">
                 <button onclick="sortNewsByDate()">Sort by Date</button>
+                </div>
             </div>
         </div>
-        <div class="spinner" id="loadingSpinner" style="display: none;">
+        <div class="text-center spinner"  id="loadingSpinner" style="display: none;">
             <div class="spinner-border text-primary" role="status">
                 <span class="sr-only">Loading...</span>
             </div>
         </div>
-        <div class="card">
-            <h5 class="card-header">RSS News</h5>
-            <div class="table-responsive" id="newsTableContainer">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Image</th>
-                            <th>Category</th>
-                            <th>Title</th>
-                            <th>Short Description</th>
-                            <th>Link</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                            <th>AI Analysis</th>
-                        </tr>
-                    </thead>
-                    <tbody class="table-border-bottom-0" id="newsTableBody">
-                        <!-- News items will be appended here by JavaScript -->
-                    </tbody>
-                </table>
+        <div class="card border-0">
+            <div class="news-grid" id="newsGrid">
+                <!-- News cards will be appended here by JavaScript -->
             </div>
             <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center" id="paginationControls">
@@ -465,7 +527,7 @@
                 allNewsItems = allNewsItems.concat(newsItems);
                 categories.add(category);
                 updateCategoriesDropdown();
-                updateTable(allNewsItems);
+                updateGrid(allNewsItems);
             } else {
                 console.error(`Failed to fetch RSS feed for category ${sanitize(category)}`);
             }
@@ -481,7 +543,30 @@
                 categoryFilter.appendChild(option);
             });
         }
-
+        function updateGrid(newsItems) {
+            const grid = document.getElementById('newsGrid');
+            grid.innerHTML = ''; // Clear existing cards
+            newsItems.forEach(news => {
+                const card = document.createElement('div');
+                card.classList.add('news-card');
+                card.innerHTML = `
+                    ${news.imageUrl ? `<img src="${sanitize(news.imageUrl)}" alt="Image">` : `<i class="fas fa-newspaper" style="font-size: 100px; color: gray;"></i>`}
+                    <div class="news-card-content">
+                        <div class="news-card-category">${sanitize(news.category)}</div>
+                        <div class="news-card-title">${sanitize(news.title ?? "No title")}</div>
+                        <div class="news-card-description">${sanitize(news.description ?? "No description").slice(0, 200)}...</div>
+                        <div class="news-card-date">${sanitize(news.date ?? "No date")}</div>
+                    </div>
+                    <div class="news-card-actions">
+                        <a href="${sanitize(news.link)}" target="_blank">Read More</a>
+                        <button onclick="showSaveStockEventPanel('${sanitize(news.title)}', '${sanitize(news.description)}', '${sanitize(news.link)}', '${sanitize(news.date)}')">
+                            <i class="fas fa-save"></i> Save as StockEvent
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
         function updateTable(newsItems) {
             const tbody = document.getElementById('newsTableBody');
             tbody.innerHTML = ''; // Clear existing rows
@@ -732,7 +817,7 @@
                 news.description?.toLowerCase().includes(searchInput) ||
                 news.category?.toLowerCase().includes(searchInput)
             );
-            updateTable(filteredNews);
+            updateGrid(filteredNews);
         }
 
         function filterNews() {
@@ -766,12 +851,12 @@
                 });
             }
 
-            updateTable(filteredNews);
+            updateGrid(filteredNews);
         }
 
         function sortNewsByDate() {
             const sortedNews = [...allNewsItems].sort((a, b) => new Date(b.date) - new Date(a.date));
-            updateTable(sortedNews);
+            updateGrid(sortedNews);
         }
 
         async function loadPage(page) {
@@ -785,7 +870,7 @@
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    updateTable(data.NewsItems);
+                    updateGrid(data.NewsItems);
                     updatePagination(data.CurrentPage, data.PageSize, data.TotalItems);
                 } else {
                     console.error('Failed to load data');
