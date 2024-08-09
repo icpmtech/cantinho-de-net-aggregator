@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Interface</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" integrity="sha512-Fo3rlrZj/k7ujTTXxT+6z4oF2+h6bb+3se2S/s91N6w0VsXl5e0a5GshyQErIHvX1EXR7fReGZ8RQQM5pJ3A1A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" />
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,8 +20,7 @@
 
         .search-container {
             width: 100%;
-            max-width: 600px;
-            margin-top: 50px;
+            margin-top: 30px;
             position: relative;
         }
 
@@ -81,7 +80,6 @@
             right: 0;
             z-index: 1000;
             background-color: #fff;
-            border: 1px solid #dfe1e5;
             border-top: none;
             box-shadow: 0px 4px 6px rgba(32, 33, 36, 0.28);
             border-radius: 0 0 8px 8px;
@@ -105,7 +103,6 @@
         #resultsContainer {
             margin-top: 30px;
             width: 100%;
-            max-width: 600px;
         }
 
         .result-card {
@@ -159,14 +156,17 @@
     </style>
 </head>
 <body>
+    <div class="text-center">
+        <img class="rounded-circle" src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
+    </div>
     <div class="search-container">
         <div class="search-box">
             <input type="text" id="searchQuery" placeholder="Search..." autocomplete="off" />
             <button id="searchButton">
-                <i class="fas fa-search"></i>
+                <i class="bx bx-search"></i>
             </button>
             <div class="loading-spinner" id="loadingSpinner">
-                <i class="fas fa-spinner"></i>
+                <i class="bx bx-loader bx-spin"></i>
             </div>
         </div>
         <div id="autocompleteContainer"></div>
