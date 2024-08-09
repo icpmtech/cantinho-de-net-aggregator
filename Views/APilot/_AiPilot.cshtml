@@ -127,56 +127,6 @@
     }
 </style>
 
-<!-- News Cards -->
-<div class="card">
-    <h5 class="card-header">The news impact in your portfolio</h5>
-    <div class="table-responsive">
-        <div class="card-deck">
-            @foreach (var news in Model)
-            {
-                <div class="card mb-3">
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <i class="bx bx-news bx-sm text-primary me-3"></i>
-                            <span class="fw-medium">@news.Title</span>
-                        </h5>
-                        <div id="newsSentiment-@news.Id" class="mb-3">
-                            <span class="stars">@news.Sentiment</span>
-                            <span class="fw-bold sentiment-label" data-sentiment="@news.Sentiment">
-                                @GetSentimentDescription(news.Sentiment)
-                            </span>
-                        </div>
-                        <div class="text-wrap card-text mt-3">
-                            @try
-                            {
-                                var analyses = JsonConvert.DeserializeObject<List<MarketAnalyticHub.Models.News.StockAnalysis>>(news.Analysis);
-                                if (analyses != null)
-                                {
-                                    foreach (var analysis in analyses)
-                                    {
-                                        <div class="analysis-item mb-3">
-                                            <p><strong>Ticker:</strong> @analysis.Ticker</p>
-                                            <p><strong>Score:</strong> @analysis.Score - @GetSentimentDescription(analysis.Score)</p>
-                                            <p><strong>Analysis Summary:</strong> @analysis.AnalysisSummary</p>
-                                        </div>
-                                    }
-                                }
-                                else
-                                {
-                                    <p>No analysis available.</p>
-                                }
-                            }
-                            catch (JsonException ex)
-                            {
-                                <p>Error parsing analysis: @ex.Message</p>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    </div>
-</div>
 
 <!-- Legend Card -->
 <div class="card legend-card">
@@ -207,7 +157,7 @@
 
 <!-- Chart Container -->
 <div id="chart-container">
-    <div id="individual-chart"></div>
+  
     <div id="grouped-chart"></div>
 </div>
 
@@ -215,97 +165,8 @@
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var individualSentimentData = @Html.Raw(GetIndividualSentimentData());
+       
         var groupedSentimentData = @Html.Raw(GetGroupedSentimentData());
-
-        // Individual Sentiment Chart
-        var optionsIndividual = {
-            series: [{
-                name: 'Sentiment Score',
-                data: individualSentimentData.map(function (item) {
-                    return item.Score;
-                })
-            }],
-            chart: {
-                height: 350,
-                type: 'bar'
-            },
-            plotOptions: {
-                bar: {
-                    borderRadius: 10,
-                    dataLabels: {
-                        position: 'top'
-                    }
-                }
-            },
-            dataLabels: {
-                enabled: true,
-                formatter: function (val) {
-                    return val;
-                },
-                offsetY: -20,
-                style: {
-                    fontSize: '12px',
-                    colors: ["#304758"]
-                }
-            },
-            xaxis: {
-                categories: individualSentimentData.map(function (item) {
-                    return item.Ticker;
-                }),
-                position: 'bottom',
-                labels: {
-                    offsetY: 0
-                },
-                axisBorder: {
-                    show: false
-                },
-                axisTicks: {
-                    show: false
-                },
-                crosshairs: {
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            colorFrom: '#D8E3F0',
-                            colorTo: '#BED1E6',
-                            stops: [0, 100],
-                            opacityFrom: 0.4,
-                            opacityTo: 0.5,
-                        }
-                    }
-                },
-                tooltip: {
-                    enabled: true,
-                }
-            },
-            yaxis: {
-                axisBorder: {
-                    show: false
-                },
-                axisTicks: {
-                    show: false,
-                },
-                labels: {
-                    show: false,
-                    formatter: function (val) {
-                        return val;
-                    }
-                }
-            },
-            title: {
-                text: 'Individual Sentiment Analysis Scores',
-                floating: true,
-                offsetY: 330,
-                align: 'center',
-                style: {
-                    color: '#444'
-                }
-            }
-        };
-
-        var chartIndividual = new ApexCharts(document.querySelector("#individual-chart"), optionsIndividual);
-        chartIndividual.render();
 
         // Grouped Sentiment Chart
         var optionsGrouped = {
@@ -397,3 +258,55 @@
         chartGrouped.render();
     });
 </script>
+<!-- News Cards -->
+<div class="card">
+    <h5 class="card-header">The news impact in your portfolio</h5>
+    <div class="table-responsive">
+        <div class="card-deck">
+            @foreach (var news in Model)
+            {
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bx bx-news bx-sm text-primary me-3"></i>
+                            <span class="fw-medium">@news.Title</span>
+                        </h5>
+                        <div id="newsSentiment-@news.Id" class="mb-3">
+                            <span class="stars">@news.Sentiment</span>
+                            <span class="fw-bold sentiment-label" data-sentiment="@news.Sentiment">
+                                @GetSentimentDescription(news.Sentiment)
+                            </span>
+                        </div>
+                        <div class="text-wrap card-text mt-3">
+                            @try
+                            {
+                                var analyses = JsonConvert.DeserializeObject<List<MarketAnalyticHub.Models.News.StockAnalysis>>(news.Analysis);
+                                if (analyses != null)
+                                {
+                                    foreach (var analysis in analyses)
+                                    {
+                                        <div class="analysis-item mb-3">
+                                            <p><strong>Ticker:</strong> @analysis.Ticker</p>
+                                            <p><strong>Score:</strong> @analysis.Score - @GetSentimentDescription(analysis.Score)</p>
+                                            <p><strong>Analysis Summary:</strong> @analysis.AnalysisSummary</p>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No analysis available.</p>
+                                }
+                            }
+                            catch (JsonException ex)
+                            {
+                                <p>Error parsing analysis: @ex.Message</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
