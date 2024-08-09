@@ -30,7 +30,7 @@ public class SearchController : ControllerBase
         };
 
     var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
-        .Index("web_articles")
+        .Index("search-news")
         .From((page - 1) * pageSize) // Pagination
         .Size(pageSize)
         .Query(q => q

@@ -13,6 +13,7 @@ namespace MarketAnalyticHub.Services.Elastic
       // Retrieve the connection parameters from the configuration
       var isCloud = bool.Parse(configuration["ElasticSearch:IsCloud"]);
       var node = configuration["ElasticSearch:Node"];
+      
       var username = configuration["ElasticSearch:Username"];
       var password = configuration["ElasticSearch:Password"];
 
@@ -21,8 +22,10 @@ namespace MarketAnalyticHub.Services.Elastic
 
       if (isCloud)
       {
+        var ES_URL = configuration["ElasticSearch:EndpoiPoint"];
+        var API_KEY = configuration["ElasticSearch:ApiKey"];
         var cloudId = configuration["ElasticSearch:CloudId"];
-        settings = new ConnectionSettings(cloudId, new BasicAuthenticationCredentials(username, password))
+        settings = new ConnectionSettings(cloudId,new ApiKeyAuthenticationCredentials(API_KEY))
             .DefaultIndex("web-articles");
       }
       else
