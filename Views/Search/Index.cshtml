@@ -3,6 +3,7 @@
 }
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,24 +19,48 @@
             align-items: center;
         }
 
-        .search-container {
-            width: 100%;
-            margin-top: 30px;
-            position: relative;
-        }
-
-        .search-box {
+        .chat-container {
             display: flex;
             align-items: center;
-            border: 1px solid #dfe1e5;
-            border-radius: 24px;
-            padding: 10px 15px;
             background-color: #fff;
-            box-shadow: 0px 1px 6px rgba(32, 33, 36, 0.28);
-            position: relative;
+            border-radius: 25px;
+            box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+            padding: 10px 15px;
+            margin-bottom: 20px;
+            width: 100%;
         }
 
-            .search-box input[type="text"] {
+            .chat-container .new-topic-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #1a73e8;
+                color: #fff;
+                border: none;
+                border-radius: 20px;
+                padding: 10px 20px;
+                margin-right: 10px;
+                font-weight: bold;
+                cursor: pointer;
+                font-size: 14px;
+            }
+
+                .chat-container .new-topic-button i {
+                    margin-right: 5px;
+                    font-size: 18px;
+                }
+
+            .chat-container .input-container {
+                display: flex;
+                align-items: center;
+                flex-grow: 1;
+                position: relative;
+                border: 1px solid #dfe1e5;
+                border-radius: 24px;
+                padding: 10px 15px;
+            }
+
+            .chat-container input[type="text"] {
                 border: none;
                 outline: none;
                 font-size: 16px;
@@ -43,133 +68,140 @@
                 padding: 8px;
             }
 
-                .search-box input[type="text"]::placeholder {
+                .chat-container input[type="text"]::placeholder {
                     color: #a0a0a0;
                 }
 
-            .search-box button {
-                border: none;
-                background: none;
-                padding: 0;
-                cursor: pointer;
-                color: #4285f4;
-                font-size: 20px;
+            .chat-container .input-container .icon-group {
+                display: flex;
+                align-items: center;
+                margin-left: 10px;
             }
 
-        .loading-spinner {
-            position: absolute;
-            right: 45px;
-            display: none;
-        }
-
-            .loading-spinner i {
-                font-size: 18px;
-                color: #4285f4;
-                animation: spin 1s linear infinite;
-            }
-
-            @@keyframes spin {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
-            }
-
-        #autocompleteContainer {
-            position: absolute;
-            top: 55px;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            background-color: #fff;
-            border-top: none;
-            box-shadow: 0px 4px 6px rgba(32, 33, 36, 0.28);
-            border-radius: 0 0 8px 8px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-            #autocompleteContainer .autocomplete-suggestion {
-                padding: 10px 15px;
-                cursor: pointer;
-            }
-
-                #autocompleteContainer .autocomplete-suggestion:hover {
-                    background-color: #e8f0fe;
+                .chat-container .input-container .icon-group i {
+                    font-size: 20px;
+                    color: #5f6368;
+                    cursor: pointer;
+                    margin-left: 15px;
                 }
 
-        #suggestionContainer {
-            margin-top: 20px;
-        }
+                    .chat-container .input-container .icon-group i:hover {
+                        color: #202124;
+                    }
 
-        #resultsContainer {
-            margin-top: 30px;
-            width: 100%;
-        }
+                .chat-container .input-container .icon-group .bx-send {
+                    color: #1a73e8;
+                }
 
-        .result-card {
+                    .chat-container .input-container .icon-group .bx-send:hover {
+                        color: #0c62d1;
+                    }
+
+        .response-container {
             background-color: #fff;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            box-shadow: 0px 2px 6px rgba(32, 33, 36, 0.28);
-            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
             padding: 15px;
+            width: 100%;
+            margin-bottom: 20px;
         }
 
-        .result-card h3 {
-            margin: 0;
-            font-size: 18px;
-            color: #1a0dab;
+        .response-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
         }
 
-        .result-card p {
-            margin: 5px 0;
-            color: #545454;
-        }
-
-        .result-card a {
-            color: #1a0dab;
-            text-decoration: none;
-        }
-
-            .result-card a:hover {
-                text-decoration: underline;
+            .response-header img {
+                width: 30px;
+                height: 30px;
+                margin-right: 10px;
             }
 
-        .pagination {
+        .response-actions {
+            display: flex;
+            align-items: center;
+            margin-left: auto;
+        }
+
+            .response-actions i {
+                font-size: 18px;
+                color: #5f6368;
+                cursor: pointer;
+                margin-left: 15px;
+            }
+
+                .response-actions i:hover {
+                    color: #202124;
+                }
+
+        .suggestion-buttons {
             display: flex;
             justify-content: center;
+            flex-wrap: wrap;
             margin-top: 20px;
         }
 
-            .pagination button {
-                background-color: #f1f3f4;
-                border: 1px solid #dadce0;
-                color: #3c4043;
-                margin: 0 5px;
-                padding: 10px 15px;
-                border-radius: 4px;
+            .suggestion-buttons button {
+                background-color: #e8f0fe;
+                border: none;
+                color: #1a73e8;
+                padding: 10px 20px;
+                border-radius: 20px;
+                margin: 5px;
                 cursor: pointer;
+                font-size: 14px;
             }
 
-                .pagination button:hover {
-                    background-color: #e8eaed;
+                .suggestion-buttons button:hover {
+                    background-color: #d2e3fc;
                 }
     </style>
 </head>
+
 <body>
-    <div class="text-center">
-        <img class="rounded-circle" src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
-    </div>
-    <div class="search-container">
-        <div class="search-box">
-            <input type="text" id="searchQuery" placeholder="Search..." autocomplete="off" />
-            <button id="searchButton">
-                <i class="bx bx-search"></i>
+    <div class="chat-assistant-container">
+        <div class="text-center chat-assistant-logo">
+            <img class="rounded-circle" src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
+            <h3>Ai-Pilot</h3>
+            <p>Your everyday AI analizer companion</p>
+        </div>
+        <div class="chat-container">
+            <button id="actionButton" class="new-topic-button" onclick="startNewTopic()">
+                <i class="bx bx-bell"></i><p id="textElement">New topic</p>
             </button>
-            <div class="loading-spinner" id="loadingSpinner">
-                <i class="bx bx-loader bx-spin"></i>
+            <div class="input-container">
+                <div class="loading-spinner" id="loadingSpinner">
+                    <i class="bx bx-loader bx-spin"></i>
+                </div>
+                <input type="text" id="searchQuery" placeholder="Ask me anything..." autocomplete="off" />
+                <div class="icon-group">
+                    <i id="fileUploadInput" class="bx bx-image"></i>
+                    <i id="voiceInput" class="bx bx-microphone"></i>
+                    <i id="searchButton" class="bx bx-send"></i>
+                </div>
             </div>
         </div>
-        <div id="autocompleteContainer"></div>
+    </div>
+
+    <div class=" response-container">
+        <div class="response-header">
+            <img src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
+            <span>Alright, I’m ready! Thanks for the reset. What should we learn about?</span>
+            <div class="response-actions">
+                <i class="bx bx-like"></i>
+                <i class="bx bx-dislike"></i>
+                <i class="bx bx-copy"></i>
+                <i class="bx bx-download"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="suggestion-buttons">
+        <button>How does Bing work?</button>
+        <button>How do I bake a cake?</button>
+        <button>What's the weather?</button>
+        <button>Teach me a new word</button>
     </div>
 
     <div id="suggestionContainer"></div>
@@ -178,9 +210,42 @@
     <script>
         const searchQueryInput = document.getElementById('searchQuery');
         const searchButton = document.getElementById('searchButton');
-        const autocompleteContainer = document.getElementById('autocompleteContainer');
+        const voiceInput = document.getElementById('voiceInput');
+        const fileUploadInput = document.getElementById('fileUploadInput');
         const loadingSpinner = document.getElementById('loadingSpinner');
         let debounceTimer;
+        // Select the action button and the text element
+        const actionButton = document.getElementById('actionButton');
+        const textElement = document.getElementById('textElement');
+
+        // Hide the text by default
+        textElement.style.display = 'none';
+
+        // Function to toggle text visibility
+        function toggleTextVisibility() {
+            if (textElement.style.display === 'none') {
+                textElement.style.display = 'block';
+            } else {
+                textElement.style.display = 'none';
+            }
+        }
+
+        // Event listener for hover (mouseover and mouseout)
+        actionButton.addEventListener('mouseover', () => {
+            textElement.style.display = 'block';
+        });
+
+        actionButton.addEventListener('mouseout', () => {
+            textElement.style.display = 'none';
+        });
+
+        // Event listener for click (optional, if you want to toggle on click)
+        actionButton.addEventListener('click', toggleTextVisibility);
+        function startNewTopic() {
+            searchQueryInput.value = '';
+            document.getElementById('resultsContainer').innerHTML = '';
+            alert('New topic started.');
+        }
 
         searchButton.addEventListener('click', function () {
             performSearch();
@@ -198,6 +263,36 @@
                 performSearch();
             }
         });
+
+        voiceInput.addEventListener('click', function () {
+            alert('Voice search not yet implemented.');
+            // To implement: Use Web Speech API or similar for voice input.
+        });
+
+        fileUploadInput.addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                processImage(file);
+            }
+        });
+
+        function processImage(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Replace '/api/processImage' with your actual API endpoint.
+            fetch('/api/processImage', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(`Image processed: ${data.result}`);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
 
         function performSearch(page = 1) {
             const query = searchQueryInput.value;
@@ -252,7 +347,9 @@
                 data.results.forEach(result => {
                     const card = document.createElement('div');
                     card.classList.add('result-card');
-
+                    card.classList.add('card');
+                    card.classList.add('mb-1');
+                    card.classList.add('p-3');
                     const title = document.createElement('h3');
                     title.innerHTML = result.title;
 
@@ -313,4 +410,5 @@
         }
     </script>
 </body>
+
 </html>
