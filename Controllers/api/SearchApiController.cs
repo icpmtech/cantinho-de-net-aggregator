@@ -1,20 +1,21 @@
+using AspnetCoreMvcFull.Services;
 using Elasticsearch.Net;
 using MarketAnalyticHub.Services.Elastic;
 using Microsoft.AspNetCore.Mvc;
-using Milvus.Client;
 using Nest;
+
 
 [Route("api/[controller]")]
 [ApiController]
 public class SearchController : ControllerBase
 {
   private readonly ElasticClient _elasticClient;
-  private readonly MilvusClient _milvusClient;
+  private readonly OpenAIService _openAiClient;
 
-  public SearchController(ElasticSearchService elasticClient)
+  public SearchController(ElasticSearchService elasticClient, OpenAIService openAiClient)
   {
     _elasticClient = elasticClient._client;
-
+    _openAiClient = openAiClient;
   }
 
   // Google-like Search with typo correction, boosting, highlighting, and pagination
@@ -87,6 +88,112 @@ public class SearchController : ControllerBase
 
     return Ok(result);
   }
+
+  // Search with OpenAI query enhancement
+  [HttpGet("search-enhanced")]
+  public async Task<IActionResult> SearchWithEnhancedQuery(string query, int page = 1, int pageSize = 10)
+  {
+    // Use OpenAI to enhance the query
+    var enhancedQuery = await _openAiClient.GenerateEnhancedQueryAsync(query);
+
+    // Use the enhanced query in Elasticsearch
+    var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
+        .Index("search-news")
+        .From((page - 1) * pageSize)
+        .Size(pageSize)
+        .Query(q => q
+            .Bool(b => b
+                .Must(m => m
+                    .MultiMatch(mm => mm
+                        .Query(enhancedQuery)
+                        .Fields(new[] { "title^3", "body^2", "tags", "url" })
+                        .Type(TextQueryType.MostFields)
+                        .Fuzziness(Fuzziness.Auto)
+                        .Operator(Operator.And)
+                    )
+                )
+            )
+        )
+        .Highlight(h => h
+            .PreTags("<em>")
+            .PostTags("</em>")
+            .Fields(
+                f => f.Field("title"),
+                f => f.Field("body"),
+                f => f.Field("tags")
+            )
+        )
+    );
+
+    return Ok(new
+    {
+      Total = searchResponse.Total,
+      Results = searchResponse.Documents,
+      EnhancedQuery = enhancedQuery,
+      Highlights = searchResponse.Hits.Select(hit => new
+      {
+        Id = hit.Id,
+        Source = hit.Source,
+        Highlights = hit.Highlight
+      })
+    });
+  }
+
+  // Search with OpenAI-generated summaries
+  [HttpGet("search-with-summary")]
+  public async Task<IActionResult> SearchWithSummary(string query, int page = 1, int pageSize = 10)
+  {
+    var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
+        .Index("search-news")
+        .From((page - 1) * pageSize)
+        .Size(pageSize)
+        .Query(q => q
+            .Bool(b => b
+                .Must(m => m
+                    .MultiMatch(mm => mm
+                        .Query(query)
+                        .Fields(new[] { "title^3", "body^2", "tags", "url" })
+                        .Type(TextQueryType.MostFields)
+                        .Fuzziness(Fuzziness.Auto)
+                        .Operator(Operator.And)
+                    )
+                )
+            )
+        )
+    );
+
+    // Summarize the top search results using OpenAI
+    var summaries = await _openAiClient.GenerateSummariesAsync(searchResponse.Documents);
+
+    return Ok(new
+    {
+      Total = searchResponse.Total,
+      Results = searchResponse.Documents,
+      Summaries = summaries
+    });
+  }
+
+  // Determine if a query is a question and get a direct answer from OpenAI
+  [HttpGet("search-or-answer")]
+  public async Task<IActionResult> SearchOrAnswer(string query, int page = 1, int pageSize = 10)
+  {
+    var isQuestion = await _openAiClient.IsQuestionAsync(query);
+
+    if (isQuestion)
+    {
+      // Get a direct answer from OpenAI
+      var answer = await _openAiClient.AnswerQuestionAsync(query);
+      return Ok(new { Answer = answer });
+    }
+    else
+    {
+      // Proceed with a regular search
+      return await Search(query, page, pageSize);
+    }
+  }
+
+ 
+
   // Example 1: Search by Title
   [HttpGet("search-by-title")]
   public async Task<IActionResult> SearchByTitle(string title)
@@ -157,6 +264,7 @@ public class SearchController : ControllerBase
     return Ok(searchResponse.Documents);
   }
 
+  // Autocomplete using OpenAI for enhanced suggestions
   [HttpGet("autocomplete")]
   public async Task<IActionResult> Autocomplete(string query, int maxSuggestions = 5)
   {
@@ -179,7 +287,6 @@ public class SearchController : ControllerBase
 
     return Ok(suggestions);
   }
-
 
   // Example 5: Search with Date Range
   [HttpGet("search-by-date-range")]

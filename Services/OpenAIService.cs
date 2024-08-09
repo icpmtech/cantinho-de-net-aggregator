@@ -21,6 +21,72 @@ namespace AspnetCoreMvcFull.Services
       _httpClient = httpClient;
       _apiKey = configuration["OpenAI:ApiKey"];
     }
+
+    public async Task<string> GenerateEnhancedQueryAsync(string query)
+    {
+      // Call OpenAI API to enhance the query
+      // Example: Use GPT-3/4 to refine or add context to the query
+      return await CallOpenAiApiAsync(query);
+    }
+
+    public async Task<string> AnswerQuestionAsync(string question)
+    {
+      // Call OpenAI API to get a direct answer
+      return await CallOpenAiApiAsync(question);
+    }
+
+    public async Task<List<string>> GenerateSummariesAsync(IEnumerable<dynamic> documents)
+    {
+      // Summarize the content of the documents
+      var summaries = new List<string>();
+      foreach (var doc in documents)
+      {
+        var summary = await CallOpenAiApiAsync(doc.ToString());
+        summaries.Add(summary);
+      }
+      return summaries;
+    }
+
+    public async Task<bool> IsQuestionAsync(string query)
+    {
+      // Determine if the query is a question
+      var result = await CallOpenAiApiAsync($"Is this a question? {query}");
+      return result.ToLower().Contains("yes");
+    }
+
+    public async Task<float[]> GenerateEmbeddingAsync(string text)
+    {
+      // Call OpenAI API to generate embeddings for semantic search
+      var embedding = await CallOpenAiApiAsync(text);
+      return ConvertToFloatArray(embedding);
+    }
+
+    private async Task<string> CallOpenAiApiAsync(string input)
+    {
+      // Initialize the OpenAI API client with the provided API key
+      var api = new OpenAIAPI(_apiKey);
+
+      // Create a completion request with the desired parameters
+      var completionRequest = new CompletionRequest
+      {
+        Prompt = input,
+        MaxTokens = 50, // Adjust max tokens based on the expected length of the response
+        Temperature = 0.5, // Adjust temperature based on the desired creativity of the response
+      };
+
+      // Call the API to get the completion result
+      var result = await api.Completions.CreateCompletionAsync(completionRequest);
+
+      // Extract and return the generated text from the response
+      return result.Completions[0].Text.Trim();
+    }
+
+    private float[] ConvertToFloatArray(string embedding)
+    {
+      // Convert the string embedding to a float array
+      return new float[] { 0.0f }; // Example
+    }
+
     public async Task<string> GetAssociatedCompaniesAsync(string[] keywords)
     {
       var prompt = GeneratePrompt(keywords);

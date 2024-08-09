@@ -104,6 +104,7 @@
             padding: 15px;
             width: 100%;
             margin-bottom: 20px;
+            display: none;
         }
 
         .response-header {
@@ -156,6 +157,32 @@
                 .suggestion-buttons button:hover {
                     background-color: #d2e3fc;
                 }
+
+        /* Additional styles for pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+            .pagination button {
+                background-color: #1a73e8;
+                border: none;
+                color: #fff;
+                padding: 10px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin: 0 5px;
+            }
+
+                .pagination button:hover {
+                    background-color: #0c62d1;
+                }
+
+            .pagination span {
+                margin: 0 10px;
+                font-size: 16px;
+            }
     </style>
 </head>
 
@@ -164,14 +191,14 @@
         <div class="text-center chat-assistant-logo">
             <img class="rounded-circle" src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
             <h3>Ai-Pilot</h3>
-            <p>Your everyday AI analizer companion</p>
+            <p>Your everyday AI analyzer companion</p>
         </div>
         <div class="chat-container">
             <button id="actionButton" class="new-topic-button" onclick="startNewTopic()">
                 <i class="bx bx-bell"></i><p id="textElement">New topic</p>
             </button>
             <div class="input-container">
-                <div class="loading-spinner" id="loadingSpinner">
+                <div class="loading-spinner" id="loadingSpinner" style="display: none;">
                     <i class="bx bx-loader bx-spin"></i>
                 </div>
                 <input type="text" id="searchQuery" placeholder="Ask me anything..." autocomplete="off" />
@@ -184,7 +211,7 @@
         </div>
     </div>
 
-    <div class=" response-container">
+    <div class="response-container" id="responseContainer">
         <div class="response-header">
             <img src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
             <span>Alright, I’m ready! Thanks for the reset. What should we learn about?</span>
@@ -198,10 +225,10 @@
     </div>
 
     <div class="suggestion-buttons">
-        <button>How does Bing work?</button>
-        <button>How do I bake a cake?</button>
-        <button>What's the weather?</button>
-        <button>Teach me a new word</button>
+        <button onclick="setQuery('How does Ai-Pilot work?')">How does Ai-Pilot work?</button>
+        <button onclick="setQuery('How do I bake a cake?')">How do I bake a cake?</button>
+        <button onclick="setQuery('What\'s the weather?')">What's the weather?</button>
+        <button onclick="setQuery('Teach me a new word')">Teach me a new word</button>
     </div>
 
     <div id="suggestionContainer"></div>
@@ -213,63 +240,62 @@
         const voiceInput = document.getElementById('voiceInput');
         const fileUploadInput = document.getElementById('fileUploadInput');
         const loadingSpinner = document.getElementById('loadingSpinner');
+        const responseContainer = document.getElementById('responseContainer');
         let debounceTimer;
-        // Select the action button and the text element
+
         const actionButton = document.getElementById('actionButton');
         const textElement = document.getElementById('textElement');
 
-        // Hide the text by default
         textElement.style.display = 'none';
 
-        // Function to toggle text visibility
         function toggleTextVisibility() {
-            if (textElement.style.display === 'none') {
-                textElement.style.display = 'block';
-            } else {
-                textElement.style.display = 'none';
-            }
+            textElement.style.display = textElement.style.display === 'none' ? 'block' : 'none';
         }
 
-        // Event listener for hover (mouseover and mouseout)
-        actionButton.addEventListener('mouseover', () => {
-            textElement.style.display = 'block';
-        });
+        actionButton.addEventListener('mouseover', toggleTextVisibility);
+        actionButton.addEventListener('mouseout', toggleTextVisibility);
 
-        actionButton.addEventListener('mouseout', () => {
-            textElement.style.display = 'none';
-        });
+        function showResponseHeaderOnly() {
+            responseContainer.style.display = 'block';
+        }
 
-        // Event listener for click (optional, if you want to toggle on click)
-        actionButton.addEventListener('click', toggleTextVisibility);
         function startNewTopic() {
             searchQueryInput.value = '';
             document.getElementById('resultsContainer').innerHTML = '';
+            showResponseHeaderOnly();
             alert('New topic started.');
         }
 
-        searchButton.addEventListener('click', function () {
+        function setQuery(query) {
+            searchQueryInput.value = query;
             performSearch();
+        }
+
+        searchButton.addEventListener('click', () => {
+            performSearch();
+            showResponseHeaderOnly();
         });
 
-        searchQueryInput.addEventListener('input', function () {
+        searchQueryInput.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(() => {
                 performSearch();
-            }, 300); // Debounce input to prevent too many API calls
+                showResponseHeaderOnly();
+            }, 300);
         });
 
-        searchQueryInput.addEventListener('keypress', function (e) {
+        searchQueryInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 performSearch();
+                showResponseHeaderOnly();
             }
         });
 
-        voiceInput.addEventListener('click', function () {
+        voiceInput.addEventListener('click', () => {
             alert('Voice search not yet implemented.');
-            // To implement: Use Web Speech API or similar for voice input.
         });
 
-        fileUploadInput.addEventListener('change', function (e) {
+        fileUploadInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 processImage(file);
@@ -280,7 +306,6 @@
             const formData = new FormData();
             formData.append('file', file);
 
-            // Replace '/api/processImage' with your actual API endpoint.
             fetch('/api/processImage', {
                 method: 'POST',
                 body: formData
@@ -341,15 +366,13 @@
                 suggestionContainer.innerHTML = `<p>Did you mean: <strong>${data.suggestions}</strong>?</p>`;
             }
 
-            if (data.results.length > 0) {
+            if (data.results && data.results.length > 0) {
                 const resultList = document.createElement('div');
 
                 data.results.forEach(result => {
                     const card = document.createElement('div');
-                    card.classList.add('result-card');
-                    card.classList.add('card');
-                    card.classList.add('mb-1');
-                    card.classList.add('p-3');
+                    card.classList.add('result-card', 'card', 'mb-1', 'p-3');
+
                     const title = document.createElement('h3');
                     title.innerHTML = result.title;
 
