@@ -12,7 +12,8 @@
                     </th>
                     <th style="width: 10%;">Sentiment</th>
                     <th style="width: 50%;">Title</th>
-                    <th style="width: 20%;">Date
+                    <th style="width: 20%;">
+                        Date
                         <a href="javascript:void(0);" onclick="sortByDate('asc')">▲</a>
                         <a href="javascript:void(0);" onclick="sortByDate('desc')">▼</a>
 
@@ -66,7 +67,6 @@
                                 </div>
                                 <div class="card-body">
                                     <p class="text-wrap card-text">@news.Description</p>
-                                    <p class="text-wrap card-text">@news.Summary</p>
                                 </div>
                                 <div class="card-footer">
                                     <span class="text-wrap  link-display">
@@ -148,15 +148,18 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+
     @@media (max-width: 768px) {
         .title-container {
             max-width: 150px;
         }
     }
+
     .dropdown-menu a {
         display: flex;
         align-items: center;
     }
+
     .dropdown-menu i {
         margin-right: 5px;
     }
@@ -189,7 +192,7 @@
         var url = `@Url.Action("News", "APilot")?sortOrder=${order}&category=${category}&startDate=${startDate}&endDate=${endDate}&pageSize=${pageSize}`;
         window.location.href = url;
     }
-    
+
     function getStars(sentiment) {
         const maxStars = 5;
         const rating = Math.round((sentiment + 1) / 2 * maxStars);
@@ -218,7 +221,7 @@
         document.getElementById('endDate').value = urlParams.get('endDate') || '';
         document.getElementById('pageSizeSelect').value = urlParams.get('pageSize') || '50';
 
-       
+
 
         document.querySelectorAll('.stars').forEach(function (element) {
             let sentimentText = element.innerText.trim().replace(',', '.');

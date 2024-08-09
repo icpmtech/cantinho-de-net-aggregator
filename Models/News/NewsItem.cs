@@ -3,6 +3,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace MarketAnalyticHub.Models.News
@@ -37,10 +38,36 @@ namespace MarketAnalyticHub.Models.News
       }
     }
 
+    [NotMapped]
+    public List<string> Tickers
+    {
+      get
+      {
+        if (string.IsNullOrEmpty(Summary))
+          return new List<string>();
+
+        var analyses = ParseStockAnalyses(Summary);
+        return analyses.Select(t => t.Ticker).ToList();
+      }
+    }
+
+    [NotMapped]
+    public List<int> Scores
+    {
+      get
+      {
+        if (string.IsNullOrEmpty(Summary))
+          return new List<int>();
+
+        var analyses = ParseStockAnalyses(Summary);
+        return analyses.Select(t => t.Score).ToList();
+      }
+    }
+
     private List<StockAnalysis> ParseStockAnalyses(string input)
     {
       var analyses = new List<StockAnalysis>();
-      var pattern = new Regex(@"(?<ticker>[\w.]+(?:\.LS)?)-score: (?<score>\d), analysisSummary: ""?(?<summary>[^""]+)""?");
+      var pattern = new Regex(@"(?<ticker>[\w.]+)-score: (?<score>\d), analysisSummary: (?:""(?<summary>[^""]+)""|(?<summary>[^,]+))(?:,|$)");
 
       var matches = pattern.Matches(input);
       foreach (Match match in matches)
@@ -57,6 +84,7 @@ namespace MarketAnalyticHub.Models.News
       return analyses;
     }
   }
+  
 
   public class StockAnalysis
   {

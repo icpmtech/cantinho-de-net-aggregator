@@ -31,7 +31,7 @@ else
 {
    
     @section PageScripts {
-    <script>
+    @* <script>
         document.addEventListener("DOMContentLoaded", function () {
             // Check if the tour has been completed
             if (!localStorage.getItem('dashboardTourCompleted')) {
@@ -45,7 +45,7 @@ else
                 });
             }
         });
-    </script>
+    </script> *@
     <script src="~/js/dashboards-analytics.js"></script>
     <script src="~/js/pages/dashboard/dashboard.js"></script>
     }
