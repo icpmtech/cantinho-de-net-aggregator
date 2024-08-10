@@ -1,0 +1,16 @@
+@model Nest.IndexState
+
+<h2>Index Details: @ViewBag.IndexName</h2>
+
+<table class="table">
+    <tr>
+        <th>Settings</th>
+        <td>@Html.Raw(Model.Settings)</td>
+    </tr>
+    <tr>
+        <th>Mappings</th>
+        <td>@Html.Raw(Model.Mappings)</td>
+    </tr>
+</table>
+
+<a asp-action="Index" class="btn btn-secondary">Back to List</a>

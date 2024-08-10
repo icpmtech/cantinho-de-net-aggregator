@@ -165,7 +165,7 @@
                 </li>
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/PredictiveSearch" ? " active" : "")'>
                     <a asp-controller="SentimentAnalizer" asp-action="PredictiveSearch" class="menu-link">
-                        <div>Predictive Analisys</div>
+                        <div>Predict</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/SearchNews" ? " active" : "")'>
@@ -255,6 +255,16 @@
                 <li class='menu-item@(currentPage == "Admin/UserManagement/Index" ? " active" : "")'>
                     <a href="/Admin/UserManagement/Index" class="menu-link">
                         <div>User Management</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/PortfolioIndexing/Index" ? " active" : "")'>
+                    <a asp-controller="PortfolioIndexing" asp-action="Index" class="menu-link">
+                        <div>List Indices Elastic</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/PortfolioIndexing/IndexPortfolioData" ? " active" : "")'>
+                    <a asp-controller="PortfolioIndexing" asp-action="IndexPortfolioData" class="menu-link">
+                        <div>Process Portfolio </div>
                     </a>
                 </li>
 

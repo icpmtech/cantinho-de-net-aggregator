@@ -10,16 +10,23 @@
 <body>
     <h1>Portfolio Analysis</h1>
 
-    <div>
+    <div class="card">
         <h2>Generate Report</h2>
-        <input type="text" id="prompt" placeholder="Enter a prompt">
-        <button onclick="generateReport()">Generate Report</button>
-        <pre id="report"></pre>
+        <div class="card-body">
+            <input type="text" id="prompt" placeholder="Enter a prompt">
+            <button onclick="generateReport()">Generate Report</button>
+            <pre id="report"></pre>
+        </div>
     </div>
 
     <div>
-        <h2>Real-Time Portfolio Updates</h2>
-        <pre id="portfolio-updates"></pre>
+        <h2>Real-Time Portfolio Metrics</h2>
+        <canvas id="portfolioMetricsChart"></canvas>
+    </div>
+
+    <div>
+        <h2>Real-Time Portfolio Insights</h2>
+        <pre id="portfolio-insights"></pre>
     </div>
 
     <script>
@@ -41,8 +48,28 @@
             .withUrl("/portfolioHub")
             .build();
 
-        connection.on("ReceivePortfolioUpdates", (data) => {
-            document.getElementById('portfolio-updates').innerText = data;
+        connection.on("ReceivePortfolioUpdatesMetrics", (data) => {
+            const ctx = document.getElementById('portfolioMetricsChart').getContext('2d');
+            const labels = data.buckets.map(b => b.key_as_string); // Assuming the aggregation returns buckets with date keys
+            const values = data.buckets.map(b => b.total_sales.value); // Modify based on your aggregation structure
+
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Portfolio Metrics',
+                        data: values,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                        fill: false
+                    }]
+                }
+            });
+        });
+
+        connection.on("ReceivePortfolioUpdatesInsights", (insights) => {
+            document.getElementById('portfolio-insights').innerText = insights;
         });
 
         connection.start().then(() => {

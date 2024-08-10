@@ -31,7 +31,7 @@ namespace MarketAnalyticHub.Services
 
       try
       {
-        // Check if the index exists and create it if not
+        // Check if the index exists, create if not
         var indexExistsResponse = await _elasticClient._client.Indices.ExistsAsync(indexName);
         if (!indexExistsResponse.Exists)
         {
@@ -48,12 +48,8 @@ namespace MarketAnalyticHub.Services
           _logger.LogInformation("Index {IndexName} created successfully.", indexName);
         }
 
-        // Include related entities and filter by userId
+        // Fetch portfolio items for the user
         var portfolioItems = await _context.PortfolioItems
-            .Include(pi => pi.Portfolio)
-            .Include(pi => pi.Industry)
-            .Include(pi => pi.Dividends)
-            .Include(pi => pi.StockEvents)
             .Where(pi => pi.Portfolio.UserId == userId)
             .ToListAsync();
 
@@ -65,15 +61,14 @@ namespace MarketAnalyticHub.Services
 
         _logger.LogInformation("Found {ItemCount} portfolio items for user {UserId}.", portfolioItems.Count, userId);
 
-        // Prepare items for bulk indexing
+        // Prepare bulk indexing
         var bulkIndexDescriptor = new BulkDescriptor();
 
         foreach (var item in portfolioItems)
         {
-          // Simulate fetching social sentiment for each item (replace with your implementation)
+          // Fetch and set social sentiment data
           item.SocialSentiment = await GetSocialSentimentForSymbolAsync(item.Symbol);
 
-          // Add the item to the bulk index descriptor
           bulkIndexDescriptor.Index<PortfolioItem>(op => op
               .Index(indexName)
               .Document(item)
@@ -113,5 +108,80 @@ namespace MarketAnalyticHub.Services
         SentimentScore = 0.5 // Placeholder value
       });
     }
+
+    // Create an index
+    public async Task<bool> CreateIndexAsync(string indexName)
+    {
+      var existsResponse = await _elasticClient._client.Indices.ExistsAsync(indexName);
+      if (existsResponse.Exists)
+      {
+        _logger.LogWarning("Index {IndexName} already exists.", indexName);
+        return false;
+      }
+
+      var createResponse = await _elasticClient._client.Indices.CreateAsync(indexName, c => c
+          .Map(m => m.AutoMap())
+      );
+
+      if (createResponse.IsValid)
+      {
+        _logger.LogInformation("Index {IndexName} created successfully.", indexName);
+        return true;
+      }
+      else
+      {
+        _logger.LogError("Failed to create index {IndexName}: {ErrorMessage}", indexName, createResponse.OriginalException.Message);
+        return false;
+      }
+    }
+
+    // Get a list of all indices
+    public async Task<IReadOnlyCollection<CatIndicesRecord>> GetIndicesAsync()
+    {
+      var response = await _elasticClient._client.Cat.IndicesAsync();
+
+      if (!response.IsValid)
+      {
+        // Handle errors here (throw exception, return empty list, log error, etc.)
+        return new List<CatIndicesRecord>();
+      }
+
+      return response.Records;
+    }
+
+    // Delete an index
+    public async Task<bool> DeleteIndexAsync(string indexName)
+    {
+      var deleteResponse = await _elasticClient._client.Indices.DeleteAsync(indexName);
+
+      if (deleteResponse.IsValid)
+      {
+        _logger.LogInformation("Index {IndexName} deleted successfully.", indexName);
+        return true;
+      }
+      else
+      {
+        _logger.LogError("Failed to delete index {IndexName}: {ErrorMessage}", indexName, deleteResponse.OriginalException.Message);
+        return false;
+      }
+    }
+
+    // Get details of an index
+    public async Task<IndexState> GetIndexDetailsAsync(string indexName)
+    {
+      var response = await _elasticClient._client.Indices.GetAsync(indexName);
+      if (response.Indices.ContainsKey(indexName))
+      {
+        return response.Indices[indexName];
+      }
+      else
+      {
+        _logger.LogWarning("Index {IndexName} not found.", indexName);
+        return null;
+      }
+    }
+
+
+
   }
 }

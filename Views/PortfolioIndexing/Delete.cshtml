@@ -1,0 +1,25 @@
+@model IndexViewModel
+
+@{
+    ViewData["Title"] = "Delete Index";
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ErrorMessage"]
+    </div>
+}
+
+<h2>Delete Index: @Model.IndexName</h2>
+
+<h4>Are you sure you want to delete the index '@Model.IndexName'?</h4>
+
+<form asp-action="DeleteConfirmed" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="indexName" value="@Model.IndexName" />
+    <div class="form-group">
+        <input type="submit" value="Delete" class="btn btn-danger" />
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>

@@ -1,0 +1,30 @@
+@model IEnumerable<Nest.CatIndicesRecord>
+
+<h2>Elasticsearch Indices</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Index Name</th>
+            <th>Docs Count</th>
+            <th>Size</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var index in Model)
+        {
+            <tr>
+                <td>@index.Index</td>
+                <td>@index.DocsCount</td>
+                <td>@index.StoreSize</td>
+                <td>
+                    <a asp-action="Details" asp-route-indexName="@index.Index">Details</a> |
+                    <a asp-action="Delete" asp-route-indexName="@index.Index">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Create New Index</a>
