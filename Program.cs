@@ -35,6 +35,7 @@ using MarketAnalyticHub.Services.ApiDataApp.Services;
 using Nest;
 using Elasticsearch.Net;
 using MarketAnalyticHub.Services.Elastic;
+using MarketAnalyticHub.Controllers.RealTime;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -119,6 +120,9 @@ builder.Services.AddHttpClient<BarchartService>();
 builder.Services.AddScoped<IYahooFinanceService, YahooFinanceService>();
 builder.Services.AddSingleton<OpenAIService>();
 builder.Services.AddSingleton<SocialSentimentService>();
+builder.Services.AddScoped<PortfolioIndexingService>();
+builder.Services.AddScoped<LlmService>();
+builder.Services.AddScoped<DataIndexingService>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration
@@ -221,6 +225,7 @@ app.UseEndpoints(endpoints =>
       pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
   );
   endpoints.MapHub<ChatHub>("/chathub");
+  endpoints.MapHub<PortfolioHub>("/portfolioHub");
   endpoints.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

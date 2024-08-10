@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@5.0.7/dist/browser/signalr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Portfolio Analysis</h1>
+
+    <div>
+        <h2>Generate Report</h2>
+        <input type="text" id="prompt" placeholder="Enter a prompt">
+        <button onclick="generateReport()">Generate Report</button>
+        <pre id="report"></pre>
+    </div>
+
+    <div>
+        <h2>Real-Time Portfolio Updates</h2>
+        <pre id="portfolio-updates"></pre>
+    </div>
+
+    <script>
+        async function generateReport() {
+            const prompt = document.getElementById('prompt').value;
+            const response = await fetch('/api/llm/generate-report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(prompt)
+            });
+
+            const report = await response.text();
+            document.getElementById('report').innerText = report;
+        }
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/portfolioHub")
+            .build();
+
+        connection.on("ReceivePortfolioUpdates", (data) => {
+            document.getElementById('portfolio-updates').innerText = data;
+        });
+
+        connection.start().then(() => {
+            console.log("SignalR Connected");
+        }).catch(err => console.error(err));
+    </script>
+</body>
+</html>

@@ -183,8 +183,13 @@
                         <div>Search</div>
                     </a>
                 </li>
-                <li class='menu-item@(currentPage == "/SentimentAnalizer/Calendar" ? " active" : "")'>
-                    <a asp-controller="SentimentAnalizer" asp-action="Calendar" class="menu-link">
+                <li class='menu-item@(currentPage == "/Search/Index" ? " active" : "")'>
+                    <a asp-controller="Search" asp-action="Index" class="menu-link">
+                        <div>Search</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/SentimentAnalizer/PredictiveSearch" ? " active" : "")'>
+                    <a asp-controller="SentimentAnalizer" asp-action="PredictiveSearch" class="menu-link">
                         <div>Economic Events</div>
                     </a>
                 </li>

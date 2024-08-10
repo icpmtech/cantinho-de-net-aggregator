@@ -15,6 +15,8 @@ namespace MarketAnalyticHub.Controllers
     {
       public double PositiveScore { get; set; }
       public double NegativeScore { get; set; }
+      public string Symbol { get; internal set; }
+      public double SentimentScore { get; internal set; }
     }
 
   }
