@@ -7,28 +7,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Interface</title>
+    <title>AI-Pilot Chat Interface</title>
     <link rel="stylesheet" href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css" />
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
             padding: 20px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            margin: 0;
         }
 
-        .chat-container {
+        .chat-assistant-container {
             display: flex;
+            flex-direction: column;
             align-items: center;
-            background-color: #fff;
-            border-radius: 25px;
-            box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
-            padding: 10px 15px;
-            margin-bottom: 20px;
             width: 100%;
         }
+
+        .chat-assistant-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+            .chat-assistant-logo img {
+                width: 72px;
+                height: 72px;
+                margin-bottom: 10px;
+            }
+
+        .chat-container {
+            background-color: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 15px 20px;
+            width: 100%;
+            margin-bottom: 20px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+            .chat-container:hover {
+                transform: scale(1.02);
+            }
 
             .chat-container .new-topic-button {
                 display: flex;
@@ -58,6 +81,7 @@
                 border: 1px solid #dfe1e5;
                 border-radius: 24px;
                 padding: 10px 15px;
+                background-color: #f8f9fa;
             }
 
             .chat-container input[type="text"] {
@@ -66,6 +90,7 @@
                 font-size: 16px;
                 width: 100%;
                 padding: 8px;
+                background-color: transparent;
             }
 
                 .chat-container input[type="text"]::placeholder {
@@ -83,6 +108,7 @@
                     color: #5f6368;
                     cursor: pointer;
                     margin-left: 15px;
+                    transition: color 0.2s;
                 }
 
                     .chat-container .input-container .icon-group i:hover {
@@ -98,7 +124,7 @@
                     }
 
         .response-container {
-            background-color: #fff;
+            background-color: #ffffff;
             border-radius: 10px;
             box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
             padding: 15px;
@@ -130,6 +156,7 @@
                 color: #5f6368;
                 cursor: pointer;
                 margin-left: 15px;
+                transition: color 0.2s;
             }
 
                 .response-actions i:hover {
@@ -144,21 +171,21 @@
         }
 
             .suggestion-buttons button {
-                background-color: #e8f0fe;
-                border: none;
-                color: #1a73e8;
-                padding: 10px 20px;
-                border-radius: 20px;
+                background-color: #e3f2fd;
+                border: 1px solid #90caf9;
+                color: #1e88e5;
+                padding: 10px 16px;
+                border-radius: 25px;
                 margin: 5px;
                 cursor: pointer;
                 font-size: 14px;
+                transition: background-color 0.2s;
             }
 
                 .suggestion-buttons button:hover {
-                    background-color: #d2e3fc;
+                    background-color: #bbdefb;
                 }
 
-        /* Additional styles for pagination */
         .pagination {
             display: flex;
             justify-content: center;
@@ -173,6 +200,7 @@
                 border-radius: 5px;
                 cursor: pointer;
                 margin: 0 5px;
+                transition: background-color 0.2s;
             }
 
                 .pagination button:hover {
@@ -183,6 +211,55 @@
                 margin: 0 10px;
                 font-size: 16px;
             }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+
+            .loading-overlay.show {
+                display: flex;
+            }
+
+            .loading-overlay .spinner {
+                font-size: 48px;
+                color: #1a73e8;
+            }
+
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #f1f1f1;
+            max-width: 80%;
+        }
+
+            .chat-message.user {
+                background-color: #d4edda;
+                align-self: flex-end;
+            }
+
+            .chat-message.ai {
+                background-color: #e2e3e5;
+                align-self: flex-start;
+            }
+
+        .chat-history {
+            display: flex;
+            flex-direction: column;
+            max-height: 400px;
+            overflow-y: auto;
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -194,7 +271,7 @@
             <p>Your everyday AI analyzer companion</p>
         </div>
         <div class="chat-container">
-            <button id="actionButton" class="new-topic-button" onclick="startNewTopic()">
+            <button id="actionButton" class="mb-1 new-topic-button" onclick="startNewTopic()">
                 <i class="bx bx-bell"></i><p id="textElement">New topic</p>
             </button>
             <div class="input-container">
@@ -211,10 +288,10 @@
         </div>
     </div>
 
-    <div class="response-container" hidden id="responseContainer">
+    <div class="response-container" id="responseContainer">
         <div class="response-header">
             <img src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
-            <span>Alright, I’m ready! Thanks for the reset.</span>
+            <span id="responseText">Alright, I’m ready! Thanks for the reset. What should we learn about?</span>
             <div class="response-actions">
                 <i class="bx bx-like"></i>
                 <i class="bx bx-dislike"></i>
@@ -224,18 +301,29 @@
         </div>
     </div>
 
-   
+    <div class="suggestion-buttons">
+        <button onclick="setQuery('How does Ai-Pilot work?')">How does Ai-Pilot work?</button>
+        <button onclick="setQuery('How do I bake a cake?')">How do I bake a cake?</button>
+        <button onclick="setQuery('What\'s the weather?')">What's the weather?</button>
+        <button onclick="setQuery('Teach me a new word')">Teach me a new word</button>
+    </div>
 
-    <div id="suggestionContainer"></div>
-    <div id="resultsContainer"></div>
+    <div id="chatHistory" class="chat-history"></div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner">
+            <i class="bx bx-loader bx-spin"></i>
+        </div>
+    </div>
 
     <script>
         const searchQueryInput = document.getElementById('searchQuery');
         const searchButton = document.getElementById('searchButton');
         const voiceInput = document.getElementById('voiceInput');
         const fileUploadInput = document.getElementById('fileUploadInput');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const responseContainer = document.getElementById('responseContainer');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const chatHistory = document.getElementById('chatHistory');
+        const responseText = document.getElementById('responseText');
         let debounceTimer;
 
         const actionButton = document.getElementById('actionButton');
@@ -256,7 +344,7 @@
 
         function startNewTopic() {
             searchQueryInput.value = '';
-            document.getElementById('resultsContainer').innerHTML = '';
+            chatHistory.innerHTML = '';
             showResponseHeaderOnly();
             alert('New topic started.');
         }
@@ -271,13 +359,13 @@
             showResponseHeaderOnly();
         });
 
-        searchQueryInput.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                performSearch();
-                showResponseHeaderOnly();
-            }, 300);
-        });
+        // searchQueryInput.addEventListener('input', () => {
+        //     clearTimeout(debounceTimer);
+        //     debounceTimer = setTimeout(() => {
+        //         performSearch();
+        //         showResponseHeaderOnly();
+        //     }, 300);
+        // });
 
         searchQueryInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -314,117 +402,50 @@
                 });
         }
 
-        function performSearch(page = 1) {
+        async function performSearch() {
             const query = searchQueryInput.value;
-            const pageSize = 10;
 
             if (!query) {
-                document.getElementById('resultsContainer').innerHTML = '';
                 return;
             }
 
-            showLoadingSpinner();
+            addMessageToChat(query, 'user');
 
-            fetch(`/api/search/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    displayResults(data);
-                    hideLoadingSpinner();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    hideLoadingSpinner();
-                });
-        }
+            showLoadingOverlay();
 
-        function showLoadingSpinner() {
-            loadingSpinner.style.display = 'block';
-        }
-
-        function hideLoadingSpinner() {
-            loadingSpinner.style.display = 'none';
-        }
-
-        function displayResults(data) {
-            const resultsContainer = document.getElementById('resultsContainer');
-            const suggestionContainer = document.getElementById('suggestionContainer');
-
-            resultsContainer.innerHTML = '';
-            suggestionContainer.innerHTML = '';
-
-            if (data.suggestions) {
-                suggestionContainer.innerHTML = `<p>Did you mean: <strong>${data.suggestions}</strong>?</p>`;
-            }
-
-            if (data.results && data.results.length > 0) {
-                const resultList = document.createElement('div');
-
-                data.results.forEach(result => {
-                    const card = document.createElement('div');
-                    card.classList.add('result-card', 'card', 'mb-1', 'p-3');
-
-                    const title = document.createElement('h3');
-                    title.innerHTML = result.title;
-
-                    const bodyContent = result.highlights?.meta_description?.[0] || result.meta_description;
-                    const truncatedBody = truncateText(bodyContent, 200);
-
-                    const body = document.createElement('p');
-                    body.innerHTML = truncatedBody;
-
-                    const tags = document.createElement('p');
-                    tags.innerHTML = `<strong>Tags:</strong> ${result.meta_keywords}`;
-
-                    const link = document.createElement('a');
-                    link.href = result.url;
-                    link.innerText = 'Read more';
-
-                    card.appendChild(title);
-                    card.appendChild(body);
-                    card.appendChild(tags);
-                    card.appendChild(link);
-
-                    resultList.appendChild(card);
+            try {
+                const response = await fetch(`/api/openai/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query })
                 });
 
-                resultsContainer.appendChild(resultList);
-
-                // Pagination
-                const paginationContainer = document.createElement('div');
-                paginationContainer.classList.add('pagination');
-
-                if (data.page > 1) {
-                    const prevButton = document.createElement('button');
-                    prevButton.innerText = 'Previous';
-                    prevButton.addEventListener('click', () => performSearch(data.page - 1));
-                    paginationContainer.appendChild(prevButton);
-                }
-
-                const pageInfo = document.createElement('span');
-                pageInfo.innerText = `Page ${data.page} of ${data.totalPages}`;
-                paginationContainer.appendChild(pageInfo);
-
-                if (data.page < data.totalPages) {
-                    const nextButton = document.createElement('button');
-                    nextButton.innerText = 'Next';
-                    nextButton.addEventListener('click', () => performSearch(data.page + 1));
-                    paginationContainer.appendChild(nextButton);
-                }
-
-                resultsContainer.appendChild(paginationContainer);
-            } else {
-                resultsContainer.innerHTML = '<p>No results found.</p>';
+                const data = await response.json();
+                addMessageToChat(data.response, 'ai');
+            } catch (error) {
+                console.error('Error:', error);
+                addMessageToChat('Sorry, something went wrong. Please try again later.', 'ai');
+            } finally {
+                hideLoadingOverlay();
             }
         }
 
-        function truncateText(text, maxLength) {
-            if (!text) return '';
-            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        function showLoadingOverlay() {
+            loadingOverlay.classList.add('show');
+        }
+
+        function hideLoadingOverlay() {
+            loadingOverlay.classList.remove('show');
+        }
+
+        function addMessageToChat(message, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('chat-message', sender);
+            messageElement.textContent = message;
+            chatHistory.appendChild(messageElement);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
         }
     </script>
 </body>

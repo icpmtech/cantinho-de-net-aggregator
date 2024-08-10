@@ -46,7 +46,19 @@ namespace AspnetCoreMvcFull.Services
       }
       return summaries;
     }
+    public async Task<string> GetChatResponseAsync(string query)
+    {
+      var api = new OpenAI_API.OpenAIAPI(_apiKey);
+      var request = new OpenAI_API.Completions.CompletionRequest
+      {
+        Prompt = query,
+        MaxTokens = 150,
+        Temperature = 0.7,
+      };
 
+      var result = await api.Completions.CreateCompletionAsync(request);
+      return result.Completions[0].Text.Trim();
+    }
     public async Task<bool> IsQuestionAsync(string query)
     {
       // Determine if the query is a question
@@ -67,7 +79,7 @@ namespace AspnetCoreMvcFull.Services
       var api = new OpenAIAPI(_apiKey);
 
       // Create a completion request with the desired parameters
-      var completionRequest = new CompletionRequest
+      var completionRequest = new CompletionRequest()
       {
         Prompt = input,
         MaxTokens = 50, // Adjust max tokens based on the expected length of the response

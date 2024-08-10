@@ -18,22 +18,29 @@ public class SearchController : ControllerBase
     _openAiClient = openAiClient;
   }
 
-  // Google-like Search with typo correction, boosting, highlighting, and pagination
   [HttpGet("search")]
   public async Task<IActionResult> Search(string query, int page = 1, int pageSize = 10)
   {
-    // Define fields to search and boost
-    var fieldsToSearch = new[] {
-            "title^3",     // Boost title field
-            "body^2",      // Boost body field
-            "tags",        // Normal weight for tags
-            "url"          // Less weight for URL
-        };
+    // Ensure the page is at least 1 to avoid issues with negative or zero pages
+    if (page < 1) page = 1;
 
+    // Calculate the starting point for pagination
+    var from = (page - 1) * pageSize;
+
+    // Define fields to search and boost
+    var fieldsToSearch = new[]
+    {
+        "title^3",             // Boost title field
+        "body_content^2",       // Boost body field
+        "meta_keywords",        // Normal weight for tags
+        "url"                   // Less weight for URL
+    };
+
+    // Execute the search query with pagination
     var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
         .Index("search-news")
-        .From((page - 1) * pageSize) // Pagination
-        .Size(pageSize)
+        .From(from)        // Pagination: starting point
+        .Size(pageSize)    // Pagination: number of items per page
         .Query(q => q
             .Bool(b => b
                 .Must(m => m
@@ -42,7 +49,7 @@ public class SearchController : ControllerBase
                         .Fields(fieldsToSearch)
                         .Type(TextQueryType.MostFields)
                         .Fuzziness(Fuzziness.Auto) // Allows for typo correction
-                        .Operator(Operator.And) // Makes sure all words in the query are included
+                        .Operator(Operator.And)    // Makes sure all words in the query are included
                     )
                 )
             )
@@ -63,8 +70,8 @@ public class SearchController : ControllerBase
             .PostTags("</em>")
             .Fields(
                 f => f.Field("title"),
-                f => f.Field("body"),
-                f => f.Field("tags")
+                f => f.Field("body_content"),
+                f => f.Field("meta_keywords")
             )
         )
     );
@@ -73,10 +80,14 @@ public class SearchController : ControllerBase
     var suggestion = searchResponse.Suggest["did_you_mean"]
         .FirstOrDefault()?.Options?.FirstOrDefault()?.Text;
 
+    // Prepare the result with pagination details
     var result = new
     {
-      Total = searchResponse.Total,
-      Results = searchResponse.Documents,
+      Total = searchResponse.Total,        // Total number of documents that match the query
+      Page = page,                         // Current page
+      PageSize = pageSize,                 // Number of items per page
+      TotalPages = (int)Math.Ceiling((double)searchResponse.Total / pageSize), // Total number of pages
+      Results = searchResponse.Documents,  // The documents for the current page
       Suggestions = suggestion != null && suggestion.ToLower() != query.ToLower() ? suggestion : null,
       Highlights = searchResponse.Hits.Select(hit => new
       {
@@ -287,7 +298,72 @@ public class SearchController : ControllerBase
 
     return Ok(suggestions);
   }
+  // Chat endpoint to handle different user inputs
+  [HttpPost("chat")]
+  public async Task<IActionResult> Chat([FromBody] ChatRequest request)
+  {
+    string userInput = request.Query;
+    string response;
 
+    // Determine if the user input is a question or should be enhanced
+    var isQuestion = await _openAiClient.IsQuestionAsync(userInput);
+
+    if (isQuestion)
+    {
+      // Get a direct answer from OpenAI
+      response = await _openAiClient.AnswerQuestionAsync(userInput);
+    }
+    else
+    {
+      // Enhance the query using OpenAI
+      var enhancedQuery = await _openAiClient.GenerateEnhancedQueryAsync(userInput);
+
+      // Perform search based on enhanced query
+      var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
+          .Index("search-news")
+          .From(0)
+          .Size(5) // Limiting to top 5 results for simplicity
+          .Query(q => q
+              .Bool(b => b
+                  .Must(m => m
+                      .MultiMatch(mm => mm
+                          .Query(enhancedQuery)
+                          .Fields(new[] { "title^3", "body^2", "tags", "url" })
+                          .Type(TextQueryType.MostFields)
+                          .Fuzziness(Fuzziness.Auto)
+                          .Operator(Operator.And)
+                      )
+                  )
+              )
+          )
+          .Highlight(h => h
+              .PreTags("<em>")
+              .PostTags("</em>")
+              .Fields(
+                  f => f.Field("title"),
+                  f => f.Field("body"),
+                  f => f.Field("tags")
+              )
+          )
+      );
+
+      var summaries = await _openAiClient.GenerateSummariesAsync(searchResponse.Documents);
+
+      response = FormatSearchResults(summaries);
+    }
+
+    return Ok(new { response });
+  }
+
+  private string FormatSearchResults(IEnumerable<string> summaries)
+  {
+    if (summaries == null || !summaries.Any())
+    {
+      return "I couldn't find any relevant results. Please try a different query.";
+    }
+
+    return string.Join("\n\n", summaries);
+  }
   // Example 5: Search with Date Range
   [HttpGet("search-by-date-range")]
   public async Task<IActionResult> SearchByDateRange(string startDate, string endDate)
