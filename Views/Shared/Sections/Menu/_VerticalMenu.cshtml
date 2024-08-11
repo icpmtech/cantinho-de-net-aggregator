@@ -106,22 +106,6 @@
                         <div>News</div>
                     </a>
                 </li>
-                <li class='menu-item@(currentPage == "/Sources/Reddit" ? " active" : "")'>
-                    <a asp-controller="Sources" asp-action="Reddit" class="menu-link">
-                        <div>Reddit</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Sources/Linkedin" ? " active" : "")'>
-                    <a asp-controller="Sources" asp-action="Linkedin" class="menu-link">
-                        <div>Linkedin</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Sources/Facebook" ? " active" : "")'>
-                    <a asp-controller="Sources" asp-action="Facebook" class="menu-link">
-                        <div>Facebook</div>
-                    </a>
-                </li>
-
             </ul>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/APilot") ? " active open" : "")'>
@@ -188,13 +172,13 @@
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/Calendar" ? " active" : "")'>
-                    <a asp-controller="Search" asp-action="Index" class="menu-link">
+                    <a asp-controller="SentimentAnalizer" asp-action="Calendar" class="menu-link">
                         <div>Economic Events</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/SearchSymbols" ? " active" : "")'>
                     <a asp-controller="SentimentAnalizer" asp-action="SearchSymbols" class="menu-link">
-                        <div>Tickers</div>
+                        <div>Symbols</div>
                     </a>
                 </li>
 
