@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Forecast Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .card-container {
+            margin: 20px 0;
+        }
+
+        #line-chart {
+            max-width: 900px;
+            margin: 35px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="my-4">Dynamic Forecast Input</h1>
+
+        <div class="card-container">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Add New Forecast</h5>
+                </div>
+                <div class="card-body">
+                    <form id="forecast-form">
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date:</label>
+                            <input type="date" id="date" name="date" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="investment" class="form-label">Investment Amount:</label>
+                            <input type="number" id="investment" name="investment" class="form-control" step="0.01" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class='bx bx-plus-circle'></i> Add Forecast
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-container">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title">Forecast Chart</h5>
+                </div>
+                <div class="card-body">
+                    <div id="line-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            var historicalData = [];
+            var forecastData = [];
+
+            function updateChart() {
+                var options = {
+                    chart: {
+                        type: 'line'
+                    },
+                    series: [
+                        {
+                            name: 'Historical Data',
+                            data: historicalData
+                        },
+                        {
+                            name: 'Forecast Data',
+                            data: forecastData
+                        }
+                    ],
+                    xaxis: {
+                        type: 'datetime'
+                    },
+                    title: {
+                        text: 'Historical Data and Forecast'
+                    },
+                    markers: {
+                        size: 4
+                    },
+                    dataLabels: {
+                        enabled: true
+                    }
+                };
+
+                var chart = new ApexCharts(document.querySelector("#line-chart"), options);
+                chart.render();
+            }
+
+            // Fetch historical data from API
+            $.get('/api/forecast/historical-data', function (data) {
+                historicalData = data.map(item => ({
+                    x: new Date(item.x).toISOString(),
+                    y: item.y
+                }));
+                updateChart();
+            }).fail(function () {
+                console.error('Error fetching historical data');
+            });
+
+            // Fetch existing forecast data
+            $.get('/api/forecast/forecast-data', function (data) {
+                forecastData = data.map(item => ({
+                    x: new Date(item.x).toISOString(),
+                    y: item.y
+                }));
+                updateChart();
+            }).fail(function () {
+                console.error('Error fetching forecast data');
+            });
+
+            $('#forecast-form').submit(function (event) {
+                event.preventDefault();
+
+                var date = $('#date').val();
+                var investment = parseFloat($('#investment').val());
+
+                var newForecast = {
+                    Date: date,
+                    Investment: investment
+                };
+
+                forecastData.push({
+                    x: new Date(date).toISOString(),
+                    y: investment
+                });
+
+                // Send the new forecast to the backend
+                $.ajax({
+                    url: '/api/forecast/add-forecast',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(newForecast),
+                    success: function () {
+                        updateChart();
+                    },
+                    error: function (xhr) {
+                        console.error('Error adding forecast:', xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

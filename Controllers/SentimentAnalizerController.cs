@@ -21,17 +21,26 @@ namespace MarketAnalyticHub.Controllers
         _portfolioService = portfolioService;
         _socialSentimentService = socialSentimentService;
       }
-    
+    public async Task<IActionResult> Playground()
+    {
 
-       public async Task<IActionResult> PredictiveSearch()
+
+      return View();
+    }
+    public async Task<IActionResult> Forecast()
+    {
+      
+
+      return View();
+    }
+    public async Task<IActionResult> PredictiveSearch()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
 
 
 
 
-      return View(portfolios);
+      return View();
     }
 
     public async Task<IActionResult> Index()

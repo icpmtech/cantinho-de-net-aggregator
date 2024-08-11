@@ -22,16 +22,17 @@ namespace MarketAnalyticHub.Controllers.api
       _indexingService = indexingService;
     }
 
-    
-      public async Task<IActionResult> IndexPortfolioData()
+    [HttpPost("index")]
+    public async Task<IActionResult> IndexData()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       if (userId == null)
       {
         return Unauthorized();
       }
-      await _indexingService.IndexPortfolioDataAsync(userId);
-      return Ok("Indexing completed");
+
+      var responseMessage = await _indexingService.UpdatePortfolioPricesAsync(userId);
+      return View((object)responseMessage); // Pass the response message to the view
     }
 
     // GET: PortfolioIndexing
@@ -133,5 +134,7 @@ namespace MarketAnalyticHub.Controllers.api
       TempData["ErrorMessage"] = $"Failed to delete index '{indexName}'. Please try again.";
       return RedirectToAction(nameof(Delete), new { indexName });
     }
+
+    
   }
   }

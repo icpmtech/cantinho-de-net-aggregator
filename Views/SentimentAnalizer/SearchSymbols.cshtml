@@ -1,145 +1,320 @@
-@{
-    ViewData["Title"] = "Search Symbols";
-    ViewData["isNavbar"] = false;
-    ViewData["navbarType"] = "layout-navbar-hidden";
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ai-Pilot Search Page</title>
+    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+       
 
-<div class="container mt-5">
-    <div class="input-group mb-3">
-        <input type="text" class="form-control" placeholder="Search symbols" id="searchInput">
-        <div class="input-group-append">
-            <span class="input-group-text"><i class="fas fa-search"></i></span>
+        .container {
+          
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+            .search-box input[type="text"] {
+                width: 100%;
+                padding: 10px 10px 10px 40px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+            }
+
+            .search-box i {
+                position: absolute;
+                left: 10px;
+                font-size: 20px;
+                color: #007bff;
+            }
+
+        .suggestions {
+            position: absolute;
+            top: 45px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-top: none;
+            background-color: #fff;
+            z-index: 1000;
+            display: none; /* Initially hidden */
+        }
+
+            .suggestions .suggestion-item {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
+                cursor: pointer;
+            }
+
+                .suggestions .suggestion-item img {
+                    width: 40px;
+                    height: 40px;
+                    margin-right: 10px;
+                    border-radius: 50%;
+                }
+
+                .suggestions .suggestion-item p {
+                    margin: 0;
+                    flex: 1;
+                }
+
+                .suggestions .suggestion-item i {
+                    font-size: 20px;
+                    color: #007bff;
+                }
+
+                .suggestions .suggestion-item:hover {
+                    background-color: #f0f0f0;
+                }
+
+        .result-summary, .fundamental-analysis {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            display: none; /* Initially hidden */
+        }
+</style>
+      
+</head>
+<body>
+
+        <div class="text-center chat-assistant-logo" >
+        <img class="rounded-circle" src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo" >
+        <h3 > Ai-Pilot</h3 >
+        <p > Your everyday AI analyzer companion</p >
+        </div >
+
+    <div class="container">
+
+        <h2>Search for Analysis</h2>
+        <div class="search-box">
+            <i class='bx bx-search'></i>
+            <input type="text" id="search-input" placeholder="Search Symbol..." oninput="search()">
+            <div class="suggestions" id="suggestions"></div>
+        </div>
+        <div class="result-summary">
+            <div class="card">
+                <div class="card-header">
+                    <img id="result-img" src="" alt="Company Logo">
+                    <h3 id="result-title">Company Name</h3>
+                </div>
+                <div class="card-content" id="summary-content">
+                    This is a summary of the search result...
+                </div>
+                <div id="sparkline" class="sparkline"></div>
+            </div>
+        </div>
+        <div class="fundamental-analysis">
+            <div class="card">
+                <div class="card-header">
+                    <img id="analysis-img" src="" alt="Company Logo">
+                    <h3 id="analysis-title">Fundamental Analysis</h3>
+                </div>
+                <div class="card-content" id="analysis-content">
+                    This is the fundamental analysis content...
+                </div>
+            </div>
         </div>
     </div>
-    <div id="loadingIcon" class="text-center my-3" style="display: none;">
-        <i class="fas fa-spinner fa-spin fa-2x"></i>
-    </div>
-    <div id="resultsAccordion">
-        <!-- Search results will appear here -->
-    </div>
-</div>
 
-<script>
-    let debounceTimer;
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        const OPENAI_API_KEY = '';
+        const RAPIDAPI_HOST = 'apidojo-yahoo-finance-v1.p.rapidapi.com';
+        const RAPIDAPI_KEY = 'your-rapidapi-key'; // Replace this with your RapidAPI key
 
-    document.getElementById('searchInput').addEventListener('input', () => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => searchSymbols(), 300);
-    });
+        const mockResults = [
+            { symbol: 'AAPL', name: 'Apple Inc.', img: 'https://via.placeholder.com/40' },
+            { symbol: 'MSFT', name: 'Microsoft Corporation', img: 'https://via.placeholder.com/40' },
+            { symbol: 'GOOGL', name: 'Alphabet Inc.', img: 'https://via.placeholder.com/40' },
+            { symbol: 'AMZN', name: 'Amazon.com, Inc.', img: 'https://via.placeholder.com/40' },
+            { symbol: 'TSLA', name: 'Tesla, Inc.', img: 'https://via.placeholder.com/40' },
+            { symbol: 'FB', name: 'Meta Platforms, Inc.', img: 'https://via.placeholder.com/40' }
+        ];
 
-    async function searchSymbols() {
-        const query = document.getElementById('searchInput').value;
-        const resultsAccordion = document.getElementById('resultsAccordion');
-        const loadingIcon = document.getElementById('loadingIcon');
-        resultsAccordion.innerHTML = '';
+        function search() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const suggestionsBox = document.getElementById('suggestions');
+            suggestionsBox.innerHTML = ''; // Clear previous suggestions
 
-        if (!query) {
-            resultsAccordion.innerHTML = '<p>Please enter a search query.</p>';
-            return;
+            if (query) {
+                const filteredResults = mockResults.filter(item => item.symbol.toLowerCase().includes(query) || item.name.toLowerCase().includes(query));
+
+                if (filteredResults.length > 0) {
+                    suggestionsBox.style.display = 'block';
+                    filteredResults.forEach(result => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.classList.add('suggestion-item');
+
+                        suggestionItem.innerHTML = `
+                                    <img src="${result.img}" alt="${result.symbol}">
+                                    <p>${result.symbol} - ${result.name}</p>
+                                    <i class='bx bx-right-arrow-alt'></i>
+                                `;
+
+                        suggestionItem.onclick = () => selectSuggestion(result);
+                        suggestionsBox.appendChild(suggestionItem);
+                    });
+                } else {
+                    suggestionsBox.style.display = 'none';
+                }
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
         }
 
-        loadingIcon.style.display = 'block';
+        async function selectSuggestion(result) {
+            document.getElementById('search-input').value = result.symbol;
+            document.getElementById('suggestions').style.display = 'none';
 
-        let url = `/api/SymbolsApi/search?query=${encodeURIComponent(query)}`;
+            document.querySelector('.result-summary').style.display = 'block';
+            document.querySelector('.fundamental-analysis').style.display = 'block';
 
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+            document.getElementById('result-img').src = result.img;
+            document.getElementById('result-title').innerText = result.name;
+
+            document.getElementById('analysis-img').src = result.img;
+            document.getElementById('analysis-title').innerText = 'Fundamental Analysis';
+
+            try {
+                const summary = await fetchCompanySummary(result.name);
+                const fundamentals = await fetchFundamentals(result.symbol);
+                const sparklineData = await fetchSparklineData(result.symbol);
+
+                document.getElementById('summary-content').innerText = summary || 'Summary not available.';
+                document.getElementById('analysis-content').innerText = formatFundamentals(fundamentals);
+
+                renderSparkline(sparklineData);
+            } catch (error) {
+                document.getElementById('summary-content').innerText = 'Error fetching summary.';
+                document.getElementById('analysis-content').innerText = 'Error fetching analysis.';
             }
-            const data = await response.json();
-            const articles = data["bestMatches"] || [];
+        }
 
-            loadingIcon.style.display = 'none';
+        async function fetchCompanySummary(companyName) {
+            const url = 'https://api.openai.com/v1/chat/completions';
+            const apiKey = OPENAI_API_KEY;
 
-            if (articles.length === 0) {
-                resultsAccordion.innerHTML = '<p>No results found.</p>';
-                return;
+            const data = {
+                model: "gpt-4o-mini",
+                messages: [{ role: "user", content: `Give me a summary of the company ${companyName}.` }],
+                temperature: 0.7
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    return result.choices[0].message.content.trim();
+                } else {
+                    console.error('Error fetching summary:', response.statusText);
+                    return 'Summary not available.';
+                }
+            } catch (error) {
+                console.error('Error fetching summary:', error);
+                return 'Summary not available.';
             }
+        }
 
-            articles.forEach(async (article, index) => {
-                const quoteData = await fetchQuoteData(article["1. symbol"]);
-                const change = quoteData["09. change"];
-                const changePercent = quoteData["10. change percent"];
-                const arrowIcon = change >= 0 ? 'fas fa-arrow-up text-success' : 'fas fa-arrow-down text-danger';
-
-                const card = document.createElement('div');
-                card.className = 'card';
-
-                const cardHeader = document.createElement('div');
-                cardHeader.className = 'card-header';
-                cardHeader.id = `heading${index}`;
-
-                const h5 = document.createElement('h5');
-                h5.className = 'mb-0';
-
-                const button = document.createElement('button');
-                button.className = 'btn btn-link';
-                button.type = 'button';
-                button.setAttribute('data-toggle', 'collapse');
-                button.setAttribute('data-target', `#collapse${index}`);
-                button.setAttribute('aria-expanded', 'true');
-                button.setAttribute('aria-controls', `collapse${index}`);
-                button.textContent = article["1. symbol"];
-
-                const badge = document.createElement('span');
-                badge.className = 'badge badge-primary badge-pill ml-2';
-                badge.textContent = article["2. name"];
-
-                button.appendChild(badge);
-                h5.appendChild(button);
-                cardHeader.appendChild(h5);
-                card.appendChild(cardHeader);
-
-                const collapseDiv = document.createElement('div');
-                collapseDiv.id = `collapse${index}`;
-                collapseDiv.className = 'collapse';
-                collapseDiv.setAttribute('aria-labelledby', `heading${index}`);
-                collapseDiv.setAttribute('data-parent', '#resultsAccordion');
-
-                const cardBody = document.createElement('div');
-                cardBody.className = 'card-body';
-                cardBody.innerHTML = `
-                                <p>Region: ${article["4. region"]}</p>
-                                <p>Market Open: ${article["5. marketOpen"]}</p>
-                                <p>Market Close: ${article["6. marketClose"]}</p>
-                                <p>Quote: ${quoteData["05. price"]}</p>
-                                <p>Change: ${change} (${changePercent}) <i class="${arrowIcon}"></i></p>
-                                <div class="btn-group" role="group">
-                                    <a href="https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${article["1. symbol"]}&apikey=O831EHVCJBFEHUKE" target="_blank" class="btn btn-primary">Get Quote</a>
-                                    <button type="button" class="btn btn-secondary" onclick="savePost('${article["1. symbol"]}')">Save</button>
-                                </div>
-                            `;
-
-                collapseDiv.appendChild(cardBody);
-                card.appendChild(collapseDiv);
-                resultsAccordion.appendChild(card);
+        async function fetchFundamentals(symbol) {
+            const url = `https://${RAPIDAPI_HOST}/stock/v2/get-summary?symbol=${symbol}&region=US`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'x-rapidapi-host': RAPIDAPI_HOST,
+                    'x-rapidapi-key': RAPIDAPI_KEY
+                }
             });
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            resultsAccordion.innerHTML = '<p>Error fetching data. Please try again later.</p>';
-            loadingIcon.style.display = 'none';
+
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            } else {
+                console.error('Error fetching fundamentals:', response.statusText);
+                return null;
+            }
         }
-    }
 
-    async function fetchQuoteData(symbol) {
-        const url = `https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=O831EHVCJBFEHUKE`;
-        const response = await fetch(url);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+        function formatFundamentals(fundamentals) {
+            if (!fundamentals) return 'Fundamental data not available.';
+
+            const marketCap = fundamentals.price.marketCap.fmt;
+            const peRatio = fundamentals.summaryDetail.trailingPE ? fundamentals.summaryDetail.trailingPE.fmt : 'N/A';
+            const dividendYield = fundamentals.summaryDetail.dividendYield ? fundamentals.summaryDetail.dividendYield.fmt : 'N/A';
+
+            return `Market Cap: ${marketCap}\nP/E Ratio: ${peRatio}\nDividend Yield: ${dividendYield}`;
         }
-        const data = await response.json();
-        return data["Global Quote"];
-    }
 
-    function savePost(postUrl) {
-        alert(`Post URL saved: ${postUrl}`);
-        // Implement further save functionality here
-    }
-</script>
+        async function fetchSparklineData(symbol) {
+            const url = `https://${RAPIDAPI_HOST}/stock/v2/get-chart?interval=1d&symbol=${symbol}&range=1mo&region=US`;
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'x-rapidapi-host': RAPIDAPI_HOST,
+                    'x-rapidapi-key': RAPIDAPI_KEY
+                }
+            });
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.11.6/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+            if (response.ok) {
+                const data = await response.json();
+                const prices = data.chart.result[0].indicators.quote[0].close;
+                return prices;
+            } else {
+                console.error('Error fetching sparkline data:', response.statusText);
+                return [];
+            }
+        }
+
+        function renderSparkline(data) {
+            const options = {
+                series: [{
+                    name: 'Price',
+                    data: data
+                }],
+                chart: {
+                    type: 'line',
+                    height: 50,
+                    sparkline: {
+                        enabled: true
+                    }
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 2
+                },
+                colors: ['#007bff'],
+                tooltip: {
+                    enabled: false
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#sparkline"), options);
+            chart.render();
+        }
+    </script>
+
+</body>
+</html>

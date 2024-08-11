@@ -26,7 +26,27 @@ namespace MarketAnalyticHub.Services
 
       return searchResponse;
     }
+    public async Task<IEnumerable<PortfolioItem>> GetPortfolioItemsAsync(string userId)
+    {
+      var response = await _elasticSearchService._client.SearchAsync<PortfolioItem>(s => s
+          .Index($"user-id-{userId}-portfolio")
+          .Size(1000) // Adjust as needed
+          .Query(q => q
+              .Match(m => m
+                  .Field(f => f.UserId)
+                  .Query(userId)
+              )
+          )
+      );
 
+      if (!response.IsValid)
+      {
+        // Handle the error
+        throw new Exception(response.OriginalException.Message);
+      }
+
+      return response.Documents;
+    }
     public async Task<ISearchResponse<PortfolioItem>> GetPortfolioRiskAsync(int portfolioId)
     {
       var searchResponse = await _elasticSearchService._client.SearchAsync<PortfolioItem>(s => s

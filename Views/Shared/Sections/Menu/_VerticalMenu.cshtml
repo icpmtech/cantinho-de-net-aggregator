@@ -141,12 +141,6 @@
                         <div>Rss Search</div>
                     </a>
                 </li>
-                <li class='menu-item@(currentPage == "/ChatApp/Index" ? " active" : "")'>
-                    <a asp-controller="ChatApp" asp-action="Index" class="menu-link">
-                        <div>Chat</div>
-                    </a>
-                </li>
-               
 
             </ul>
         </li>
@@ -160,12 +154,22 @@
             <ul class="menu-sub">
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/Index" ? " active" : "")'>
                     <a asp-controller="SentimentAnalizer" asp-action="Index" class="menu-link">
-                        <div>Analytics</div>
+                        <div>News Events</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/PredictiveSearch" ? " active" : "")'>
                     <a asp-controller="SentimentAnalizer" asp-action="PredictiveSearch" class="menu-link">
-                        <div>Predict</div>
+                        <div>Analytics</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/SentimentAnalizer/Forecast" ? " active" : "")'>
+                    <a asp-controller="SentimentAnalizer" asp-action="Forecast" class="menu-link">
+                        <div>Forecast</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/SentimentAnalizer/Playground" ? " active" : "")'>
+                    <a asp-controller="SentimentAnalizer" asp-action="Playground" class="menu-link">
+                        <div>Playground</div>
                     </a>
                 </li>
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/SearchNews" ? " active" : "")'>
@@ -223,11 +227,9 @@
                
                 <li class='menu-item@(currentPage == "/Symbols/Index" ? " active" : "")'>
                     <a asp-controller="Symbols" asp-action="Index" class="menu-link">
-                        <div>Symbols</div>
+                        <div>My Symbols</div>
                     </a>
                 </li>
-
-
             </ul>
         </li>
         <li class='menu-item@(currentPage.StartsWith("/Admin") ? " active open" : "")' )'>
@@ -265,6 +267,11 @@
                 <li class='menu-item@(currentPage == "/PortfolioIndexing/IndexPortfolioData" ? " active" : "")'>
                     <a asp-controller="PortfolioIndexing" asp-action="IndexPortfolioData" class="menu-link">
                         <div>Process Portfolio </div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/PortfolioIndexing/UpdatePortfolioDataPrices" ? " active" : "")'>
+                    <a asp-controller="PortfolioIndexing" asp-action="UpdatePortfolioDataPrices" class="menu-link">
+                        <div>Update Portfolio Data Prices</div>
                     </a>
                 </li>
 

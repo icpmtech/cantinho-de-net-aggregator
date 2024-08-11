@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Analysis Tool with KQL and ApexCharts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/codemirror.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ECF0F1;
+            color: #2C3E50;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #2C3E50;
+            color: #ECF0F1;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #34495E;
+            padding: 20px;
+            color: white;
+            height: 100vh;
+        }
+
+            .sidebar a {
+                color: #ECF0F1;
+                text-decoration: none;
+                display: block;
+                padding: 10px;
+                margin: 10px 0;
+            }
+
+                .sidebar a:hover {
+                    background-color: #2C3E50;
+                }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .editor-container {
+            margin-bottom: 20px;
+        }
+
+            .editor-container textarea {
+                width: 100%;
+                height: 300px;
+            }
+
+        .result-container {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #BDC3C7;
+            border-radius: 5px;
+        }
+
+        .button {
+            background-color: #27AE60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+            .button:hover {
+                background-color: #2ECC71;
+            }
+
+        #chart {
+            max-width: 650px;
+            margin: 35px auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Portfolio Analysis Tool with KQL and ApexCharts</h1>
+    </div>
+    <div class="container">
+        <div class="sidebar">
+            <a href="#">Dashboard Overview</a>
+            <a href="#">Managed Queries</a>
+            <a href="#">Portfolio Analysis</a>
+            <a href="#">Query History</a>
+            <a href="#">Settings</a>
+        </div>
+        <div class="main-content">
+            <div class="editor-container">
+                <h2>KQL Query Editor</h2>
+                <textarea id="query-editor">// Write your KQL query here...</textarea>
+                <button class="button" id="run-query-btn">Run Query</button>
+            </div>
+            <div class="result-container">
+                <h3>Query Results</h3>
+                <div id="query-results">No results yet.</div>
+                <div id="chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.1/codemirror.min.js"></script>
+    <script>
+        // Custom KQL mode for CodeMirror
+        CodeMirror.defineSimpleMode("kql", {
+            start: [
+                { regex: /let|where|summarize|count|by|project/, token: "keyword" },
+                { regex: /"(?:[^\\]|\\.)*?"/, token: "string" },
+                { regex: /\/\/.*/, token: "comment" },
+                { regex: /[0-9]+(?:\.[0-9]+)?/, token: "number" },
+                { regex: /[\+\-\*\/=<>!]+/, token: "operator" },
+                { regex: /[\{\}\(\)\[\]]/, token: "bracket" },
+                { regex: /\b(?:AssetName|Value|Date)\b/, token: "variable-2" }
+            ],
+            meta: {
+                lineComment: "//"
+            }
+        });
+
+        // Initialize CodeMirror editor with custom KQL mode
+        var editor = CodeMirror.fromTextArea(document.getElementById('query-editor'), {
+            mode: 'kql',
+            lineNumbers: true,
+            theme: 'default'
+        });
+
+        // Function to run the query and display results
+        function runQuery() {
+            const query = editor.getValue();
+
+            // Simulate running the query (replace with actual API call)
+            let results = "No data returned";
+
+            if (query.includes("summarize") && query.includes("by")) {
+                // Example result data for the chart
+                var seriesData = [
+                    { name: 'Asset A', data: [1000, 1200, 1100, 1400, 1300] },
+                    { name: 'Asset B', data: [2000, 2200, 2100, 2300, 2500] }
+                ];
+
+                results = `
+                            <table border="1" cellspacing="0" cellpadding="5">
+                                <tr>
+                                    <th>Asset Name</th>
+                                    <th>Value</th>
+                                    <th>Date</th>
+                                </tr>
+                                <tr>
+                                    <td>Asset A</td>
+                                    <td>$1000</td>
+                                    <td>2024-01-01</td>
+                                </tr>
+                                <tr>
+                                    <td>Asset B</td>
+                                    <td>$2000</td>
+                                    <td>2024-01-01</td>
+                                </tr>
+                            </table>
+                        `;
+
+                // Check if there is already a chart instance and destroy it
+                if (window.currentChart) {
+                    window.currentChart.destroy();
+                }
+
+                // Create the chart
+                var options = {
+                    series: seriesData,
+                    chart: {
+                        type: 'line',
+                        height: 350
+                    },
+                    xaxis: {
+                        categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May']
+                    },
+                    title: {
+                        text: 'Asset Value Over Time'
+                    }
+                };
+
+                window.currentChart = new ApexCharts(document.querySelector("#chart"), options);
+                window.currentChart.render();
+            }
+
+            // Display the results
+            document.getElementById('query-results').innerHTML = results;
+        }
+
+        // Attach event listener to the run button
+        document.getElementById('run-query-btn').addEventListener('click', runQuery);
+    </script>
+</body>
+</html>

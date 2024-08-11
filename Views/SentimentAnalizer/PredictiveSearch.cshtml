@@ -3,78 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Analysis</title>
-    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@5.0.7/dist/browser/signalr.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Market Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .dashboard-title {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2em;
+            color: #333;
+        }
+        .chart-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+        .chart-card {
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            width: 48%;
+            margin-bottom: 20px;
+            padding: 20px;
+            transition: transform 0.2s ease-in-out;
+        }
+        .chart-card:hover {
+            transform: translateY(-5px);
+        }
+        .chart-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .chart-icon {
+            font-size: 1.5em;
+            margin-right: 10px;
+            color: #3498db;
+        }
+        .chart-title {
+            font-size: 1.2em;
+            color: #333;
+        }
+        @@media (max-width: 768px) {
+            .chart-card {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Portfolio Analysis</h1>
 
-    <div class="card">
-        <h2>Generate Report</h2>
-        <div class="card-body">
-            <input type="text" id="prompt" placeholder="Enter a prompt">
-            <button onclick="generateReport()">Generate Report</button>
-            <pre id="report"></pre>
+    <div class="container">
+        <h1 class="dashboard-title">Market Analysis Dashboard</h1>
+
+        <div class="chart-row">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="fas fa-chart-area chart-icon"></i>
+                    <span class="chart-title">Historical Data with Forecast Bands</span>
+                </div>
+                <div id="area-chart"></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="fas fa-bullseye chart-icon"></i>
+                    <span class="chart-title">Investments with Trend Lines</span>
+                </div>
+                <div id="scatter-chart"></div>
+            </div>
+        </div>
+
+        <div class="chart-row">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="fas fa-chart-bar chart-icon"></i>
+                    <span class="chart-title">Portfolio Total Investment Over Time</span>
+                </div>
+                <div id="bar-chart"></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="fas fa-chart-pie chart-icon"></i>
+                    <span class="chart-title">Investment Breakdown by Symbol</span>
+                </div>
+                <div id="donut-chart"></div>
+            </div>
+        </div>
+
+        <div class="chart-row">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="fas fa-calendar-alt chart-icon"></i>
+                    <span class="chart-title">P/L by Month</span>
+                </div>
+                <div id="radar-chart"></div>
+            </div>
+
+            <div class="chart-card">
+                <div class="chart-header">
+                    <i class="fas fa-calendar-week chart-icon"></i>
+                    <span class="chart-title">P/L by Week</span>
+                </div>
+                <div id="heatmap-chart"></div>
+            </div>
         </div>
     </div>
 
-    <div>
-        <h2>Real-Time Portfolio Metrics</h2>
-        <canvas id="portfolioMetricsChart"></canvas>
-    </div>
-
-    <div>
-        <h2>Real-Time Portfolio Insights</h2>
-        <pre id="portfolio-insights"></pre>
-    </div>
-
     <script>
-        async function generateReport() {
-            const prompt = document.getElementById('prompt').value;
-            const response = await fetch('/api/llm/generate-report', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(prompt)
+        $(document).ready(function () {
+            // Load and render Area Chart with Forecast Bands
+            $.get("/api/llm/area-forecast-data", function (data) {
+                var areaOptions = {
+                    chart: {
+                        type: 'area'
+                    },
+                    series: [
+                        {
+                            name: 'Historical Data',
+                            data: data.historical
+                        },
+                        {
+                            name: 'Forecast Range',
+                            type: 'area',
+                            data: data.lowerBound,
+                            fillOpacity: 0.1
+                        },
+                        {
+                            name: 'Forecast Range',
+                            type: 'area',
+                            data: data.upperBound,
+                            fillOpacity: 0.1
+                        }
+                    ],
+                    xaxis: {
+                        type: 'datetime'
+                    },
+                    title: {
+                        text: ''
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Investment Value'
+                        }
+                    }
+                };
+                var areaChart = new ApexCharts(document.querySelector("#area-chart"), areaOptions);
+                areaChart.render();
             });
 
-            const report = await response.text();
-            document.getElementById('report').innerText = report;
-        }
+            // Load and render Scatter Chart with Trend Lines
+            $.get("/api/llm/bubble-trend-data", function (data) {
+                var scatterOptions = {
+                    chart: {
+                        type: 'scatter'
+                    },
+                    series: [
+                        {
+                            name: 'Investments',
+                            data: data.bubbles
+                        },
+                        {
+                            name: 'Trend Line',
+                            type: 'line',
+                            data: data.trendLine
+                        }
+                    ],
+                    xaxis: {
+                        type: 'datetime'
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Investment Value'
+                        }
+                    },
+                    title: {
+                        text: ''
+                    }
+                };
+                var scatterChart = new ApexCharts(document.querySelector("#scatter-chart"), scatterOptions);
+                scatterChart.render();
+            });
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl("/portfolioHub")
-            .build();
+            // Load and render Bar Chart for Portfolio Total Investment Over Time
+            $.get("/api/llm/portfolio-data", function (data) {
+                var barOptions = {
+                    chart: {
+                        type: 'bar'
+                    },
+                    series: [{
+                        name: 'Total Investment',
+                        data: data.map(d => ({ x: new Date(d.x), y: d.y }))
+                    }],
+                    xaxis: {
+                        type: 'datetime',
+                        title: {
+                            text: 'Date'
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Investment'
+                        }
+                    },
+                    title: {
+                        text: ''
+                    }
+                };
+                var barChart = new ApexCharts(document.querySelector("#bar-chart"), barOptions);
+                barChart.render();
+            });
 
-        connection.on("ReceivePortfolioUpdatesMetrics", (data) => {
-            const ctx = document.getElementById('portfolioMetricsChart').getContext('2d');
-            const labels = data.buckets.map(b => b.key_as_string); // Assuming the aggregation returns buckets with date keys
-            const values = data.buckets.map(b => b.total_sales.value); // Modify based on your aggregation structure
+            // Load and render Donut Chart for Investment Breakdown by Symbol
+            $.get("/api/llm/portfolio-summary", function (data) {
+                var donutOptions = {
+                    chart: {
+                        type: 'donut'
+                    },
+                    series: data.map(d => d.y),
+                    labels: data.map(d => d.name),
+                    title: {
+                        text: ''
+                    },
+                    legend: {
+                        position: 'bottom'
+                    }
+                };
+                var donutChart = new ApexCharts(document.querySelector("#donut-chart"), donutOptions);
+                donutChart.render();
+            });
 
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Portfolio Metrics',
-                        data: values,
-                        borderColor: 'rgba(75, 192, 192, 1)',
-                        borderWidth: 1,
-                        fill: false
-                    }]
-                }
+            // Load and render Radar Chart for P/L by Month
+            $.get("/api/llm/pl-month-data", function (data) {
+                var radarOptions = {
+                    chart: {
+                        type: 'radar'
+                    },
+                    series: [{
+                        name: 'Profit/Loss',
+                        data: data.map(d => d.y)
+                    }],
+                    labels: data.map(d => new Date(d.x).toLocaleString('default', { month: 'long' })),
+                    title: {
+                        text: 'Profit/Loss by Month',
+                        align: 'center'
+                    }
+                };
+                var radarChart = new ApexCharts(document.querySelector("#radar-chart"), radarOptions);
+                radarChart.render();
+            });
+
+            // Load and render Heatmap Chart for P/L by Week
+            $.get("/api/llm/pl-week-data", function (data) {
+                var heatmapOptions = {
+                    chart: {
+                        type: 'heatmap'
+                    },
+                    series: [{
+                        name: 'Profit/Loss',
+                        data: data.map(d => ({ x: new Date(d.x).toDateString(), y: d.y }))
+                    }],
+                    xaxis: {
+                        type: 'category',
+                        labels: {
+                            rotate: -45
+                        }
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'Profit/Loss'
+                        }
+                    },
+                    title: {
+                        text: 'Profit/Loss by Week',
+                        align: 'center'
+                    },
+                    plotOptions: {
+                        heatmap: {
+                            shadeIntensity: 0.5,
+                            colorScale: {
+                                ranges: [{
+                                    from: -1000,
+                                    to: 0,
+                                    color: '#FF4560'
+                                }, {
+                                    from: 0,
+                                    to: 1000,
+                                    color: '#00E396'
+                                }]
+                            }
+                        }
+                    }
+                };
+                var heatmapChart = new ApexCharts(document.querySelector("#heatmap-chart"), heatmapOptions);
+                heatmapChart.render();
             });
         });
-
-        connection.on("ReceivePortfolioUpdatesInsights", (insights) => {
-            document.getElementById('portfolio-insights').innerText = insights;
-        });
-
-        connection.start().then(() => {
-            console.log("SignalR Connected");
-        }).catch(err => console.error(err));
     </script>
+
 </body>
 </html>
