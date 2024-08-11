@@ -22,72 +22,80 @@ namespace MarketAnalyticHub.Controllers.api
       _indexingService = indexingService;
     }
 
-    [HttpPost("index")]
-    public async Task<IActionResult> IndexData()
+    public async Task<IActionResult> UpdatePortfolioDataPrices()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
       if (userId == null)
       {
         return Unauthorized();
       }
-
-      var responseMessage = await _indexingService.UpdatePortfolioPricesAsync(userId);
-      return View((object)responseMessage); // Pass the response message to the view
+      await _indexingService.UpdatePortfolioPricesAsync(userId);
+      return View((object)"Prices Updated completed");
+    }
+    public async Task<IActionResult> IndexPortfolioData()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+      await _indexingService.IndexPortfolioDataAsync(userId);
+      return View((object)"Indexing completed");
     }
 
     // GET: PortfolioIndexing
     [HttpGet]
-      public async Task<IActionResult> Index()
-      {
-        var indices = await _indexingService.GetIndicesAsync();
-        return View(indices);
-      }
+    public async Task<IActionResult> Index()
+    {
+      var indices = await _indexingService.GetIndicesAsync();
+      return View(indices);
+    }
 
-      // GET: PortfolioIndexing/Create
-      [HttpGet]
-      public IActionResult Create()
+    // GET: PortfolioIndexing/Create
+    [HttpGet]
+    public IActionResult Create()
+    {
+      return View();
+    }
+
+    // POST: PortfolioIndexing/Create
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(string indexName)
+    {
+      if (string.IsNullOrEmpty(indexName))
       {
+        ModelState.AddModelError("", "Index name cannot be empty.");
         return View();
       }
 
-      // POST: PortfolioIndexing/Create
-      [HttpPost]
-      [ValidateAntiForgeryToken]
-      public async Task<IActionResult> Create(string indexName)
+      var created = await _indexingService.CreateIndexAsync(indexName);
+      if (created)
       {
-        if (string.IsNullOrEmpty(indexName))
-        {
-          ModelState.AddModelError("", "Index name cannot be empty.");
-          return View();
-        }
-
-        var created = await _indexingService.CreateIndexAsync(indexName);
-        if (created)
-        {
-          return RedirectToAction(nameof(Index));
-        }
-
-        ModelState.AddModelError("", "Failed to create index.");
-        return View();
+        return RedirectToAction(nameof(Index));
       }
 
-      // GET: PortfolioIndexing/Details/{indexName}
-      [HttpGet]
-      public async Task<IActionResult> Details(string indexName)
+      ModelState.AddModelError("", "Failed to create index.");
+      return View();
+    }
+
+    // GET: PortfolioIndexing/Details/{indexName}
+    [HttpGet]
+    public async Task<IActionResult> Details(string indexName)
+    {
+      if (string.IsNullOrEmpty(indexName))
       {
-        if (string.IsNullOrEmpty(indexName))
-        {
-          return BadRequest();
-        }
-
-        var indexDetails = await _indexingService.GetIndexDetailsAsync(indexName);
-        if (indexDetails == null)
-        {
-          return NotFound();
-        }
-
-        return View(indexDetails);
+        return BadRequest();
       }
+
+      var indexDetails = await _indexingService.GetIndexDetailsAsync(indexName);
+      if (indexDetails == null)
+      {
+        return NotFound();
+      }
+
+      return View(indexDetails);
+    }
 
     // GET: PortfolioIndexing/Delete/{indexName}
     [HttpGet]
@@ -134,7 +142,5 @@ namespace MarketAnalyticHub.Controllers.api
       TempData["ErrorMessage"] = $"Failed to delete index '{indexName}'. Please try again.";
       return RedirectToAction(nameof(Delete), new { indexName });
     }
-
-    
   }
-  }
+}

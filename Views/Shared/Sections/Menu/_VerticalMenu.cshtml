@@ -232,51 +232,82 @@
                 </li>
             </ul>
         </li>
-        <li class='menu-item@(currentPage.StartsWith("/Admin") ? " active open" : "")' )'>
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons bx bx bx-archive"></i>
-                <div>Admin Area</div>
-            </a>
-            <ul class="menu-sub">
 
-                <li class='menu-item@(currentPage == "/Admin/Users/Index" ? " active" : "")'>
-                    <a href="/Admin/Users/Index" class="menu-link">
-                        <div>Users</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/Admin/UserRoles/Index" ? " active" : "")'>
-                    <a href="/Admin/UserRoles/Index" class="menu-link">
-                        <div>User Roles</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "Admin/RoleManager/Index" ? " active" : "")'>
-                    <a href="/Admin/RoleManager/Index" class="menu-link">
-                        <div>Role Manager</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "Admin/UserManagement/Index" ? " active" : "")'>
-                    <a href="/Admin/UserManagement/Index" class="menu-link">
-                        <div>User Management</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/PortfolioIndexing/Index" ? " active" : "")'>
-                    <a asp-controller="PortfolioIndexing" asp-action="Index" class="menu-link">
-                        <div>List Indices Elastic</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/PortfolioIndexing/IndexPortfolioData" ? " active" : "")'>
-                    <a asp-controller="PortfolioIndexing" asp-action="IndexPortfolioData" class="menu-link">
-                        <div>Process Portfolio </div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage == "/PortfolioIndexing/UpdatePortfolioDataPrices" ? " active" : "")'>
-                    <a asp-controller="PortfolioIndexing" asp-action="UpdatePortfolioDataPrices" class="menu-link">
-                        <div>Update Portfolio Data Prices</div>
-                    </a>
-                </li>
+        <!-- Admin Area -->
+        @if (User.IsInRole("Admin"))
+        {
+            <li class='menu-item@(currentPage.StartsWith("/Admin") ? " active open" : "")' )'>
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx bx-archive"></i>
+                    <div>Admin Area</div>
+                </a>
+                <ul class="menu-sub">
 
-            </ul>
-        </li>
+                    <li class='menu-item@(currentPage == "/Admin/Users/Index" ? " active" : "")'>
+                        <a href="/Admin/Users/Index" class="menu-link">
+                            <div>Users</div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "/Admin/UserRoles/Index" ? " active" : "")'>
+                        <a href="/Admin/UserRoles/Index" class="menu-link">
+                            <div>User Roles</div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "Admin/RoleManager/Index" ? " active" : "")'>
+                        <a href="/Admin/RoleManager/Index" class="menu-link">
+                            <div>Role Manager</div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "Admin/UserManagement/Index" ? " active" : "")'>
+                        <a href="/Admin/UserManagement/Index" class="menu-link">
+                            <div>User Management</div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "/PortfolioIndexing/Index" ? " active" : "")'>
+                        <a asp-controller="PortfolioIndexing" asp-action="Index" class="menu-link">
+                            <div>List Indices Elastic</div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "/PortfolioIndexing/IndexPortfolioData" ? " active" : "")'>
+                        <a asp-controller="PortfolioIndexing" asp-action="IndexPortfolioData" class="menu-link">
+                            <div>Process Portfolio </div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "/PortfolioIndexing/UpdatePortfolioDataPrices" ? " active" : "")'>
+                        <a asp-controller="PortfolioIndexing" asp-action="UpdatePortfolioDataPrices" class="menu-link">
+                            <div>Update Portfolio Data Prices</div>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
+
+        }
+        else
+        {
+            <li class='menu-item@(currentPage.StartsWith("/Admin") ? " active open" : "")' )'>
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx bx-archive"></i>
+                    <div>Admin Area</div>
+                </a>
+                <ul class="menu-sub">
+
+                    <li class='menu-item@(currentPage == "/PortfolioIndexing/IndexPortfolioData" ? " active" : "")'>
+                        <a asp-controller="PortfolioIndexing" asp-action="IndexPortfolioData" class="menu-link">
+                            <div>Process Portfolio </div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage == "/PortfolioIndexing/UpdatePortfolioDataPrices" ? " active" : "")'>
+                        <a asp-controller="PortfolioIndexing" asp-action="UpdatePortfolioDataPrices" class="menu-link">
+                            <div>Update Portfolio Data Prices</div>
+                        </a>
+                    </li>
+
+                </ul>
+            </li>
+
+        }
+
         <li class='menu-item@(currentPage.StartsWith("/Sectors") ? " active open" : "")' )'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx bx-archive"></i>
@@ -316,6 +347,7 @@
             </ul>
         </li>
           <!-- Settings -->
+      
         <li class='menu-item@(currentPage.StartsWith("/Pages/Account") || currentPage.StartsWith("/UserProfiles") ? " active open" : "")'>
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-dock-top"></i>

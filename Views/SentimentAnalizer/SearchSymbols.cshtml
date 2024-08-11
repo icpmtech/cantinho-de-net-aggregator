@@ -222,28 +222,20 @@
     }
 
     async function fetchCompanySummary(companyName) {
-      const url = 'https://api.openai.com/v1/chat/completions';
-      const apiKey = OPENAI_API_KEY;
-
-      const data = {
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: `Give me a summary of the company ${companyName}.` }],
-        temperature: 0.7
-      };
-
+            const url = `/api/llm/search-company-summary/${companyName}`;
+    
       try {
         const response = await fetch(url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify(data)
         });
 
         if (response.ok) {
           const result = await response.json();
-          return result.choices[0].message.content.trim();
+          return result;
         } else {
           console.error('Error fetching summary:', response.statusText);
           return 'Summary not available.';

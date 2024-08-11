@@ -6,6 +6,7 @@ using MarketAnalyticHub.Models.Portfolio.Entities;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Services.Elastic;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -17,6 +18,7 @@ using static MarketAnalyticHub.Controllers.SocialSentimentService;
 namespace MarketAnalyticHub.Controllers.api
 {
   [ApiController]
+  [Authorize]
   [Route("api/[controller]")]
   public class LlmController : ControllerBase
   {
@@ -35,6 +37,16 @@ namespace MarketAnalyticHub.Controllers.api
 
     }
 
+    [HttpGet("search-company-summary/{symbol}")]
+    public async Task<IActionResult> GetCompanySummaryAsync(string symbol)
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      // Fetch summary from LLM Open AI Service
+      var summary = await _llmService.GetSymbolSummaryAsync(symbol);
+
+
+      return Ok(summary);
+    }
     [HttpGet("area-forecast-data")]
     public async Task<IActionResult> GetAreaForecastData()
     {

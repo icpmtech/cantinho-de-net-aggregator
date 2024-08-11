@@ -10,6 +10,8 @@ using OpenAI_API.Models;
 using Microsoft.Graph;
 using Newtonsoft.Json;
 using System.Net.Http.Headers;
+using Nest;
+using Microsoft.Identity.Client;
 
 namespace AspnetCoreMvcFull.Services
 {
@@ -45,5 +47,25 @@ namespace AspnetCoreMvcFull.Services
       return "Error generating report.";
     }
 
+    internal async Task<string> GetSymbolSummaryAsync(string symbol)
+    {
+      var requestBody = new
+      {
+        model = "gpt-4o-mini",
+        prompt = $"Give me a summary of the company ${symbol}.",
+        max_tokens = 150,
+        temperature = 0.7
+      };
+      _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
+      var content = new StringContent(JsonConvert.SerializeObject(requestBody), System.Text.Encoding.UTF8, "application/json");
+      var response = await _httpClient.PostAsync("https://api.openai.com/v1/completions", content);
+
+      if (response.IsSuccessStatusCode)
+      {
+        var result = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
+        return result.choices[0].text;
+      }
+      return "No result found";
+  }
   }
 }
