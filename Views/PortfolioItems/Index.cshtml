@@ -81,10 +81,38 @@
                         document.getElementById('totalProfit').textContent = `${data.totalProfitWithDividends.toFixed(2)}`;
 
                         // Update difference icons and percentages
-                        document.getElementById('totalDifferenceIcon').className = data.totalDifferenceValue >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
+                        const totalDifferencePercentageElement = document.getElementById('totalDifferenceValueText');
+                      
+                        // Add logic for positive or negative difference percentage
+                        const totalDifferenceIconElement = document.getElementById('totalDifferenceIcon');
+                        if (data.totalDifferencePercentage >= 0) {
+                            totalDifferencePercentageElement.classList.remove('text-danger');
+                            totalDifferencePercentageElement.classList.add('text-success');
+                            totalDifferenceIconElement.classList.remove('bx-down-arrow-alt');
+                            totalDifferenceIconElement.classList.add('bx-up-arrow-alt');
+                        } else {
+                            totalDifferencePercentageElement.classList.remove('text-success');
+                            totalDifferencePercentageElement.classList.add('text-danger');
+                            totalDifferenceIconElement.classList.remove('bx-up-arrow-alt');
+                            totalDifferenceIconElement.classList.add('bx-down-arrow-alt');
+                        }
+
                         document.getElementById('totalDifferencePercentage').textContent = `${data.totalDifferencePercentage.toFixed(2)}%`;
 
-                        document.getElementById('totalProfitIcon').className = data.totalProfitWithDividends >= 0 ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
+                        // Add logic for positive or negative difference percentage
+                        const totalProfitElement = document.getElementById('totalProfitText');
+                        const totalProfitIconIconElement = document.getElementById('totalProfitIcon');
+                        if (data.totalDifferencePercentage >= 0) {
+                            totalProfitElement.classList.remove('text-danger');
+                            totalProfitElement.classList.add('text-success');
+                            totalProfitIconIconElement.classList.remove('bx-down-arrow-alt');
+                            totalProfitIconIconElement.classList.add('bx-up-arrow-alt');
+                        } else {
+                            totalProfitElement.classList.remove('text-success');
+                            totalProfitElement.classList.add('text-danger');
+                            totalProfitIconIconElement.classList.remove('bx-up-arrow-alt');
+                            totalProfitIconIconElement.classList.add('bx-down-arrow-alt');
+                        }
                         document.getElementById('totalProfitDifferencePercentage').textContent = `${data.totalProfitDifferencePercentage.toFixed(2)}%`;
                     })
                     .catch(error => console.error('Error fetching portfolio summary:', error));

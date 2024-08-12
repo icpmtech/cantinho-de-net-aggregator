@@ -2,141 +2,93 @@
 @inject IViewLocalizer Localizer
 
 <div class="row">
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
+    <div class="col-lg-2 col-md-6 col-12 mb-4">
         <div class="card shadow-sm border-0 rounded">
             <div class="card-body">
                 <div class="card-title d-flex align-items-start justify-content-between">
                     <div class="avatar flex-shrink-0">
                         <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded" style="width: 40px; height: 40px;">
                     </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt1" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt1">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
+                
                 </div>
                 <span class="fw-medium d-block mb-1">@Localizer["Investment Cust"]</span>
-                <h3 id="totalCustMarketValue" class="card-title text-nowrap mb-1">€0</h3>
-                <small class="fw-medium"><i class='bx bx-cube'></i> </small>
+                <h4 id="totalCustMarketValue" class="card-title">€0</h4>
+                <small class="fw-medium">&nbsp; </small>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
+    <div class="col-lg-2 col-md-6 col-12 mb-4">
         <div class="card shadow-sm border-0 rounded">
             <div class="card-body">
                 <div class="card-title d-flex align-items-start justify-content-between">
                     <div class="avatar flex-shrink-0">
                         <img src="~/img/icons/unicons/chart-success.png" alt="chart success" class="rounded" style="width: 40px; height: 40px;">
                     </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt2" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt2">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
+                  
                 </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Current Market Value"]</span>
-                <h3 id="totalMarketValue" class="card-title mb-2">€0</h3>
-                <small class="fw-medium"><i class='bx bx-cube'></i> </small>
+                <span class="fw-medium d-block mb-1">@Localizer["Market Value"]</span>
+                <h4 id="totalMarketValue" class="card-title">€0</h4>
+                <small class="fw-medium">&nbsp; </small>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
+    <div class="col-lg-2 col-md-6 col-12 mb-4">
         <div class="card shadow-sm border-0 rounded">
             <div class="card-body">
                 <div class="card-title d-flex align-items-start justify-content-between">
                     <div class="avatar flex-shrink-0">
                         <img src="~/img/icons/unicons/chart.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
                     </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt3" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
+                 
                 </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Total Portfolio Percentage"]</span>
-                <h3 id="totalPortfolioPercentage" class="card-title mb-2">0%</h3>
-                <small class="fw-medium"><i class='bx bx-cube'></i> </small>
+                <span class="fw-medium d-block mb-1">@Localizer["Total Percentage"]</span>
+                <h4 id="totalPortfolioPercentage" class="card-title">0%</h4>
+                <small class="fw-medium">&nbsp; </small>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
+    <div class="col-lg-2 col-md-6 col-12 mb-4">
         <div class="card shadow-sm border-0 rounded">
             <div class="card-body">
                 <div class="card-title d-flex align-items-start justify-content-between">
                     <div class="avatar flex-shrink-0">
                         <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded" style="width: 40px; height: 40px;">
                     </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt4">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
+                 
                 </div>
                 <span class="fw-medium d-block mb-1">Dividends</span>
-                <h3 id="dividends" class="card-title text-nowrap mb-1">€0.00</h3>
-                <small class="text-success fw-medium"><i class='bx bx-cube'></i></small>
+                <h4 id="dividends" class="card-title text-nowrap">€0.00</h4>
+                <small class=" fw-medium">&nbsp;</small>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
+    <div class="col-lg-2 col-md-6 col-12 mb-4">
         <div class="card shadow-sm border-0 rounded">
             <div class="card-body">
                 <div class="card-title d-flex align-items-start justify-content-between">
                     <div class="avatar flex-shrink-0">
                         <img src="~/img/icons/unicons/chart-success.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
                     </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt5" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt5">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
+                   
                 </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Profit no Dividends"]</span>
-                <h3 id="totalDifferenceValue" class="card-title mb-2">€N/A</h3>
-                <small class="text-danger fw-medium"><i id="totalDifferenceIcon" class='bx bx-down-arrow-alt'></i> <span id="totalDifferencePercentage">0%</span></small>
+                <span class="fw-medium d-block mb-1">@Localizer["Profit no div."]</span>
+                <h4 id="totalDifferenceValue" class="card-title">€N/A</h4>
+                <small class=" fw-medium"><i id="totalDifferenceIcon" class='bx bx-down-arrow-alt'></i> <span id="totalDifferencePercentage">0%</span></small>
             </div>
         </div>
     </div>
-    <div class="col-lg-4 col-md-6 col-12 mb-4">
+    <div class="col-lg-2 col-md-6 col-12 mb-4">
         <div class="card shadow-sm border-0 rounded">
             <div class="card-body">
                 <div class="card-title d-flex align-items-start justify-content-between">
                     <div class="avatar flex-shrink-0">
                         <img src="~/img/icons/unicons/chart-success.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
                     </div>
-                    <div class="dropdown">
-                        <button class="btn p-0" type="button" id="cardOpt6" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="bx bx-dots-vertical-rounded"></i>
-                        </button>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6">
-                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                        </div>
-                    </div>
+                  
                 </div>
-                <span class="fw-medium d-block mb-1">@Localizer["Profit Total"]</span>
-                <h3 id="totalProfit" class="card-title mb-2">€N/A</h3>
-                <small class="text-success fw-medium"><i id="totalProfitIcon" class='bx bx-up-arrow-alt'></i> <span id="totalProfitDifferencePercentage">0%</span></small>
+                <span class="fw-medium d-block mb-1">@Localizer["Profit total"]</span>
+                <h4 id="totalProfit" class="card-title">€N/A</h4>
+                <small class="fw-medium"><i id="totalProfitIcon" class='bx bx-up-arrow-alt'></i> <span id="totalProfitDifferencePercentage">0%</span></small>
             </div>
         </div>
     </div>
