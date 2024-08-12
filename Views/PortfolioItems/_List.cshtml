@@ -35,8 +35,76 @@
                                 </a>
                             </h5>
                             <div class="collapse" id="collapse-@group.Symbol">
+                              <div class="card mb-2" >
+                                <div id="line-chart-@group.Items[0].Id" style="height: 400px;"></div>
+                                <div id="stacked-area-chart-@group.Items[0].Id" style="height: 400px; margin-top: 20px;"></div>
+                                <script>
+                                    document.addEventListener('DOMContentLoaded', function () {
+                                        fetch('/api/dashboards/chartdata/@group.Items[0].Id')
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                // Line Chart for OHLC
+                                                var optionsLineChart = {
+                                                    chart: {
+                                                        height: 400,
+                                                        type: 'line',
+                                                        toolbar: { show: true }
+                                                    },
+                                                    series: [
+                                                        { name: 'Open', data: data.opens },
+                                                        { name: 'High', data: data.highs },
+                                                        { name: 'Low', data: data.lows },
+                                                        { name: 'Close', data: data.closes }
+                                                    ],
+                                                    xaxis: {
+                                                        type: 'datetime',
+                                                        categories: data.dates
+                                                    },
+                                                    yaxis: {
+                                                        title: { text: 'Price' }
+                                                    },
+                                                    tooltip: { shared: true },
+                                                    legend: { position: 'top', horizontalAlign: 'left' }
+                                                };
+                                                new ApexCharts(document.querySelector("#line-chart-@group.Items[0].Id"), optionsLineChart).render();
+
+                                                // Stacked Area Chart
+                                                var optionsStackedArea = {
+                                                    chart: {
+                                                        height: 400,
+                                                        type: 'area',
+                                                        stacked: true,
+                                                        toolbar: { show: true }
+                                                    },
+                                                    series: [
+                                                        { name: 'Open', data: data.opens },
+                                                        { name: 'High', data: data.highs },
+                                                        { name: 'Low', data: data.lows },
+                                                        { name: 'Close', data: data.closes }
+                                                    ],
+                                                    xaxis: {
+                                                        type: 'datetime',
+                                                        categories: data.dates
+                                                    },
+                                                    yaxis: {
+                                                        title: { text: 'Cumulative Price' }
+                                                    },
+                                                    plotOptions: {
+                                                        area: { fillOpacity: 0.3 }
+                                                    },
+                                                    tooltip: { shared: true },
+                                                    legend: { position: 'top', horizontalAlign: 'left' }
+                                                };
+                                                new ApexCharts(document.querySelector("#stacked-area-chart-@group.Items[0].Id"), optionsStackedArea).render();
+
+                                            })
+                                            .catch(error => console.error('Error fetching chart data:', error));
+                                    });
+                                </script>
+                                </div>
                                 @foreach (var item in @group.Items)
                                 {
+                                    
                                     <div class="mt-2">
                                         <div class="d-flex w-100 justify-content-between">
                                             <small>@item.PurchaseDate.ToShortDateString()</small>
@@ -47,7 +115,7 @@
                                         <p class="mb-1">Commission: @item.Commission</p>
                                         <p class="mb-1">Industry: @(item.Industry != null ? item.Industry.Name : "N/A")</p>
                                         <p class="mb-1">Portfolio: @(item.Portfolio != null ? item.Portfolio.Name : "N/A")</p>
-                                        <div id="chart-@item.Id" style="min-width: 150px; height: 200px;"></div>
+                                       
                                         <div class="btn-group mt-2" role="group" aria-label="Basic example">
                                             <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
                                                 <i class='bx bx-edit'></i> Edit
@@ -59,109 +127,7 @@
                                                 <i class='bx bx-trash'></i> Delete
                                             </a>
                                         </div>
-                                        <script>
-                                            document.addEventListener('DOMContentLoaded', function () {
-                                                fetch('/api/dashboards/chartdata/@item.Id')
-                                                    .then(response => response.json())
-                                                    .then(data => {
-                                                        var d = document.querySelector("#chart-@item.Id");
-                                                        var options = {
-                                                            chart: {
-                                                                height: 400,
-                                                                type: 'line',
-                                                                toolbar: { show: true }
-                                                            },
-                                                            series: [
-                                                                {
-                                                                    name: 'Open',
-                                                                    data: data.opens,
-                                                                    type: 'line',
-                                                                },
-                                                                {
-                                                                    name: 'High',
-                                                                    data: data.highs,
-                                                                    type: 'line',
-                                                                },
-                                                                {
-                                                                    name: 'Low',
-                                                                    data: data.lows,
-                                                                    type: 'line',
-                                                                },
-                                                                {
-                                                                    name: 'Close',
-                                                                    data: data.closes,
-                                                                    type: 'line',
-                                                                },
-                                                                {
-                                                                    name: 'Volume',
-                                                                    type: 'column',
-                                                                    data: data.volumes,
-                                                                    yaxis: 1,
-                                                                }
-                                                            ],
-                                                            xaxis: {
-                                                                type: 'datetime',
-                                                                categories: data.dates,
-                                                                labels: {
-                                                                    format: 'yyyy-MM-dd',
-                                                                    rotate: -45,
-                                                                    rotateAlways: true
-                                                                },
-                                                                title: {
-                                                                    text: 'Date'
-                                                                }
-                                                            },
-                                                            yaxis: [
-                                                                {
-                                                                    title: {
-                                                                        text: 'Price'
-                                                                    },
-                                                                    labels: {
-                                                                        formatter: function (value) {
-                                                                            return value.toFixed(2);
-                                                                        }
-                                                                    }
-                                                                },
-                                                                {
-                                                                    opposite: true,
-                                                                    title: {
-                                                                        text: 'Volume'
-                                                                    },
-                                                                    labels: {
-                                                                        formatter: function (value) {
-                                                                            return value.toFixed(0);
-                                                                        }
-                                                                    }
-                                                                }
-                                                            ],
-                                                            tooltip: {
-                                                                shared: true,
-                                                                intersect: false,
-                                                                x: {
-                                                                    format: 'yyyy-MM-dd'
-                                                                },
-                                                                y: {
-                                                                    formatter: function (value, { series, seriesIndex, dataPointIndex, w }) {
-                                                                        if (seriesIndex === 4) {
-                                                                            return value.toFixed(0); // Volume
-                                                                        } else {
-                                                                            return value.toFixed(2); // Price
-                                                                        }
-                                                                    }
-                                                                }
-                                                            },
-                                                            legend: {
-                                                                position: 'top',
-                                                                horizontalAlign: 'left'
-                                                            }
-                                                        };
-                                                        if (d) {
-                                                            new ApexCharts(d, options).render();
-                                                        }
-                                                    })
-                                                    .catch(error => console.error('Error fetching chart data:', error));
-                                            });
-                                        </script>
+                                     
                                     </div>
                                     <hr />
                                 }
