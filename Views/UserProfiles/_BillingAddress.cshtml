@@ -1,0 +1,53 @@
+@model MarketAnalyticHub.Models.UserProfile
+
+<div class="card card-action mt-3 mb-4">
+    <div class="card-header align-items-center flex-wrap gap-2">
+        <h5 class="card-action-title mb-0">Billing Address</h5>
+        <div class="card-action-element">
+            <button class="btn btn-primary btn-sm edit-address" type="button" data-bs-toggle="modal" data-bs-target="#addNewAddress"><i class="bx bx-plus bx-xs me-1_5"></i>Edit address</button>
+        </div>
+    </div>
+    <div class="card-body">
+        @foreach (var address in Model.Addresses)
+        {
+            if (address.IsBillingAddress)
+            {
+                <div class="row">
+                    <div class="col-xl-7 col-12">
+                        <dl class="row mb-0 gx-2">
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Company Name:</dt>
+                            <dd class="col-sm-8">Kelly Group</dd>
+
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Billing Email:</dt>
+                            <dd class="col-sm-8">@Model.Email</dd>
+
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Tax ID:</dt>
+                            <dd class="col-sm-8">@Model.TaxId</dd>
+
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">VAT Number:</dt>
+                            <dd class="col-sm-8">SDF754K77</dd>
+
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading mb-0">Billing Address:</dt>
+                            <dd class="col-sm-8 mb-xl-0">@address.AddressLine1 <br>@address.AddressLine2<br>@address.City, @address.State @address.ZipCode</dd>
+                        </dl>
+                    </div>
+                    <div class="col-xl-5 col-12">
+                        <dl class="row mb-0 gx-2">
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Contact:</dt>
+                            <dd class="col-sm-8">@Model.Contact</dd>
+
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Country:</dt>
+                            <dd class="col-sm-8">@address.Country</dd>
+
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">State:</dt>
+                            <dd class="col-sm-8">@address.State</dd>
+
+                            <dt class="col-sm-4 mb-sm-2 text-nowrap fw-medium text-heading">Zipcode:</dt>
+                            <dd class="col-sm-8">@address.ZipCode</dd>
+                        </dl>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

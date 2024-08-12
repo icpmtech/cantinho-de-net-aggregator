@@ -1,0 +1,57 @@
+@model MarketAnalyticHub.Models.UserProfile
+
+<div class="card mb-6">
+    <div class="card-body pt-12">
+        <div class="user-avatar-section">
+            <div class="d-flex align-items-center flex-column">
+                <img class="img-fluid rounded mb-4" src="@Model.AvatarUrl" height="120" width="120" alt="User avatar">
+                <div class="user-info text-center">
+                    <h5>@Model.FirstName @Model?.LastName</h5>
+                    <span class="badge bg-label-secondary">@Model.Role</span>
+                </div>
+            </div>
+        </div>
+
+        <h5 class="pb-4 border-bottom mb-4">Details</h5>
+        <div class="info-container">
+            <ul class="list-unstyled mb-6">
+                <li class="mb-2">
+                    <span class="h6">Username:</span>
+                    <span>@Model.Username</span>
+                </li>
+                <li class="mb-2">
+                    <span class="h6">Email:</span>
+                    <span>@Model.Email</span>
+                </li>
+                <li class="mb-2">
+                    <span class="h6">Status:</span>
+                    <span>@Model.Status</span>
+                </li>
+                <li class="mb-2">
+                    <span class="h6">Role:</span>
+                    <span>@Model.Role</span>
+                </li>
+                <li class="mb-2">
+                    <span class="h6">Tax id:</span>
+                    <span>@Model.TaxId</span>
+                </li>
+                <li class="mb-2">
+                    <span class="h6">Contact:</span>
+                    <span>@Model.Contact</span>
+                </li>
+                <li class="mb-2">
+                    <span class="h6">Languages:</span>
+                    <span>@string.Join(", ", Model.Languages)</span>
+                </li>
+                <li class="mb-2">
+                    <span class="h6">Country:</span>
+                    <span>@Model.Country</span>
+                </li>
+            </ul>
+            <div class="d-flex justify-content-center">
+                <a href="javascript:;" class="btn btn-primary me-4" data-bs-target="#editUser" data-bs-toggle="modal">Edit</a>
+                <a href="javascript:;" class="btn btn-label-danger suspend-user">Suspend</a>
+            </div>
+        </div>
+    </div>
+</div>

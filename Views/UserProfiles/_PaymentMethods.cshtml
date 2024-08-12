@@ -1,0 +1,39 @@
+@model MarketAnalyticHub.Models.UserProfile
+
+<div class="card mt-3 card-action mb-6">
+    <div class="card-header align-items-center">
+        <h5 class="card-action-title mb-0">Payment Methods</h5>
+        <div class="card-action-element">
+            <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#addNewCCModal"><i class="bx bx-plus bx-xs me-1_5"></i>Add Card</button>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="added-cards">
+            @foreach (var payment in Model.PaymentMethods)
+            {
+                <div class="cardMaster border p-6 rounded mb-4">
+                    <div class="d-flex justify-content-between flex-sm-row flex-column">
+                        <div class="card-information">
+                            <img class="mb-2" src="~/images/@payment.CardType.ToLower().Replace(" ", "-")-cc.png" alt="@payment.CardType" height="25">
+                            <div class="d-flex align-items-center mb-2">
+                                <h6 class="mb-0 me-2">@payment.CardName</h6>
+                                @if (payment.IsPrimary)
+                                {
+                                    <span class="badge bg-label-primary me-1">Primary</span>
+                                }
+                            </div>
+                            <span class="card-number">@payment.CardNumber</span>
+                        </div>
+                        <div class="d-flex flex-column text-start text-lg-end">
+                            <div class="d-flex order-sm-0 order-1">
+                                <button class="btn btn-sm btn-label-primary me-4" data-bs-toggle="modal" data-bs-target="#editCCModal" data-card-id="@payment.CardNumber">Edit</button>
+                                <button class="btn btn-sm btn-label-danger" data-card-id="@payment.CardNumber">Delete</button>
+                            </div>
+                            <small class="mt-sm-4 mt-2 order-sm-1 order-0 text-sm-end mb-2">Card expires at @payment.ExpiryDate.ToString("MM/yy")</small>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
