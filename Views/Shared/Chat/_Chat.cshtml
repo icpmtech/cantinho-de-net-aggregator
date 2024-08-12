@@ -1,54 +1,405 @@
-@* _Chat.cshtml *@
+@* Chat.cshtml *@
 <!-- Chat Window -->
 @{
     var isAIPilotActivated = User.IsInRole("aiPilot");
 }
+<style>
+    .chat-assistant-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .chat-assistant-logo {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+        .chat-assistant-logo img {
+            width: 72px;
+            height: 72px;
+            margin-bottom: 10px;
+        }
+
+    .chat-container {
+        background-color: #ffffff;
+        padding: 15px 20px;
+        width: 98%;
+        margin-bottom: 20px;
+        transition: transform 0.2s ease-in-out;
+    }
+
+        .chat-container:hover {
+            transform: scale(1.02);
+        }
+
+        .chat-container .new-topic-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #1a73e8;
+            color: #fff;
+            border: none;
+            border-radius: 20px;
+            padding: 10px 20px;
+            margin-right: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+            .chat-container .new-topic-button i {
+                margin-right: 5px;
+                font-size: 18px;
+            }
+
+        .chat-container .input-container {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            position: relative;
+            border: 1px solid #dfe1e5;
+            border-radius: 24px;
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+        }
+
+        .chat-container input[type="text"] {
+            border: none;
+            outline: none;
+            font-size: 16px;
+            width: 100%;
+            padding: 8px;
+            background-color: transparent;
+        }
+
+            .chat-container input[type="text"]::placeholder {
+                color: #a0a0a0;
+            }
+
+        .chat-container .input-container .icon-group {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+            .chat-container .input-container .icon-group i {
+                font-size: 20px;
+                color: #5f6368;
+                cursor: pointer;
+                margin-left: 15px;
+                transition: color 0.2s;
+            }
+
+                .chat-container .input-container .icon-group i:hover {
+                    color: #202124;
+                }
+
+            .chat-container .input-container .icon-group .bx-send {
+                color: #1a73e8;
+            }
+
+                .chat-container .input-container .icon-group .bx-send:hover {
+                    color: #0c62d1;
+                }
+
+    .response-container {
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 1px 6px rgba(32, 33, 36, 0.28);
+        padding: 15px;
+        width: 100%;
+        margin-bottom: 20px;
+        display: none;
+    }
+
+    .response-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+        .response-header img {
+            width: 30px;
+            height: 30px;
+            margin-right: 10px;
+        }
+
+    .response-actions {
+        display: flex;
+        align-items: center;
+        margin-left: auto;
+    }
+
+        .response-actions i {
+            font-size: 18px;
+            color: #5f6368;
+            cursor: pointer;
+            margin-left: 15px;
+            transition: color 0.2s;
+        }
+
+            .response-actions i:hover {
+                color: #202124;
+            }
+
+    .suggestion-buttons {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+        .suggestion-buttons button {
+            background-color: #e3f2fd;
+            border: 1px solid #90caf9;
+            color: #1e88e5;
+            padding: 10px 16px;
+            border-radius: 25px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+            .suggestion-buttons button:hover {
+                background-color: #bbdefb;
+            }
+
+    .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        display: none;
+    }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-overlay .spinner {
+            font-size: 48px;
+            color: #1a73e8;
+        }
+
+    .chat-message {
+        margin-bottom: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        background-color: #f1f1f1;
+        max-width: 80%;
+    }
+
+        .chat-message.user {
+            background-color: #d4edda;
+            align-self: flex-end;
+        }
+
+        .chat-message.ai {
+            background-color: #e2e3e5;
+            align-self: flex-start;
+        }
+
+    .chat-history {
+        display: flex;
+        flex-direction: column;
+        max-height: 400px;
+        overflow-y: auto;
+        width: 100%;
+    }
+
+    .chat-window {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        width: 300px;
+        height: 90%;
+        max-height: 90%;
+        overflow-y: auto;
+        z-index: 99999;
+        transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, max-height 0.3s ease-in-out;
+        box-shadow: 0 4px 8px #696cff;
+        border-radius: 10px;
+        background-color: #fff;
+    }
+
+        .chat-window.minimized {
+            display: none;
+        }
+
+        .chat-window.maximized {
+            width: 95%;
+            height: 90%;
+            max-height: 90%;
+            bottom: 5%;
+            right: 20px;
+            z-index: 99999;
+        }
+
+    .ai-copilot-btn {
+        position: fixed;
+        bottom: 10px;
+        right: 20px;
+        z-index: 1001;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 24px;
+        box-shadow: 0 4px 20px #696cff;
+    }
+
+    #messagesList {
+        overflow-y: auto;
+        margin-bottom: 10px;
+    }
+
+    pre[class*="language-"], code[class*="language-"] {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 5px 0;
+    }
+
+    .token.comment,
+    .token.prolog,
+    .token.doctype,
+    .token.cdata {
+        color: #999999;
+    }
+
+    .token.punctuation {
+        color: #f8f8f2;
+    }
+
+    .token.property,
+    .token.tag,
+    .token.constant,
+    .token.symbol,
+    .token.deleted {
+        color: #f92672;
+    }
+
+    .token.boolean,
+    .token.number {
+        color: #ae81ff;
+    }
+
+    .token.selector,
+    .token.attr-name,
+    .token.string,
+    .token.char,
+    .token.builtin,
+    .token.inserted {
+        color: #a6e22e;
+    }
+
+    .token.operator,
+    .token.entity,
+    .token.url,
+    .language-css .token.string,
+    .style .token.string,
+    .token.variable {
+        color: #f8f8f2;
+    }
+
+    .token.atrule,
+    .token.attr-value,
+    .token.function,
+    .token.class-name {
+        color: #e6db74;
+    }
+
+    .token.keyword {
+        color: #66d9ef;
+    }
+
+    .token.regex,
+    .token.important {
+        color: #fd971f;
+    }
+
+    .token.important,
+    .token.bold {
+        font-weight: bold;
+    }
+
+    .token.italic {
+        font-style: italic;
+    }
+
+    .token.entity {
+        cursor: help;
+    }
+</style>
 
 @if (User.Identity.IsAuthenticated && isAIPilotActivated)
 {
-    <div id="chatWindow" class="card chat-window minimized">
+    <div id="chatWindow" style="display: none;" class="card chat-window maximized">
         <div class="card-header border-1 d-flex justify-content-between bg-primary align-items-center">
-            <h5 class="d-inline" style="color: white;">
-                <img width="36" src="~/icons/marketanalytic_hub_icon_48x48.png" />AI-Pilot
+            <h5 class="d-inline text-white">
+                <img width="36" src="/icons/marketanalytic_hub_icon_48x48.png">AI-Pilot
             </h5>
             <div>
                 <button class="btn btn-sm btn-secondary me-2" onclick="maximizeChat()">⬜</button>
                 <button class="btn btn-sm btn-danger" onclick="closeChat()">✕</button>
             </div>
         </div>
-        <div class="card-body">
-            <div class="mb-3">
-                <div id="defaultFormControlHelp" class="form-text">We'll never share your details with anyone else.</div>
-                <input class="form-control mb-2" type="text" readonly="" value="all@test.com" id="userInput" placeholder="User name" aria-describedby="defaultFormControlHelp">
-                <div class="input-group mb-2">
-                    <input type="file" class="form-control" id="fileInput">
-                    <button class="btn btn-outline-primary" onclick="sendFile()" type="button">
-                        <i class="bx bx-upload"></i>
-                    </button>
-                </div>
-                <div class="input-group mb-2 input-group-merge speech-to-text">
-                    <button class="btn btn-outline-primary" type="button" onclick="sendMessage()">
-                        <i class="bx bx-send"></i>
-                    </button>
-                    <textarea class="form-control" id="messageInput" rows="20" placeholder="Ask me..."></textarea>
-                    <button class="btn btn-outline-danger" onclick="startRecording()" id="startRecordingButton" style="display: block;">
-                        <i class="bx bx-microphone cursor-pointer text-to-speech-toggle"></i>
-                    </button>
-                    <button class="btn btn-outline-danger" type="button" onclick="stopRecording()" style="display: none;" id="stopRecordingButton">
-                        <i class="bx bx-stop"></i>
-                    </button>
-                   
-                </div>
-               
 
-                <div class="d-flex justify-content-between align-items-center  mb2 ">
-                    <button class="btn btn-outline-danger" type="button" onclick="stopAudio()" id="stopAudioButton" style="display: none;">
-                        <i class="bx bx-stop"></i>
-                    </button>
-                </div>
-
+        <div class="chat-assistant-container">
+            <div class="text-center chat-assistant-logo">
+                <img class="rounded-circle" src="/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
+                <h3>Ai-Pilot</h3>
+                <p>Your everyday AI analyzer companion</p>
             </div>
-            <div id="messagesList" class="mt-3"></div>
+            <div class="response-header">
+                <img src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
+                <span id="responseText">Please tell me your feedback?</span>
+                <div class="response-actions">
+                    <i class="bx bx-like"></i>
+                    <i class="bx bx-dislike"></i>
+                    <i class="bx bx-copy"></i>
+                    <i class="bx bx-download"></i>
+                </div>
+            </div>
+            <div class="chat-container">
+               
+                <div id="defaultFormControlHelp" class="form-text">We'll never share your details with anyone else.</div>
+                <button id="actionButton" class="mb-1 new-topic-button" onclick="startNewTopic()">
+                    <i class="bx bx-bell"></i><p id="textElement">New topic</p>
+                </button>
+                <div class="input-container">
+                    <div class="loading-spinner" id="loadingSpinner" style="display: none;">
+                        <i class="bx bx-loader bx-spin"></i>
+                    </div>
+                    <input type="text" id="messageInput" placeholder="Ask me anything..." autocomplete="off">
+                    <div class="icon-group">
+                        <i onclick="triggerFileUpload()" class="bx bx-image"></i>
+                        <i id="startRecordingButton" onclick="startRecording()" class="bx bx-microphone cursor-pointer text-to-speech-toggle"></i>
+                        <i onclick="stopRecording()" style="display: none;" id="stopRecordingButton" class="bx bx-stop"></i>
+                        <i onclick="stopAudio()" style="display: none;" id="stopAudioButton" class="bx bx-stop"></i>
+                        <i id="searchButton" onclick="sendMessage()" class="bx bx-send"></i>
+                    </div>
+                </div>
+                <div class="input-group mb-2">
+                    <input type="file" class="form-control" id="fileInput" style="display: none;">
+                </div>
+                <input class="form-control mb-2" hidden  type="text" readonly value="@User.Identity.Name" id="userInput">
+            </div>
+            <div class="p-2 m-3" id="messagesList">
+                
+            </div>
         </div>
     </div>
 
@@ -64,9 +415,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const connection = new signalR.HubConnectionBuilder()
-                .withUrl("/chathub")
-                .build();
+            const connection = new signalR.HubConnectionBuilder().withUrl("/chathub").build();
 
             let currentAudio = null;
 
@@ -75,13 +424,12 @@
                 const messageId = `msg-${Date.now()}`;
                 msg.setAttribute("id", messageId);
                 msg.innerHTML = `<strong>${user}:</strong> ${marked(message)}
-                                                        <div class="btn-group mt-1" role="group">
-                                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
-                                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
-                                                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>
-                                                        </div>`;
+                                      <div class="response-actions">
+                                          <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
+                                          <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
+                                          <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
+                                      </div>`;
                 document.getElementById("messagesList").appendChild(msg);
-                // Convert the transcription to speech and play it
                 readAudio(message);
                 Prism.highlightAllUnder(msg);
             });
@@ -91,64 +439,68 @@
                 const messageId = `msg-${Date.now()}`;
                 msg.setAttribute("id", messageId);
                 msg.innerHTML = `<strong>${user}:</strong> <a href="${fileUrl}" target="_blank">${fileUrl}</a>
-                                                        <p>Analysis: ${marked(analysis)}</p>
-                                                        <div class="btn-group mt-1" role="group">
-                                                            <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${messageId}')">Copy</button>
-                                                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${messageId}')">Delete</button>
-                                                            <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${messageId}')">Save</button>
-                                                        </div>`;
+                                      <p>Analysis: ${marked(analysis)}</p>
+                                      <div class="response-actions">
+                                          <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
+                                          <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
+                                          <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
+                                      </div>`;
                 document.getElementById("messagesList").appendChild(msg);
             });
 
             connection.start().catch(function (err) {
-                return console.error(err.toString());
+                console.error("Connection error: ", err.toString());
             });
 
             window.sendMessage = function () {
-                const user = document.getElementById("userInput").value;
-                if (!user) {
-                    alert('Please enter your user name.');
-                    return;
-                }
-
+                const user = '@User.Identity.Name';
                 const message = document.getElementById("messageInput").value;
-                if (!message) {
-                    alert('Please enter a message.');
+
+                if (!user || !message) {
+                    alert('Please enter your user name and message.');
                     return;
                 }
 
                 connection.invoke("SendMessage", user, message).catch(function (err) {
-                    return console.error(err.toString());
+                    console.error("Send message error: ", err.toString());
                 });
             };
 
-            window.sendFile = function () {
-                const user = document.getElementById("userInput").value;
-                if (!user) {
-                    alert('Please enter your user name.');
-                    return;
-                }
+            window.triggerFileUpload = function () {
+                const fileInput = document.getElementById('fileInput');
 
+                // Trigger the file input click
+                fileInput.click();
+
+                // Add an event listener to call sendFile() when a file is selected
+                fileInput.addEventListener('change', function () {
+                    if (fileInput.files.length > 0) {
+                        sendFile();
+                    }
+                }, { once: true }); // Ensure the listener is only triggered once
+            };
+
+            window.sendFile = function () {
+                const user = '@User.Identity.Name';
                 const fileInput = document.getElementById("fileInput");
                 const file = fileInput.files[0];
-                if (!file) {
-                    alert('Please select a file to upload.');
+
+                if (!user || !file) {
+                    alert('Please enter your user name and select a file.');
                     return;
                 }
 
                 const formData = new FormData();
                 formData.append("UploaderName", user);
-                formData.append("UploaderAddress", "Analyzer"); // Add an appropriate value or get it from an input field
+                formData.append("UploaderAddress", "Analyzer");
                 formData.append("File", file);
 
-                // Add instructional message to chat
                 const msgInstruction = document.createElement("div");
                 const instructionId = `msg-instruction-${Date.now()}`;
                 msgInstruction.setAttribute("id", instructionId);
                 msgInstruction.innerHTML = `<strong>${user}:</strong> Please analyze the content of the following file.`;
                 document.getElementById("messagesList").appendChild(msgInstruction);
 
-                // Show "Analyzing file..." message
                 const msg = document.createElement("div");
                 const messageId = `msg-${Date.now()}`;
                 msg.setAttribute("id", messageId);
@@ -159,70 +511,51 @@
                     method: 'POST',
                     body: formData
                 })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (data) {
+                    .then(response => response.json())
+                    .then(data => {
                         if (data.success) {
-                            connection.invoke("SendFile", user, data.fileUrl, data.analysis).catch(function (err) {
-                                return console.error(err.toString());
+                            connection.invoke("SendFile", user, data.fileUrl, data.analysis).catch(err => {
+                                console.error("Send file error: ", err.toString());
                             });
 
-                            // Update the "Analyzing file..." message with the analysis result
                             const analysisMsg = document.createElement("div");
                             const analysisId = `msg-analysis-${Date.now()}`;
                             analysisMsg.setAttribute("id", analysisId);
                             analysisMsg.innerHTML = `<strong>${user}:</strong> File analysis completed.
-                                                                                     <p>Analysis: ${marked(data.analysis)}</p>
-                                                                                     <div class="btn-group mt-1" role="group">
-                                                                                         <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
-                                                                                         <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
-                                                                                         <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>
-                                                                                     </div>`;
+                                                          <p>Analysis: ${marked(data.analysis)}</p>
+                                                          <div class="response-actions">
+                                                              <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
+                                                              <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
+                                                              <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
+                                                          </div>`;
                             document.getElementById("messagesList").appendChild(analysisMsg);
                         } else {
                             alert('File upload failed: ' + data.message);
                         }
                     })
-                    .catch(function (error) {
+                    .catch(error => {
                         console.error('Error uploading file:', error);
                     });
             };
 
             window.toggleChat = function () {
                 const chatWindow = document.getElementById("chatWindow");
-                const startRecordingButton = document.getElementById('startRecordingButton');
-                const stopRecordingButton = document.getElementById('stopRecordingButton');
-
-                // Toggle the minimized class
                 chatWindow.classList.toggle("minimized");
-
-                // Toggle the display of the chat window based on the minimized state
-                if (chatWindow.classList.contains("minimized")) {
-                    chatWindow.style.display = 'none';
-                } else {
-                    chatWindow.style.display = 'block';
-                }
-
-                // Always show the start button and hide the stop button when the chat window is toggled
-                startRecordingButton.style.display = 'block';
-                stopRecordingButton.style.display = 'none';
+                chatWindow.style.display = chatWindow.classList.contains("minimized") ? 'none' : 'block';
             };
 
             window.maximizeChat = function () {
                 const chatWindow = document.getElementById("chatWindow");
                 chatWindow.classList.toggle("maximized");
-                chatWindow.style.display = 'block';
             };
 
             window.closeChat = function () {
-                const chatWindow = document.getElementById("chatWindow");
-                chatWindow.style.display = 'none';
+                document.getElementById("chatWindow").style.display = 'none';
             };
 
             window.copyMessage = function (messageId) {
                 const messageText = document.getElementById(messageId).innerText;
-                navigator.clipboard.writeText(messageText).then(function () {
+                navigator.clipboard.writeText(messageText).then(() => {
                     alert("Message copied to clipboard");
                 });
             };
@@ -233,22 +566,17 @@
             };
 
             window.saveMessage = function (messageId) {
-                const messageElement = document.getElementById(messageId);
-                const messageText = messageElement.innerText;
+                const messageText = document.getElementById(messageId).innerText;
                 fetch('/api/Chat/saveMessage', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ content: messageText })
                 })
-                    .then(function (response) {
-                        return response.json();
-                    })
-                    .then(function (data) {
+                    .then(response => response.json())
+                    .then(data => {
                         alert(`Message saved to ${data.filePath}`);
                     })
-                    .catch(function (error) {
+                    .catch(error => {
                         console.error('Error saving message:', error);
                     });
             };
@@ -280,10 +608,9 @@
 
                             const formData = new FormData();
                             formData.append("UploaderName", user);
-                            formData.append("UploaderAddress", "Analyzer Audio"); // Add an appropriate value or get it from an input field
+                            formData.append("UploaderAddress", "Analyzer Audio");
                             formData.append("File", audioBlob);
 
-                            // Show "Analyzing audio..." message
                             const msg = document.createElement("div");
                             const messageId = `msg-${Date.now()}`;
                             msg.setAttribute("id", messageId);
@@ -298,22 +625,20 @@
                                 .then(data => {
                                     if (data.success) {
                                         connection.invoke("SendMessage", user, data.transcription).catch(err => {
-                                            return console.error(err.toString());
+                                            console.error("Send message error: ", err.toString());
                                         });
 
-                                        // Update the "Analyzing audio..." message with the transcription result
                                         const analysisMsg = document.createElement("div");
                                         const analysisId = `msg-analysis-${Date.now()}`;
                                         analysisMsg.setAttribute("id", analysisId);
                                         analysisMsg.innerHTML = `<strong>${user}:</strong> Audio transcription completed.
-                                                                                    <p>Transcription: ${marked(data.transcription)}</p>
-                                                                                    <div class="btn-group mt-1" role="group">
-                                                                                        <button class="btn btn-sm btn-outline-secondary" onclick="copyMessage('${analysisId}')">Copy</button>
-                                                                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteMessage('${analysisId}')">Delete</button>
-                                                                                        <button class="btn btn-sm btn-outline-success" onclick="saveMessage('${analysisId}')">Save</button>
-                                                                                    </div>`;
+                                                                      <p>Transcription: ${marked(data.transcription)}</p>
+                                                                      <div class="response-actions">
+                                                                          <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
+                                                                          <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
+                                                                          <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
+                                                                      </div>`;
                                         document.getElementById("messagesList").appendChild(analysisMsg);
-
                                     } else {
                                         alert('Audio upload failed: ' + data.message);
                                     }
@@ -322,7 +647,6 @@
                                     console.error('Error uploading audio:', error);
                                 });
                         });
-
                     })
                     .catch(error => {
                         console.error('Error accessing microphone:', error);
@@ -344,7 +668,6 @@
             };
 
             async function readAudio(content) {
-                // Stop the current audio if it's playing
                 if (currentAudio) {
                     currentAudio.pause();
                     currentAudio.currentTime = 0;
@@ -352,9 +675,7 @@
 
                 const response = await fetch('/api/Chat/ReadAudio', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ Content: content })
                 });
 
@@ -370,134 +691,6 @@
                 document.getElementById('stopAudioButton').style.display = 'inline-block';
             }
         });
-
     </script>
-    <style>
-        .chat-window {
-            position: fixed;
-            display: none;
-            bottom: 10px;
-            right: 10px;
-            width: 300px;
-            height: 90%;
-            max-height: 90%;
-            overflow-y: auto;
-            z-index: 99999;
-            transition: transform 0.3s ease-in-out, width 0.3s ease-in-out, max-height 0.3s ease-in-out;
-            box-shadow: 0 4px 8px #696cff;
-            border-radius: 10px;
-            background-color: #fff;
-        }
 
-            .chat-window.minimized {
-            }
-
-            .chat-window.maximized {
-                width: 80%;
-                height: 90%;
-                max-height: 90%;
-                bottom: 5%;
-                right: 20px;
-                z-index: 99999;
-            }
-
-        .ai-copilot-btn {
-            position: fixed;
-            bottom: 10px;
-            right: 20px;
-            z-index: 1001;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 24px;
-            box-shadow: 0 4px 20px #696cff;
-        }
-
-        #messagesList {
-            overflow-y: auto;
-            margin-bottom: 10px;
-        }
-
-        pre[class*="language-"], code[class*="language-"] {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            border-radius: 5px;
-            padding: 10px;
-            margin: 5px 0;
-        }
-
-        .token.comment,
-        .token.prolog,
-        .token.doctype,
-        .token.cdata {
-            color: #999999;
-        }
-
-        .token.punctuation {
-            color: #f8f8f2;
-        }
-
-        .token.property,
-        .token.tag,
-        .token.constant,
-        .token.symbol,
-        .token.deleted {
-            color: #f92672;
-        }
-
-        .token.boolean,
-        .token.number {
-            color: #ae81ff;
-        }
-
-        .token.selector,
-        .token.attr-name,
-        .token.string,
-        .token.char,
-        .token.builtin,
-        .token.inserted {
-            color: #a6e22e;
-        }
-
-        .token.operator,
-        .token.entity,
-        .token.url,
-        .language-css .token.string,
-        .style .token.string,
-        .token.variable {
-            color: #f8f8f2;
-        }
-
-        .token.atrule,
-        .token.attr-value,
-        .token.function,
-        .token.class-name {
-            color: #e6db74;
-        }
-
-        .token.keyword {
-            color: #66d9ef;
-        }
-
-        .token.regex,
-        .token.important {
-            color: #fd971f;
-        }
-
-        .token.important,
-        .token.bold {
-            font-weight: bold;
-        }
-
-        .token.italic {
-            font-style: italic;
-        }
-
-        .token.entity {
-            cursor: help;
-        }
-    </style>
 }
