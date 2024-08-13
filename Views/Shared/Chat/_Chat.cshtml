@@ -374,7 +374,7 @@
                 </div>
             </div>
             <div class="chat-container">
-               
+
                 <div id="defaultFormControlHelp" class="form-text">We'll never share your details with anyone else.</div>
                 <button id="actionButton" class="mb-1 new-topic-button" onclick="startNewTopic()">
                     <i class="bx bx-bell"></i><p id="textElement">New topic</p>
@@ -395,10 +395,9 @@
                 <div class="input-group mb-2">
                     <input type="file" class="form-control" id="fileInput" style="display: none;">
                 </div>
-                <input class="form-control mb-2" hidden  type="text" readonly value="@User.Identity.Name" id="userInput">
+                <input class="form-control mb-2" hidden type="text" readonly value="@User.Identity.Name" id="userInput">
             </div>
             <div class="p-2 m-3" id="messagesList">
-                
             </div>
         </div>
     </div>
@@ -422,13 +421,21 @@
             connection.on("ReceiveMessage", function (user, message) {
                 const msg = document.createElement("div");
                 const messageId = `msg-${Date.now()}`;
+                const isUser = user === '@User.Identity.Name'; // Check if the message is from the user
+
                 msg.setAttribute("id", messageId);
-                msg.innerHTML = `<strong>${user}:</strong> ${marked(message)}
-                                      <div class="response-actions">
-                                          <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
-                                          <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
-                                          <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
-                                      </div>`;
+                msg.classList.add("chat-message", isUser ? "user" : "ai");
+
+                msg.innerHTML = `
+                            <div style="display: flex; align-items: center;">
+                                <img src="${isUser ? '/icons/user_icon.png' : '/icons/system_icon.png'}" alt="${isUser ? 'User' : 'System'} Icon" style="width: 30px; height: 30px; margin-right: 10px;">
+                                <strong>${user}:</strong> ${marked(message)}
+                            </div>
+                            <div class="response-actions">
+                                <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
+                                <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
+                                <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
+                            </div>`;
                 document.getElementById("messagesList").appendChild(msg);
                 readAudio(message);
                 Prism.highlightAllUnder(msg);
@@ -437,14 +444,22 @@
             connection.on("ReceiveFile", function (user, fileUrl, analysis) {
                 const msg = document.createElement("div");
                 const messageId = `msg-${Date.now()}`;
+                const isUser = user === '@User.Identity.Name'; // Check if the file is from the user
+
                 msg.setAttribute("id", messageId);
-                msg.innerHTML = `<strong>${user}:</strong> <a href="${fileUrl}" target="_blank">${fileUrl}</a>
-                                      <p>Analysis: ${marked(analysis)}</p>
-                                      <div class="response-actions">
-                                          <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
-                                          <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
-                                          <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
-                                      </div>`;
+                msg.classList.add("chat-message", isUser ? "user" : "ai");
+
+                msg.innerHTML = `
+                            <div style="display: flex; align-items: center;">
+                                <img src="${isUser ? '/icons/user_icon.png' : '/icons/system_icon.png'}" alt="${isUser ? 'User' : 'System'} Icon" style="width: 30px; height: 30px; margin-right: 10px;">
+                                <strong>${user}:</strong> <a href="${fileUrl}" target="_blank">${fileUrl}</a>
+                            </div>
+                            <p>Analysis: ${marked(analysis)}</p>
+                            <div class="response-actions">
+                                <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
+                                <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
+                                <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
+                            </div>`;
                 document.getElementById("messagesList").appendChild(msg);
             });
 
@@ -522,12 +537,12 @@
                             const analysisId = `msg-analysis-${Date.now()}`;
                             analysisMsg.setAttribute("id", analysisId);
                             analysisMsg.innerHTML = `<strong>${user}:</strong> File analysis completed.
-                                                          <p>Analysis: ${marked(data.analysis)}</p>
-                                                          <div class="response-actions">
-                                                              <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
-                                                              <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
-                                                              <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
-                                                          </div>`;
+                                                                  <p>Analysis: ${marked(data.analysis)}</p>
+                                                                  <div class="response-actions">
+                                                                      <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
+                                                                      <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
+                                                                      <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
+                                                                  </div>`;
                             document.getElementById("messagesList").appendChild(analysisMsg);
                         } else {
                             alert('File upload failed: ' + data.message);
@@ -632,12 +647,12 @@
                                         const analysisId = `msg-analysis-${Date.now()}`;
                                         analysisMsg.setAttribute("id", analysisId);
                                         analysisMsg.innerHTML = `<strong>${user}:</strong> Audio transcription completed.
-                                                                      <p>Transcription: ${marked(data.transcription)}</p>
-                                                                      <div class="response-actions">
-                                                                          <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
-                                                                          <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
-                                                                          <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
-                                                                      </div>`;
+                                                                              <p>Transcription: ${marked(data.transcription)}</p>
+                                                                              <div class="response-actions">
+                                                                                  <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
+                                                                                  <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
+                                                                                  <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
+                                                                              </div>`;
                                         document.getElementById("messagesList").appendChild(analysisMsg);
                                     } else {
                                         alert('Audio upload failed: ' + data.message);

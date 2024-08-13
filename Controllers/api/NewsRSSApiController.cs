@@ -8,20 +8,28 @@ using System.Collections.Generic;
 using System.Linq;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
+using MarketAnalyticHub.Services.Jobs;
+using MarketAnalyticHub.Services.Jobs.Processors;
+using NewsAPI.Models;
+using MarketAnalyticHub.Models.News;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace MarketAnalyticHub.Controllers
 {
+  [Authorize]
   [ApiController]
   [Route("api/[controller]")]
   public class NewsRSSApiController : ControllerBase
   {
     private readonly HttpClient _httpClient;
+    private readonly IArticleProcessor _articleProcessor;
     private readonly ILogger<NewsRSSApiController> _logger;
     private readonly ApplicationDbContext _context;
-
-    public NewsRSSApiController(HttpClient httpClient, ApplicationDbContext context, ILogger<NewsRSSApiController> logger)
+    public NewsRSSApiController(HttpClient httpClient, IArticleProcessor articleProcessor, ApplicationDbContext context, ILogger<NewsRSSApiController> logger)
     {
       _httpClient = httpClient;
+      _articleProcessor = articleProcessor;
       _logger = logger;
       _context = context;
     }
@@ -45,8 +53,12 @@ namespace MarketAnalyticHub.Controllers
     [HttpGet("FetchRssFeed")]
     public async Task<IActionResult> FetchRssFeed(string category, string url)
     {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
       var newsItems = new List<RssNewsItem>();
-
       try
       {
         var response = await _httpClient.GetAsync(url);
@@ -74,7 +86,15 @@ namespace MarketAnalyticHub.Controllers
                 Date = item.PublishDate.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Category = category
               };
-
+              await _articleProcessor.ProcessArticleAsync(new NewsItem
+              {
+                Title = newsItem.Title,
+                Link = newsItem.Link,
+                Description = newsItem.Description,
+                Author = newsItem.Author,
+                Date = newsItem.Date,
+                Category = category
+              }, userId);
               newsItems.Add(newsItem);
             }
           }

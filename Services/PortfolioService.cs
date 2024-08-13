@@ -750,7 +750,12 @@ namespace MarketAnalyticHub.Services
       return (currentMonthRevenue, previousMonthRevenue);
     }
 
-  
+    internal async Task<string> AnalyzePortfolioAsync(string[] stockSymbols)
+    {
+      throw new NotImplementedException();
+    }
+
+
 
 
 

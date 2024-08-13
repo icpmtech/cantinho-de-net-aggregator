@@ -8,6 +8,9 @@ using static System.Net.Mime.MediaTypeNames;
 using OpenAI_API.Chat;
 using OpenAI_API.Models;
 using Microsoft.Graph;
+using OpenAI_API.Embedding;
+using Google.Protobuf.WellKnownTypes;
+using Nest;
 
 namespace AspnetCoreMvcFull.Services
 {
@@ -66,12 +69,29 @@ namespace AspnetCoreMvcFull.Services
       return result.ToLower().Contains("yes");
     }
 
+
     public async Task<float[]> GenerateEmbeddingAsync(string text)
     {
-      // Call OpenAI API to generate embeddings for semantic search
-      var embedding = await CallOpenAiApiAsync(text);
-      return ConvertToFloatArray(embedding);
+      // Create an embedding request
+      var embeddingRequest = new EmbeddingRequest
+      {
+        Input = text,
+        Model = "text-embedding-ada-002" // Specify the model for embeddings
+      };
+      var api = new OpenAI_API.OpenAIAPI(_apiKey);
+      // Call the API to get the embedding result
+      var embeddingResult = await api.Embeddings.CreateEmbeddingAsync(embeddingRequest);
+
+      if (embeddingResult == null || embeddingResult.Data == null || embeddingResult.Data.Count == 0)
+      {
+        throw new Exception("Failed to generate embedding or no data returned.");
+      }
+
+      // Convert the embedding to a float array and return
+      return embeddingResult.Data.First().Embedding;
     }
+
+   
 
     private async Task<string> CallOpenAiApiAsync(string input)
     {
@@ -255,6 +275,22 @@ namespace AspnetCoreMvcFull.Services
       var completionRequest = new CompletionRequest
       {
         Prompt = query,
+        MaxTokens = 100
+      };
+
+      var result = await api.Completions.CreateCompletionAsync(completionRequest);
+      return result.Completions.FirstOrDefault()?.Text.Trim();
+    }
+
+    public async Task<string> AnalyzeSentimentAsync(string content)
+    {
+      var api = new OpenAIAPI(_apiKey);
+      // Create a prompt for sentiment analysis
+      var prompt = $"Analyze the sentiment of the following text: \"{content}\". Respond with 'Positive', 'Negative', or 'Neutral'.";
+
+      var completionRequest = new CompletionRequest
+      {
+        Prompt = prompt,
         MaxTokens = 100
       };
 

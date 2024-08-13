@@ -40,12 +40,7 @@ namespace MarketAnalyticHub.Controllers
       var metrics = await _dataIndexingService.GetPortfolioValueAsync(portfolioId);
       return Ok(metrics.Aggregations);
     }
-    public async Task<IActionResult> HandleNaturalLanguageQuery(string query)
-    {
-      var prompt = $"Analyze the portfolio based on the following query: {query}";
-      var analysis = await _llmService.GeneratePortfolioReportAsync(prompt);
-      return Ok(analysis);
-    }
+   
 
 
     [HttpPost("analyze-sentiment-for-stock")]

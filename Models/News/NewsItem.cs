@@ -63,6 +63,8 @@ namespace MarketAnalyticHub.Models.News
         return analyses.Select(t => t.Score).ToList();
       }
     }
+    [NotMapped]
+    public string SentimentAnalisys { get; internal set; }
 
     private List<StockAnalysis> ParseStockAnalyses(string input)
     {

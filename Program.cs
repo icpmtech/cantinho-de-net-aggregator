@@ -36,6 +36,7 @@ using Nest;
 using Elasticsearch.Net;
 using MarketAnalyticHub.Services.Elastic;
 using MarketAnalyticHub.Controllers.RealTime;
+using MarketAnalyticHub.Services.Jobs.Processors;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -123,6 +124,9 @@ builder.Services.AddSingleton<SocialSentimentService>();
 builder.Services.AddScoped<PortfolioIndexingService>();
 builder.Services.AddScoped<LlmService>();
 builder.Services.AddScoped<DataIndexingService>();
+
+builder.Services.AddSingleton<IMilvusService, MilvusService>();
+builder.Services.AddSingleton<IArticleProcessor, ArticleProcessor>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration
