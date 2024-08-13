@@ -276,7 +276,7 @@ async function renderSparklineChart(elementId, symbol) {
   const url = `api/Dashboards/Stock/${symbol}?interval=5m`;
 
   try {
-    const response = await fetchWithRetry(url, {
+    const response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json'
       },
@@ -288,26 +288,82 @@ async function renderSparklineChart(elementId, symbol) {
     }
 
     const data = await response.json();
-    const marketData = data.chart.result[0].indicators.quote[0].close;
+
+    // Map data to a format suitable for the area sparkline chart
+    const marketData = data.map(item => ({
+      x: new Date(item.timestamp), // Date object for x-axis
+      y: item.close, // Close price for y-axis
+      open: item.open // Open price for comparison
+    }));
+
+    // Determine colors based on open and close prices
+    const colors = marketData.map(point => point.y >= point.open ? '#00C851' : '#FF4444'); // Green if close >= open, otherwise red
 
     const options = {
       chart: {
-        type: 'line',
-        height: 80,
+        type: 'area', // Set to area chart
+        height: 80, // Height for sparkline
         sparkline: {
-          enabled: true
+          enabled: true // Enable sparkline mode
         }
       },
       stroke: {
-        width: 2
+        width: 2,
+        curve: 'smooth' // Smoother curve for the sparkline
+      },
+      fill: {
+        type: 'gradient', // Gradient fill to mimic the area chart in the image
+        gradient: {
+          shadeIntensity: 1,
+          opacityFrom: 0.7,
+          opacityTo: 0.2,
+          stops: [0, 90, 100],
+          colorStops: [
+            {
+              offset: 0,
+              color: colors[0], // Start with the color of the first point
+              opacity: 0.7
+            },
+            {
+              offset: 100,
+              color: colors[colors.length - 1], // End with the color of the last point
+              opacity: 0.2
+            }
+          ]
+        }
+      },
+      xaxis: {
+        type: 'datetime', // Use datetime for x-axis
+        labels: {
+          show: false // Hide x-axis labels for sparkline
+        },
+        axisBorder: {
+          show: false
+        },
+        axisTicks: {
+          show: false
+        }
+      },
+      yaxis: {
+        labels: {
+          show: false // Hide y-axis labels for sparkline
+        }
       },
       series: [{
-        name: 'Market Data',
-        data: marketData
+        name: 'Close Price',
+        data: marketData.map(point => ({
+          x: point.x,
+          y: point.y,
+          fillColor: point.y >= point.open ? '#00C851' : '#FF4444' // Set the color based on the trend
+        }))
       }],
-      colors: ['#FF1654']
+      colors: [colors[colors.length - 1]], // Line color based on the last point
+      tooltip: {
+        enabled: false // Disable tooltips
+      }
     };
 
+    // Render the chart
     const chart = new ApexCharts(document.querySelector(`#${elementId}`), options);
     chart.render();
   } catch (error) {

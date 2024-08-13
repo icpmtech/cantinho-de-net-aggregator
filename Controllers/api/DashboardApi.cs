@@ -15,6 +15,8 @@ using MarketAnalyticHub.Models.Portfolio;
 using AspnetCoreMvcFull.Models;
 using static MarketAnalyticHub.Models.Portfolio.Portfolio;
 using Newtonsoft.Json;
+using static MarketAnalyticHub.Controllers.api.YahooFinanceController;
+using Newtonsoft.Json.Linq;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -224,21 +226,57 @@ namespace MarketAnalyticHub.Controllers.api
     [HttpGet("Stock/{symbol}")]
     public async Task<IActionResult> GetStockData(string symbol, [FromQuery] string interval = "5m")
     {
-      var client = _httpClientFactory.CreateClient();
-      var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval={interval}";
-      var response = await client.GetAsync(url);
+      try
+      {
+        DateTime endDate = DateTime.Now;
+        DateTime startDate = endDate.AddDays(-1);
 
-      if (response.IsSuccessStatusCode)
-      {
-        var jsonResponse = await response.Content.ReadAsStringAsync();
-        var stockData = JsonConvert.DeserializeObject<YahooFinanceResponse>(jsonResponse);
-        return Ok(stockData);
+        // Call the service to get historical data
+        var quotes = await YahooService.GetHistoricalDataAsync(symbol, startDate, endDate, interval);
+
+        // Transform the data to the ViewModel with safe conversion and null handling
+        var result = quotes.Select(q => new HistoricalQuoteViewModel
+        {
+          Timestamp = q.Timestamp ?? DateTime.UtcNow.Ticks,
+          Open = TryConvertToDecimal(q.Open),
+          Close = TryConvertToDecimal(q.Close),
+          High = TryConvertToDecimal(q.High),
+          Low = TryConvertToDecimal(q.Low),
+        }).ToList();
+
+        return Ok(result);
       }
-      else
+      catch (Exception ex)
       {
-        return StatusCode((int)response.StatusCode, response.ReasonPhrase);
+        // Log the exception details here if necessary
+        // _logger.LogError(ex, "An error occurred while fetching stock data.");
+
+        return BadRequest(new { Message = "An error occurred while processing your request. Please try again later." });
       }
     }
+
+    // Helper method to safely convert values to decimal
+    private decimal TryConvertToDecimal(object value)
+    {
+      if (value == null) return 0;
+
+      try
+      {
+        // Convert to string and then parse to decimal
+        return decimal.Parse(value.ToString(), System.Globalization.NumberStyles.Any);
+      }
+      catch (FormatException)
+      {
+        // Log conversion error if needed
+        return 0; // Default value on conversion error
+      }
+      catch (InvalidCastException)
+      {
+        // Log casting error if needed
+        return 0; // Default value on casting error
+      }
+    }
+
 
 
     [HttpGet("dividends")]

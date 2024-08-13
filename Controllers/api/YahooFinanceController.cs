@@ -102,19 +102,10 @@ namespace MarketAnalyticHub.Controllers.api
         // Call the service to get historical data
         var quotes = await YahooService.GetHistoricalDataAsync(symbol, finalStartDate, finalEndDate);
 
-        // Transform dynamic data into strongly typed ViewModel objects
-        var result = quotes.Select(q => new HistoricalQuoteViewModel
-        {
-          Timestamp = q.Timestamp,
-          Open = q.Open,
-          Close = q.Close,
-          High = q.High,
-          Low = q.Low,
-          Volume = q.Volume
-        }).ToList();
+     
 
         // Return the data with a 200 OK status
-        return Ok(result);
+        return Ok(quotes);
       }
       catch (Exception ex)
       {
