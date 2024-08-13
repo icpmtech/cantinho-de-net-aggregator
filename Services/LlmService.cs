@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using System.Net.Http.Headers;
 using Nest;
 using Microsoft.Identity.Client;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AspnetCoreMvcFull.Services
 {
@@ -49,23 +50,19 @@ namespace AspnetCoreMvcFull.Services
 
     internal async Task<string> GetSymbolSummaryAsync(string symbol)
     {
-      var requestBody = new
+      var api = new OpenAI_API.OpenAIAPI(_apiKey);
+      var completionRequest = new CompletionRequest
       {
-        model = "gpt-4o-mini",
-        prompt = $"Give me a summary of the company ${symbol}.",
-        max_tokens = 150,
-        temperature = 0.7
+        Prompt = $"Give me a summary of the company ${symbol}.",
+        MaxTokens = 50,
+        Temperature = 0.5,
       };
-      _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _apiKey);
-      var content = new StringContent(JsonConvert.SerializeObject(requestBody), System.Text.Encoding.UTF8, "application/json");
-      var response = await _httpClient.PostAsync("https://api.openai.com/v1/completions", content);
 
-      if (response.IsSuccessStatusCode)
-      {
-        var result = JsonConvert.DeserializeObject<dynamic>(await response.Content.ReadAsStringAsync());
-        return result.choices[0].text;
-      }
-      return "No result found";
+      var result = await api.Completions.CreateCompletionAsync(completionRequest);
+
+      return result.Completions[0].Text.Trim();
+      
+   
   }
   }
 }

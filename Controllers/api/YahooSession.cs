@@ -123,7 +123,32 @@ namespace MarketAnalyticHub.Controllers.api
         throw;
       }
     }
+    public static async Task<Dictionary<string, decimal>> GetQuotesAsync(string symbol, CancellationToken token = default)
+    {
+      await InitAsync(token);
 
+      var symbolList = string.Join(",", symbol);
+      var url = $"https://query1.finance.yahoo.com/v7/finance/quote?symbols={symbolList}";
+      try
+      {
+        var response = await url.SetQueryParam("crumb", Crumb)
+            .WithCookie(_cookie.Name, _cookie.Value)
+            .WithHeader(UserAgentKey, UserAgentValue)
+            .GetAsync(token)
+            .ReceiveJson();
+
+        var quotes = response.quoteResponse.result.ToObject<List<Quote>>();
+
+        var dictionary = quotes.ToDictionary();
+
+        return dictionary;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error during GetMultipleQuotesAsync: {ex.Message}");
+        throw;
+      }
+    }
     public static async Task<Dictionary<string, decimal>> GetMultipleQuotesAsync(List<string> symbols, CancellationToken token = default)
     {
       await InitAsync(token);
@@ -255,20 +280,38 @@ namespace MarketAnalyticHub.Controllers.api
       var endTimestamp = ((DateTimeOffset)endDate).ToUnixTimeSeconds();
 
       var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startTimestamp}&period2={endTimestamp}&interval=1d";
-      
+
       try
       {
-        var response = await url.SetQueryParam("crumb", Crumb)
-            .WithCookie(_cookie.Name, _cookie.Value)
-            .WithHeader(UserAgentKey, UserAgentValue)
-            .GetAsync(token)
-            .ReceiveJson();
+        // Sending the request to Yahoo Finance API and receiving the JSON response
+        var response = await url
+            .SetQueryParam("crumb", Crumb) // Assuming 'Crumb' is a predefined string variable
+            .WithCookie(_cookie.Name, _cookie.Value) // Assuming '_cookie' is a predefined object
+            .WithHeader(UserAgentKey, UserAgentValue) // Assuming 'UserAgentKey' and 'UserAgentValue' are predefined
+            .GetJsonAsync<dynamic>(token);
 
+        // Extracting quotes and timestamps from the response
         var quotes = response.chart.result[0].indicators.quote[0];
         var timestamps = response.chart.result[0].timestamp;
 
-        var historicalData = timestamps.ToList();
-        
+        // Combining timestamps with quotes into a historical data list
+        var historicalData = new List<dynamic>();
+
+        for (int i = 0; i < timestamps.Count; i++)
+        {
+          long time = Convert.ToInt64(timestamps[i]);
+          var Open= quotes.open[i];
+          historicalData.Add(new
+          {
+            Timestamp = DateTimeOffset.FromUnixTimeSeconds(time).DateTime,
+            Open = Open,
+            Close = quotes.close[i],
+            High = quotes.high[i],
+            Low = quotes.low[i],
+            Volume = quotes.volume[i]
+          });
+        }
+
         return historicalData;
       }
       catch (FlurlHttpException ex)

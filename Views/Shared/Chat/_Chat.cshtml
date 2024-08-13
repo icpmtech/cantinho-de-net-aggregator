@@ -342,6 +342,23 @@
     .token.entity {
         cursor: help;
     }
+
+    /* Additional styles for clear input icon */
+    #clearInputButton {
+        position: absolute;
+        left: 3px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 20px;
+        color: #5f6368;
+        cursor: pointer;
+        transition: color 0.2s;
+        display: none;
+    }
+
+        #clearInputButton:hover {
+            color: #202124;
+        }
 </style>
 
 @if (User.Identity.IsAuthenticated && isAIPilotActivated)
@@ -383,12 +400,14 @@
                     <div class="loading-spinner" id="loadingSpinner" style="display: none;">
                         <i class="bx bx-loader bx-spin"></i>
                     </div>
-                    <input type="text" id="messageInput" placeholder="Ask me anything..." autocomplete="off">
+                    <i id="clearInputButton" class="bx bx-x-circle" onclick="clearInputField()"></i>
+                    <input type="text" id="messageInput" placeholder="Ask me anything..." autocomplete="off" oninput="toggleClearIcon()">
+                   
                     <div class="icon-group">
                         <i onclick="triggerFileUpload()" class="bx bx-image"></i>
                         <i id="startRecordingButton" onclick="startRecording()" class="bx bx-microphone cursor-pointer text-to-speech-toggle"></i>
-                        <i onclick="stopRecording()" style="display: none;" id="stopRecordingButton" class="bx bx-stop"></i>
-                        <i onclick="stopAudio()" style="display: none;" id="stopAudioButton" class="bx bx-stop"></i>
+                        <i onclick="stopRecording()" style="display: none;color:red;" id="stopRecordingButton" class="bx bx-stop "></i>
+                        <i onclick="stopAudio()" style="display: none;color:red;" id="stopAudioButton" class="bx bx-stop "></i>
                         <i id="searchButton" onclick="sendMessage()" class="bx bx-send"></i>
                     </div>
                 </div>
@@ -427,15 +446,15 @@
                 msg.classList.add("chat-message", isUser ? "user" : "ai");
 
                 msg.innerHTML = `
-                            <div style="display: flex; align-items: center;">
-                                <img src="${isUser ? '/icons/user_icon.png' : '/icons/system_icon.png'}" alt="${isUser ? 'User' : 'System'} Icon" style="width: 30px; height: 30px; margin-right: 10px;">
-                                <strong>${user}:</strong> ${marked(message)}
-                            </div>
-                            <div class="response-actions">
-                                <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
-                                <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
-                                <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
-                            </div>`;
+                                    <div style="display: flex; align-items: center;">
+                                                        <img src="${isUser ? '/icons/user.png' : '/icons/marketanalytic_hub_icon_48x48.png'}" alt="${isUser ? 'User' : 'System'} Icon" style="width: 30px; height: 30px; margin-right: 10px;">
+                                        <strong>${user}:</strong> ${marked(message)}
+                                    </div>
+                                    <div class="response-actions">
+                                        <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
+                                        <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
+                                        <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
+                                    </div>`;
                 document.getElementById("messagesList").appendChild(msg);
                 readAudio(message);
                 Prism.highlightAllUnder(msg);
@@ -450,16 +469,16 @@
                 msg.classList.add("chat-message", isUser ? "user" : "ai");
 
                 msg.innerHTML = `
-                            <div style="display: flex; align-items: center;">
-                                <img src="${isUser ? '/icons/user_icon.png' : '/icons/system_icon.png'}" alt="${isUser ? 'User' : 'System'} Icon" style="width: 30px; height: 30px; margin-right: 10px;">
-                                <strong>${user}:</strong> <a href="${fileUrl}" target="_blank">${fileUrl}</a>
-                            </div>
-                            <p>Analysis: ${marked(analysis)}</p>
-                            <div class="response-actions">
-                                <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
-                                <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
-                                <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
-                            </div>`;
+                                    <div style="display: flex; align-items: center;">
+                                                        <img src="${isUser ? '/icons/user.png' : '/icons/marketanalytic_hub_icon_48x48.png'}" alt="${isUser ? 'User' : 'System'} Icon" style="width: 30px; height: 30px; margin-right: 10px;">
+                                        <strong>${user}:</strong> <a href="${fileUrl}" target="_blank">${fileUrl}</a>
+                                    </div>
+                                    <p>Analysis: ${marked(analysis)}</p>
+                                    <div class="response-actions">
+                                        <i onclick="copyMessage('${messageId}')" class="bx bx-copy"></i>
+                                        <i onclick="saveMessage('${messageId}')" class="bx bx-save"></i>
+                                        <i onclick="deleteMessage('${messageId}')" class="bx bx-trash"></i>
+                                    </div>`;
                 document.getElementById("messagesList").appendChild(msg);
             });
 
@@ -476,9 +495,19 @@
                     return;
                 }
 
+                toggleLoadingSpinner(true); // Show the loading spinner
+
                 connection.invoke("SendMessage", user, message).catch(function (err) {
                     console.error("Send message error: ", err.toString());
+                }).finally(function () {
+                    toggleLoadingSpinner(false); // Hide the loading spinner
                 });
+            };
+
+
+            window.toggleLoadingSpinner = function (show) {
+                const loadingSpinner = document.getElementById("loadingSpinner");
+                loadingSpinner.style.display = show ? "block" : "none";
             };
 
             window.triggerFileUpload = function () {
@@ -537,12 +566,12 @@
                             const analysisId = `msg-analysis-${Date.now()}`;
                             analysisMsg.setAttribute("id", analysisId);
                             analysisMsg.innerHTML = `<strong>${user}:</strong> File analysis completed.
-                                                                  <p>Analysis: ${marked(data.analysis)}</p>
-                                                                  <div class="response-actions">
-                                                                      <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
-                                                                      <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
-                                                                      <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
-                                                                  </div>`;
+                                                                          <p>Analysis: ${marked(data.analysis)}</p>
+                                                                          <div class="response-actions">
+                                                                              <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
+                                                                              <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
+                                                                              <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
+                                                                          </div>`;
                             document.getElementById("messagesList").appendChild(analysisMsg);
                         } else {
                             alert('File upload failed: ' + data.message);
@@ -647,12 +676,12 @@
                                         const analysisId = `msg-analysis-${Date.now()}`;
                                         analysisMsg.setAttribute("id", analysisId);
                                         analysisMsg.innerHTML = `<strong>${user}:</strong> Audio transcription completed.
-                                                                              <p>Transcription: ${marked(data.transcription)}</p>
-                                                                              <div class="response-actions">
-                                                                                  <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
-                                                                                  <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
-                                                                                  <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
-                                                                              </div>`;
+                                                                                      <p>Transcription: ${marked(data.transcription)}</p>
+                                                                                      <div class="response-actions">
+                                                                                          <i onclick="copyMessage('${analysisId}')" class="bx bx-copy"></i>
+                                                                                          <i onclick="saveMessage('${analysisId}')" class="bx bx-save"></i>
+                                                                                          <i onclick="deleteMessage('${analysisId}')" class="bx bx-trash"></i>
+                                                                                      </div>`;
                                         document.getElementById("messagesList").appendChild(analysisMsg);
                                     } else {
                                         alert('Audio upload failed: ' + data.message);
@@ -705,7 +734,24 @@
                 currentAudio.play();
                 document.getElementById('stopAudioButton').style.display = 'inline-block';
             }
+
+            window.toggleClearIcon = function () {
+                const inputField = document.getElementById("messageInput");
+                const clearButton = document.getElementById("clearInputButton");
+
+                if (inputField.value.length > 0) {
+                    clearButton.style.display = "block";
+                } else {
+                    clearButton.style.display = "none";
+                }
+            }
+
+            window.clearInputField = function () {
+                const inputField = document.getElementById("messageInput");
+                inputField.value = "";
+                toggleClearIcon();  // Hide the clear button after clearing the input
+                inputField.focus(); // Refocus on the input field after clearing
+            }
         });
     </script>
-
 }

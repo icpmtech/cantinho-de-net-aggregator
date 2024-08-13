@@ -36,7 +36,11 @@ namespace MarketAnalyticHub.Controllers.api
       _context = context;
 
     }
-
+    public class SummaryViewModel
+    {
+      
+      public string Description { get; set; }
+    }
     [HttpGet("search-company-summary/{symbol}")]
     public async Task<IActionResult> GetCompanySummaryAsync(string symbol)
     {
@@ -44,8 +48,7 @@ namespace MarketAnalyticHub.Controllers.api
       // Fetch summary from LLM Open AI Service
       var summary = await _llmService.GetSymbolSummaryAsync(symbol);
 
-
-      return Ok(summary);
+      return Ok(new SummaryViewModel { Description = summary });
     }
     [HttpGet("area-forecast-data")]
     public async Task<IActionResult> GetAreaForecastData()

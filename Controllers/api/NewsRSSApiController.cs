@@ -86,15 +86,6 @@ namespace MarketAnalyticHub.Controllers
                 Date = item.PublishDate.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                 Category = category
               };
-              await _articleProcessor.ProcessArticleAsync(new NewsItem
-              {
-                Title = newsItem.Title,
-                Link = newsItem.Link,
-                Description = newsItem.Description,
-                Author = newsItem.Author,
-                Date = newsItem.Date,
-                Category = category
-              }, userId);
               newsItems.Add(newsItem);
             }
           }
