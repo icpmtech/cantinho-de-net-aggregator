@@ -51,16 +51,22 @@ namespace AspnetCoreMvcFull.Services
     }
     public async Task<string> GetChatResponseAsync(string query)
     {
-      var api = new OpenAI_API.OpenAIAPI(_apiKey);
-      var request = new OpenAI_API.Completions.CompletionRequest
-      {
-        Prompt = query,
-        MaxTokens = 150,
-        Temperature = 0.7,
-      };
+      var api = new OpenAIAPI(_apiKey);
 
-      var result = await api.Completions.CreateCompletionAsync(request);
-      return result.Completions[0].Text.Trim();
+      var result = await api.Chat.CreateChatCompletionAsync(new OpenAI_API.Chat.ChatRequest()
+      {
+        Model = Model.GPT4_Turbo,
+        Temperature = 0.1,
+        MaxTokens = 300,
+        Messages = new OpenAI_API.Chat.ChatMessage[] {
+      new OpenAI_API.Chat.ChatMessage(ChatMessageRole.User,  $"{query}"
+
+    )
+    }
+      });
+
+      var resultText = result.ToString().Trim();
+      return resultText;
     }
     public async Task<bool> IsQuestionAsync(string query)
     {

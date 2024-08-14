@@ -186,11 +186,45 @@ public class ChatController : ControllerBase
       return null;
     }
   }
+  [HttpDelete("deleteSavedMessage")]
+  public IActionResult DeleteSavedMessage([FromBody] string fileName)
+  {
+    
+
+    if (System.IO.File.Exists(fileName))
+    {
+      System.IO.File.Delete(fileName);
+      return Ok(new { message = "File deleted successfully" });
+    }
+
+    return NotFound("File not found");
+  }
 
   private string EncodeFileToBase64(string filePath)
   {
     byte[] fileArray = System.IO.File.ReadAllBytes(filePath);
     return Convert.ToBase64String(fileArray);
+  }
+  [HttpGet("getSavedMessages")]
+  public IActionResult GetSavedMessages()
+  {
+    var uploadsFolder = Path.Combine(_environment.WebRootPath, "wwwroot", "uploads", "savedMessages");
+
+    if (!Directory.Exists(uploadsFolder))
+    {
+      return NotFound("No saved messages found.");
+    }
+
+    var files = Directory.GetFiles(uploadsFolder, "*.txt");
+    var messages = new List<MessageFileStoredViewModel>();
+
+    foreach (var file in files)
+    {
+      var content = System.IO.File.ReadAllText(file);
+      messages.Add(new MessageFileStoredViewModel{ Content= content,FileName=file });
+    }
+
+    return Ok(messages);
   }
 
   [HttpPost("saveMessage")]

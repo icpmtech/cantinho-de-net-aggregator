@@ -241,6 +241,9 @@
             border-radius: 10px;
             background-color: #f1f1f1;
             max-width: 80%;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
         }
 
             .chat-message.user {
@@ -260,6 +263,77 @@
             overflow-y: auto;
             width: 100%;
         }
+
+        .save-message-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 5px;
+            font-size: 12px;
+        }
+
+            .save-message-button:hover {
+                background-color: #45a049;
+            }
+
+        .saved-messages-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .saved-messages-list {
+            display: flex;
+            flex-direction: column;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .saved-message-item {
+            background-color: #f1f1f1;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .delete-message-button {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            font-size: 12px;
+        }
+
+            .delete-message-button:hover {
+                background-color: #d32f2f;
+            }
+
+        .continue-generating-button {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+            .continue-generating-button:hover {
+                background-color: #e68900;
+            }
     </style>
 </head>
 
@@ -273,6 +347,9 @@
         <div class="chat-container">
             <button id="actionButton" class="mb-1 new-topic-button" onclick="startNewTopic()">
                 <i class="bx bx-bell"></i><p id="textElement">New topic</p>
+            </button>
+            <button id="loadSavedMessages" class="mb-1 new-topic-button" onclick="loadSavedMessages()">
+                <i class="bx bx-folder-open"></i><p>Load Saved Messages</p>
             </button>
             <div class="input-container">
                 <div class="loading-spinner" id="loadingSpinner" style="display: none;">
@@ -310,6 +387,17 @@
 
     <div id="chatHistory" class="chat-history"></div>
 
+    <div id="savedMessagesContainer" class="saved-messages-container" style="display: none;">
+        <h3>Saved Messages</h3>
+        <div id="savedMessagesList" class="saved-messages-list"></div>
+    </div>
+
+    <div id="continueContainer" class="continue-generating-button-container" style="display: none;">
+        <button id="continueGeneratingButton" class="continue-generating-button" onclick="continueGenerating()">
+            Continue Generating
+        </button>
+    </div>
+
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner">
             <i class="bx bx-loader bx-spin"></i>
@@ -324,6 +412,8 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const chatHistory = document.getElementById('chatHistory');
         const responseText = document.getElementById('responseText');
+        const continueContainer = document.getElementById('continueContainer');
+        let lastQuery = '';
         let debounceTimer;
 
         const actionButton = document.getElementById('actionButton');
@@ -358,14 +448,6 @@
             performSearch();
             showResponseHeaderOnly();
         });
-
-        // searchQueryInput.addEventListener('input', () => {
-        //     clearTimeout(debounceTimer);
-        //     debounceTimer = setTimeout(() => {
-        //         performSearch();
-        //         showResponseHeaderOnly();
-        //     }, 300);
-        // });
 
         searchQueryInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
@@ -409,6 +491,8 @@
                 return;
             }
 
+            lastQuery = query; // Save the last query for "Continue Generating"
+
             addMessageToChat(query, 'user');
 
             showLoadingOverlay();
@@ -420,6 +504,34 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ query })
+                });
+
+                const data = await response.json();
+                addMessageToChat(data.response, 'ai');
+                continueContainer.style.display = 'block'; // Show "Continue Generating" button
+            } catch (error) {
+                console.error('Error:', error);
+                addMessageToChat('Sorry, something went wrong. Please try again later.', 'ai');
+            } finally {
+                hideLoadingOverlay();
+            }
+        }
+
+        async function continueGenerating() {
+            if (!lastQuery) {
+                alert('No query to continue.');
+                return;
+            }
+
+            showLoadingOverlay();
+
+            try {
+                const response = await fetch(`/api/openai/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: lastQuery })
                 });
 
                 const data = await response.json();
@@ -443,9 +555,103 @@
         function addMessageToChat(message, sender) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('chat-message', sender);
-            messageElement.textContent = message;
+
+            const messageText = document.createElement('p');
+            messageText.textContent = message;
+
+            const saveButton = document.createElement('button');
+            saveButton.textContent = 'Save';
+            saveButton.classList.add('save-message-button');
+            saveButton.onclick = () => saveMessageAiPilot(message);
+
+            messageElement.appendChild(messageText);
+            messageElement.appendChild(saveButton);
             chatHistory.appendChild(messageElement);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        async function saveMessageAiPilot(content) {
+            const response = await fetch('/api/Chat/saveMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ content: content })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                alert(`Message saved at: ${data.filePath}`);
+            } else {
+                alert('Failed to save the message.');
+            }
+        }
+
+        async function loadSavedMessages() {
+            try {
+                const response = await fetch('/api/Chat/getSavedMessages');
+                if (response.ok) {
+                    const messages = await response.json();
+                    displaySavedMessages(messages);
+                } else {
+                    alert('Failed to load saved messages.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function deleteSavedMessage(fileName) {
+            try {
+                const response = await fetch('/api/Chat/deleteSavedMessage', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(fileName)
+                });
+
+                if (response.ok) {
+                    alert('Message deleted successfully');
+                    loadSavedMessages(); // Refresh the list after deletion
+                } else {
+                    alert('Failed to delete the message.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function displaySavedMessages(messages) {
+            const savedMessagesContainer = document.getElementById('savedMessagesContainer');
+            const savedMessagesList = document.getElementById('savedMessagesList');
+            savedMessagesList.innerHTML = '';
+
+            if (messages.length === 0) {
+                savedMessagesList.innerHTML = '<p>No saved messages found.</p>';
+            } else {
+                messages.forEach((message, index) => {
+                    const messageItem = document.createElement('div');
+                    messageItem.className = 'saved-message-item';
+                    messageItem.textContent = message.content;
+
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.classList.add('delete-message-button');
+                    deleteButton.onclick = () => deleteSavedMessage(getFileNameFromMessage(message));
+
+                    messageItem.appendChild(deleteButton);
+                    savedMessagesList.appendChild(messageItem);
+                });
+            }
+
+            savedMessagesContainer.style.display = 'block';
+        }
+
+        function getFileNameFromMessage(message) {
+            // Assuming each saved message is stored with a unique name
+            // Replace this with the correct logic to extract the filename from the message content
+            return message.fileName;
         }
     </script>
 </body>
