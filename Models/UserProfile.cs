@@ -55,6 +55,9 @@ namespace MarketAnalyticHub.Models
     public string UserId { get;  set; } // Foreign key to ApplicationUser
     public string ActivationKey { get;  set; }
     public bool IsActivated { get;  set; }
+
+    // Add the UserCredit association
+    public UserCredit? UserCredit { get; set; }
   }
 
 }

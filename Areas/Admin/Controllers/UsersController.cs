@@ -1,5 +1,6 @@
 using MarketAnalyticHub.Areas.Admin.Models;
 using MarketAnalyticHub.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 namespace MarketAnalyticHub.Areas.Admin.Controllers
 {
   [Area("Admin")]
+  [Authorize]
   public class UsersController : Controller
   {
     private readonly UserManager<ApplicationUser> _userManager;

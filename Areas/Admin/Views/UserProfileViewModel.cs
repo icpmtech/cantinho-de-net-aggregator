@@ -1,8 +1,7 @@
-
-
+using MarketAnalyticHub.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace MarketAnalyticHub.Models
+namespace MarketAnalyticHub.Areas.Admin.Views
 {
 
   public class UserProfileViewModel

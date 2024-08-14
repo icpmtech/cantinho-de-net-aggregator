@@ -5,10 +5,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DocumentFormat.OpenXml.Bibliography;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 
 namespace MarketAnalyticHub.Areas.Admin.Controllers
 {
   [Area("Admin")]
+  [Authorize]
   public partial class UserManagementController : Controller
   {
    

@@ -14,6 +14,7 @@ namespace MarketAnalyticHub.Models.SetupDb
     : base(options)
     {
     }
+    public DbSet<UserCredit> UserCredits { get; set; } // Add this line
     public DbSet<Dividend> Dividends { get; set; }
     public DbSet<NewsItem> News { get; set; }
     public DbSet<Sector> Sectors { get; set; }
@@ -42,6 +43,13 @@ namespace MarketAnalyticHub.Models.SetupDb
           .HasMany(p => p.StockEvents)
           .WithOne(e => e.PortfolioItem)
           .HasForeignKey(e => e.PortfolioItemId);
+
+      modelBuilder.Entity<UserProfile>()
+         .HasOne(up => up.UserCredit)
+         .WithOne(uc => uc.UserProfile)
+         .HasForeignKey<UserCredit>(uc => uc.UserId);
+
+
     }
 
 
