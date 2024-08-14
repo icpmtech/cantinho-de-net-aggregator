@@ -79,6 +79,63 @@ namespace MarketAnalyticHub.Controllers.api
         return BadRequest(new { Message = ex.Message });
       }
     }
+
+
+    [HttpGet("stock/{symbol}")]
+    public async Task<IActionResult> GetStockData(string symbol, [FromQuery] string interval = "5m")
+    {
+      try
+      {
+        DateTime endDate = DateTime.Now;
+        DateTime startDate = endDate.AddDays(-1);
+
+        // Call the service to get historical data
+        var quotes = await YahooService.GetHistoricalDataAsync(symbol, startDate, endDate, interval);
+
+        // Transform the data to the ViewModel with safe conversion and null handling
+        var result = quotes.Select(q => new HistoricalQuoteViewModel
+        {
+          Timestamp = q.Timestamp ?? DateTime.UtcNow.Ticks,
+          Open = TryConvertToDecimal(q.Open),
+          Close = TryConvertToDecimal(q.Close),
+          High = TryConvertToDecimal(q.High),
+          Low = TryConvertToDecimal(q.Low),
+          Volume = TryConvertToDecimal(q.Volume) // Assuming Volume is a decimal
+        }).ToList();
+
+        return Ok(result);
+      }
+      catch (Exception ex)
+      {
+        // Log the exception details here if necessary
+        // _logger.LogError(ex, "An error occurred while fetching stock data.");
+
+        return BadRequest(new { Message = "An error occurred while processing your request. Please try again later." });
+      }
+    }
+
+    // Helper method to safely convert values to decimal
+    private decimal TryConvertToDecimal(object value)
+    {
+      if (value == null) return 0;
+
+      try
+      {
+        // Convert to string and then parse to decimal
+        return decimal.Parse(value.ToString(), System.Globalization.NumberStyles.Any);
+      }
+      catch (FormatException)
+      {
+        // Log conversion error if needed
+        return 0; // Default value on conversion error
+      }
+      catch (InvalidCastException)
+      {
+        // Log casting error if needed
+        return 0; // Default value on casting error
+      }
+    }
+
     public class HistoricalQuoteViewModel
     {
       public DateTime Timestamp { get; set; }
@@ -87,6 +144,40 @@ namespace MarketAnalyticHub.Controllers.api
       public decimal High { get; set; }
       public decimal Low { get; set; }
       public long Volume { get; set; }
+    }
+
+
+    // GET: api/yahoofinance/chart/{symbol}
+    [HttpGet("chart-symbol/{symbol}")]
+    public async Task<IActionResult> GetSymbolsChart(string symbol, DateTime? startDate = null, DateTime? endDate = null)
+    {
+      try
+      {
+        // Use the provided startDate and endDate, or default to one year range ending today
+        var finalEndDate = endDate ?? DateTime.Now;
+        var finalStartDate = startDate ?? finalEndDate.AddYears(-1);
+
+        // Call the service to get historical data
+        var quotes = await YahooService.GetHistoricalDataAsync(symbol, finalStartDate, finalEndDate);
+
+        var result = quotes.Select(q => new HistoricalQuoteViewModel
+        {
+          Timestamp = q.Timestamp ?? DateTime.UtcNow.Ticks,
+          Open = TryConvertToDecimal(q.Open),
+          Close = TryConvertToDecimal(q.Close),
+          High = TryConvertToDecimal(q.High),
+          Low = TryConvertToDecimal(q.Low),
+        }).ToList();
+
+        return Ok(result);
+
+       
+      }
+      catch (Exception ex)
+      {
+        // Return a 400 Bad Request with the error message
+        return BadRequest(new { Message = ex.Message });
+      }
     }
 
     // GET: api/yahoofinance/chart/{symbol}

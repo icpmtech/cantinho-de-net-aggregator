@@ -97,31 +97,38 @@
                     color: #a0a0a0;
                 }
 
-            .chat-container .input-container .icon-group {
-                display: flex;
-                align-items: center;
-                margin-left: 10px;
+        .loading-spinner {
+            font-size: 20px;
+            margin-right: 10px;
+            color: #1a73e8;
+            display: none;
+        }
+
+        .chat-container .input-container .icon-group {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+            .chat-container .input-container .icon-group i {
+                font-size: 20px;
+                color: #5f6368;
+                cursor: pointer;
+                margin-left: 15px;
+                transition: color 0.2s;
             }
 
-                .chat-container .input-container .icon-group i {
-                    font-size: 20px;
-                    color: #5f6368;
-                    cursor: pointer;
-                    margin-left: 15px;
-                    transition: color 0.2s;
+                .chat-container .input-container .icon-group i:hover {
+                    color: #202124;
                 }
 
-                    .chat-container .input-container .icon-group i:hover {
-                        color: #202124;
-                    }
+            .chat-container .input-container .icon-group .bx-send {
+                color: #1a73e8;
+            }
 
-                .chat-container .input-container .icon-group .bx-send {
-                    color: #1a73e8;
+                .chat-container .input-container .icon-group .bx-send:hover {
+                    color: #0c62d1;
                 }
-
-                    .chat-container .input-container .icon-group .bx-send:hover {
-                        color: #0c62d1;
-                    }
 
         .response-container {
             background-color: #ffffff;
@@ -354,9 +361,7 @@
                 <i class="bx bx-folder-open"></i><p>Load Saved Messages</p>
             </button>
             <div class="input-container">
-                <div class="loading-spinner" id="loadingSpinner" style="display: none;">
-                    <i class="bx bx-loader bx-spin"></i>
-                </div>
+                <i class="bx bx-loader bx-spin loading-spinner" id="loadingSpinnerIcon"></i>
                 <input type="text" id="searchQuery" placeholder="Ask me anything..." autocomplete="off" />
                 <div class="icon-group">
                     <i id="fileUploadInput" class="bx bx-image"></i>
@@ -408,6 +413,7 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const chatHistory = document.getElementById('chatHistory');
         const responseText = document.getElementById('responseText');
+        const loadingSpinnerIcon = document.getElementById('loadingSpinnerIcon');
         let debounceTimer;
 
         const actionButton = document.getElementById('actionButton');
@@ -487,6 +493,7 @@
 
             addMessageToChat(query, 'user');
 
+            showLoadingIcon();
             showLoadingOverlay();
 
             try {
@@ -504,30 +511,17 @@
                 console.error('Error:', error);
                 addMessageToChat('Sorry, something went wrong. Please try again later.', 'ai');
             } finally {
+                hideLoadingIcon();
                 hideLoadingOverlay();
             }
         }
 
-        async function continueGenerating(query) {
-            showLoadingOverlay();
+        function showLoadingIcon() {
+            loadingSpinnerIcon.style.display = 'inline-block';
+        }
 
-            try {
-                const response = await fetch(`/api/openai/chat`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ query })
-                });
-
-                const data = await response.json();
-                addMessageToChat(data.response, 'ai');
-            } catch (error) {
-                console.error('Error:', error);
-                addMessageToChat('Sorry, something went wrong. Please try again later.', 'ai');
-            } finally {
-                hideLoadingOverlay();
-            }
+        function hideLoadingIcon() {
+            loadingSpinnerIcon.style.display = 'none';
         }
 
         function showLoadingOverlay() {

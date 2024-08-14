@@ -98,24 +98,56 @@
 <div class="row">
     <div class="col-md-12">
         <div class="row mb-3">
-            <div class="col-12 col-md-6 mb-2 mb-md-0 d-flex flex-column flex-md-row justify-content-start">
-                <button class="btn btn-primary mb-2 mb-md-0 me-md-2" onclick="showAddPortfolioModal()">Add a new Portfolio</button>
-                <button class="btn btn-success mb-2 mb-md-0 me-md-2 " onclick="exportPortfolios('xlsx')">Export Portfolios (Excel)</button>
-                <button class="btn btn-success mb-2 mb-md-0" onclick="exportPortfolios('csv')">Export Portfolios (CSV)</button>
+            <!-- Dropdown Actions for Portfolio Management -->
+            <div class="col-12 col-md-6 mb-2 mb-md-0">
+                <div class="dropdown">
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="portfolioActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Portfolio Actions
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="portfolioActionsDropdown">
+                        <li><a class="dropdown-item" href="#" onclick="showAddPortfolioModal()"><i class="bx bx-plus-circle me-2"></i>Add a new Portfolio</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportPortfolios('xlsx')"><i class="bx bx-file me-2"></i>Export Portfolios (Excel)</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportPortfolios('csv')"><i class="bx bx-file me-2"></i>Export Portfolios (CSV)</a></li>
+                    </ul>
+                </div>
             </div>
+
+            <!-- Dropdown Actions for Import and Chart Type -->
             <div class="col-12 col-md-6 d-flex flex-column flex-md-row justify-content-end">
-                <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
-                <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFile').click()">Import Portfolios</button>
-                <input type="file" id="importFileYhaoo" style="display: none;" accept=".xlsx,.csv" onchange="importPortfoliosYahoo(event)">
-                <button class="btn btn-secondary mb-2 mb-md-0 me-md-2" onclick="document.getElementById('importFileYhaoo').click()"> <i class="bx bxl-yahoo"></i>Import Portfolios Yhaoo</button>
-                <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
-                    <option value="bar" selected>Bar</option>
-                    <option value="line">Line</option>
-                    <option value="candlestick">Candlestick</option>
-                </select>
+                <div class="dropdown mb-2 mb-md-0">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="importActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Import & Chart Options
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="importActionsDropdown">
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="document.getElementById('importFile').click()">
+                                <i class="bx bx-import me-2"></i>Import Portfolios
+                            </a>
+                            <input type="file" id="importFile" style="display: none;" accept=".xlsx,.csv" onchange="importPortfolios(event)">
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="document.getElementById('importFileYhaoo').click()">
+                                <i class="bx bxl-yahoo me-2"></i>Import Portfolios Yahoo
+                            </a>
+                            <input type="file" id="importFileYhaoo" style="display: none;" accept=".xlsx,.csv" onchange="importPortfoliosYahoo(event)">
+                        </li>
+                        <li>
+                            <div class="dropdown-divider"></div>
+                        </li>
+                        <li>
+                            <div class="px-3 py-2">
+                                <label for="chartTypeSelect" class="form-label mb-1"><i class="bx bx-chart me-2"></i>Chart Type</label>
+                                <select id="chartTypeSelect" class="form-select" onchange="changeChartType(event)">
+                                    <option value="bar" selected>Bar</option>
+                                    <option value="line">Line</option>
+                                    <option value="candlestick">Candlestick</option>
+                                </select>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
-
-        
     </div>
 </div>
+
