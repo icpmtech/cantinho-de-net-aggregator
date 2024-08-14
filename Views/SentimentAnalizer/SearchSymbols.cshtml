@@ -23,20 +23,20 @@
             align-items: center;
         }
 
-            .search-box input[type="text"] {
-                width: 100%;
-                padding: 10px 10px 10px 40px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                font-size: 16px;
-            }
+        .search-box input[type="text"] {
+            width: 100%;
+            padding: 10px 10px 10px 40px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
 
-            .search-box i {
-                position: absolute;
-                left: 10px;
-                font-size: 20px;
-                color: #007bff;
-            }
+        .search-box i {
+            position: absolute;
+            left: 10px;
+            font-size: 20px;
+            color: #007bff;
+        }
 
         .suggestions {
             position: absolute;
@@ -49,34 +49,34 @@
             display: none;
         }
 
-            .suggestions .suggestion-item {
-                display: flex;
-                align-items: center;
-                padding: 10px;
-                border-bottom: 1px solid #ccc;
-                cursor: pointer;
-            }
+        .suggestions .suggestion-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+        }
 
-                .suggestions .suggestion-item img {
-                    width: 40px;
-                    height: 40px;
-                    margin-right: 10px;
-                    border-radius: 50%;
-                }
+        .suggestions .suggestion-item img {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+            border-radius: 50%;
+        }
 
-                .suggestions .suggestion-item p {
-                    margin: 0;
-                    flex: 1;
-                }
+        .suggestions .suggestion-item p {
+            margin: 0;
+            flex: 1;
+        }
 
-                .suggestions .suggestion-item i {
-                    font-size: 20px;
-                    color: #007bff;
-                }
+        .suggestions .suggestion-item i {
+            font-size: 20px;
+            color: #007bff;
+        }
 
-                .suggestions .suggestion-item:hover {
-                    background-color: #f0f0f0;
-                }
+        .suggestions .suggestion-item:hover {
+            background-color: #f0f0f0;
+        }
 
         .date-range {
             margin-bottom: 20px;
@@ -85,24 +85,24 @@
             gap: 10px;
         }
 
-            .date-range input[type="date"] {
-                padding: 5px;
-                font-size: 16px;
-            }
+        .date-range input[type="date"] {
+            padding: 5px;
+            font-size: 16px;
+        }
 
-            .date-range button {
-                padding: 6px 12px;
-                font-size: 16px;
-                background-color: #007bff;
-                color: white;
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-            }
+        .date-range button {
+            padding: 6px 12px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-                .date-range button:hover {
-                    background-color: #0056b3;
-                }
+        .date-range button:hover {
+            background-color: #0056b3;
+        }
 
         .result-summary,
         .fundamental-analysis {
@@ -119,32 +119,32 @@
             padding: 20px;
         }
 
-            .finance-card h2 {
-                font-size: 1.5em;
-                margin-bottom: 20px;
-                color: #333;
-                text-align: center;
-            }
+        .finance-card h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
 
-            .finance-card ul {
-                list-style: none;
-                padding: 0;
-            }
+        .finance-card ul {
+            list-style: none;
+            padding: 0;
+        }
 
-                .finance-card ul li {
-                    display: flex;
-                    justify-content: space-between;
-                    padding: 5px 0;
-                    border-bottom: 1px solid #ddd;
-                }
+        .finance-card ul li {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
 
-                    .finance-card ul li:last-child {
-                        border-bottom: none;
-                    }
+        .finance-card ul li:last-child {
+            border-bottom: none;
+        }
 
-                    .finance-card ul li span {
-                        font-weight: bold;
-                    }
+        .finance-card ul li span {
+            font-weight: bold;
+        }
 
         /* Spinner */
         .spinner {
@@ -166,6 +166,28 @@
             100% {
                 transform: rotate(360deg);
             }
+        }
+
+        .ai-analysis-btn {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .ai-analysis-btn i {
+            font-size: 20px;
+        }
+
+        .ai-analysis-btn:hover {
+            background-color: #0056b3;
         }
     </style>
 
@@ -220,6 +242,9 @@
                 <div class="card-body" id="analysis-content">
                     This is the fundamental analysis content...
                 </div>
+                <button id="ai-analysis-btn" class="ai-analysis-btn">
+                    <i class='bx bx-brain'></i> AI Analysis
+                </button>
             </div>
         </div>
     </div>
@@ -234,7 +259,7 @@
             { symbol: 'TSLA', shortname: 'Tesla, Inc.', img: 'https://via.placeholder.com/40' },
             { symbol: 'FB', shortname: 'Meta Platforms, Inc.', img: 'https://via.placeholder.com/40' }
         ];
-
+        let fundamentalAnalysisData = '';
         async function search() {
             const query = document.getElementById('search-input').value.toLowerCase();
             const suggestionsBox = document.getElementById('suggestions');
@@ -408,9 +433,40 @@
             }
         }
 
+ async function fetchAiAnalysis(fundamentalData) {
+    const url = `/api/llm/ai-financial-analysis`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ content: fundamentalData }) // Send the fundamental data as the content field in the body
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            return data; // Adjust this based on what data is returned
+        } else {
+            console.error('Error fetching AI analysis:', response.statusText);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching AI analysis:', error);
+        return null;
+    }
+}
+
+        function displayAiAnalysis(data) {
+            // Process and display AI analysis data. Adjust this depending on the returned data structure
+            const analysisContent = document.getElementById('analysis-content');
+            analysisContent.innerHTML += `<p>${data.aiAnalysisSummary}</p>`;
+        }
+
         function formatFundamentals(_fundamentals) {
             if (!_fundamentals) return 'Fundamental data not available.';
             const fundamentals = _fundamentals[0];
+           fundamentalAnalysisData = JSON.stringify(fundamentals);
             const marketCap = fundamentals.marketCap ? `$${(fundamentals.marketCap / 1e12).toFixed(2)}T` : 'N/A';
             const peRatio = fundamentals.trailingPE ? fundamentals.trailingPE.toFixed(2) : 'N/A';
             const forwardPE = fundamentals.forwardPE ? fundamentals.forwardPE.toFixed(2) : 'N/A';
@@ -428,7 +484,7 @@
             const bookValue = fundamentals.bookValue ? `$${fundamentals.bookValue.toFixed(2)}` : 'N/A';
 
             return `
-                <div class="finance-card">
+                <div id="financial-overview" class="finance-card">
                     <h2>Financial Overview</h2>
                     <ul>
                         <li><span>Market Cap:</span> ${marketCap}</li>
@@ -497,6 +553,29 @@
             const chart = new ApexCharts(document.querySelector("#sparkline"), options);
             chart.render();
         }
+
+        document.getElementById('ai-analysis-btn').addEventListener('click', async function() {
+
+            if (fundamentalAnalysisData) {
+                showSpinner(true); // Show spinner while loading
+
+                try {
+                    const aiAnalysisData = await fetchAiAnalysis(fundamentalAnalysisData);
+                    if (aiAnalysisData) {
+                        displayAiAnalysis(aiAnalysisData);
+                    } else {
+                        alert("AI analysis not available.");
+                    }
+                } catch (error) {
+                    console.error('Error fetching AI analysis:', error);
+                    alert("An error occurred while fetching AI analysis.");
+                } finally {
+                    showSpinner(false); // Hide spinner
+                }
+            } else {
+                alert("Please select a valid symbol.");
+            }
+        });
     </script>
 
 </body>

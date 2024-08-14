@@ -48,6 +48,21 @@ namespace AspnetCoreMvcFull.Services
       return "Error generating report.";
     }
 
+    internal async Task<string> GeneratePredictsAsync(string propmt)
+    {
+      var api = new OpenAI_API.OpenAIAPI(_apiKey);
+      var completionRequest = new CompletionRequest
+      {
+        Prompt = propmt,
+        MaxTokens = 500,
+        Temperature = 0.3,
+      };
+
+      var result = await api.Completions.CreateCompletionAsync(completionRequest);
+
+      return result.Completions[0].Text.Trim();
+    }
+
     internal async Task<string> GetSymbolSummaryAsync(string symbol)
     {
       var api = new OpenAI_API.OpenAIAPI(_apiKey);

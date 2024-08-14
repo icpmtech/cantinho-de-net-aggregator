@@ -217,7 +217,31 @@ namespace MarketAnalyticHub.Controllers.api
       var sentiment = await _llmService.GeneratePortfolioReportAsync(prompt);
       return Ok(sentiment);
     }
+    [HttpPost("ai-financial-analysis")]
+    public async Task<IActionResult> GetAiAnalysis([FromBody] ViewModelFinacialAnalisys finacialAnalisys)
+    {
+      // Extract the content field from the incoming JSON request
+      string fundamentalData = finacialAnalisys.Content;
 
+      if (string.IsNullOrEmpty(fundamentalData))
+      {
+        return BadRequest("Content cannot be null or empty.");
+      }
+
+      // Create a prompt for the AI model
+      var prompt = $"Analyze that {fundamentalData} will experience significant growth in the next quarter based on historical trends and market conditions.";
+
+      // Call the LLM service to generate predictions
+      var result = await _llmService.GeneratePredictsAsync(prompt);
+
+      // Return the AI analysis result
+      var aiAnalysis = new
+      {
+        AiAnalysisSummary = result
+      };
+
+      return Ok(aiAnalysis);
+    }
 
     [HttpPost("investment-suggestions")]
     public async Task<IActionResult> GetInvestmentSuggestions(string portfolioSummary)
