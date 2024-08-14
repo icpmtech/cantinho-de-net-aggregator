@@ -1,0 +1,3 @@
+AIPilot:
+
+Intel Corporation is an American multinational corporation that designs and manufactures computer processors and other related hardware products. It is one of the world's largest and highest valued semiconductor chip makers, and is the inventor of the x86 series of microprocessors found in most personal computers. Intel also produces flash memory, integrated graphics chips, motherboard chipsets, and other devices related to computing.

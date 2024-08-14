@@ -5,7 +5,6 @@
     var avatarUrl = user?.AvatarUrl ?? "/img/avatars/default-avatar.png";
 }
 
-@* ! Brand demo (display only for navbar-full and hide on below xl) *@
 @if (ViewData["navbarFull"] != null)
 {
     <div class="navbar-brand app-brand demo d-none d-xl-flex py-0 me-4">
@@ -18,7 +17,6 @@
     </div>
 }
 
-@* ! Not required for layout-without-menu *@
 @if (ViewData["navbarHideToggle"] == null)
 {
     <div class="layout-menu-toggle navbar-nav align-items-xl-center me-3 me-xl-0 d-xl-none">
@@ -29,185 +27,285 @@
 }
 @if (ViewData["navbarWithOutSearch"] != null)
 {
+    @await Html.PartialAsync("../_Partials/_AppBar", avatarUrl)
+}
+else
+{
+    @await Html.PartialAsync("../_Partials/_SearchBar", avatarUrl)
+}
 
-    <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
+<style>
+    .notification-dot {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 8px;
+        width: 8px;
+        background-color: red;
+        border-radius: 50%;
+    }
 
-        <!-- Search -->
-        <div class="navbar-nav align-items-center">
-        </div>
-        <!-- /Search -->
+    .shortcuts, .notifications {
+        display: none;
+        position: absolute;
+        top: 60px;
+        right: 20px;
+        width: 350px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+        padding: 20px;
+    }
 
-        <ul class="navbar-nav flex-row align-items-center ms-auto">
-            <!-- Place this tag where you want the button to render. -->
-            <li class="nav-item lh-1 me-3">
-                <a class="github-button" href="https://github.com/icpmtech/cantinho-de-net-aggregator" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star themeselection/sneat-html-admin-template-free on GitHub">Star</a>
-            </li>
+    .shortcuts {
+        width: 300px;
+    }
 
-            <!-- User -->
-            <li class="nav-item navbar-dropdown dropdown-user dropdown">
-                <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                    <div class="avatar avatar-online">
-                        <img src="@avatarUrl" alt class="w-px-40 h-auto rounded-circle">
-                    </div>
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0);">
-                            <div class="d-flex">
-                                <div class="flex-shrink-0 me-3">
-                                    <div class="avatar avatar-online">
-                                        <img src="@avatarUrl" alt class="w-px-40 h-auto rounded-circle">
-                                    </div>
-                                </div>
-                                @if (User.Identity.IsAuthenticated)
-                                {
-                                    <div class="flex-grow-1">
-                                        <span class="fw-medium d-block">@User.Identity.Name</span>
-                                        <small class="text-muted">Admin</small>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="flex-grow-1">
-                                        <span class="fw-medium d-block">Demo</span>
-                                        <small class="text-muted">Admin</small>
-                                    </div>
-                                }
-                            </div>
-                        </a>
-                    </li>
-                    <li>
-                        <div class="dropdown-divider"></div>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/Pages/AccountSettings">
-                            <i class="bx bx-user me-2"></i>
-                            <span class="align-middle">My Profile</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="javascript:void(0);">
-                            <i class="bx bx-cog me-2"></i>
-                            <span class="align-middle">Settings</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/UserProfiles">
-                            <span class="d-flex align-items-center align-middle">
-                                <i class="flex-shrink-0 bx bx-credit-card me-2"></i>
-                                <span class="flex-grow-1 align-middle ms-1">Billing</span>
-                                <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">4</span>
-                            </span>
-                        </a>
-                    </li>
-                    <li>
-                        <div class="dropdown-divider"></div>
-                    </li>
-                    <li>
-                        <a class="dropdown-item" href="/Account/Logout">
-                            <i class="bx bx-power-off me-2"></i>
-                            <span class="align-middle">Log Out</span>
-                        </a>
-                    </li>
-                </ul>
-            </li>
-            <!--/ User -->
+    .shortcuts-header, .notifications-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
 
-        </ul>
+    .shortcuts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .shortcut-item {
+        text-align: center;
+    }
+
+        .shortcut-item i {
+            font-size: 32px;
+            color: #6c757d;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .shortcut-item span {
+            font-weight: 500;
+        }
+
+        .shortcut-item small {
+            color: #6c757d;
+        }
+
+    .shortcuts.show, .notifications.show {
+        display: block;
+    }
+
+    .shortcut-item a {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+        .shortcut-item a:hover {
+            color: #007bff;
+        }
+
+    .notifications-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+
+    .notification-item {
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #dee2e6;
+        cursor: pointer;
+    }
+
+        .notification-item img, .notification-item .icon-placeholder {
+            height: 40px;
+            width: 40px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .notification-item .icon-placeholder {
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            color: #6c757d;
+        }
+
+    .notification-item-content {
+        flex-grow: 1;
+    }
+
+        .notification-item-content h6 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .notification-item-content p {
+            margin: 0;
+            font-size: 12px;
+            color: #6c757d;
+        }
+
+    .notification-time {
+        font-size: 12px;
+        color: #adb5bd;
+        white-space: nowrap;
+    }
+
+    .notifications-footer {
+        padding: 15px 20px;
+        text-align: center;
+        border-top: 1px solid #dee2e6;
+    }
+
+        .notifications-footer a {
+            text-decoration: none;
+            color: #fff;
+            background-color: #007bff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+</style>
+
+<div class="shortcuts mt-1" id="shortcuts-menu">
+    <div class="shortcuts-header">
+        <span>Shortcuts</span>
+        <i class="bx bx-plus-circle"></i>
     </div>
-
-}else{
-
-  <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
-
-    <!-- Search -->
-    <div class="navbar-nav align-items-center">
-        <form class="d-flex" method="get">
-            <div class="nav-item d-flex align-items-center">
-                <i class="bx bx-search fs-4 lh-0"></i>
-                <input type="text" class="form-control border-0 shadow-none ps-1 ps-sm-2" name="searchQuery" value="@ViewBag.SearchQuery" placeholder="Search..." aria-label="Search...">
-            </div>
-        </form>
-    </div>
-    <!-- /Search -->
-
-    <ul class="navbar-nav flex-row align-items-center ms-auto">
-        <!-- Place this tag where you want the button to render. -->
-        <li class="nav-item lh-1 me-3">
-            <a class="github-button" href="https://github.com/icpmtech/cantinho-de-net-aggregator" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star themeselection/sneat-html-admin-template-free on GitHub">Star</a>
-        </li>
-
-        <!-- User -->
-        <li class="nav-item navbar-dropdown dropdown-user dropdown">
-            <a class="nav-link dropdown-toggle hide-arrow" href="javascript:void(0);" data-bs-toggle="dropdown">
-                <div class="avatar avatar-online">
-                    <img src="@avatarUrl" alt class="w-px-40 h-auto rounded-circle">
-                </div>
+    <div class="shortcuts-grid">
+        <div class="shortcut-item">
+            <a href="/Portfolio/DividendsCalendar">
+                <i class="bx bx-calendar"></i>
+                <span>Calendar</span>
+                <small>Dividends</small>
             </a>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li>
-                    <a class="dropdown-item" href="javascript:void(0);">
-                        <div class="d-flex">
-                            <div class="flex-shrink-0 me-3">
-                                <div class="avatar avatar-online">
-                                    <img src="@avatarUrl" alt class="w-px-40 h-auto rounded-circle">
-                                </div>
-                            </div>
-                            @if (User.Identity.IsAuthenticated)
-                            {
-                                <div class="flex-grow-1">
-                                    <span class="fw-medium d-block">@User.Identity.Name</span>
-                                    <small class="text-muted">Admin</small>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="flex-grow-1">
-                                    <span class="fw-medium d-block">Demo</span>
-                                    <small class="text-muted">Admin</small>
-                                </div>
-                            }
-                        </div>
-                    </a>
-                </li>
-                <li>
-                    <div class="dropdown-divider"></div>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="/Pages/AccountSettings">
-                        <i class="bx bx-user me-2"></i>
-                        <span class="align-middle">My Profile</span>
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="javascript:void(0);">
-                        <i class="bx bx-cog me-2"></i>
-                        <span class="align-middle">Settings</span>
-                    </a>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="/UserProfiles">
-                        <span class="d-flex align-items-center align-middle">
-                            <i class="flex-shrink-0 bx bx-credit-card me-2"></i>
-                            <span class="flex-grow-1 align-middle ms-1">Billing</span>
-                            <span class="flex-shrink-0 badge badge-center rounded-pill bg-danger w-px-20 h-px-20">4</span>
-                        </span>
-                    </a>
-                </li>
-                <li>
-                    <div class="dropdown-divider"></div>
-                </li>
-                <li>
-                    <a class="dropdown-item" href="/Account/Logout">
-                        <i class="bx bx-power-off me-2"></i>
-                        <span class="align-middle">Log Out</span>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <!--/ User -->
-
-    </ul>
+        </div>
+        <div class="shortcut-item">
+            <a href="/Search/ChatAiPilot">
+                <i class="bx bx-file"></i>
+                <span>Ai-Pilot</span>
+                <small>App</small>
+            </a>
+        </div>
+        <div class="shortcut-item">
+            <a href="/Portfolio">
+                <i class="bx bx-user"></i>
+                <span>Portfolio</span>
+                <small>Manage Portfolio</small>
+            </a>
+        </div>
+        <div class="shortcut-item">
+            <a href="/NewsRSS">
+                <i class="bx bx-shield"></i>
+                <span>RSS Search</span>
+                <small>Research</small>
+            </a>
+        </div>
+        <div class="shortcut-item">
+            <a href="/Dashboards">
+                <i class="bx bx-bar-chart"></i>
+                <span>Dashboard</span>
+                <small>User Dashboard</small>
+            </a>
+        </div>
+        <div class="shortcut-item">
+            <a href="#settings">
+                <i class="bx bx-cog"></i>
+                <span>Setting</span>
+                <small>Account Settings</small>
+            </a>
+        </div>
+    </div>
 </div>
 
-}
+<div class="notifications mt-1 " id="notifications-menu">
+    <div class="notifications-header">
+        <span>Notification</span>
+        <span>8 New</span>
+    </div>
+    <div class="notifications-list">
+        <div class="notification-item">
+            <img src="profile-image.jpg" alt="Profile">
+            <div class="notification-item-content">
+                <h6>Congratulation Lettie 🎉</h6>
+                <p>Won the monthly best seller gold badge</p>
+            </div>
+            <div class="notification-time">1h ago</div>
+        </div>
+        <div class="notification-item">
+            <div class="icon-placeholder">CF</div>
+            <div class="notification-item-content">
+                <h6>Charles Franklin</h6>
+                <p>Accepted your connection</p>
+            </div>
+            <div class="notification-time">12hr ago</div>
+        </div>
+        <div class="notification-item">
+            <img src="profile-image.jpg" alt="Profile">
+            <div class="notification-item-content">
+                <h6>New Message 📧</h6>
+                <p>You have a new message from Natalie</p>
+            </div>
+            <div class="notification-time">1h ago</div>
+        </div>
+        <div class="notification-item">
+            <div class="icon-placeholder"><i class="bx bx-shopping-bag"></i></div>
+            <div class="notification-item-content">
+                <h6>Whoo! You have a new order 🛒</h6>
+                <p>ACME Inc. made a new order $1,154</p>
+            </div>
+            <div class="notification-time">1 day ago</div>
+        </div>
+        <div class="notification-item">
+            <img src="profile-image.jpg" alt="Profile">
+            <div class="notification-item-content">
+                <h6>Application has been approved 🚀</h6>
+                <p>Your ABC project application has been approved.</p>
+            </div>
+            <div class="notification-time">2 days ago</div>
+        </div>
+    </div>
+    <div class="notifications-footer">
+        <a href="#all-notifications">View all notifications</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById("app-icon").addEventListener("click", function () {
+        var shortcutsMenu = document.getElementById("shortcuts-menu");
+        var notificationsMenu = document.getElementById("notifications-menu");
+        notificationsMenu.classList.remove("show");  // Hide notifications when showing shortcuts
+        shortcutsMenu.classList.toggle("show");
+    });
+
+    document.getElementById("notification-icon").addEventListener("click", function () {
+        var shortcutsMenu = document.getElementById("shortcuts-menu");
+        var notificationsMenu = document.getElementById("notifications-menu");
+        shortcutsMenu.classList.remove("show");  // Hide shortcuts when showing notifications
+        notificationsMenu.classList.toggle("show");
+    });
+
+    // Close the menus if clicked outside
+    document.addEventListener("click", function (event) {
+        var shortcutsMenu = document.getElementById("shortcuts-menu");
+        var notificationsMenu = document.getElementById("notifications-menu");
+        var appIcon = document.getElementById("app-icon");
+        // var notificationIcon = document.getElementById("notification-icon");
+
+        if (!shortcutsMenu.contains(event.target) && !appIcon.contains(event.target)) {
+            shortcutsMenu.classList.remove("show");
+        }
+        // if (!notificationsMenu.contains(event.target) && !notificationIcon.contains(event.target)) {
+        //     notificationsMenu.classList.remove("show");
+        // }
+    });
+</script>
