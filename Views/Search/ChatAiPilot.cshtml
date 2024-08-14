@@ -244,6 +244,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
+            position: relative;
         }
 
             .chat-message.user {
@@ -277,6 +278,22 @@
 
             .save-message-button:hover {
                 background-color: #45a049;
+            }
+
+        .continue-generating-button {
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+            align-self: flex-start;
+        }
+
+            .continue-generating-button:hover {
+                background-color: #e68900;
             }
 
         .saved-messages-container {
@@ -318,21 +335,6 @@
 
             .delete-message-button:hover {
                 background-color: #d32f2f;
-            }
-
-        .continue-generating-button {
-            background-color: #ff9800;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-top: 10px;
-        }
-
-            .continue-generating-button:hover {
-                background-color: #e68900;
             }
     </style>
 </head>
@@ -392,12 +394,6 @@
         <div id="savedMessagesList" class="saved-messages-list"></div>
     </div>
 
-    <div id="continueContainer" class="continue-generating-button-container" style="display: none;">
-        <button id="continueGeneratingButton" class="continue-generating-button" onclick="continueGenerating()">
-            Continue Generating
-        </button>
-    </div>
-
     <div class="loading-overlay" id="loadingOverlay">
         <div class="spinner">
             <i class="bx bx-loader bx-spin"></i>
@@ -412,8 +408,6 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const chatHistory = document.getElementById('chatHistory');
         const responseText = document.getElementById('responseText');
-        const continueContainer = document.getElementById('continueContainer');
-        let lastQuery = '';
         let debounceTimer;
 
         const actionButton = document.getElementById('actionButton');
@@ -491,8 +485,6 @@
                 return;
             }
 
-            lastQuery = query; // Save the last query for "Continue Generating"
-
             addMessageToChat(query, 'user');
 
             showLoadingOverlay();
@@ -508,7 +500,6 @@
 
                 const data = await response.json();
                 addMessageToChat(data.response, 'ai');
-                continueContainer.style.display = 'block'; // Show "Continue Generating" button
             } catch (error) {
                 console.error('Error:', error);
                 addMessageToChat('Sorry, something went wrong. Please try again later.', 'ai');
@@ -517,12 +508,7 @@
             }
         }
 
-        async function continueGenerating() {
-            if (!lastQuery) {
-                alert('No query to continue.');
-                return;
-            }
-
+        async function continueGenerating(query) {
             showLoadingOverlay();
 
             try {
@@ -531,7 +517,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ query: lastQuery })
+                    body: JSON.stringify({ query })
                 });
 
                 const data = await response.json();
@@ -566,6 +552,16 @@
 
             messageElement.appendChild(messageText);
             messageElement.appendChild(saveButton);
+
+            if (sender === 'ai') {
+                const continueButton = document.createElement('button');
+                continueButton.textContent = 'Continue Generating';
+                continueButton.classList.add('continue-generating-button');
+                continueButton.onclick = () => continueGenerating(message);
+
+                messageElement.appendChild(continueButton);
+            }
+
             chatHistory.appendChild(messageElement);
             chatHistory.scrollTop = chatHistory.scrollHeight;
         }
@@ -649,8 +645,6 @@
         }
 
         function getFileNameFromMessage(message) {
-            // Assuming each saved message is stored with a unique name
-            // Replace this with the correct logic to extract the filename from the message content
             return message.fileName;
         }
     </script>
