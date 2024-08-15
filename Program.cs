@@ -124,7 +124,8 @@ builder.Services.AddSingleton<SocialSentimentService>();
 builder.Services.AddScoped<PortfolioIndexingService>();
 builder.Services.AddScoped<LlmService>();
 builder.Services.AddScoped<DataIndexingService>();
-
+builder.Services.AddSingleton<PortfolioLossRuleService>();
+builder.Services.AddScoped<PortfolioCheckService>();
 builder.Services.AddSingleton<IMilvusService, MilvusService>();
 builder.Services.AddSingleton<IArticleProcessor, ArticleProcessor>();
 builder.Services.AddSignalR();

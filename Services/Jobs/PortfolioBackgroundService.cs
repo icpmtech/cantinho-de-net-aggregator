@@ -24,7 +24,7 @@ namespace MarketAnalyticHub.Services.Jobs
         foreach (var portfolio in portfolios)
         {
           var lossPercentage = portfolio.LossPercentage;
-          if (lossPercentage >= 0)
+          if (lossPercentage >= 2)
           {
             await _portfolioService.SendPortfolioLossAlertAsync(portfolio.UserId, portfolio.CurrentMarketValue, lossPercentage);
           }

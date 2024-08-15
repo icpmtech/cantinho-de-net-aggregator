@@ -1,5 +1,6 @@
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<ApplicationUser> _userManager
+
 @{
     var user = await _userManager.GetUserAsync(User);
     var avatarUrl = user?.AvatarUrl ?? "/img/avatars/default-avatar.png";
@@ -25,6 +26,7 @@
         </a>
     </div>
 }
+
 @if (ViewData["navbarWithOutSearch"] != null)
 {
     @await Html.PartialAsync("../_Partials/_AppBar", avatarUrl)
@@ -40,8 +42,8 @@ else
         background-color: #e9ecef;
         border-radius: 10px;
         overflow: hidden;
-        width: 150px; /* Adjust width as needed */
-        height: 20px; /* Adjust height as needed */
+        width: 150px;
+        height: 20px;
     }
 
     .credit-bar {
@@ -255,54 +257,16 @@ else
 <div class="notifications mt-1 " id="notifications-menu">
     <div class="notifications-header">
         <span>Notification</span>
-        <span>8 New</span>
+        <span>0 New</span> <!-- Initial count is 0, this will be updated dynamically -->
     </div>
     <div class="notifications-list">
-        <div class="notification-item">
-            <img src="profile-image.jpg" alt="Profile">
-            <div class="notification-item-content">
-                <h6>Congratulation Lettie 🎉</h6>
-                <p>Won the monthly best seller gold badge</p>
-            </div>
-            <div class="notification-time">1h ago</div>
-        </div>
-        <div class="notification-item">
-            <div class="icon-placeholder">CF</div>
-            <div class="notification-item-content">
-                <h6>Charles Franklin</h6>
-                <p>Accepted your connection</p>
-            </div>
-            <div class="notification-time">12hr ago</div>
-        </div>
-        <div class="notification-item">
-            <img src="profile-image.jpg" alt="Profile">
-            <div class="notification-item-content">
-                <h6>New Message 📧</h6>
-                <p>You have a new message from Natalie</p>
-            </div>
-            <div class="notification-time">1h ago</div>
-        </div>
-        <div class="notification-item">
-            <div class="icon-placeholder"><i class="bx bx-shopping-bag"></i></div>
-            <div class="notification-item-content">
-                <h6>Whoo! You have a new order 🛒</h6>
-                <p>ACME Inc. made a new order $1,154</p>
-            </div>
-            <div class="notification-time">1 day ago</div>
-        </div>
-        <div class="notification-item">
-            <img src="profile-image.jpg" alt="Profile">
-            <div class="notification-item-content">
-                <h6>Application has been approved 🚀</h6>
-                <p>Your ABC project application has been approved.</p>
-            </div>
-            <div class="notification-time">2 days ago</div>
-        </div>
+        <!-- Dynamic notifications will be prepended here -->
     </div>
     <div class="notifications-footer">
         <a href="#all-notifications">View all notifications</a>
     </div>
 </div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/5.0.0/signalr.min.js"></script>
 <script type="text/javascript">
     const connection = new signalR.HubConnectionBuilder()
@@ -310,20 +274,63 @@ else
         .build();
 
     connection.on("ReceivePortfolioUpdate", function (message) {
-        displayNotification("Portfolio Update", message);
+        addNotification("Portfolio Update", message, "1m ago");
     });
 
     connection.on("ReceiveStockAlert", function (message) {
-        displayNotification("Stock Alert", message);
+        addNotification("Stock Alert", message, "Just now");
+    });
+
+    connection.on("ReceivePortfolioLossAlert", function (message) {
+        addNotification("Stock Alert", message, "Just now");
     });
 
     connection.start().catch(function (err) {
         return console.error(err.toString());
     });
 
-    function displayNotification(title, message) {
-        // Implement the notification display logic, e.g., using browser notifications or custom UI elements
-        alert(`${title}: ${message}`);
+    function addNotification(title, message, time) {
+        const notificationsList = document.querySelector(".notifications-list");
+
+        // Create a new notification item element
+        const notificationItem = document.createElement("div");
+        notificationItem.classList.add("notification-item");
+
+        const iconPlaceholder = document.createElement("div");
+        iconPlaceholder.classList.add("icon-placeholder");
+        iconPlaceholder.textContent = title.charAt(0); // First letter of the title
+
+        const contentDiv = document.createElement("div");
+        contentDiv.classList.add("notification-item-content");
+
+        const header = document.createElement("h6");
+        header.textContent = title;
+
+        const messageParagraph = document.createElement("p");
+        messageParagraph.textContent = message;
+
+        contentDiv.appendChild(header);
+        contentDiv.appendChild(messageParagraph);
+
+        const timeDiv = document.createElement("div");
+        timeDiv.classList.add("notification-time");
+        timeDiv.textContent = time;
+
+        notificationItem.appendChild(iconPlaceholder);
+        notificationItem.appendChild(contentDiv);
+        notificationItem.appendChild(timeDiv);
+
+        // Prepend the new notification to the list
+        notificationsList.prepend(notificationItem);
+
+        // Update the notification count
+        updateNotificationCount();
+    }
+
+    function updateNotificationCount() {
+        const notificationsHeader = document.querySelector(".notifications-header span:nth-child(2)");
+        const notificationItems = document.querySelectorAll(".notifications-list .notification-item");
+        notificationsHeader.textContent = `${notificationItems.length} New`;
     }
 </script>
 
@@ -341,6 +348,7 @@ else
         shortcutsMenu.classList.remove("show");  // Hide shortcuts when showing notifications
         notificationsMenu.classList.toggle("show");
     });
+
     document.addEventListener("DOMContentLoaded", function () {
         // Get references to the credit bar and text elements
         var creditBar = document.getElementById("creditBar");
@@ -376,20 +384,14 @@ else
             });
     });
 
-
-
     // Close the menus if clicked outside
     document.addEventListener("click", function (event) {
         var shortcutsMenu = document.getElementById("shortcuts-menu");
         var notificationsMenu = document.getElementById("notifications-menu");
         var appIcon = document.getElementById("app-icon");
-        // var notificationIcon = document.getElementById("notification-icon");
 
         if (!shortcutsMenu.contains(event.target) && !appIcon.contains(event.target)) {
             shortcutsMenu.classList.remove("show");
         }
-        // if (!notificationsMenu.contains(event.target) && !notificationIcon.contains(event.target)) {
-        //     notificationsMenu.classList.remove("show");
-        // }
     });
 </script>

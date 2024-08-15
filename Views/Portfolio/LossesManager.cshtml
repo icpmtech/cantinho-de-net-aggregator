@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Loss Manager</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        button {
+            margin: 5px;
+            padding: 5px 10px;
+        }
+
+        input[type="text"], input[type="number"] {
+            padding: 5px;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Portfolio Loss Rules Manager</h1>
+
+    <div>
+        <h2>Add New Rule</h2>
+        <input type="number" id="lossThreshold" placeholder="Loss Threshold (%)" min="0" step="0.01">
+        <button onclick="addRule()">Add Rule</button>
+    </div>
+
+    <div>
+        <h2>Current Rules</h2>
+        <table id="rulesTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Loss Threshold (%)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rules will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+
+              const apiUrl = 'api/PortfolioLossRule'; // Adjust the URL as needed
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchRules();
+        });
+
+        async function fetchRules() {
+            try {
+                const response = await fetch(apiUrl);
+                const rules = await response.json();
+                const rulesTableBody = document.querySelector('#rulesTable tbody');
+                rulesTableBody.innerHTML = '';
+
+                rules.forEach(rule => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${rule.Id}</td>
+                        <td>${rule.LossThreshold.toFixed(2)}</td>
+                        <td>
+                            <button onclick="deleteRule(${rule.Id})">Delete</button>
+                            <button onclick="editRule(${rule.Id}, ${rule.LossThreshold})">Edit</button>
+                        </td>
+                    `;
+                    rulesTableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching rules:', error);
+            }
+        }
+
+        async function addRule() {
+            const lossThresholdInput = document.getElementById('lossThreshold');
+            const lossThreshold = parseFloat(lossThresholdInput.value);
+
+            if (isNaN(lossThreshold) || lossThreshold <= 0) {
+                alert('Please enter a valid loss threshold');
+                return;
+            }
+
+            const newRule = { LossThreshold: lossThreshold };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(newRule)
+                });
+
+                if (response.ok) {
+                    fetchRules();
+                    lossThresholdInput.value = '';
+                } else {
+                    alert('Error adding rule');
+                }
+            } catch (error) {
+                console.error('Error adding rule:', error);
+            }
+        }
+
+        async function deleteRule(id) {
+            try {
+                const response = await fetch(`${apiUrl}/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    fetchRules();
+                } else {
+                    alert('Error deleting rule');
+                }
+            } catch (error) {
+                console.error('Error deleting rule:', error);
+            }
+        }
+
+        function editRule(id, currentThreshold) {
+            const newThreshold = prompt('Enter new loss threshold (%)', currentThreshold);
+
+            if (newThreshold !== null) {
+                updateRule(id, parseFloat(newThreshold));
+            }
+        }
+
+        async function updateRule(id, newThreshold) {
+            if (isNaN(newThreshold) || newThreshold <= 0) {
+                alert('Please enter a valid loss threshold');
+                return;
+            }
+
+            const updatedRule = { Id: id, LossThreshold: newThreshold };
+
+            try {
+                const response = await fetch(`${apiUrl}/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updatedRule)
+                });
+
+                if (response.ok) {
+                    fetchRules();
+                } else {
+                    alert('Error updating rule');
+                }
+            } catch (error) {
+                console.error('Error updating rule:', error);
+            }
+        }
+
+
+
+    </script>
+
+</body>
+</html>
+
+

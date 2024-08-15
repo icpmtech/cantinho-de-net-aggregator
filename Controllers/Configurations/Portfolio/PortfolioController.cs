@@ -24,6 +24,14 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
       _logger = logger;
       _context = context;
     }
+
+
+    
+       public IActionResult LossesManager()
+    {
+
+      return View();
+    }
     public IActionResult Index()
     {
 
