@@ -39,5 +39,9 @@ namespace MarketAnalyticHub.Models.Portfolio
     public dynamic GroupedItems { get; set; }
 
     public DateTime? CreationDate { get; private set; }
+    [NotMapped]
+    public decimal LossPercentage { get; internal set; }
+    [NotMapped]
+    public bool IsLossAlertTriggered { get; internal set; }
   }
 }

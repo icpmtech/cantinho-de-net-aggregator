@@ -15,32 +15,48 @@ using OpenAI_API;
 using OpenAI_API.Audio;
 using static OpenAI_API.Audio.TextToSpeechRequest;
 using OpenAI_API.Models;
+using MarketAnalyticHub.Controllers;
+using MarketAnalyticHub.Models.SetupDb;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 [Route("api/[controller]")]
 [ApiController]
-public class ChatController : ControllerBase
+[Authorize]
+public class ChatController : BaseController
 {
   private readonly IWebHostEnvironment _environment;
   private readonly IHttpClientFactory _clientFactory;
   private readonly IConfiguration _configuration;
-  private readonly ILogger<ChatController> _logger;
   private readonly OpenAIAPI _openAiApi;
+
   public ChatController(
+      ApplicationDbContext context,
       ILogger<ChatController> logger,
       IWebHostEnvironment environment,
       IHttpClientFactory clientFactory,
       IConfiguration configuration)
+      : base(context, logger)
   {
     _environment = environment;
-    _logger = logger;
     _clientFactory = clientFactory;
     _configuration = configuration;
     _openAiApi = new OpenAIAPI(_configuration["OpenAI:ApiKey"]);
   }
 
+
   [HttpPost("UploadFile")]
   public async Task<IActionResult> UploadFile([FromForm] FileUploadRequest model)
   {
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userId == null)
+    {
+      return Unauthorized();
+    }
+    if (!await DeductCreditsAsync(userId, 100))
+    {
+      return BadRequest(new { success = false, message = "Buy credits no credits " }); 
+    }
     if (model.File == null || model.File.Length == 0)
     {
       return BadRequest(new { success = false, message = "Please upload a valid file." });
@@ -106,6 +122,15 @@ public class ChatController : ControllerBase
   [HttpPost("ReadAudio")]
   public async Task<IActionResult> ReadAudio([FromBody] MessageContent content)
   {
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userId == null)
+    {
+      return Unauthorized();
+    }
+    if (!await DeductCreditsAsync(userId, 100))
+    {
+      return HandleInsufficientCredits();
+    }
     var request = new TextToSpeechRequest()
     {
       Input = content.Content,
@@ -114,7 +139,10 @@ public class ChatController : ControllerBase
       Voice = Voices.Nova,
       Speed = 0.9
     };
-
+    if (!await DeductCreditsAsync(userId, 1))
+    {
+      return HandleInsufficientCredits();
+    }
     var filePath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.aac");
     await _openAiApi.TextToSpeech.SaveSpeechToFileAsync(request, filePath);
 
@@ -139,6 +167,15 @@ public class ChatController : ControllerBase
   [HttpPost("UploadAudio")]
   public async Task<IActionResult> UploadAudio([FromForm] FileUploadRequest model)
   {
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userId == null)
+    {
+      return Unauthorized();
+    }
+    if (!await DeductCreditsAsync(userId, 100))
+    {
+      return HandleInsufficientCredits();
+    }
     if (model.File == null || model.File.Length == 0)
     {
       return BadRequest(new { success = false, message = "Please upload a valid file." });
@@ -173,6 +210,7 @@ public class ChatController : ControllerBase
 
   private async Task<string> TranscribeAudio(string filePath)
   {
+    
     try
     {
       var transcription = await _openAiApi.Transcriptions.GetTextAsync(filePath);

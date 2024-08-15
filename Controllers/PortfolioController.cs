@@ -27,6 +27,8 @@ namespace MarketAnalyticHub.Controllers
       _yahooFinanceService = yahooFinanceService;
     }
 
+    
+
     [HttpGet("purchase-dates-for-symbol")]
     public async Task<IActionResult> GetPurchaseDatesForSymbol([FromQuery] string symbol, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {

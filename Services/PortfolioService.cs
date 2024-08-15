@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using AspnetCoreMvcFull.Services;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Models.Portfolio.Entities;
+using Microsoft.AspNetCore.SignalR;
+using MarketAnalyticHub.Controllers.AIPilot;
 
 namespace MarketAnalyticHub.Services
 {
@@ -25,8 +27,10 @@ namespace MarketAnalyticHub.Services
     private readonly SentimentAnalysisService _sentimentAnalysisService;
     private readonly OpenAIService _openAIService;
     private readonly FinnhubService _FinnhubService;
-    
-    public PortfolioService(ApplicationDbContext context, FinnhubService finnhubService, OpenAIService openAIService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
+    private readonly IHubContext<NotificationHub> _hubContext;
+    private object value;
+
+    public PortfolioService(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, FinnhubService finnhubService, OpenAIService openAIService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
     {
       _context = context;
       _yahooFinanceService = yahooFinanceService;
@@ -34,8 +38,27 @@ namespace MarketAnalyticHub.Services
       _sentimentAnalysisService = sentimentAnalysisService;
       _openAIService = openAIService;
       _FinnhubService = finnhubService;
+      _hubContext = hubContext;
     }
 
+    public PortfolioService(object value)
+    {
+      this.value = value;
+    }
+
+    // Method to trigger a portfolio update notification
+    public async Task UpdatePortfolioValueAsync(string userId, decimal newValue)
+    {
+      string message = $"Your portfolio value has been updated to {newValue:C}";
+      await _hubContext.Clients.User(userId).SendAsync("ReceivePortfolioUpdate", message);
+    }
+
+    // Method to trigger a stock alert notification
+    public async Task SendStockAlertAsync(string userId, string stockSymbol, decimal currentPrice)
+    {
+      string message = $"Alert: {stockSymbol} is now trading at {currentPrice:C}";
+      await _hubContext.Clients.User(userId).SendAsync("ReceiveStockAlert", message);
+    }
     public async Task<PortfolioOveralStatsDto> GetTotalPortfolioOverall(string userId)
     {
       var portfolios = await GetPortfoliosByUserAsync(userId);
@@ -207,6 +230,60 @@ namespace MarketAnalyticHub.Services
 
       return portfolios;
     }
+    public async Task<IEnumerable<Portfolio>> GetPortfoliosByLossesUserAsync(string userId)
+    {
+      // Fetch portfolios with related data
+      var portfolios = await _context.Portfolios
+                                     .Include(p => p.Items)
+                                     .ThenInclude(pi => pi.Dividends)
+                                     .Include(p => p.Items)
+                                     .ThenInclude(pi => pi.StockEvents)
+                                     .Where(p => p.UserId == userId)
+                                     .ToListAsync();
+
+      // Fetch the latest stock data for the portfolios
+      var symbolStockData = await GetStockDataForPortfolios(portfolios);
+
+      foreach (var portfolio in portfolios)
+      {
+        decimal totalInitialValue = 0;
+        decimal totalCurrentValue = 0;
+
+        foreach (var item in portfolio.Items)
+        {
+          // Update portfolio items with the latest stock data
+          var stockData = symbolStockData[item.Symbol];
+          item.CurrentPrice = (decimal)stockData.CurrentPrice;
+          item.Change = (decimal)stockData.Change;
+          item.PercentChange = (decimal)stockData.PercentChange;
+          item.HighPrice = (decimal)stockData.HighPrice;
+          item.LowPrice = (decimal)stockData.LowPrice;
+          item.OpenPrice = (decimal)stockData.OpenPrice;
+          item.PreviousClosePrice = (decimal)stockData.PreviousClosePrice;
+
+          // Calculate total initial value and total current value of the portfolio
+          totalInitialValue += item.Quantity * item.PurchasePrice;
+          totalCurrentValue += item.Quantity * item.CurrentPrice;
+        }
+
+        // Calculate the loss percentage
+        if (totalInitialValue > 0)
+        {
+          var lossPercentage = ((totalInitialValue - totalCurrentValue) / totalInitialValue) * 100;
+          portfolio.LossPercentage = lossPercentage;
+
+          // If loss exceeds 2%, flag the portfolio (or take appropriate action)
+          if (lossPercentage >= 2)
+          {
+            portfolio.IsLossAlertTriggered = true; // You can add this property to the Portfolio model
+                                                   // Optionally, trigger an alert to the user here
+          }
+        }
+      }
+
+      return portfolios;
+    }
+
 
     public async Task<Portfolio> GetPortfolioByIdAsync(int id)
     {
@@ -753,6 +830,48 @@ namespace MarketAnalyticHub.Services
     internal async Task<string> AnalyzePortfolioAsync(string[] stockSymbols)
     {
       throw new NotImplementedException();
+    }
+
+    // Method to send a portfolio loss alert to the user
+    public async Task SendPortfolioLossAlertAsync(string userId, decimal currentValue, decimal lossPercentage)
+    {
+      // Create the alert message
+      string message = $"Alert: Your portfolio has decreased by {lossPercentage:F2}% and is now valued at {currentValue:C}. " +
+                       "Please review your investments.";
+
+      // Send the alert message to the specified user via SignalR
+      await _hubContext.Clients.User(userId).SendAsync("ReceivePortfolioLossAlert", message);
+
+      // Optionally, log the alert for future reference or auditing purposes
+      // Example: Log to database, file, or monitoring service
+      // await LogPortfolioLossAlertAsync(userId, currentValue, lossPercentage, message);
+    }
+
+    // Optional: Method to log the portfolio loss alert (if needed)
+    //private async Task LogPortfolioLossAlertAsync(string userId, decimal currentValue, decimal lossPercentage, string message)
+    //{
+    //  // Example logging logic (this could be to a database or an external logging service)
+    //  // Assuming there's a PortfolioAlertLog entity and _context is your database context
+
+    //  var alertLog = new PortfolioAlertLog
+    //  {
+    //    UserId = userId,
+    //    CurrentValue = currentValue,
+    //    LossPercentage = lossPercentage,
+    //    Message = message,
+    //    Timestamp = DateTime.UtcNow
+    //  };
+
+    //  await _context.PortfolioAlertLogs.AddAsync(alertLog);
+    //  await _context.SaveChangesAsync();
+    //}
+  
+
+  internal async Task<List<UserProfile>> GetAllUsersAsync()
+    {
+      var users=await _context.UserProfiles.ToListAsync();
+
+      return users;
     }
 
 

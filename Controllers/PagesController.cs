@@ -6,6 +6,9 @@ namespace MarketAnalyticHub.Controllers;
 
 public class PagesController : Controller
 {
+
+  
+  public IActionResult BuyCredits() => View();
   public IActionResult AccountSettings() => View();
   public IActionResult AccountSettingsConnections() => View();
   public IActionResult AccountSettingsNotifications() => View();

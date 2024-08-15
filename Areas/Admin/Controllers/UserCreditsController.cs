@@ -65,7 +65,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
 
            userCredit.UserProfile=  _context.UserProfiles.Where(s => s.Id == userCredit.UserId).FirstOrDefault();
 
-            if (ModelState.IsValid)
+            if (userCredit.UserProfile is not null)
             {
                 _context.Add(userCredit);
                 await _context.SaveChangesAsync();
@@ -104,9 +104,11 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
-            {
-                try
+      userCredit.UserProfile = _context.UserProfiles.Where(s => s.Id == userCredit.UserId).FirstOrDefault();
+
+      if (userCredit.UserProfile is not null)
+      {
+        try
                 {
                     _context.Update(userCredit);
                     await _context.SaveChangesAsync();

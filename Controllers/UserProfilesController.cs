@@ -27,6 +27,7 @@ namespace MarketAnalyticHub.Controllers
 
       var userProfile = await _context.UserProfiles
           .Where(p => p.UserId == userId)
+          .Include(up=>up.UserCredit)
           .Include(up => up.Addresses)
           .Include(up => up.PaymentMethods)
           .FirstOrDefaultAsync();
@@ -75,7 +76,8 @@ namespace MarketAnalyticHub.Controllers
         PaymentMethods = new List<PaymentMethod>(),
         Addresses = new List<Address>(),
         ActivationKey = string.Empty,
-        IsActivated = true
+        IsActivated = true,
+         
       };
     }
 

@@ -218,8 +218,18 @@ using (var scope = app.Services.CreateScope())
       "scrape-news",
       () => serviceProvider.GetService<NewsScraper>().ScrapeNewsAsync(),
       Cron.Daily); // or any cron expression
+ 
 }
-
+// Schedule recurring job
+using (var scope = app.Services.CreateScope())
+{
+  var serviceProvider = scope.ServiceProvider;
+  var recurringJobManager = serviceProvider.GetRequiredService<IRecurringJobManager>();
+  recurringJobManager.AddOrUpdate(
+           "CheckPortfolioLosses",
+           () => new PortfolioBackgroundService(new PortfolioService(null)).CheckPortfolioLossesAsync(),
+           "0 * * * *"); // Cron expression for every hour
+}
 
 app.UseEndpoints(endpoints =>
 {
@@ -230,6 +240,7 @@ app.UseEndpoints(endpoints =>
   );
   endpoints.MapHub<ChatHub>("/chathub");
   endpoints.MapHub<PortfolioHub>("/portfolioHub");
+  endpoints.MapHub<NotificationHub>("/notificationHub");
   endpoints.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
