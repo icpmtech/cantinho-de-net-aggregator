@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Prediction Tool</title>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet">
+    <style>
+       
+
+        .container {
+            width: 100%;
+            
+            margin: 10 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+            .card-header i {
+                font-size: 30px;
+                margin-right: 10px;
+                color: #333;
+            }
+
+            .card-header h2 {
+                font-size: 24px;
+                color: #333;
+            }
+
+        .card-body {
+            padding: 20px 0;
+        }
+
+        .card-footer {
+            margin-top: 20px;
+            padding: 20px 0;
+            border-top: 1px solid #ddd;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-size: 16px;
+                color: #666;
+            }
+
+            .form-group input,
+            .form-group select {
+                width: 100%;
+                padding: 10px;
+                font-size: 16px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+
+            .form-group button {
+                background-color: #007bff;
+                color: #fff;
+                padding: 10px 20px;
+                border: none;
+                border-radius: 5px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+                .form-group button:hover {
+                    background-color: #0056b3;
+                }
+
+        .risk-symbol {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+            .risk-symbol i {
+                font-size: 24px;
+                margin-right: 5px;
+            }
+
+        .low-risk {
+            color: green;
+        }
+
+        .medium-risk {
+            color: orange;
+        }
+
+        .high-risk {
+            color: red;
+        }
+
+        .card-footer h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+            color: #333;
+        }
+
+        .card-footer p {
+            font-size: 18px;
+            color: #555;
+        }
+
+        .tickers {
+            margin-top: 15px;
+        }
+
+            .tickers h4 {
+                margin-bottom: 5px;
+                font-size: 18px;
+                color: #333;
+            }
+
+            .tickers ul {
+                list-style-type: none;
+                padding-left: 0;
+                color: #555;
+            }
+
+            .tickers li {
+                font-size: 16px;
+                margin-bottom: 3px;
+            }
+    </style>
+</head>
+<body>
+    <div class="row">
+        <div class="col">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <i class='bx bx-dollar-circle'></i>
+                <h2>Investment Prediction Tool</h2>
+            </div>
+            <div class="card-body">
+                <form id="investment-form">
+                    <div class="form-group">
+                        <label for="investment-amount">Investment Amount ($)</label>
+                        <input type="number" id="investment-amount" name="investment-amount" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="market-choice">Market</label>
+                        <select id="market-choice" name="market-choice" required>
+                            <option value="us">U.S. Market</option>
+                            <option value="europe">European Market</option>
+                            <option value="asia">Asian Market</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="investment-type">Investment Type</label>
+                        <select id="investment-type" name="investment-type" required>
+                            <option value="stocks">Stocks</option>
+                            <option value="bonds">Bonds</option>
+                            <option value="real-estate">Real Estate</option>
+                            <option value="crypto">Cryptocurrency</option>
+                        </select>
+                        <div id="risk-symbol" class="risk-symbol">
+                            <!-- Risk symbol will be displayed here -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="investment-duration">Duration (Years)</label>
+                        <input type="number" id="investment-duration" name="investment-duration" required>
+                    </div>
+                    <div class="form-group">
+                        <button type="button" id="predict-button">Predict</button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-footer">
+                <h3>Prediction Result:</h3>
+                <p id="prediction-result">Enter your investment details to see the prediction.</p>
+                <div id="tickers" class="tickers">
+                    <!-- Suggested tickers will be displayed here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+    <script>
+        const riskSymbolElement = document.getElementById('risk-symbol');
+        const investmentTypeElement = document.getElementById('investment-type');
+        const marketChoiceElement = document.getElementById('market-choice');
+        const tickersElement = document.getElementById('tickers');
+
+        function updateRiskSymbol() {
+            const type = investmentTypeElement.value;
+
+            let symbolHTML = '';
+            switch (type) {
+                case 'stocks':
+                    symbolHTML = `<i class='bx bx-line-chart high-risk'></i><span class="high-risk">High Risk</span>`;
+                    break;
+                case 'bonds':
+                    symbolHTML = `<i class='bx bx-shield-quarter low-risk'></i><span class="low-risk">Low Risk</span>`;
+                    break;
+                case 'real-estate':
+                    symbolHTML = `<i class='bx bx-home medium-risk'></i><span class="medium-risk">Medium Risk</span>`;
+                    break;
+                case 'crypto':
+                    symbolHTML = `<i class='bx bx-bitcoin high-risk'></i><span class="high-risk">High Risk</span>`;
+                    break;
+                default:
+                    symbolHTML = '';
+            }
+
+            riskSymbolElement.innerHTML = symbolHTML;
+        }
+
+        async function predictInvestment() {
+            const amount = parseFloat(document.getElementById('investment-amount').value);
+            const type = document.getElementById('investment-type').value;
+            const market = document.getElementById('market-choice').value;
+            const duration = parseFloat(document.getElementById('investment-duration').value);
+
+            if (isNaN(amount) || isNaN(duration)) {
+                document.getElementById('prediction-result').textContent = "Please enter valid numbers for the investment amount and duration.";
+                return;
+            }
+
+            const input = {
+                amount: amount,
+                investmentType: type,
+                market: market,
+                duration: duration
+            };
+
+            try {
+                const response = await fetch('/api/investment/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(input)
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    document.getElementById('prediction-result').textContent = `After ${duration} years, your investment could be worth approximately $${result.predictedValue.toFixed(2)}.`;
+
+                    let tickersHTML = '<h4>Suggested Tickers:</h4><ul>';
+                    result.suggestedTickers.forEach(ticker => {
+                        tickersHTML += `<li>${ticker}</li>`;
+                    });
+                    tickersHTML += '</ul>';
+                    document.getElementById('tickers').innerHTML = tickersHTML;
+                } else {
+                    document.getElementById('prediction-result').textContent = "There was an error processing your request.";
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('prediction-result').textContent = "Failed to connect to the API.";
+            }
+        }
+
+        document.getElementById('predict-button').addEventListener('click', predictInvestment);
+        investmentTypeElement.addEventListener('change', updateRiskSymbol);
+
+        // Initialize risk symbol on page load
+        updateRiskSymbol();
+    </script>
+
+</body>
+</html>
