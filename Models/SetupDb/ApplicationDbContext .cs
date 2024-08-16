@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using MarketAnalyticHub.Controllers;
 using MarketAnalyticHub.Models.Portfolio.Entities;
+using MarketAnalyticHub.Controllers.api;
 
 namespace MarketAnalyticHub.Models.SetupDb
 {
@@ -34,6 +35,7 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<StockEvent> StockEvents { get; set; }
 
     public DbSet<Transaction> Transactions { get; set; }
+    public DbSet<PortfolioLossRule> PortfolioLossRules { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

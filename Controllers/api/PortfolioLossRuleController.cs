@@ -1,3 +1,5 @@
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MarketAnalyticHub.Controllers.api

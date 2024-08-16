@@ -7,33 +7,47 @@ namespace MarketAnalyticHub.Services.Jobs
   public class PortfolioBackgroundService
   {
     private readonly PortfolioService _portfolioService;
+    private readonly PortfolioLossRuleService _ruleService;
+    private PortfolioService portfolioService;
 
     public PortfolioBackgroundService(PortfolioService portfolioService)
     {
-      _portfolioService = portfolioService;
+      this.portfolioService = portfolioService;
     }
 
-    // Method to check portfolio losses and send alerts
+    public PortfolioBackgroundService(PortfolioService portfolioService, PortfolioLossRuleService ruleService)
+    {
+      _portfolioService = portfolioService;
+      _ruleService = ruleService;
+    }
+
+    // Method to check portfolio losses and send alerts based on dynamic rules
     public async Task CheckPortfolioLossesAsync()
     {
-      var allUsers = await _portfolioService.GetAllUsersAsync(); // Assuming this method exists to retrieve all user IDs
+      var allUsers = await _portfolioService.GetAllUsersAsync(); // Retrieve all user IDs
+      var rules = await _ruleService.GetAllRulesAsync(); // Retrieve all loss rules
 
       foreach (var userId in allUsers)
       {
-        var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId.UserId);
+        var portfolios = await _portfolioService.GetPortfoliosByLossesUserAsync(userId.UserId);
         foreach (var portfolio in portfolios)
         {
           var lossPercentage = portfolio.LossPercentage;
-          if (lossPercentage >= 2)
+          foreach (var rule in rules)
           {
-            await _portfolioService.SendPortfolioLossAlertAsync(portfolio.UserId, portfolio.CurrentMarketValue, lossPercentage);
+            if (lossPercentage >= rule.LossThreshold) // Check if portfolio loss meets or exceeds the rule threshold
+            {
+              await _portfolioService.SendPortfolioLossAlertAsync(portfolio.UserId, portfolio.CurrentMarketValue, lossPercentage);
+              break; // Optionally break after the first matching rule, depending on your logic
+            }
           }
         }
       }
     }
   }
 
-  public class Portfolio
+
+    public class Portfolio
   {
     public string UserId { get; set; }
     public decimal InitialValue { get; set; }

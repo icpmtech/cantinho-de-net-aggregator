@@ -29,6 +29,7 @@ namespace MarketAnalyticHub.Services
     private readonly FinnhubService _FinnhubService;
     private readonly IHubContext<NotificationHub> _hubContext;
     private object value;
+    private object value1;
 
     public PortfolioService(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, FinnhubService finnhubService, OpenAIService openAIService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
     {
@@ -44,6 +45,11 @@ namespace MarketAnalyticHub.Services
     public PortfolioService(object value)
     {
       this.value = value;
+    }
+
+    public PortfolioService(object value, object value1) : this(value)
+    {
+      this.value1 = value1;
     }
 
     // Method to trigger a portfolio update notification

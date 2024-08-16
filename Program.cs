@@ -37,6 +37,7 @@ using Elasticsearch.Net;
 using MarketAnalyticHub.Services.Elastic;
 using MarketAnalyticHub.Controllers.RealTime;
 using MarketAnalyticHub.Services.Jobs.Processors;
+using MarketAnalyticHub.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -124,8 +125,8 @@ builder.Services.AddSingleton<SocialSentimentService>();
 builder.Services.AddScoped<PortfolioIndexingService>();
 builder.Services.AddScoped<LlmService>();
 builder.Services.AddScoped<DataIndexingService>();
-builder.Services.AddSingleton<PortfolioLossRuleService>();
-builder.Services.AddScoped<PortfolioCheckService>();
+builder.Services.AddScoped<PortfolioLossRuleService>();
+builder.Services.AddScoped<PortfolioLossRuleRepository>();
 builder.Services.AddSingleton<IMilvusService, MilvusService>();
 builder.Services.AddSingleton<IArticleProcessor, ArticleProcessor>();
 builder.Services.AddSignalR();
@@ -228,7 +229,7 @@ using (var scope = app.Services.CreateScope())
   var recurringJobManager = serviceProvider.GetRequiredService<IRecurringJobManager>();
   recurringJobManager.AddOrUpdate(
            "CheckPortfolioLosses",
-           () => new PortfolioBackgroundService(new PortfolioService(null)).CheckPortfolioLossesAsync(),
+           () => new PortfolioBackgroundService(new PortfolioService(null,null)).CheckPortfolioLossesAsync(),
            "0 * * * *"); // Cron expression for every hour
 }
 

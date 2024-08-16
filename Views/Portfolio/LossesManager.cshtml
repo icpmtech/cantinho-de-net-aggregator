@@ -4,16 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfolio Loss Manager</title>
+    <link href="https://unpkg.com/boxicons@2.1.1/css/boxicons.min.css" rel="stylesheet">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .card h2 {
+            margin-top: 0;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-top: 10px;
         }
 
         table, th, td {
@@ -28,25 +47,48 @@
         button {
             margin: 5px;
             padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
 
+            button:hover {
+                background-color: #0056b3;
+            }
+
         input[type="text"], input[type="number"] {
-            padding: 5px;
+            padding: 8px;
             margin-right: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 200px;
         }
+
+        .action-buttons i {
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 18px;
+            color: #007bff;
+        }
+
+            .action-buttons i:hover {
+                color: #0056b3;
+            }
     </style>
 </head>
 <body>
 
     <h1>Portfolio Loss Rules Manager</h1>
 
-    <div>
+    <div class="card">
         <h2>Add New Rule</h2>
         <input type="number" id="lossThreshold" placeholder="Loss Threshold (%)" min="0" step="0.01">
         <button onclick="addRule()">Add Rule</button>
     </div>
 
-    <div>
+    <div class="card">
         <h2>Current Rules</h2>
         <table id="rulesTable">
             <thead>
@@ -63,8 +105,7 @@
     </div>
 
     <script>
-
-              const apiUrl = 'api/PortfolioLossRule'; // Adjust the URL as needed
+        const apiUrl = '/api/PortfolioLossRule'; // Adjust the URL as needed
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchRules();
@@ -80,13 +121,13 @@
                 rules.forEach(rule => {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td>${rule.Id}</td>
-                        <td>${rule.LossThreshold.toFixed(2)}</td>
-                        <td>
-                            <button onclick="deleteRule(${rule.Id})">Delete</button>
-                            <button onclick="editRule(${rule.Id}, ${rule.LossThreshold})">Edit</button>
-                        </td>
-                    `;
+                                <td>${rule.id}</td>
+                                        <td>${rule.lossThreshold.toFixed(2)}</td>
+                                <td class="action-buttons">
+                                            <i class='bx bx-trash' onclick="deleteRule(${rule.id})"></i>
+                                                    <i class='bx bx-edit' onclick="editRule(${rule.id}, ${rule.lossThreshold})"></i>
+                                </td>
+                            `;
                     rulesTableBody.appendChild(row);
                 });
             } catch (error) {
@@ -155,7 +196,7 @@
                 return;
             }
 
-            const updatedRule = { Id: id, LossThreshold: newThreshold };
+            const updatedRule = { id: id, lossThreshold: newThreshold };
 
             try {
                 const response = await fetch(`${apiUrl}/${id}`, {
@@ -175,12 +216,7 @@
                 console.error('Error updating rule:', error);
             }
         }
-
-
-
     </script>
 
 </body>
 </html>
-
-
