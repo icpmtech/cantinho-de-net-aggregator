@@ -58,6 +58,10 @@ namespace MarketAnalyticHub.Models
 
     // Add the UserCredit association
     public UserCredit? UserCredit { get; set; }
+
+    // Collection of PortfolioLossRules associated with this UserProfile
+    public ICollection<PortfolioLossRule> PortfolioLossRules { get; set; } = new List<PortfolioLossRule>();
+
   }
 
 }

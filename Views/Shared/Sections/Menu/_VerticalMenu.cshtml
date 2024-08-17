@@ -95,11 +95,8 @@
                         <div>Investment Prediction</div>
                     </a>
                 </li>
-                <li class='menu-item@(currentPage == "/Portfolio/RatingAgencies" ? " active" : "")'>
-                    <a asp-controller="Agencies" asp-action="Index" class="menu-link">
-                        <div>Rating Agencies</div>
-                    </a>
-                </li>
+               
+                
             </ul>
         </li>
 
@@ -193,6 +190,29 @@
                 <li class='menu-item@(currentPage == "/SentimentAnalizer/SearchSymbols" ? " active" : "")'>
                     <a asp-controller="SentimentAnalizer" asp-action="SearchSymbols" class="menu-link">
                         <div>Symbols</div>
+                    </a>
+                </li>
+
+            </ul>
+        </li>
+
+        <!-- Agencies -->
+        <li class='menu-item@(currentPage.StartsWith("/Agencies")  ? " active open" : "")'>
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx bx-archive"></i>
+                <div>Agencies</div>
+            </a>
+
+            <ul class="menu-sub">
+             
+                <li class='menu-item@(currentPage == "/Portfolio/RatingAgencies" ? " active" : "")'>
+                    <a asp-controller="Agencies" asp-action="Index" class="menu-link">
+                        <div>Rating Agencies</div>
+                    </a>
+                </li>
+                <li class='menu-item@(currentPage == "/Portfolio/StockMarketRatingsNotations" ? " active" : "")'>
+                    <a asp-controller="Agencies" asp-action="StockMarketRatingsNotations" class="menu-link">
+                        <div>Stock Market Ratings Notations</div>
                     </a>
                 </li>
 

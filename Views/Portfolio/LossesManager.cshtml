@@ -76,6 +76,22 @@
             .action-buttons i:hover {
                 color: #0056b3;
             }
+
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+            .message.success {
+                background-color: #d4edda;
+                color: #155724;
+            }
+
+            .message.error {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
     </style>
 </head>
 <body>
@@ -86,6 +102,7 @@
         <h2>Add New Rule</h2>
         <input type="number" id="lossThreshold" placeholder="Loss Threshold (%)" min="0" step="0.01">
         <button onclick="addRule()">Add Rule</button>
+        <div id="addRuleMessage" class="message" style="display: none;"></div>
     </div>
 
     <div class="card">
@@ -102,6 +119,7 @@
                 <!-- Rules will be populated here -->
             </tbody>
         </table>
+        <div id="rulesMessage" class="message" style="display: none;"></div>
     </div>
 
     <script>
@@ -118,19 +136,27 @@
                 const rulesTableBody = document.querySelector('#rulesTable tbody');
                 rulesTableBody.innerHTML = '';
 
-                rules.forEach(rule => {
+                if (rules.length > 0) {
+                    rules.forEach(rule => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                                    <td>${rule.id}</td>
+                                    <td>${rule.lossThreshold.toFixed(2)}</td>
+                                    <td class="action-buttons">
+                                        <i class='bx bx-trash' onclick="deleteRule(${rule.id})"></i>
+                                        <i class='bx bx-edit' onclick="editRule(${rule.id}, ${rule.lossThreshold})"></i>
+                                    </td>
+                                `;
+                        rulesTableBody.appendChild(row);
+                    });
+                } else {
                     const row = document.createElement('tr');
-                    row.innerHTML = `
-                                <td>${rule.id}</td>
-                                        <td>${rule.lossThreshold.toFixed(2)}</td>
-                                <td class="action-buttons">
-                                            <i class='bx bx-trash' onclick="deleteRule(${rule.id})"></i>
-                                                    <i class='bx bx-edit' onclick="editRule(${rule.id}, ${rule.lossThreshold})"></i>
-                                </td>
-                            `;
+                    row.innerHTML = `<td colspan="3" style="text-align: center;">No rules found</td>`;
                     rulesTableBody.appendChild(row);
-                });
+                }
+
             } catch (error) {
+                showMessage('rulesMessage', 'Error fetching rules', 'error');
                 console.error('Error fetching rules:', error);
             }
         }
@@ -140,7 +166,7 @@
             const lossThreshold = parseFloat(lossThresholdInput.value);
 
             if (isNaN(lossThreshold) || lossThreshold <= 0) {
-                alert('Please enter a valid loss threshold');
+                showMessage('addRuleMessage', 'Please enter a valid loss threshold', 'error');
                 return;
             }
 
@@ -158,15 +184,22 @@
                 if (response.ok) {
                     fetchRules();
                     lossThresholdInput.value = '';
+                    showMessage('addRuleMessage', 'Rule added successfully', 'success');
                 } else {
-                    alert('Error adding rule');
+                    const errorData = await response.json();
+                    showMessage('addRuleMessage', `Error adding rule: ${errorData.message}`, 'error');
                 }
             } catch (error) {
+                showMessage('addRuleMessage', 'Error adding rule', 'error');
                 console.error('Error adding rule:', error);
             }
         }
 
         async function deleteRule(id) {
+            if (!confirm('Are you sure you want to delete this rule?')) {
+                return;
+            }
+
             try {
                 const response = await fetch(`${apiUrl}/${id}`, {
                     method: 'DELETE'
@@ -174,10 +207,12 @@
 
                 if (response.ok) {
                     fetchRules();
+                    showMessage('rulesMessage', 'Rule deleted successfully', 'success');
                 } else {
-                    alert('Error deleting rule');
+                    showMessage('rulesMessage', 'Error deleting rule', 'error');
                 }
             } catch (error) {
+                showMessage('rulesMessage', 'Error deleting rule', 'error');
                 console.error('Error deleting rule:', error);
             }
         }
@@ -209,12 +244,25 @@
 
                 if (response.ok) {
                     fetchRules();
+                    showMessage('rulesMessage', 'Rule updated successfully', 'success');
                 } else {
-                    alert('Error updating rule');
+                    showMessage('rulesMessage', 'Error updating rule', 'error');
                 }
             } catch (error) {
+                showMessage('rulesMessage', 'Error updating rule', 'error');
                 console.error('Error updating rule:', error);
             }
+        }
+
+        function showMessage(elementId, message, type) {
+            const messageElement = document.getElementById(elementId);
+            messageElement.textContent = message;
+            messageElement.className = `message ${type}`;
+            messageElement.style.display = 'block';
+
+            setTimeout(() => {
+                messageElement.style.display = 'none';
+            }, 3000);
         }
     </script>
 

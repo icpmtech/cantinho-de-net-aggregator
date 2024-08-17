@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MarketAnalyticHub.Models
 {
@@ -6,10 +7,25 @@ namespace MarketAnalyticHub.Models
   {
     [Key]
     public int Id { get; set; }
+
     public decimal LossThreshold { get; set; }
-    // Add other properties as needed, e.g., RuleName, Description, etc.
+
+    // Foreign key to UserProfile
+    [Required]
+    public int UserProfileId { get; set; }
+
+    // Navigation property to UserProfile
+    [ForeignKey("UserProfileId")]
+    public UserProfile UserProfile { get; set; }
   }
 
+  public class PortfolioLossRuleViewModel
+  {
 
+    public int Id { get; set; }
+    public decimal LossThreshold { get; set; }
+
+    
+  }
 
 }
