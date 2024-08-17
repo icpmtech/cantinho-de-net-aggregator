@@ -79,6 +79,137 @@ namespace MarketAnalyticHub.Controllers
 
       return PartialView("_TransactionsPartial", transactions);
     }
+    public async Task<IActionResult> GetPortfolioStatistics_v4()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+      // Fetch overall portfolio statistics
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
+      if (overallStats == null)
+      {
+        return NotFound("No portfolio statistics found.");
+      }
+
+      // Fetch user portfolios with related data
+      var portfolios = await _context.Portfolios
+                                     .Include(p => p.Items)
+                                     .ThenInclude(pi => pi.Dividends)
+                                     .Where(p => p.UserId == userId)
+                                     .ToListAsync();
+
+      if (!portfolios.Any())
+      {
+        return NotFound("No portfolios found for the user.");
+      }
+
+      // Group symbols across all portfolios
+      var symbolStatistics = portfolios.SelectMany(p => p.Items)
+                                       .GroupBy(i => i.Symbol)
+                                       .Select(g => new SymbolStatisticsDto
+                                       {
+                                         Symbol = g.Key,
+                                         Quantity = g.Sum(i => i.Quantity),
+                                         TotalInvestment = g.Sum(i => i.Quantity * i.PurchasePrice),
+                                         CurrentMarketValue = g.Sum(i => i.Quantity * i.CurrentPrice),
+                                         Dividends = g.Sum(i => i.Dividends.Sum(d => d.Amount)),
+                                         Profit = g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)),
+                                         ProfitPercentage = (g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)) / g.Sum(i => i.Quantity * i.PurchasePrice)) * 100,
+                                         PLValue = g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)), // Profit/Loss Value
+                                         PLPercentage = (g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)) / g.Sum(i => i.Quantity * i.PurchasePrice)) * 100 // Profit/Loss Percentage
+                                       }).ToList();
+
+      var result = new
+      {
+        TotalValue = overallStats.TotalPortfolioProfit,
+        SymbolStatistics = symbolStatistics // Returning grouped symbol statistics
+      };
+
+      return Json(result);
+    }
+
+    public async Task<IActionResult> GetPortfolioStatistics_v3()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+      // Fetch overall portfolio statistics
+      var overallStats = await _portfolioService.GetTotalPortfolioOverall(userId);
+      if (overallStats == null)
+      {
+        return NotFound("No portfolio statistics found.");
+      }
+
+      // Fetch user portfolios with related data
+      var portfolios = await _context.Portfolios
+                                     .Include(p => p.Items)
+                                     .ThenInclude(pi => pi.Dividends)
+                                     .Where(p => p.UserId == userId)
+                                     .ToListAsync();
+
+      if (!portfolios.Any())
+      {
+        return NotFound("No portfolios found for the user.");
+      }
+
+      // Calculate statistics for each portfolio and each symbol within the portfolio
+      var portfolioStatisticsList = portfolios.Select(p => new
+      {
+        PortfolioName = p.Name,
+        TotalInvestment = (decimal)overallStats.TotalCustMarketValue,
+        CurrentMarketValue = (decimal)overallStats.TotalMarketValue,
+        TotalDifferenceValue = (decimal)overallStats.TotalDifferenceValue,
+        TotalDividends = (decimal)overallStats.TotalDividends,
+        TotalProfit = (decimal)overallStats.TotalPortfolioProfit,
+        TotalDifferencePercentage = (decimal)overallStats.TotalDifferencePercentage,
+        TotalProfitDifferencePercentage = (decimal)overallStats.TotalDifferenceWithDividendsPercentage,
+        Symbols = p.Items.Select(i => new
+        {
+          Symbol = i.Symbol,
+          Quantity = i.Quantity,
+          PurchasePrice = i.PurchasePrice,
+          CurrentPrice = i.CurrentPrice, // Assuming CurrentPrice is a property of PortfolioItem
+          TotalInvestment = i.Quantity * i.PurchasePrice,
+          CurrentMarketValue = i.Quantity * i.CurrentPrice,
+          Dividends = i.Dividends.Sum(d => d.Amount),
+          Profit = (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice),
+          ProfitPercentage = (((i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)) / (i.Quantity * i.PurchasePrice)) * 100
+        }).ToList()
+      }).ToList();
+
+      // Map to DTO for result
+      var statistics = portfolioStatisticsList.Select(p => new PortfolioStatisticsDto
+      {
+        PortfolioName = p.PortfolioName,
+        TotalValue = p.Symbols.Sum(s => s.CurrentMarketValue),  // Corrected to sum CurrentMarketValue
+        ItemCount = p.Symbols.Count,
+        Symbols = p.Symbols.Select(s => new SymbolStatisticsDto
+        {
+          Symbol = s.Symbol,
+          TotalInvestment = s.TotalInvestment,
+          CurrentMarketValue = s.CurrentMarketValue,
+          Dividends = s.Dividends,
+          Profit = s.Profit,
+          ProfitPercentage = s.ProfitPercentage
+        }).ToList()
+      }).ToList();
+
+      var result = new
+      {
+        TotalValue = overallStats.TotalPortfolioProfit,
+        Statistics = statistics
+      };
+
+      return Json(result);
+    }
+
+
     public async Task<IActionResult> GetPortfolioStatistics_v2()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -137,12 +268,27 @@ namespace MarketAnalyticHub.Controllers
 
       return Json(result);
     }
+    public class SymbolStatisticsDto
+    {
+      public string Symbol { get; set; }
+      public decimal Quantity { get; set; }
+      public decimal TotalInvestment { get; set; }
+      public decimal CurrentMarketValue { get; set; }
+      public decimal Dividends { get; set; }
+      public decimal Profit { get; set; }
+      public decimal ProfitPercentage { get; set; }
+      public decimal PLValue { get; set; } // Profit/Loss Value
+      public decimal PLPercentage { get; set; } // Profit/Loss Percentage
+    }
+
+
 
     public class PortfolioStatisticsDto
     {
       public string PortfolioName { get; set; }
       public decimal TotalValue { get; set; }
       public int ItemCount { get; set; }
+      public object Symbols { get; internal set; }
     }
 
 

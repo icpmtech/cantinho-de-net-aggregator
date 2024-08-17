@@ -1,5 +1,5 @@
 @model DashboardViewModel
-<!-- Portfolios Statistics -->
+
 <div class="col-md-6 col-lg-4 col-xl-4 order-0 mb-4">
     <div class="card h-100">
         <div class="card-header d-flex align-items-center justify-content-between pb-0">
@@ -12,13 +12,13 @@
                     <i class="bx bx-dots-vertical-rounded"></i>
                 </button>
                 <div class="dropdown-menu dropdown-menu-end" aria-labelledby="orderStatistics">
-                    <a class="dropdown-item" href="/PortfolioItems/Index" >View all</a>
+                    <a class="dropdown-item" href="/PortfolioItems/Index">View all</a>
                     <a class="dropdown-item" href="javascript:void(0);" onclick="refreshPortfolioStatistics()">Refresh</a>
                 </div>
             </div>
         </div>
         <div class="card-body">
-            <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="d-flex justify-content-between align-items-center mt-3 mb-3">
                 <div class="d-flex align-items-center gap-1">
                     <h2 id="totalPortfolios" class="mb-2">€0</h2>
                     <span>Total Portfolio</span>
@@ -26,13 +26,14 @@
             </div>
             <div id="symbolStatisticsChart1"></div>
             <div id="portfolioStatistics1">
-                <!-- Portfolio statistics will be loaded here -->
+                <!-- Grouped symbol statistics will be loaded here -->
             </div>
-            
+            <div id="totalValueOverTimeChart" class="mt-4"></div> <!-- New Chart Container -->
+
             <hr class="m-0">
             <div class="card-footer">
                 <div class="d-flex justify-content-between">
-                    <small class="text-body">You have done 57.6% more sales.<br>Check your new badge in your profile.</small>
+                    <small class="text-body">Need more details.<br>Check all your investment portfolio.</small>
                     <div>
                         <a href="/Portfolio" class="badge bg-label-warning rounded-2 p-2"><i class="bx bx-chevron-right bx-md text-warning"></i></a>
                     </div>
@@ -41,6 +42,7 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -48,29 +50,29 @@
     });
 
     function refreshPortfolioStatistics() {
-        fetch('@Url.Action("GetPortfolioStatistics_v2", "Dashboards")')
+        fetch('@Url.Action("GetPortfolioStatistics_v4", "Dashboards")')
             .then(response => response.json())
             .then(data => {
-                renderChart(data.statistics);
+                renderGroupedSymbolsChart(data.symbolStatistics);
                 updateTotalPortfolio(data);
-                updatePortfolioStatisticsList(data.statistics);
+                updatePortfolioStatisticsList(data.symbolStatistics);
             })
             .catch(error => {
                 console.error('Error fetching portfolio statistics:', error);
             });
     }
 
-    function renderChart(statistics) {
+    function renderGroupedSymbolsChart(statistics) {
         const chartContainer = document.getElementById('symbolStatisticsChart1');
         chartContainer.innerHTML = '';
 
         const options = {
-            series: statistics.map(stat => stat.totalValue),
+            series: statistics.map(stat => stat.currentMarketValue),
             chart: {
                 type: 'donut',
                 width: '100%'
             },
-            labels: statistics.map(stat => stat.portfolioName),
+            labels: statistics.map(stat => stat.symbol),
             responsive: [{
                 breakpoint: 480,
                 options: {
@@ -105,18 +107,20 @@
         const statisticsList = document.getElementById('portfolioStatistics1');
         statisticsList.innerHTML = '';
         statistics.forEach(stat => {
+            const isProfit = stat.plPercentage > 0;
+            const icon = isProfit ? 'bx bx-up-arrow-alt' : 'bx bx-down-arrow-alt';
+            const textClass = isProfit ? 'text-success' : 'text-danger';
+
             const listItem = document.createElement('li');
             listItem.className = 'd-flex justify-content-between align-items-center mb-3';
-            listItem.innerHTML = `<span>${stat.portfolioName}</span><span>€${stat.totalValue.toFixed(2)}</span>`;
+            listItem.innerHTML = `
+                        <div class="card card-body">
+                            <span><strong>${stat.symbol}</strong></span><br>
+                            <small>Investment: €${stat.totalInvestment.toFixed(2)}</small><br>
+                            <small>Current Value: €${stat.currentMarketValue.toFixed(2)}</small><br>
+                            <small class="${textClass}">P/L: €${stat.plValue.toFixed(2)} (${stat.plPercentage.toFixed(2)}%) <i class="${icon} ${textClass}"></i></small>
+                        </div>`;
             statisticsList.appendChild(listItem);
         });
     }
-
-    function selectAllPortfolios() {
-        refreshPortfolioStatistics();
-    }
 </script>
-<!--/ Portfolios Statistics -->
-@section PageScripts {
-
-}
