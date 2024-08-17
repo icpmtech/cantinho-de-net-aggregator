@@ -14,6 +14,7 @@
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.14" />
     <PackageReference Include="Hangfire.SqlServer" Version="1.8.14" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />
+    <PackageReference Include="Lib.Net.Http.WebPush" Version="1.2.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.0" />
@@ -49,6 +50,7 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Data\" />
+    <Folder Include="wwwroot\assets\snapshots\" />
   </ItemGroup>
 
   <ItemGroup>

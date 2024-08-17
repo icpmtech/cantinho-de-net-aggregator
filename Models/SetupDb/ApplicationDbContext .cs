@@ -19,7 +19,7 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<Dividend> Dividends { get; set; }
     public DbSet<NewsItem> News { get; set; }
     public DbSet<Sector> Sectors { get; set; }
-
+    public DbSet<CreditRatingAgency> CreditRatingAgencies { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<RSSLink> RSSLinks { get; set; }
     public DbSet<MarketAnalyticHub.Models.Portfolio.Portfolio> Portfolios { get; set; }
@@ -51,7 +51,11 @@ namespace MarketAnalyticHub.Models.SetupDb
          .WithOne(uc => uc.UserProfile)
          .HasForeignKey<UserCredit>(uc => uc.UserId);
 
-
+      modelBuilder.Entity<CreditRatingAgency>().HasData(
+       new CreditRatingAgency { Id = 1, Name = "Moody's", Country = "United States", Website = "https://www.moodys.com/", Description = "Moody's is a leading global provider of credit ratings, research, and risk analysis." },
+       new CreditRatingAgency { Id = 2, Name = "Standard & Poor's (S&P)", Country = "United States", Website = "https://www.standardandpoors.com/", Description = "S&P Global Ratings is known for providing credit ratings, research, and insights essential to global markets." }
+   // Add more seed data as needed
+   );
     }
 
 

@@ -1,0 +1,49 @@
+{
+  "appVersion": "1.0.0.0",
+  "appVersionCode": 1,
+  "backgroundColor": "#FFFFFF",
+  "display": "standalone",
+  "enableNotifications": true,
+  "enableSiteSettingsShortcut": true,
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": true
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "host": "https://marketanalyticshub.app",
+  "iconUrl": "https://marketanalyticshub.app/icon.png",
+  "maskableIconUrl": "https://marketanalyticshub.app/maskable-icon.png",
+  "monochromeIconUrl": "https://marketanalyticshub.app/monochrome-icon.png",
+  "includeSourceCode": false,
+  "isChromeOSOnly": false,
+  "launcherName": "MAHub",
+  "name": "Market Analytics Hub",
+  "navigationColor": "#FFFFFF",
+  "navigationColorDark": "#FFFFFF",
+  "navigationDividerColor": "#FFFFFF",
+  "navigationDividerColorDark": "#FFFFFF",
+  "orientation": "any",
+  "packageId": "com.marketanalyticshub.pwa",
+  "shortcuts": [],
+  "signing": {
+    "file": null,
+    "alias": "my-key-alias",
+    "fullName": "Admin",
+    "organization": "PWABuilder",
+    "organizationalUnit": "Engineering",
+    "countryCode": "US",
+    "keyPassword": "",
+    "storePassword": ""
+  },
+  "signingMode": "new",
+  "splashScreenFadeOutDuration": 300,
+  "startUrl": "/",
+  "themeColor": "#FFFFFF",
+  "themeColorDark": "#FFFFFF",
+  "shareTarget": [],
+  "webManifestUrl": "https://marketanalyticshub.com/manifest.json"
+}

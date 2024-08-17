@@ -468,6 +468,53 @@ namespace MarketAnalyticHub.Migrations
                     b.ToTable("Companies");
                 });
 
+            modelBuilder.Entity("MarketAnalyticHub.Models.SetupDb.CreditRatingAgency", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Country")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Website")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CreditRatingAgencies");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Country = "United States",
+                            Description = "Moody's is a leading global provider of credit ratings, research, and risk analysis.",
+                            Name = "Moody's",
+                            Website = "https://www.moodys.com/"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Country = "United States",
+                            Description = "S&P Global Ratings is known for providing credit ratings, research, and insights essential to global markets.",
+                            Name = "Standard & Poor's (S&P)",
+                            Website = "https://www.standardandpoors.com/"
+                        });
+                });
+
             modelBuilder.Entity("MarketAnalyticHub.Models.SetupDb.Sector", b =>
                 {
                     b.Property<int>("Id")

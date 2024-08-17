@@ -1,0 +1,150 @@
+@model IEnumerable<CreditRatingAgency>
+@{
+    ViewData["Title"] = "Credit Rating Agencies";
+}
+
+<div class="container mt-5">
+    <h1>@ViewData["Title"]</h1>
+    <div class="row" id="agencyList">
+        <!-- Agencies will be dynamically inserted here -->
+    </div>
+</div>
+
+<!-- Create/Edit Modal -->
+<div class="modal" id="agencyModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add New Agency</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="agencyForm">
+                    <input type="hidden" id="agencyId">
+                    <div class="form-group">
+                        <label for="name">Name</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="country">Country</label>
+                        <input type="text" class="form-control" id="country" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="website">Website</label>
+                        <input type="url" class="form-control" id="website">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea class="form-control" id="description"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveAgency()">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        loadAgencies();
+    });
+
+    async function loadAgencies() {
+        const response = await fetch('/api/agencies');
+        const agencies = await response.json();
+        const agencyList = document.getElementById('agencyList');
+        agencyList.innerHTML = '';
+
+        agencies.forEach(agency => {
+            agencyList.innerHTML += `
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class='bx bxs-bank'></i> ${agency.name}</h5>
+                                <h6 class="card-subtitle mb-2 text-muted"><i class='bx bx-world'></i> ${agency.country}</h6>
+                                <p class="card-text">${agency.description}</p>
+                                <a href="${agency.website}" target="_blank" class="card-link"><i class='bx bx-link'></i> Website</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+        });
+    }
+
+    function openCreateModal() {
+        document.getElementById('modalTitle').textContent = 'Add New Agency';
+        document.getElementById('agencyForm').reset();
+        document.getElementById('agencyId').value = '';
+        $('#agencyModal').modal('show');
+    }
+
+    async function saveAgency() {
+        const id = document.getElementById('agencyId').value;
+        const name = document.getElementById('name').value;
+        const country = document.getElementById('country').value;
+        const website = document.getElementById('website').value;
+        const description = document.getElementById('description').value;
+
+        const agency = { id, name, country, website, description };
+
+        let response;
+        if (id) {
+            // Update existing agency
+            response = await fetch(`/api/agencies/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(agency)
+            });
+        } else {
+            // Create new agency
+            response = await fetch('/api/agencies', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(agency)
+            });
+        }
+
+        if (response.ok) {
+            $('#agencyModal').modal('hide');
+            loadAgencies();
+        } else {
+            alert('Failed to save agency');
+        }
+    }
+
+    async function editAgency(id) {
+        const response = await fetch(`/api/agencies/${id}`);
+        const agency = await response.json();
+
+        document.getElementById('modalTitle').textContent = 'Edit Agency';
+        document.getElementById('agencyId').value = agency.id;
+        document.getElementById('name').value = agency.name;
+        document.getElementById('country').value = agency.country;
+        document.getElementById('website').value = agency.website;
+        document.getElementById('description').value = agency.description;
+
+        $('#agencyModal').modal('show');
+    }
+
+    async function deleteAgency(id) {
+        if (confirm('Are you sure you want to delete this agency?')) {
+            const response = await fetch(`/api/agencies/${id}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                loadAgencies();
+            } else {
+                alert('Failed to delete agency');
+            }
+        }
+    }
+</script>
