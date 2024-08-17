@@ -5,32 +5,39 @@
 <script>
     let totalRevenueChart;
     let totalRevenueChartArea;
-    // Function to initialize the revenue chart
+
+    // Function to initialize the bar chart
     function initializeRevenueChart() {
         const totalRevenueChartEl = document.querySelector('#totalRevenueChart1');
 
         const totalRevenueChartOptions = {
             series: [
                 {
-                    name: 'Revenue',
+                    name: 'Total Income',
                     data: []
                 },
                 {
-                    name: 'Investment',
+                    name: 'Capital Deployed',
                     data: []
                 },
                 {
-                    name: 'Diff.',
+                    name: 'Net Profit/Loss',
                     data: []
                 }
             ],
             chart: {
                 height: 300,
-                stacked: false, // Change to false to avoid stacking
+                stacked: false,
                 type: 'bar',
                 toolbar: { show: false }
             },
-            colors: ['#7367F0', '#00CFDD', '#FF4560'], // Distinct colors for each series
+            plotOptions: {
+                bar: {
+                    colors: {
+                        ranges: []
+                    }
+                }
+            },
             dataLabels: {
                 enabled: false
             },
@@ -108,6 +115,8 @@
             totalRevenueChart.render();
         }
     }
+
+    // Function to initialize the area chart
     function initializeRevenueChartArea() {
         const totalRevenueChartEl = document.querySelector('#totalRevenueChartArea');
 
@@ -128,11 +137,10 @@
             ],
             chart: {
                 height: 300,
-                stacked: false, // Change to false to avoid stacking
+                stacked: false,
                 type: 'area',
                 toolbar: { show: false }
             },
-            colors: ['#7367F0', '#00CFDD', '#FF4560'], // Distinct colors for each series
             dataLabels: {
                 enabled: false
             },
@@ -141,6 +149,16 @@
                 width: 0.001,
                 lineCap: 'round',
                 colors: ['#FFFFFF']
+            },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    inverseColors: false,
+                    opacityFrom: 0.7,
+                    opacityTo: 0.9,
+                    stops: [0, 90, 100]
+                }
             },
             legend: {
                 show: true,
@@ -211,12 +229,23 @@
         }
     }
 
-    // Function to update the chart when a year is selected
+    // Function to update the charts when a year is selected
     function updateGrowthChart(year) {
         console.log(`Fetching data for year: ${year}`);
         fetch(`/GetYearlyData/${year}`)
             .then(response => response.json())
             .then(data => {
+                // Function to determine the color based on the value
+                const getColor = (value) => value >= 0 ? '#28a745' : '#FF4560'; // Green for positive, Red for negative
+
+                // Generate color ranges for the bar chart based on the Net Profit/Loss series
+                const colorRanges = data.seriesDifference.map((value, index) => ({
+                    from: index,
+                    to: index + 1,
+                    color: getColor(value)
+                }));
+
+                // Update the bar chart
                 totalRevenueChart.updateSeries([
                     {
                         data: data.seriesRevenue
@@ -228,6 +257,17 @@
                         data: data.seriesDifference
                     }
                 ]);
+                totalRevenueChart.updateOptions({
+                    plotOptions: {
+                        bar: {
+                            colors: {
+                                ranges: colorRanges
+                            }
+                        }
+                    }
+                });
+
+                // Update the area chart
                 totalRevenueChartArea.updateSeries([
                     {
                         data: data.seriesRevenue
@@ -239,12 +279,18 @@
                         data: data.seriesDifference
                     }
                 ]);
+                totalRevenueChartArea.updateOptions({
+                    fill: {
+                        colors: data.seriesDifference.map(getColor)
+                    }
+                });
+
                 document.getElementById('growthReportId').textContent = year;
             })
             .catch(error => console.error('Error fetching data:', error));
     }
 
-    // Initial render
+    // Initial render when the DOM is ready
     document.addEventListener('DOMContentLoaded', function () {
         initializeRevenueChart();
         initializeRevenueChartArea();
@@ -304,6 +350,7 @@
         </div>
     </div>
 </div>
+
 <div class="col-12 col-lg-8 order-2 order-md-6 order-lg-2 mb-3">
     <div class="card">
         <div class="row row-bordered g-0">
