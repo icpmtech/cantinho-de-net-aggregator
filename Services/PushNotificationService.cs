@@ -27,29 +27,32 @@ namespace MarketAnalyticHub.Services
 
       _pushClient = new PushServiceClient();
       _vapidAuth = new VapidAuthentication(publicKey, privateKey);
-     
+
       _pushClient.DefaultAuthentication = _vapidAuth;
     }
 
-    public async Task SendPushNotificationAsync(PushSubscription subscription, string title, string message, string icon, string path)
+    public async Task SendPushNotificationAsync(PushSubscription subscription, string payloadJson)
     {
-      var notificationPayload = new
-      {
-        title,
-        body = message,
-        icon,
-        path
-      };
+      
 
-      var notification = new PushMessage(title);
+      var notification = new PushMessage(payloadJson); // Pass the JSON payload as the message
       notification.Topic = Guid.NewGuid().ToString(); // Unique identifier for the push message
       notification.Urgency = PushMessageUrgency.Normal;
-      
-      await _pushClient.RequestPushMessageDeliveryAsync(subscription.ToLibSubscription(), notification);
+
+      try
+      {
+        await _pushClient.RequestPushMessageDeliveryAsync(subscription.ToLibSubscription(), notification);
+      }
+      catch (Exception ex)
+      {
+        // Handle any exceptions
+        Console.WriteLine($"Error sending push notification: {ex.Message}");
+      }
     }
   }
 
-  public class PushSubscription
+
+    public class PushSubscription
   {
     [JsonPropertyName("endpoint")]
     public string Endpoint { get; set; }

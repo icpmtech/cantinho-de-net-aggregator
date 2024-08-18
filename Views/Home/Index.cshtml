@@ -126,16 +126,32 @@
     <!-- Page JS -->
     <script src="/assets/js/front-page-landing.js"></script>
     <script>
+        // main.js (or your main JavaScript file)
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    }, err => {
-                        console.log('ServiceWorker registration failed: ', err);
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(registration => {
+                    console.log('Service Worker registered with scope:', registration.scope);
+
+                    return registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: 'BAHCnaav358XuBDKIUrvUzFDib9ltb4GkimwfGviBX8Ngny6jC-hF6YajvDUo1-MKAdcrQ1SHpAqgBDVMfQi4tA'
                     });
-            });
+                })
+                .then(subscription => {
+                    // Send subscription to your server
+                    return fetch('/api/push/send', {
+                        method: 'POST',
+                        body: JSON.stringify(subscription),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                })
+                .catch(error => {
+                    console.error('Service Worker registration or Push Subscription failed:', error);
+                });
         }
+
     </script>
 </body>
 </html>

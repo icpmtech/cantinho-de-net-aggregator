@@ -1,25 +1,9 @@
+// service-worker.js
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
 
 const CACHE_NAME = 'market-analytic-hub-cache-v1';
 const offlineFallbackPage = "offline.html";
 const urlsToCache = ['/', offlineFallbackPage];
-
-
-navigator.serviceWorker.ready.then(registration => {
-  return registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: 'BAHCnaav358XuBDKIUrvUzFDib9ltb4GkimwfGviBX8Ngny6jC-hF6YajvDUo1-MKAdcrQ1SHpAqgBDVMfQi4tA'
-  });
-}).then(subscription => {
-  // Send subscription to your server
-  fetch('/api/push/send', {
-    method: 'POST',
-    body: JSON.stringify(subscription),
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-});
 
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
@@ -27,7 +11,7 @@ self.addEventListener("message", (event) => {
   }
 });
 
-// Install a service worker
+// Install event: cache necessary resources
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -40,9 +24,8 @@ self.addEventListener('install', event => {
   );
 });
 
-
-
 // Handle Push Event
+
 self.addEventListener('push', (event) => {
   let options = {
     body: 'Default body text', // Fallback text if payload is missing
@@ -51,23 +34,47 @@ self.addEventListener('push', (event) => {
   };
 
   if (event.data) {
-    const payload = event.data.json();
+    let payload;
+    try {
+      // Attempt to parse as JSON
+      payload = event.data.json();
+    } catch (err) {
+      console.error('Failed to parse push event data as JSON:', err);
+      // If parsing fails, treat the data as text
+      payload = { title: 'Notification', body: event.data.text() };
+    }
+
     options.body = payload.body || options.body;
     options.data.path = payload.path || options.data.path;
     options.icon = payload.icon || options.icon;
-  }
 
-  event.waitUntil(
-    self.registration.showNotification(payload.title || 'Notification Title', options)
-  );
+    event.waitUntil(
+      self.registration.showNotification(payload.title || 'Notification Title', options)
+    );
+  } else {
+    event.waitUntil(
+      self.registration.showNotification('Notification Title', options)
+    );
+  }
 });
+
 
 // Handle Notification Click
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const fullPath = self.location.origin + event.notification.data.path;
+  const fullPath = new URL(event.notification.data.path, self.location.origin).href;
+
   event.waitUntil(
-    clients.openWindow(fullPath).catch(err => {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windowClients => {
+      for (let client of windowClients) {
+        if (client.url === fullPath && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(fullPath);
+      }
+    }).catch(err => {
       console.error('Failed to open window:', err);
     })
   );
@@ -81,12 +88,13 @@ self.addEventListener('fetch', event => {
         if (response) {
           return response;
         }
-        return fetch(event.request).catch(err => {
-          console.error('Fetch failed; returning offline page:', err);
-          if (event.request.mode === 'navigate') {
-            return caches.match(offlineFallbackPage);
-          }
-        });
+        return fetch(event.request);
+      })
+      .catch(err => {
+        console.error('Fetch failed; returning offline page:', err);
+        if (event.request.mode === 'navigate') {
+          return caches.match(offlineFallbackPage);
+        }
       })
   );
 });

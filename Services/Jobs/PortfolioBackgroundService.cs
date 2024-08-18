@@ -2,6 +2,7 @@ namespace MarketAnalyticHub.Services.Jobs
 {
   using Hangfire;
   using System.Collections.Generic;
+  using System.Text.Json;
   using System.Threading.Tasks;
 
   public class PortfolioBackgroundService
@@ -48,9 +49,18 @@ namespace MarketAnalyticHub.Services.Jobs
                 string title = "Portfolio Loss Alert";
                 string message = $"Your portfolio has dropped by {lossPercentage}%!";
                 string icon = "/assets/icons/marketanalytic_hub_icon_48x48.png"; // Update with the actual path to your icon
-                string path = "/portfolio-details"; // Update with the path to portfolio details
+                string path = "/Dashboards"; // Update with the path to portfolio details
+                var notificationPayload = new
+                {
+                  title = title,
+                  body = message,
+                  icon = icon,
+                  path = path
+                };
+                string payloadJson = JsonSerializer.Serialize(notificationPayload);
 
-                await _pushNotificationService.SendPushNotificationAsync(subscription, title, message, icon, path);
+                await _pushNotificationService.SendPushNotificationAsync(subscription, payloadJson);
+
               }
 
               break; // Optionally break after the first matching rule, depending on your logic
