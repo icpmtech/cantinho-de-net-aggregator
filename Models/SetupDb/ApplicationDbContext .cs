@@ -19,6 +19,10 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<Dividend> Dividends { get; set; }
     public DbSet<NewsItem> News { get; set; }
     public DbSet<Sector> Sectors { get; set; }
+    public DbSet<PortfolioAlertLog> PortfolioAlertLogs { get; set; }
+    public DbSet<PushSubscriptionEntity> PushSubscriptions { get; set; }
+
+
     public DbSet<CreditRatingAgency> CreditRatingAgencies { get; set; }
     public DbSet<Company> Companies { get; set; }
     public DbSet<RSSLink> RSSLinks { get; set; }

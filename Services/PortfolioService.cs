@@ -30,6 +30,7 @@ namespace MarketAnalyticHub.Services
     private readonly IHubContext<NotificationHub> _hubContext;
     private object value;
     private object value1;
+    private object value2;
 
     public PortfolioService(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, FinnhubService finnhubService, OpenAIService openAIService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
     {
@@ -50,6 +51,11 @@ namespace MarketAnalyticHub.Services
     public PortfolioService(object value, object value1) : this(value)
     {
       this.value1 = value1;
+    }
+
+    public PortfolioService(object value, object value1, object value2) : this(value, value1)
+    {
+      this.value2 = value2;
     }
 
     // Method to trigger a portfolio update notification
@@ -850,36 +856,57 @@ namespace MarketAnalyticHub.Services
 
       // Optionally, log the alert for future reference or auditing purposes
       // Example: Log to database, file, or monitoring service
-      // await LogPortfolioLossAlertAsync(userId, currentValue, lossPercentage, message);
+     await LogPortfolioLossAlertAsync(userId, currentValue, lossPercentage, message);
     }
 
-    // Optional: Method to log the portfolio loss alert (if needed)
-    //private async Task LogPortfolioLossAlertAsync(string userId, decimal currentValue, decimal lossPercentage, string message)
-    //{
-    //  // Example logging logic (this could be to a database or an external logging service)
-    //  // Assuming there's a PortfolioAlertLog entity and _context is your database context
+    //Optional: Method to log the portfolio loss alert(if needed)
+    private async Task LogPortfolioLossAlertAsync(string userId, decimal currentValue, decimal lossPercentage, string message)
+    {
+      // Example logging logic (this could be to a database or an external logging service)
+      // Assuming there's a PortfolioAlertLog entity and _context is your database context
 
-    //  var alertLog = new PortfolioAlertLog
-    //  {
-    //    UserId = userId,
-    //    CurrentValue = currentValue,
-    //    LossPercentage = lossPercentage,
-    //    Message = message,
-    //    Timestamp = DateTime.UtcNow
-    //  };
+      var alertLog = new PortfolioAlertLog
+      {
+        UserId = userId,
+        CurrentValue = currentValue,
+        LossPercentage = lossPercentage,
+        Message = message,
+        Timestamp = DateTime.UtcNow
+      };
 
-    //  await _context.PortfolioAlertLogs.AddAsync(alertLog);
-    //  await _context.SaveChangesAsync();
-    //}
-  
+      await _context.PortfolioAlertLogs.AddAsync(alertLog);
+      await _context.SaveChangesAsync();
+    }
 
-  internal async Task<List<UserProfile>> GetAllUsersAsync()
+
+    internal async Task<List<UserProfile>> GetAllUsersAsync()
     {
       var users=await _context.UserProfiles.ToListAsync();
 
       return users;
     }
 
+    public async Task<PushSubscription> GetUserPushSubscriptionAsync(string userId)
+    {
+      // Assume there is a PushSubscriptions table where you store the user's subscription details
+      var subscriptionEntity = await _context.PushSubscriptions
+          .FirstOrDefaultAsync(sub => sub.UserId == userId);
+
+      if (subscriptionEntity == null)
+      {
+        return null;
+      }
+
+      return new PushSubscription
+      {
+        Endpoint = subscriptionEntity.Endpoint,
+        Keys = new PushSubscriptionKeys
+        {
+          P256DH = subscriptionEntity.P256DH,
+          Auth = subscriptionEntity.Auth
+        }
+      };
+    }
 
 
 

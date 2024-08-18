@@ -8,6 +8,7 @@ namespace MarketAnalyticHub.Services.Jobs
   {
     private readonly PortfolioService _portfolioService;
     private readonly PortfolioLossRuleService _ruleService;
+    private readonly PushNotificationService _pushNotificationService;
     private PortfolioService portfolioService;
 
     public PortfolioBackgroundService(PortfolioService portfolioService)
@@ -15,10 +16,11 @@ namespace MarketAnalyticHub.Services.Jobs
       this.portfolioService = portfolioService;
     }
 
-    public PortfolioBackgroundService(PortfolioService portfolioService, PortfolioLossRuleService ruleService)
+    public PortfolioBackgroundService(PortfolioService portfolioService, PortfolioLossRuleService ruleService, PushNotificationService pushNotificationService)
     {
       _portfolioService = portfolioService;
       _ruleService = ruleService;
+      _pushNotificationService = pushNotificationService;
     }
 
     // Method to check portfolio losses and send alerts based on dynamic rules
@@ -27,9 +29,9 @@ namespace MarketAnalyticHub.Services.Jobs
       var allUsers = await _portfolioService.GetAllUsersAsync(); // Retrieve all user IDs
       var rules = await _ruleService.GetAllRulesAsync(); // Retrieve all loss rules
 
-      foreach (var userId in allUsers)
+      foreach (var user in allUsers)
       {
-        var portfolios = await _portfolioService.GetPortfoliosByLossesUserAsync(userId.UserId);
+        var portfolios = await _portfolioService.GetPortfoliosByLossesUserAsync(user.UserId);
         foreach (var portfolio in portfolios)
         {
           var lossPercentage = portfolio.LossPercentage;
@@ -38,6 +40,19 @@ namespace MarketAnalyticHub.Services.Jobs
             if (lossPercentage >= rule.LossThreshold) // Check if portfolio loss meets or exceeds the rule threshold
             {
               await _portfolioService.SendPortfolioLossAlertAsync(portfolio.UserId, portfolio.CurrentMarketValue, lossPercentage);
+              // Fetch the user's push subscription details
+              var subscription = await _portfolioService.GetUserPushSubscriptionAsync(portfolio.UserId);
+              if (subscription != null)
+              {
+                // Send push notification
+                string title = "Portfolio Loss Alert";
+                string message = $"Your portfolio has dropped by {lossPercentage}%!";
+                string icon = "/assets/icons/marketanalytic_hub_icon_48x48.png"; // Update with the actual path to your icon
+                string path = "/portfolio-details"; // Update with the path to portfolio details
+
+                await _pushNotificationService.SendPushNotificationAsync(subscription, title, message, icon, path);
+              }
+
               break; // Optionally break after the first matching rule, depending on your logic
             }
           }
@@ -47,7 +62,7 @@ namespace MarketAnalyticHub.Services.Jobs
   }
 
 
-    public class Portfolio
+  public class Portfolio
   {
     public string UserId { get; set; }
     public decimal InitialValue { get; set; }

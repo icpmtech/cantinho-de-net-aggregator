@@ -230,7 +230,7 @@ using (var scope = app.Services.CreateScope())
   var recurringJobManager = serviceProvider.GetRequiredService<IRecurringJobManager>();
   recurringJobManager.AddOrUpdate(
            "CheckPortfolioLosses",
-           () => new PortfolioBackgroundService(new PortfolioService(null,null)).CheckPortfolioLossesAsync(),
+           () => new PortfolioBackgroundService(new PortfolioService(null,null,null)).CheckPortfolioLossesAsync(),
            "0 * * * *"); // Cron expression for every hour
 }
 

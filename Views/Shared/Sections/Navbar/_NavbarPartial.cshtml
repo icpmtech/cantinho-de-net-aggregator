@@ -62,16 +62,29 @@ else
         font-weight: bold;
     }
 
-    .notification-dot {
-        position: absolute;
-        top: 0;
-        right: 0;
-        height: 8px;
-        width: 8px;
+    .notification-badge {
+        position: relative;
+        top: 10px;
+        left: -10px;
         background-color: red;
+        color: white;
+        font-size: 12px;
+        padding: 3px 6px;
         border-radius: 50%;
     }
-
+    /* Mobile styles */
+@@media screen and (max-width: 768px) {
+    .notification-badge {
+            position: relative;
+            top: -10px;
+            left: 10px;
+            background-color: red;
+            color: white;
+            font-size: 12px;
+            padding: 3px 6px;
+            border-radius: 50%;
+    }
+}
     .shortcuts, .notifications {
         display: none;
         position: absolute;
@@ -201,6 +214,29 @@ else
             border-radius: 5px;
             display: inline-block;
         }
+
+    .user-message {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        border-radius: 5px;
+        color: #fff;
+        font-weight: bold;
+        z-index: 1001;
+    }
+
+        .user-message.success {
+            background-color: #28a745;
+        }
+
+        .user-message.error {
+            background-color: #dc3545;
+        }
+
+        .user-message.info {
+            background-color: #007bff;
+        }
 </style>
 
 <div class="shortcuts mt-1" id="shortcuts-menu">
@@ -254,16 +290,20 @@ else
     </div>
 </div>
 
-<div class="notifications mt-1 " id="notifications-menu">
-    <div class="notifications-header">
-        <span>Notification</span>
-        <span>0 New</span> <!-- Initial count is 0, this will be updated dynamically -->
-    </div>
-    <div class="notifications-list">
-        <!-- Dynamic notifications will be prepended here -->
-    </div>
-    <div class="notifications-footer">
-        <a href="#all-notifications">View all notifications</a>
+<div id="notification-icon-container" style="position:relative;">
+   
+    <div class="notifications mt-1 " id="notifications-menu" style="display:none;">
+        <div class="notifications-header">
+            <span>Notification</span>
+            <span id="notification-count">0 New</span>
+            <i class="bx bx-check" id="mark-as-read-icon" title="Mark all as read" style="cursor:pointer;"></i>
+        </div>
+        <div class="notifications-list">
+            <!-- Dynamic notifications will be prepended here -->
+        </div>
+        <div class="notifications-footer">
+            <a href="#all-notifications">View all notifications</a>
+        </div>
     </div>
 </div>
 
@@ -282,32 +322,94 @@ else
     });
 
     connection.on("ReceivePortfolioLossAlert", function (message) {
-        addNotification("Stock Alert", message, "Just now");
+        addNotification("Portfolio Loss Alert", message, "Just now");
     });
 
     connection.start().catch(function (err) {
-        return console.error(err.toString());
+        console.error("Error establishing SignalR connection:", err.toString());
+        displayUserMessage("Failed to connect to notification service. Please try again later.", "error");
     });
 
-    function addNotification(title, message, time) {
+    document.getElementById("notification-icon").addEventListener("click", function () {
+        var shortcutsMenu = document.getElementById("shortcuts-menu");
+        var notificationsMenu = document.getElementById("notifications-menu");
+
+        shortcutsMenu.classList.remove("show");
+        notificationsMenu.style.display = notificationsMenu.style.display === "none" ? "block" : "none";
+
+        if (notificationsMenu.style.display === "block") {
+            loadExistingNotifications();
+        }
+    });
+
+    document.getElementById("mark-as-read-icon").addEventListener("click", function () {
+        markNotificationsAsRead();
+    });
+
+    async function loadExistingNotifications() {
         const notificationsList = document.querySelector(".notifications-list");
 
-        // Create a new notification item element
+        try {
+            const response = await fetch('/api/notifications/portfolio-alerts');
+            if (!response.ok) {
+                throw new Error('Failed to load notifications');
+            }
+            const notifications = await response.json();
+
+            notificationsList.innerHTML = ''; // Clear the existing notifications
+
+            notifications.forEach(notification => {
+                addNotification(notification.title, notification.message, notification.time);
+            });
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+            displayUserMessage("Failed to load notifications. Please try again later.", "error");
+        }
+    }
+
+    async function markNotificationsAsRead() {
+        try {
+            const response = await fetch('/api/notifications/mark-read', { method: 'POST' });
+            if (!response.ok) {
+                throw new Error('Failed to mark notifications as read');
+            }
+
+            const notificationBadge = document.getElementById("notification-badge");
+            notificationBadge.style.display = "none";
+
+            // Optionally clear the notifications list
+            const notificationsList = document.querySelector(".notifications-list");
+            notificationsList.innerHTML = ''; // Clear notifications list
+
+            // Update notification count
+            updateNotificationCount();
+        } catch (error) {
+            console.error('Error marking notifications as read:', error);
+            displayUserMessage("Failed to mark notifications as read. Please try again later.", "error");
+        }
+    }
+
+    function addNotification(title, message, time) {
+        // Split the message into two parts using a colon ":"
+        let [mainMessage, additionalInfo] = message?.split(':');
+
+        const notificationsList = document.querySelector(".notifications-list");
+
         const notificationItem = document.createElement("div");
         notificationItem.classList.add("notification-item");
 
         const iconPlaceholder = document.createElement("div");
         iconPlaceholder.classList.add("icon-placeholder");
-        iconPlaceholder.textContent = title.charAt(0); // First letter of the title
+        iconPlaceholder.textContent = mainMessage?.charAt(0); // Use the first character of the title as the icon
 
         const contentDiv = document.createElement("div");
         contentDiv.classList.add("notification-item-content");
 
         const header = document.createElement("h6");
-        header.textContent = title;
+        header.textContent = mainMessage ? mainMessage.trim() : message; // Set the main message or the whole message if no separator
 
         const messageParagraph = document.createElement("p");
-        messageParagraph.textContent = message;
+        messageParagraph.textContent = additionalInfo ? additionalInfo.trim() : ''; // Set the additional info or leave empty if no separator
 
         contentDiv.appendChild(header);
         contentDiv.appendChild(messageParagraph);
@@ -320,71 +422,73 @@ else
         notificationItem.appendChild(contentDiv);
         notificationItem.appendChild(timeDiv);
 
-        // Prepend the new notification to the list
         notificationsList.prepend(notificationItem);
 
-        // Update the notification count
         updateNotificationCount();
     }
 
-    function updateNotificationCount() {
-        const notificationsHeader = document.querySelector(".notifications-header span:nth-child(2)");
-        const notificationItems = document.querySelectorAll(".notifications-list .notification-item");
-        notificationsHeader.textContent = `${notificationItems.length} New`;
-    }
-</script>
 
-<script>
+    function updateNotificationCount() {
+        const notificationItems = document.querySelectorAll(".notifications-list .notification-item");
+        const notificationsHeader = document.getElementById("notification-count");
+        const notificationBadge = document.getElementById("notification-badge");
+
+        notificationsHeader.textContent = `${notificationItems.length} New`;
+
+        if (notificationItems.length > 0) {
+            notificationBadge.textContent = notificationItems.length;
+            notificationBadge.style.display = "inline";
+        } else {
+            notificationBadge.style.display = "none";
+        }
+    }
+
+    function displayUserMessage(message, type) {
+        const userMessageContainer = document.createElement("div");
+        userMessageContainer.classList.add("user-message", type);
+        userMessageContainer.textContent = message;
+
+        document.body.appendChild(userMessageContainer);
+
+        setTimeout(() => {
+            userMessageContainer.remove();
+        }, 5000);
+    }
+
     document.getElementById("app-icon").addEventListener("click", function () {
         var shortcutsMenu = document.getElementById("shortcuts-menu");
         var notificationsMenu = document.getElementById("notifications-menu");
-        notificationsMenu.classList.remove("show");  // Hide notifications when showing shortcuts
+        notificationsMenu.style.display = "none";
         shortcutsMenu.classList.toggle("show");
     });
 
-    document.getElementById("notification-icon").addEventListener("click", function () {
-        var shortcutsMenu = document.getElementById("shortcuts-menu");
-        var notificationsMenu = document.getElementById("notifications-menu");
-        shortcutsMenu.classList.remove("show");  // Hide shortcuts when showing notifications
-        notificationsMenu.classList.toggle("show");
-    });
-
     document.addEventListener("DOMContentLoaded", function () {
-        // Get references to the credit bar and text elements
         var creditBar = document.getElementById("creditBar");
         var creditText = document.getElementById("creditText");
 
-        // Function to update the credit bar
         function updateCreditBar(creditUsed) {
             creditBar.style.width = creditUsed + "%";
-            creditText.innerText = creditUsed.toFixed(2) + "%"; // Display percentage with two decimal points
+            creditText.innerText = "Credits: " + creditUsed.toFixed(2) + "%";
         }
 
-        // Fetch user data from your API and update the bar
         fetch("/api/credits/current-user")
             .then(response => response.json())
             .then(data => {
                 if (!data.hasCredits) {
-                    // Redirect to the "Buy More Credits" page
                     window.location.href = "/Pages/BuyCredits";
                     return;
                 }
 
-                // Assuming `data` contains the percentage of credits used
                 var creditUsed = data.usedPercentage;
-
-                // Update the credit bar with the fetched data
                 updateCreditBar(creditUsed);
             })
             .catch(error => {
                 console.error("Error fetching credit data:", error);
-
-                // Optional: Set a default value or handle the error case
-                updateCreditBar(0); // Default to 0% if there's an error
+                updateCreditBar(0);
+                displayUserMessage("Failed to load credit data. Please try again later.", "error");
             });
     });
 
-    // Close the menus if clicked outside
     document.addEventListener("click", function (event) {
         var shortcutsMenu = document.getElementById("shortcuts-menu");
         var notificationsMenu = document.getElementById("notifications-menu");
