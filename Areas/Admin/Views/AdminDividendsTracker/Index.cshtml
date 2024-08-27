@@ -1,0 +1,45 @@
+@model IEnumerable<MarketAnalyticHub.Models.DividendsTracker>
+
+@{
+    ViewData["Title"] = "Dividends Tracker";
+}
+
+<h1>Dividends Tracker</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Company</th>
+            <th>Ticker</th>
+            <th>Country</th>
+            <th>Region</th>
+            <th>Exchange</th>
+            <th>Share Price</th>
+            <th>Prev Dividend</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Company</td>
+                <td>@item.Ticker</td>
+                <td>@item.Country</td>
+                <td>@item.Region</td>
+                <td>@item.Exchange</td>
+                <td>@item.SharePrice</td>
+                <td>@item.PrevDividend</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

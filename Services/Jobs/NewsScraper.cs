@@ -79,7 +79,7 @@ namespace MarketAnalyticHub.Services.Jobs
 
     public async Task ScrapeNewsAsync(int id)
     {
-      var newsScrapingItems = await _context.NewsScrapingItem.Where(q => q.Id == id).ToListAsync();
+      var newsScrapingItems = await _context.NewsScrapingItems.Where(q => q.Id == id).ToListAsync();
       var newsItems = new List<NewsItem>();
 
       foreach (var itemNews in newsScrapingItems)

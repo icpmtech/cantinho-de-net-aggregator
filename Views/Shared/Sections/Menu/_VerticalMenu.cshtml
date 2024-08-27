@@ -100,6 +100,31 @@
             </ul>
         </li>
 
+
+        <!-- Portfolio -->
+        <li class='menu-item@(currentPage.StartsWith("/DividendsTracker")  ? " active open" : "")'>
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx bx-archive"></i>
+                <div>Dividends Tracker</div>
+            </a>
+
+            <ul class="menu-sub">
+                <li class='menu-item@(currentPage == "/DividendsTracker/Index" ? " active" : "")'>
+                    <a asp-controller="DividendsTracker" asp-action="Index" class="menu-link">
+                        <div>Overview</div>
+                    </a>
+                </li>
+               @*  <li class='menu-item@(currentPage == "/DividendsTracker/Index" ? " active" : "")'>
+                    <a asp-controller="DividendsTracker" asp-action="Index" class="menu-link">
+                        <div>Transactions</div>
+                    </a>
+                </li> *@
+              
+
+            </ul>
+        </li>
+
+
         <!-- Research -->
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Research</span>

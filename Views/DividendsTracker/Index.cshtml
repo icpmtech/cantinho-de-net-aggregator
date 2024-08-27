@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upcoming Declared Dividends</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            cursor: pointer;
+        }
+
+            th.sort-asc::after {
+                content: " 🔼";
+            }
+
+            th.sort-desc::after {
+                content: " 🔽";
+            }
+
+        .region, .indices {
+            margin: 10px 0;
+        }
+
+            .region select {
+                padding: 5px;
+                margin-right: 10px;
+            }
+
+            .indices button {
+                margin: 5px;
+                padding: 8px 12px;
+                border: none;
+                background-color: #ddd;
+                cursor: pointer;
+                border-radius: 5px;
+            }
+
+                .indices button.selected {
+                    background-color: #bbb;
+                }
+    </style>
+</head>
+<body>
+
+    <h2>Upcoming Declared Dividends</h2>
+
+    <div class="region">
+        <label for="regionSelect">Region</label>
+        <select id="regionSelect" onchange="filterByRegion()">
+            <option value="Europe">Europe</option>
+            <option value="North America">North America</option>
+            <option value="United Kingdom">United Kingdom</option>
+        </select>
+    </div>
+
+    <div class="indices" id="indicesButtons">
+        <!-- Indices buttons will be dynamically inserted here -->
+    </div>
+
+    <table class="table" id="dividendTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Company</th>
+                <th onclick="sortTable(1)">Ticker</th>
+                <th onclick="sortTable(2)">Country</th>
+                <th onclick="sortTable(3)">Exchange</th>
+                <th onclick="sortTable(4)">Share Price</th>
+                <th onclick="sortTable(5)">Prev. Dividend</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Rows will be dynamically inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        const apiBaseUrl = '/api'; // Replace with your API base URL
+
+        async function fetchDividends(region, index = null) {
+            let url = `${apiBaseUrl}/DividendsTrackerApi/dividends?region=${region}`;
+            if (index) {
+                url += `&index=${index}`;
+            }
+
+            const response = await fetch(url);
+            if (response.ok) {
+                return response.json();
+            } else {
+                console.error('Failed to fetch dividends');
+                return [];
+            }
+        }
+
+        async function fetchIndices(region) {
+            const url = `${apiBaseUrl}/DividendsTrackerApi/indices?region=${region}`;
+            const response = await fetch(url);
+            if (response.ok) {
+                return response.json();
+            } else {
+                console.error('Failed to fetch indices');
+                return [];
+            }
+        }
+
+        async function populateTable(region, selectedIndex = null) {
+            const tableBody = document.querySelector("#dividendTable tbody");
+            tableBody.innerHTML = "";  // Clear the table before inserting
+
+            const dividends = await fetchDividends(region, selectedIndex);
+            dividends.forEach(item => {
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                            <td>${item.company}</td>
+                            <td>${item.ticker}</td>
+                            <td><img src="https://flagcdn.com/${getCountryCode(item.country)}.svg" width="20" alt="${item.country}"></td>
+                            <td>${item.exchange}</td>
+                            <td>${item.sharePrice}</td>
+                            <td>${item.prevDividend}</td>
+                        `;
+
+                tableBody.appendChild(row);
+            });
+        }
+
+        async function populateIndices(region) {
+            const indicesContainer = document.getElementById("indicesButtons");
+            indicesContainer.innerHTML = ""; // Clear previous buttons
+
+            const indices = await fetchIndices(region);
+            indices.forEach(index => {
+                const button = document.createElement("button");
+                button.textContent = index;
+                button.onclick = () => {
+                    highlightIndex(button);
+                    populateTable(region, index);
+                };
+                indicesContainer.appendChild(button);
+            });
+        }
+
+        function highlightIndex(button) {
+            const buttons = document.querySelectorAll(".indices button");
+            buttons.forEach(btn => btn.classList.remove("selected"));
+            button.classList.add("selected");
+        }
+
+        function sortTable(n) {
+            const table = document.getElementById("dividendTable");
+            const rows = table.rows;
+            let switching = true;
+            let shouldSwitch;
+            let dir = "asc";
+            let switchcount = 0;
+
+            while (switching) {
+                switching = false;
+                let rowsArray = Array.from(rows).slice(1);
+
+                for (let i = 0; i < (rowsArray.length - 1); i++) {
+                    shouldSwitch = false;
+                    const x = rowsArray[i].getElementsByTagName("TD")[n];
+                    const y = rowsArray[i + 1].getElementsByTagName("TD")[n];
+
+                    if (dir === "asc") {
+                        if (x.innerText.toLowerCase() > y.innerText.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (x.innerText.toLowerCase() < y.innerText.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rowsArray[i].parentNode.insertBefore(rowsArray[i + 1], rowsArray[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount === 0 && dir === "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+
+            const ths = table.getElementsByTagName("TH");
+            for (let i = 0; i < ths.length; i++) {
+                ths[i].classList.remove('sort-asc', 'sort-desc');
+            }
+            ths[n].classList.add(dir === "asc" ? 'sort-asc' : 'sort-desc');
+        }
+
+        function getCountryCode(country) {
+            const countryCodes = {
+                "Spain": "es",
+                "United States": "us",
+                "United Kingdom": "gb"
+            };
+            return countryCodes[country];
+        }
+
+        function filterByRegion() {
+            const selectedRegion = document.getElementById("regionSelect").value;
+            populateTable(selectedRegion);
+            populateIndices(selectedRegion);
+        }
+
+        // Initialize with default region (Europe)
+        document.addEventListener("DOMContentLoaded", () => {
+            filterByRegion();
+        });
+    </script>
+
+</body>
+</html>

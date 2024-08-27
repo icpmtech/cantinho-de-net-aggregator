@@ -4,6 +4,7 @@ using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketAnalyticHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240827000017_UpdateSeedData")]
+    partial class UpdateSeedData
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,6 +54,48 @@ namespace MarketAnalyticHub.Migrations
                     b.HasIndex("PortfolioItemId");
 
                     b.ToTable("Dividends");
+                });
+
+            modelBuilder.Entity("DividendIndices", b =>
+                {
+                    b.Property<int>("DividendsTrackerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IndexDividendsTrackerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DividendsTrackerId", "IndexDividendsTrackerId");
+
+                    b.HasIndex("IndexDividendsTrackerId");
+
+                    b.ToTable("DividendIndices");
+
+                    b.HasData(
+                        new
+                        {
+                            DividendsTrackerId = 3,
+                            IndexDividendsTrackerId = 1
+                        },
+                        new
+                        {
+                            DividendsTrackerId = 4,
+                            IndexDividendsTrackerId = 2
+                        },
+                        new
+                        {
+                            DividendsTrackerId = 5,
+                            IndexDividendsTrackerId = 2
+                        },
+                        new
+                        {
+                            DividendsTrackerId = 6,
+                            IndexDividendsTrackerId = 3
+                        },
+                        new
+                        {
+                            DividendsTrackerId = 7,
+                            IndexDividendsTrackerId = 3
+                        });
                 });
 
             modelBuilder.Entity("MarketAnalyticHub.Models.Address", b =>
@@ -160,7 +205,7 @@ namespace MarketAnalyticHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NewsScrapingItems");
+                    b.ToTable("NewsScrapingItem");
                 });
 
             modelBuilder.Entity("MarketAnalyticHub.Models.CreditRatingAgency", b =>
@@ -212,44 +257,25 @@ namespace MarketAnalyticHub.Migrations
 
             modelBuilder.Entity("MarketAnalyticHub.Models.DividendIndex", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<int>("DividendsTrackerId")
                         .HasColumnType("int");
 
                     b.Property<int>("IndexDividendsTrackerId")
                         .HasColumnType("int");
 
-                    b.HasKey("DividendsTrackerId", "IndexDividendsTrackerId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("DividendsTrackerId");
 
                     b.HasIndex("IndexDividendsTrackerId");
 
-                    b.ToTable("DividendIndices");
-
-                    b.HasData(
-                        new
-                        {
-                            DividendsTrackerId = 3,
-                            IndexDividendsTrackerId = 1
-                        },
-                        new
-                        {
-                            DividendsTrackerId = 4,
-                            IndexDividendsTrackerId = 2
-                        },
-                        new
-                        {
-                            DividendsTrackerId = 5,
-                            IndexDividendsTrackerId = 2
-                        },
-                        new
-                        {
-                            DividendsTrackerId = 6,
-                            IndexDividendsTrackerId = 3
-                        },
-                        new
-                        {
-                            DividendsTrackerId = 7,
-                            IndexDividendsTrackerId = 3
-                        });
+                    b.ToTable("DividendIndexs");
                 });
 
             modelBuilder.Entity("MarketAnalyticHub.Models.DividendsTracker", b =>
@@ -290,7 +316,7 @@ namespace MarketAnalyticHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DividendsTrackers");
+                    b.ToTable("DividendsTracker");
 
                     b.HasData(
                         new
@@ -390,7 +416,7 @@ namespace MarketAnalyticHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("IndexDividendsTrackers");
+                    b.ToTable("IndicesDividendsTracker");
 
                     b.HasData(
                         new
@@ -1080,6 +1106,23 @@ namespace MarketAnalyticHub.Migrations
                     b.Navigation("PortfolioItem");
                 });
 
+            modelBuilder.Entity("DividendIndices", b =>
+                {
+                    b.HasOne("MarketAnalyticHub.Models.DividendsTracker", null)
+                        .WithMany()
+                        .HasForeignKey("DividendsTrackerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_DividendIndices_DividendsTrackerId");
+
+                    b.HasOne("MarketAnalyticHub.Models.IndexDividendsTracker", null)
+                        .WithMany()
+                        .HasForeignKey("IndexDividendsTrackerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_DividendIndices_IndexDividendsTrackerId");
+                });
+
             modelBuilder.Entity("MarketAnalyticHub.Models.Address", b =>
                 {
                     b.HasOne("MarketAnalyticHub.Models.UserProfile", "UserProfile")
@@ -1094,13 +1137,13 @@ namespace MarketAnalyticHub.Migrations
             modelBuilder.Entity("MarketAnalyticHub.Models.DividendIndex", b =>
                 {
                     b.HasOne("MarketAnalyticHub.Models.DividendsTracker", "DividendsTracker")
-                        .WithMany("DividendIndices")
+                        .WithMany()
                         .HasForeignKey("DividendsTrackerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("MarketAnalyticHub.Models.IndexDividendsTracker", "IndexDividendsTracker")
-                        .WithMany("DividendIndices")
+                        .WithMany()
                         .HasForeignKey("IndexDividendsTrackerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1214,16 +1257,6 @@ namespace MarketAnalyticHub.Migrations
                         .IsRequired();
 
                     b.Navigation("UserProfile");
-                });
-
-            modelBuilder.Entity("MarketAnalyticHub.Models.DividendsTracker", b =>
-                {
-                    b.Navigation("DividendIndices");
-                });
-
-            modelBuilder.Entity("MarketAnalyticHub.Models.IndexDividendsTracker", b =>
-                {
-                    b.Navigation("DividendIndices");
                 });
 
             modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.Entities.PortfolioItem", b =>

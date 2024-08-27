@@ -363,7 +363,7 @@ namespace MarketAnalyticHub.Controllers.api
     [HttpGet("scraped-dynamic")]
     public async Task<IEnumerable<NewsItem>> GetScrapedNewsDynamicAsync()
     {
-      var newsScrapingItems = _context.NewsScrapingItem.ToList();
+      var newsScrapingItems = _context.NewsScrapingItems.ToList();
       var newsItems = new List<NewsItem>();
 
       foreach (var itemNews in newsScrapingItems)

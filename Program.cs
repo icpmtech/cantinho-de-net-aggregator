@@ -130,6 +130,9 @@ builder.Services.AddScoped<PushNotificationService>();
 builder.Services.AddScoped<PortfolioLossRuleRepository>();
 builder.Services.AddSingleton<IMilvusService, MilvusService>();
 builder.Services.AddSingleton<IArticleProcessor, ArticleProcessor>();
+builder.Services.AddScoped<IDividendsTrackerRepository, DividendsTrackerRepository>();
+builder.Services.AddScoped<IIndicesDividendsTrackerRepository, IndicesDividendsTrackerRepository>();
+
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration

@@ -4,6 +4,7 @@ using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MarketAnalyticHub.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240826161420_UpdateDividendsTracker")]
+    partial class UpdateDividendsTracker
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -51,6 +54,21 @@ namespace MarketAnalyticHub.Migrations
                     b.HasIndex("PortfolioItemId");
 
                     b.ToTable("Dividends");
+                });
+
+            modelBuilder.Entity("DividendsTrackerIndexDividendsTracker", b =>
+                {
+                    b.Property<int>("DividendsTrackerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IndicesDividendsTrackerId")
+                        .HasColumnType("int");
+
+                    b.HasKey("DividendsTrackerId", "IndicesDividendsTrackerId");
+
+                    b.HasIndex("IndicesDividendsTrackerId");
+
+                    b.ToTable("DividendIndices", (string)null);
                 });
 
             modelBuilder.Entity("MarketAnalyticHub.Models.Address", b =>
@@ -160,7 +178,7 @@ namespace MarketAnalyticHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("NewsScrapingItems");
+                    b.ToTable("NewsScrapingItem");
                 });
 
             modelBuilder.Entity("MarketAnalyticHub.Models.CreditRatingAgency", b =>
@@ -210,48 +228,6 @@ namespace MarketAnalyticHub.Migrations
                         });
                 });
 
-            modelBuilder.Entity("MarketAnalyticHub.Models.DividendIndex", b =>
-                {
-                    b.Property<int>("DividendsTrackerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("IndexDividendsTrackerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("DividendsTrackerId", "IndexDividendsTrackerId");
-
-                    b.HasIndex("IndexDividendsTrackerId");
-
-                    b.ToTable("DividendIndices");
-
-                    b.HasData(
-                        new
-                        {
-                            DividendsTrackerId = 3,
-                            IndexDividendsTrackerId = 1
-                        },
-                        new
-                        {
-                            DividendsTrackerId = 4,
-                            IndexDividendsTrackerId = 2
-                        },
-                        new
-                        {
-                            DividendsTrackerId = 5,
-                            IndexDividendsTrackerId = 2
-                        },
-                        new
-                        {
-                            DividendsTrackerId = 6,
-                            IndexDividendsTrackerId = 3
-                        },
-                        new
-                        {
-                            DividendsTrackerId = 7,
-                            IndexDividendsTrackerId = 3
-                        });
-                });
-
             modelBuilder.Entity("MarketAnalyticHub.Models.DividendsTracker", b =>
                 {
                     b.Property<int>("Id")
@@ -290,7 +266,7 @@ namespace MarketAnalyticHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DividendsTrackers");
+                    b.ToTable("DividendsTracker");
 
                     b.HasData(
                         new
@@ -314,61 +290,6 @@ namespace MarketAnalyticHub.Migrations
                             Region = "Europe",
                             SharePrice = "€49.40",
                             Ticker = "ITX"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Company = "Telefonica S.A",
-                            Country = "Spain",
-                            Exchange = "XMAD",
-                            PrevDividend = "15¢",
-                            Region = "Europe",
-                            SharePrice = "€4.06",
-                            Ticker = "TEF"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Company = "Apple Inc.",
-                            Country = "United States",
-                            Exchange = "NASDAQ",
-                            PrevDividend = "20¢",
-                            Region = "North America",
-                            SharePrice = "$150.00",
-                            Ticker = "AAPL"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Company = "Microsoft Corp",
-                            Country = "United States",
-                            Exchange = "NASDAQ",
-                            PrevDividend = "30¢",
-                            Region = "North America",
-                            SharePrice = "$280.00",
-                            Ticker = "MSFT"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Company = "Royal Dutch Shell",
-                            Country = "United Kingdom",
-                            Exchange = "LSE",
-                            PrevDividend = "40p",
-                            Region = "United Kingdom",
-                            SharePrice = "£20.00",
-                            Ticker = "RDSA"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Company = "Unilever PLC",
-                            Country = "United Kingdom",
-                            Exchange = "LSE",
-                            PrevDividend = "37p",
-                            Region = "United Kingdom",
-                            SharePrice = "£43.00",
-                            Ticker = "ULVR"
                         });
                 });
 
@@ -390,26 +311,20 @@ namespace MarketAnalyticHub.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("IndexDividendsTrackers");
+                    b.ToTable("IndicesDividendsTracker");
 
                     b.HasData(
                         new
                         {
                             Id = 1,
-                            Indices = "[\"AEX 25\",\"BBC Global 30\",\"BEL 20\",\"CAC 40\",\"DAX 40\",\"Euronext 100\",\"Euro Stoxx 50\",\"FTSE Eurotop 100\",\"FTSE MIB\",\"IBEX 35\",\"OBX Norway 25\",\"OMX Copenhagen 20\",\"OMX Helsinki 25\",\"OMX Stockholm 30\",\"PSI 20\",\"S\\u0026P Global 100\",\"STOXX600\",\"TSIC Dutch15\",\"TSIC Euro30\"]",
+                            Indices = "[\"IBEX 35\",\"Euro Stoxx 50\"]",
                             Region = "Europe"
                         },
                         new
                         {
                             Id = 2,
-                            Indices = "[\"S\\u0026P 500\",\"NASDAQ 100\",\"Dow Jones Industrial Average\",\"Russell 2000\"]",
+                            Indices = "[\"S\\u0026P 500\",\"NASDAQ 100\"]",
                             Region = "North America"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Indices = "[\"FTSE 100\",\"FTSE 250\",\"FTSE All-Share\",\"FTSE AIM 100\"]",
-                            Region = "United Kingdom"
                         });
                 });
 
@@ -1080,6 +995,21 @@ namespace MarketAnalyticHub.Migrations
                     b.Navigation("PortfolioItem");
                 });
 
+            modelBuilder.Entity("DividendsTrackerIndexDividendsTracker", b =>
+                {
+                    b.HasOne("MarketAnalyticHub.Models.DividendsTracker", null)
+                        .WithMany()
+                        .HasForeignKey("DividendsTrackerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MarketAnalyticHub.Models.IndexDividendsTracker", null)
+                        .WithMany()
+                        .HasForeignKey("IndicesDividendsTrackerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MarketAnalyticHub.Models.Address", b =>
                 {
                     b.HasOne("MarketAnalyticHub.Models.UserProfile", "UserProfile")
@@ -1089,25 +1019,6 @@ namespace MarketAnalyticHub.Migrations
                         .IsRequired();
 
                     b.Navigation("UserProfile");
-                });
-
-            modelBuilder.Entity("MarketAnalyticHub.Models.DividendIndex", b =>
-                {
-                    b.HasOne("MarketAnalyticHub.Models.DividendsTracker", "DividendsTracker")
-                        .WithMany("DividendIndices")
-                        .HasForeignKey("DividendsTrackerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("MarketAnalyticHub.Models.IndexDividendsTracker", "IndexDividendsTracker")
-                        .WithMany("DividendIndices")
-                        .HasForeignKey("IndexDividendsTrackerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("DividendsTracker");
-
-                    b.Navigation("IndexDividendsTracker");
                 });
 
             modelBuilder.Entity("MarketAnalyticHub.Models.News.NewsItem", b =>
@@ -1214,16 +1125,6 @@ namespace MarketAnalyticHub.Migrations
                         .IsRequired();
 
                     b.Navigation("UserProfile");
-                });
-
-            modelBuilder.Entity("MarketAnalyticHub.Models.DividendsTracker", b =>
-                {
-                    b.Navigation("DividendIndices");
-                });
-
-            modelBuilder.Entity("MarketAnalyticHub.Models.IndexDividendsTracker", b =>
-                {
-                    b.Navigation("DividendIndices");
                 });
 
             modelBuilder.Entity("MarketAnalyticHub.Models.Portfolio.Entities.PortfolioItem", b =>

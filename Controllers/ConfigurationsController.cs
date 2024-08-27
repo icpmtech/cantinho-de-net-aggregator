@@ -31,7 +31,7 @@ public class ConfigurationsController : Controller
   public IActionResult News()
   {
 
-    var news= _context.NewsScrapingItem.ToList();
+    var news= _context.NewsScrapingItems.ToList();
 
     return View(news);
   }
@@ -45,7 +45,7 @@ public class ConfigurationsController : Controller
     news.DateSelector = news.DateSelector ?? "EMPTY";
     if (ModelState.IsValid)
     {
-      _context.NewsScrapingItem.Add(news);
+      _context.NewsScrapingItems.Add(news);
       _context.SaveChanges();
       return Json(new { success = true, message = "News added successfully!" });
     }
@@ -87,10 +87,10 @@ public class ConfigurationsController : Controller
   [HttpDelete("deletenews/{id}")]
   public IActionResult Delete(int id)
   {
-    var newsItem = _context.NewsScrapingItem.Find(id);
+    var newsItem = _context.NewsScrapingItems.Find(id);
     if (newsItem != null)
     {
-      _context.NewsScrapingItem.Remove(newsItem);
+      _context.NewsScrapingItems.Remove(newsItem);
       _context.SaveChanges();
       return Json(new { success = true, message = "News deleted successfully!" });
     }
@@ -100,7 +100,7 @@ public class ConfigurationsController : Controller
   [HttpGet("getnews/{id}")]
   public IActionResult GetNews(int id)
   {
-    var newsItem = _context.NewsScrapingItem.Find(id);
+    var newsItem = _context.NewsScrapingItems.Find(id);
     if (newsItem != null)
     {
       return Json(new { success = true, news = newsItem });
@@ -124,7 +124,7 @@ public class ConfigurationsController : Controller
 
     if (ModelState.IsValid)
     {
-      _context.NewsScrapingItem.Update(news);
+      _context.NewsScrapingItems.Update(news);
       _context.SaveChanges();
       return Ok(new { success = true, message = "News updated successfully!" });
     }

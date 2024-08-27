@@ -37,7 +37,7 @@
     <PackageReference Include="Microsoft.Identity.Web.DownstreamApi" Version="2.16.0" />
     <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="2.16.0" />
     <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.16.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.3" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.4" />
     <PackageReference Include="Milvus.Client" Version="2.3.0-preview.1" />
     <PackageReference Include="NEST" Version="7.17.5" />
     <PackageReference Include="NewsAPI" Version="0.7.0" />

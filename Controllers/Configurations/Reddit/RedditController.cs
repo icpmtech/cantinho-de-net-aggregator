@@ -18,7 +18,7 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     }
     public IActionResult Index()
     {
-      var news = _context.NewsScrapingItem.ToList();
+      var news = _context.NewsScrapingItems.ToList();
 
       return View(news);
     }

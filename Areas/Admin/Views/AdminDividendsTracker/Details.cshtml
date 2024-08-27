@@ -1,0 +1,60 @@
+@model MarketAnalyticHub.Models.DividendsTracker
+
+@{
+    ViewData["Title"] = "Dividend Tracker Details";
+}
+
+<h1>Dividend Tracker Details</h1>
+
+<div>
+    <h4>DividendsTracker</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            Company
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Company
+        </dd>
+        <dt class="col-sm-2">
+            Ticker
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Ticker
+        </dd>
+        <dt class="col-sm-2">
+            Country
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Country
+        </dd>
+        <dt class="col-sm-2">
+            Region
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Region
+        </dd>
+        <dt class="col-sm-2">
+            Exchange
+        </dt>
+        <dd class="col-sm-10">
+            @Model.Exchange
+        </dd>
+        <dt class="col-sm-2">
+            Share Price
+        </dt>
+        <dd class="col-sm-10">
+            @Model.SharePrice
+        </dd>
+        <dt class="col-sm-2">
+            Prev Dividend
+        </dt>
+        <dd class="col-sm-10">
+            @Model.PrevDividend
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>
