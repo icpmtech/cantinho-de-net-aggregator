@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MarketAnalyticHub.Models
 {
@@ -14,7 +15,7 @@ namespace MarketAnalyticHub.Models
     public string PrevDividend { get; set; }
     public DateTime? ExDateDividend { get; set; }
     public DateTime? PayDateDividend { get; set; }
-
+  
 
     // Navigation property for the many-to-many relationship
     public List<DividendIndex> DividendIndices { get; set; } = new List<DividendIndex>();

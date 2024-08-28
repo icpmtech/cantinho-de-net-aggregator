@@ -1,4 +1,4 @@
-@model MarketAnalyticHub.Models.DividendsTracker
+@model MarketAnalyticHub.Models.DividendsTrackerViewModel
 
 @{
     ViewData["Title"] = "Edit Dividend Tracker";
@@ -6,62 +6,92 @@
 
 <h1>Edit Dividend Tracker</h1>
 
-<h4>DividendsTracker</h4>
-<hr />
+@* Display a summary of validation errors *@
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <strong>There were errors with your submission:</strong>
+        <ul>
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@error.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Edit">
+            <input type="hidden" asp-for="Id" />
+
             <div class="form-group">
                 <label asp-for="Company" class="control-label"></label>
                 <input asp-for="Company" class="form-control" />
                 <span asp-validation-for="Company" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Ticker" class="control-label"></label>
                 <input asp-for="Ticker" class="form-control" />
                 <span asp-validation-for="Ticker" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Country" class="control-label"></label>
                 <input asp-for="Country" class="form-control" />
                 <span asp-validation-for="Country" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Region" class="control-label"></label>
                 <input asp-for="Region" class="form-control" />
                 <span asp-validation-for="Region" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="Exchange" class="control-label"></label>
                 <input asp-for="Exchange" class="form-control" />
                 <span asp-validation-for="Exchange" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="SharePrice" class="control-label"></label>
                 <input asp-for="SharePrice" class="form-control" />
                 <span asp-validation-for="SharePrice" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="PrevDividend" class="control-label"></label>
                 <input asp-for="PrevDividend" class="form-control" />
                 <span asp-validation-for="PrevDividend" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="ExDateDividend" class="control-label"></label>
                 <input asp-for="ExDateDividend" class="form-control" />
                 <span asp-validation-for="ExDateDividend" class="text-danger"></span>
             </div>
+
             <div class="form-group">
                 <label asp-for="PayDateDividend" class="control-label"></label>
                 <input asp-for="PayDateDividend" class="form-control" />
                 <span asp-validation-for="PayDateDividend" class="text-danger"></span>
             </div>
+
+            <div class="form-group">
+                <label asp-for="SelectedIndices" class="control-label">Indices</label>
+                <select asp-for="SelectedIndices" class="form-control" asp-items="Model.AvailableIndices" multiple="multiple"></select>
+                <span asp-validation-for="SelectedIndices" class="text-danger"></span>
+            </div>
+
             <div class="form-group">
                 <input type="submit" value="Save" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
+
 <div>
     <a asp-action="Index">Back to List</a>
 </div>

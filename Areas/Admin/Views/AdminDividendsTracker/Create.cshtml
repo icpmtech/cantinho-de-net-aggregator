@@ -1,67 +1,56 @@
 @model MarketAnalyticHub.Models.DividendsTracker
 
 @{
-    ViewData["Title"] = "Create Dividend Tracker";
+    ViewData["Title"] = "Add Dividend";
 }
 
-<h1>Create Dividend Tracker</h1>
+<h1>Add Dividend</h1>
 
-<h4>DividendsTracker</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div class="form-group">
-                <label asp-for="Company" class="control-label"></label>
-                <input asp-for="Company" class="form-control" />
-                <span asp-validation-for="Company" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Ticker" class="control-label"></label>
-                <input asp-for="Ticker" class="form-control" />
-                <span asp-validation-for="Ticker" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Country" class="control-label"></label>
-                <input asp-for="Country" class="form-control" />
-                <span asp-validation-for="Country" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Region" class="control-label"></label>
-                <input asp-for="Region" class="form-control" />
-                <span asp-validation-for="Region" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Exchange" class="control-label"></label>
-                <input asp-for="Exchange" class="form-control" />
-                <span asp-validation-for="Exchange" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="SharePrice" class="control-label"></label>
-                <input asp-for="SharePrice" class="form-control" />
-                <span asp-validation-for="SharePrice" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PrevDividend" class="control-label"></label>
-                <input asp-for="PrevDividend" class="form-control" />
-                <span asp-validation-for="PrevDividend" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ExDateDividend" class="control-label"></label>
-                <input asp-for="ExDateDividend" class="form-control" />
-                <span asp-validation-for="ExDateDividend" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="PayDateDividend" class="control-label"></label>
-                <input asp-for="PayDateDividend" class="form-control" />
-                <span asp-validation-for="PayDateDividend" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="AddDividend" method="post">
+    <div class="form-group">
+        <label asp-for="Company" class="control-label"></label>
+        <input asp-for="Company" class="form-control" />
+        <span asp-validation-for="Company" class="text-danger"></span>
     </div>
-</div>
+    <div class="form-group">
+        <label asp-for="Ticker" class="control-label"></label>
+        <input asp-for="Ticker" class="form-control" />
+        <span asp-validation-for="Ticker" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Country" class="control-label"></label>
+        <input asp-for="Country" class="form-control" />
+        <span asp-validation-for="Country" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Region" class="control-label"></label>
+        <input asp-for="Region" class="form-control" />
+        <span asp-validation-for="Region" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Exchange" class="control-label"></label>
+        <input asp-for="Exchange" class="form-control" />
+        <span asp-validation-for="Exchange" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="SharePrice" class="control-label"></label>
+        <input asp-for="SharePrice" class="form-control" />
+        <span asp-validation-for="SharePrice" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="PrevDividend" class="control-label"></label>
+        <input asp-for="PrevDividend" class="form-control" />
+        <span asp-validation-for="PrevDividend" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="DividendIndices" class="control-label">Index</label>
+        <select asp-for="DividendIndices" class="form-control" asp-items="ViewBag.IndexIds" multiple="multiple"></select>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Add" class="btn btn-primary" />
+    </div>
+</form>
+
 <div>
     <a asp-action="Index">Back to List</a>
 </div>

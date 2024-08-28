@@ -21,7 +21,18 @@ namespace MarketAnalyticHub.Controllers.api
       _dividendsTrackerRepository = dividendsTrackerRepository;
       _indicesDividendsTrackerRepository = indicesDividendsTrackerRepository;
     }
+    [HttpGet("dividends")]
+    public async Task<ActionResult<IEnumerable<DividendsTracker>>> GetDividends(string region, string index)
+    {
+      var dividends = await _dividendsTrackerRepository.GetDividendsAsync(region, index);
 
+      if (!dividends.Any())
+      {
+        return NotFound($"No dividends found for region: {region} with index: {index}");
+      }
+
+      return Ok(dividends);
+    }
 
     // POST: api/DividendsTracker
     [HttpPost("add-dividend")]

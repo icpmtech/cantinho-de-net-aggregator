@@ -61,7 +61,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
     // POST: Admin/DividendsTracker/Create
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create([Bind("Id,Company,Ticker,Country,Region,Exchange,SharePrice,PrevDividend")] DividendsTracker dividend, int[] selectedIndices)
+    public async Task<IActionResult> Create([Bind("Id,Company,Ticker,Country,Region,Exchange,SharePrice,PrevDividend,ExDateDividend,PayDateDividend")] DividendsTracker dividend, int[] selectedIndices)
     {
       if (ModelState.IsValid)
       {
@@ -87,6 +87,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
     }
 
     // GET: Admin/DividendsTracker/Edit/5
+    // GET: Admin/DividendsTracker/Edit/5
     public async Task<IActionResult> Edit(int? id)
     {
       if (id == null)
@@ -104,16 +105,33 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
         return NotFound();
       }
 
-      ViewData["IndexIds"] = new SelectList(_context.IndexDividendsTrackers, "Id", "Region", dividend.DividendIndices.Select(di => di.IndexDividendsTrackerId));
-      return View(dividend);
+      // Prepare the ViewModel
+      var viewModel = new DividendsTrackerViewModel
+      {
+        Id = dividend.Id,
+        Company = dividend.Company,
+        Ticker = dividend.Ticker,
+        Country = dividend.Country,
+        Region = dividend.Region,
+        Exchange = dividend.Exchange,
+        SharePrice = dividend.SharePrice,
+        PrevDividend = dividend.PrevDividend,
+        ExDateDividend = dividend.ExDateDividend,
+        PayDateDividend = dividend.PayDateDividend,
+        SelectedIndices = dividend.DividendIndices.Select(di => di.IndexDividendsTrackerId).ToArray(),
+        AvailableIndices = new SelectList(_context.IndexDividendsTrackers, "Id", "Region")
+      };
+
+      return View(viewModel);
     }
+
 
     // POST: Admin/DividendsTracker/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Company,Ticker,Country,Region,Exchange,SharePrice,PrevDividend")] DividendsTracker dividend, int[] selectedIndices)
+    public async Task<IActionResult> Edit(int id, DividendsTrackerViewModel model)
     {
-      if (id != dividend.Id)
+      if (id != model.Id)
       {
         return NotFound();
       }
@@ -122,27 +140,55 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
       {
         try
         {
-          // Update the dividend details
-          _context.Update(dividend);
+          // Find the existing DividendsTracker entity
+          var dividend = await _context.DividendsTrackers
+              .Include(d => d.DividendIndices)
+              .FirstOrDefaultAsync(m => m.Id == id);
 
-          // Remove existing associations
+          if (dividend == null)
+          {
+            return NotFound();
+          }
+
+          // Update properties
+          dividend.Company = model.Company;
+          dividend.Ticker = model.Ticker;
+          dividend.Country = model.Country;
+          dividend.Region = model.Region;
+          dividend.Exchange = model.Exchange;
+          dividend.SharePrice = model.SharePrice;
+          dividend.PrevDividend = model.PrevDividend;
+          dividend.ExDateDividend = model.ExDateDividend;
+          dividend.PayDateDividend = model.PayDateDividend;
+
+          // Handle the selected indices
           var existingIndices = _context.DividendIndices
               .Where(di => di.DividendsTrackerId == id)
               .ToList();
 
-          _context.DividendIndices.RemoveRange(existingIndices);
-
-          // Add new associations
-          foreach (var indexId in selectedIndices)
+          // Remove unselected indices
+          foreach (var existingIndex in existingIndices)
           {
-            var index = await _context.IndexDividendsTrackers.FindAsync(indexId);
-            if (index != null)
+            if (!model.SelectedIndices.Contains(existingIndex.IndexDividendsTrackerId))
             {
-              dividend.DividendIndices.Add(new DividendIndex
+              _context.DividendIndices.Remove(existingIndex);
+            }
+          }
+
+          // Add new selected indices
+          foreach (var indexId in model.SelectedIndices)
+          {
+            if (!existingIndices.Any(ei => ei.IndexDividendsTrackerId == indexId))
+            {
+              var index = await _context.IndexDividendsTrackers.FindAsync(indexId);
+              if (index != null)
               {
-                DividendsTrackerId = dividend.Id,
-                IndexDividendsTrackerId = indexId
-              });
+                dividend.DividendIndices.Add(new DividendIndex
+                {
+                  DividendsTrackerId = dividend.Id,
+                  IndexDividendsTrackerId = indexId
+                });
+              }
             }
           }
 
@@ -150,7 +196,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
         }
         catch (DbUpdateConcurrencyException)
         {
-          if (!DividendsTrackerExists(dividend.Id))
+          if (!DividendsTrackerExists(model.Id))
           {
             return NotFound();
           }
@@ -161,10 +207,17 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
         }
         return RedirectToAction(nameof(Index));
       }
+      else
+      {
+        // Add a generic error message to the ModelState
+        ModelState.AddModelError(string.Empty, "There were some errors with your submission. Please correct them and try again.");
+      }
 
-      ViewData["IndexIds"] = new SelectList(_context.IndexDividendsTrackers, "Id", "Region", selectedIndices);
-      return View(dividend);
+      // Repopulate the dropdown in case of error
+      model.AvailableIndices = new SelectList(_context.IndexDividendsTrackers, "Id", "Region", model.SelectedIndices);
+      return View(model);
     }
+
 
     // GET: Admin/DividendsTracker/Delete/5
     public async Task<IActionResult> Delete(int? id)
