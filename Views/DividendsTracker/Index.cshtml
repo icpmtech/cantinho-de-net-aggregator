@@ -5,27 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upcoming Declared Dividends</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
 
         th {
-            background-color: #f2f2f2;
             cursor: pointer;
         }
 
@@ -61,8 +43,9 @@
     </style>
 </head>
 <body>
-
-    <h2>Upcoming Declared Dividends</h2>
+    <h4 class="py-3 mb-4">
+        <span class="text-muted fw-light">Dividends Tracker /</span> Upcoming Dividends
+    </h4>
 
     <div class="region">
         <label for="regionSelect">Region</label>
@@ -76,22 +59,28 @@
     <div class="indices" id="indicesButtons">
         <!-- Indices buttons will be dynamically inserted here -->
     </div>
-
-    <table class="table" id="dividendTable">
-        <thead>
-            <tr>
-                <th onclick="sortTable(0)">Company</th>
-                <th onclick="sortTable(1)">Ticker</th>
-                <th onclick="sortTable(2)">Country</th>
-                <th onclick="sortTable(3)">Exchange</th>
-                <th onclick="sortTable(4)">Share Price</th>
-                <th onclick="sortTable(5)">Prev. Dividend</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Rows will be dynamically inserted here -->
-        </tbody>
-    </table>
+    <div class="card">
+        <h5 class="card-header">Declared Dividends</h5>
+        <div class="table-responsive text-nowrap">
+            <table class="table table-bordered" id="dividendTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Company</th>
+                        <th onclick="sortTable(1)">Ticker</th>
+                        <th onclick="sortTable(2)">Country</th>
+                        <th onclick="sortTable(3)">Exchange</th>
+                        <th onclick="sortTable(4)">Share Price</th>
+                        <th onclick="sortTable(5)">Prev. Dividend</th>
+                        <th onclick="sortTable(5)">Ex. Date</th>
+                        <th onclick="sortTable(5)">Pay. Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows will be dynamically inserted here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <script>
         const apiBaseUrl = '/api'; // Replace with your API base URL
@@ -131,13 +120,15 @@
                 const row = document.createElement("tr");
 
                 row.innerHTML = `
-                            <td>${item.company}</td>
-                            <td>${item.ticker}</td>
-                            <td><img src="https://flagcdn.com/${getCountryCode(item.country)}.svg" width="20" alt="${item.country}"></td>
-                            <td>${item.exchange}</td>
-                            <td>${item.sharePrice}</td>
-                            <td>${item.prevDividend}</td>
-                        `;
+                                            <td>${item.company}</td>
+                                            <td>${item.ticker}</td>
+                                            <td><img src="https://flagcdn.com/${getCountryCode(item.country)}.svg" width="20" alt="${item.country}"></td>
+                                            <td>${item.exchange}</td>
+                                            <td>${item.sharePrice}</td>
+                                            <td>${item.prevDividend}</td>
+                                            <td>${item.exDateDividend}</td>
+                                            <td>${item.payDateDividend}</td>
+                                        `;
 
                 tableBody.appendChild(row);
             });

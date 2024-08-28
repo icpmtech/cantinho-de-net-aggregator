@@ -20,6 +20,8 @@
             <th>Exchange</th>
             <th>Share Price</th>
             <th>Prev Dividend</th>
+            <th>Ex Date Dividend</th>
+            <th>Pay Date Dividend</th>
             <th></th>
         </tr>
     </thead>
@@ -34,6 +36,8 @@
                 <td>@item.Exchange</td>
                 <td>@item.SharePrice</td>
                 <td>@item.PrevDividend</td>
+                <td>@item.ExDateDividend</td>
+                <td>@item.PayDateDividend</td>
                 <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                     <a asp-action="Details" asp-route-id="@item.Id">Details</a> |

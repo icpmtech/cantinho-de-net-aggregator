@@ -10,6 +10,7 @@ namespace MarketAnalyticHub.Models
   public interface IIndicesDividendsTrackerRepository
   {
     Task<IEnumerable<string>> GetIndicesAsync(string region);
+    Task<IndexDividendsTracker> FindAsync(int indexId);
   }
 
   public interface IDividendsTrackerRepository
@@ -21,6 +22,7 @@ namespace MarketAnalyticHub.Models
     Task UpdateDividendAsync(DividendsTracker dividend);
     Task DeleteDividendAsync(int id);
     Task<IEnumerable<DividendsTracker>> GetAllDividendsAsync();
+  
   }
 
   public class IndicesDividendsTrackerRepository : IIndicesDividendsTrackerRepository
@@ -31,6 +33,15 @@ namespace MarketAnalyticHub.Models
     {
       _context = context;
     }
+    public async Task<IndexDividendsTracker> FindAsync(int indexId)
+    {
+      // Find the entity in the database by its ID
+      var indicesEntity = await _context.IndexDividendsTrackers.FindAsync(indexId);
+
+      // Return the found entity (or null if not found)
+      return indicesEntity;
+    }
+
 
     public async Task<IEnumerable<string>> GetIndicesAsync(string region)
     {

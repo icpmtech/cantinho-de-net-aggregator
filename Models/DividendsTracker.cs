@@ -12,6 +12,9 @@ namespace MarketAnalyticHub.Models
     public string Exchange { get; set; }
     public string SharePrice { get; set; }
     public string PrevDividend { get; set; }
+    public DateTime? ExDateDividend { get; set; }
+    public DateTime? PayDateDividend { get; set; }
+
 
     // Navigation property for the many-to-many relationship
     public List<DividendIndex> DividendIndices { get; set; } = new List<DividendIndex>();
