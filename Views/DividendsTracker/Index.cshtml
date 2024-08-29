@@ -86,9 +86,9 @@
         const apiBaseUrl = '/api'; // Replace with your API base URL
 
         async function fetchDividends(region, index = null) {
-            let url = `${apiBaseUrl}/DividendsTrackerApi/dividends?region=${region}`;
+            let url = `${apiBaseUrl}/DividendsTrackerApi/dividends-exchange?region=${region}`;
             if (index) {
-                url += `&index=${index}`;
+                url += `&exchange=${index}`;
             }
 
             const response = await fetch(url);
