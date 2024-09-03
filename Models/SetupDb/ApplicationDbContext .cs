@@ -24,6 +24,8 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<DividendIndex> DividendIndices { get; set; }
     public DbSet<CreditRatingAgency> CreditRatingAgencies { get; set; }
     public DbSet<Company> Companies { get; set; }
+
+
     public DbSet<RSSLink> RSSLinks { get; set; }
     public DbSet<MarketAnalyticHub.Models.Portfolio.Portfolio> Portfolios { get; set; }
     public DbSet<PortfolioItem> PortfolioItems { get; set; }
