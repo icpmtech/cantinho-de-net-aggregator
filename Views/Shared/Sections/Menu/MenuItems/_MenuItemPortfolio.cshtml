@@ -1,0 +1,60 @@
+@{
+    TempData.Keep();
+    string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+<li class='menu-item@(currentPage.StartsWith("/Portfolio") || currentPage.StartsWith("/StockEvents") ? " active open" : "")'>
+    <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx bx-archive"></i>
+        <div>Portfolio</div>
+    </a>
+
+    <ul class="menu-sub">
+        <li class='menu-item@(currentPage == "/Portfolio/Index" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Index" class="menu-link">
+                <div>Overview</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/PortfolioItems/Index" ? " active" : "")'>
+            <a asp-controller="PortfolioItems" asp-action="Index" class="menu-link">
+                <div>Transactions</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Portfolio/Dividends" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Dividends" class="menu-link">
+                <div>Dividends</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Portfolio/DividendsCalendar" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="DividendsCalendar" class="menu-link">
+                <div>Dividends Calendar</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/StockEvents/Index" ? " active" : "")'>
+            <a asp-controller="StockEvents" asp-action="Index" class="menu-link">
+                <div>Events</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Portfolio/Fundamentals" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Fundamentals" class="menu-link">
+                <div>Fundamentals</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Portfolio/Qualitatives" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Qualitatives" class="menu-link">
+                <div>Qualitatives</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Portfolio/LossesManager" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="LossesManager" class="menu-link">
+                <div>Losses Manager</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Portfolio/PortfolioBuilder" ? " active" : "")'>
+            <a asp-controller="PortfolioBuilder" asp-action="Index" class="menu-link">
+                <div>Investment Prediction</div>
+            </a>
+        </li>
+
+
+    </ul>
+</li>

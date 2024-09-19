@@ -1,0 +1,25 @@
+@{
+    TempData.Keep();
+    string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+<li class='menu-item@(currentPage.StartsWith("/DividendsTracker")  ? " active open" : "")'>
+    <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx bx-archive"></i>
+        <div>Dividends Tracker</div>
+    </a>
+
+    <ul class="menu-sub">
+        <li class='menu-item@(currentPage == "/DividendsTracker/Index" ? " active" : "")'>
+            <a asp-controller="DividendsTracker" asp-action="Index" class="menu-link">
+                <div>Upcoming Dividends</div>
+            </a>
+        </li>
+        @*  <li class='menu-item@(currentPage == "/DividendsTracker/Index" ? " active" : "")'>
+        <a asp-controller="DividendsTracker" asp-action="Index" class="menu-link">
+        <div>Transactions</div>
+        </a>
+        </li> *@
+
+
+    </ul>
+</li>

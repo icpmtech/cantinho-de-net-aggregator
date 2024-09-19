@@ -1,0 +1,17 @@
+@{
+    TempData.Keep();
+    string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+<li class="menu-header small text-uppercase"><span class="menu-header-text">Help Center</span></li>
+<li class="menu-item">
+    <a href='@TempData.Peek("support")' target="_blank" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-support"></i>
+        <div>Support</div>
+    </a>
+</li>
+<li class="menu-item">
+    <a href='@TempData.Peek("documentation")' target="_blank" class="menu-link">
+        <i class="menu-icon tf-icons bx bx-file"></i>
+        <div>Documentation</div>
+    </a>
+</li>

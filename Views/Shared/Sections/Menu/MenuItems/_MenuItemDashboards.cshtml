@@ -1,0 +1,20 @@
+@{
+    TempData.Keep();
+    string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards/") ? " active open" : "")'>
+    <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx-home-circle"></i>
+        <div>Indicators</div>
+        <div class="badge bg-danger rounded-pill ms-auto">1</div>
+    </a>
+    <ul class="menu-sub">
+        <li class='menu-item@(currentPage == "/Dashboards/Index" ? " active" : "")'>
+            <a asp-controller="Dashboards" asp-action="Index" class="menu-link">
+                <div>Analytics</div>
+            </a>
+
+        </li>
+
+    </ul>
+</li>

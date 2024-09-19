@@ -1,57 +1,164 @@
-@model MarketAnalyticHub.Models.PortfolioListViewModel
 
-@{
-    ViewBag.Title = "Fundamentals";
-}
 
-<h2>Fundamentals</h2>
+    <div class="container">
+        <h1 class="mb-4">Trading Views</h1>
+        <!-- TradingView Tickers Widget Container -->
+        <div class="tradingview-widget-container">
+            <div id="tradingview-tickers"></div>
+        </div>
+        <!-- Select Dropdown -->
+        <div class="form-group">
+            <label for="exchangeSelect">Select Exchange:</label>
+            <select id="exchangeSelect" class="form-control">
+                <option value="SPX500">S&P 500</option>
+                <option value="NASDAQ100">NASDAQ 100</option>
+                <option value="DJI">Dow Jones Industrial Average</option>
+                <option value="EURONEXT">Euronext 100</option>
+                <!-- Add more exchanges as needed -->
+            </select>
+        </div>
+       
+        <!-- TradingView Heatmap Widget Container -->
+        <div class="tradingview-widget-container mb-5">
+            <div id="tradingview-widget"></div>
+            <div class="tradingview-widget-copyright">
+                <a href="https://www.tradingview.com/" rel="noopener nofollow" target="_blank">
+                    <span class="blue-text">Track all markets on TradingView</span>
+                </a>
+            </div>
+        </div>
 
-@foreach (var portfolio in Model.Portfolios)
-{
-    <h3>@portfolio.Name</h3>
-    <p><strong>Created On:</strong> @portfolio.CreationDate?.ToString("dd MMM yyyy")</p>
+        <!-- TradingView Timeline Widget Container -->
+        <div class="tradingview-widget-container mb-5">
+            <div id="tradingview-timeline"></div>
+        </div>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Symbol</th>
-                <th>Status</th>
-                <th>Shares</th>
-                <th>Last Price</th>
-                <th>Average Cost / Share</th>
-                <th>Total Cost</th>
-                <th>Market Value</th>
-                <th>Total Dividend Income</th>
-                <th>Today's Gain (Unrealized)</th>
-                <th>Total Gain (Unrealized)</th>
-                <th>Total Return</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in portfolio.Items)
-            {
-                <tr>
-                    <td>@item.Symbol</td>
-                    <td>@item.Status</td>
-                    <td>@item.Shares</td>
-                    <td>@item.LastPrice</td>
-                    <td>@item.AverageCost</td>
-                    <td>@item.TotalInvestment</td>
-                    <td>@item.CurrentMarketValue</td>
-                    <td>@item.TotalDividendIncome</td>
-                    <td>@item.TodaysGain</td>
-                    <td>@item.TotalGain</td>
-                    <td>@item.TotalReturn</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-
-    <div>
-        <h4>Summary</h4>
-        <p><strong>Total Investment:</strong> @portfolio.TotalInvestment</p>
-        <p><strong>Current Market Value:</strong> @portfolio.CurrentMarketValue</p>
-        <p><strong>Total Gains/Losses:</strong> @portfolio.TotalGainsLosses</p>
-        <p><strong>Total Dividend Income:</strong> @portfolio.TotalDividendIncome</p>
+       
     </div>
-}
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Popper.js and Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- TradingView Heatmap Widget Script -->
+    <script type="text/javascript">
+        function loadTradingViewWidget(exchange) {
+          // Clear existing widget content
+          document.getElementById('tradingview-widget').innerHTML = '';
+
+          // Create a new script element for the heatmap widget
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js';
+          script.async = true;
+
+          // Widget configuration
+          script.innerHTML = JSON.stringify({
+            "dataSource": exchange,
+            "grouping": "sector",
+            "blockSize": "market_cap_basic",
+            "blockColor": "change",
+            "locale": "en",
+            "symbolUrl": "",
+            "colorTheme": "light",
+            "hasTopBar": false,
+            "isDataSetEnabled": false,
+            "isZoomEnabled": true,
+            "hasSymbolTooltip": true,
+            "isMonoSize": false,
+            "width": "100%",
+            "height": "600"
+          });
+
+          // Append the script to the heatmap widget container
+          document.getElementById('tradingview-widget').appendChild(script);
+        }
+
+        // Initial widget load
+        $(document).ready(function() {
+          var initialExchange = $('#exchangeSelect').val();
+          loadTradingViewWidget(initialExchange);
+
+          // Update widget when exchange selection changes
+          $('#exchangeSelect').change(function() {
+            var selectedExchange = $(this).val();
+            loadTradingViewWidget(selectedExchange);
+          });
+
+          // Load the Timeline Widget
+          loadTimelineWidget();
+
+          // Load the Tickers Widget
+          loadTickersWidget();
+        });
+
+        // Function to load the Timeline Widget
+        function loadTimelineWidget() {
+          // Create a new script element for the timeline widget
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-timeline.js';
+          script.async = true;
+
+          // Widget configuration
+          script.innerHTML = JSON.stringify({
+            "feedMode": "market",
+            "market": "stock",
+            "isTransparent": false,
+            "displayMode": "regular",
+            "width": "100%",
+            "height": "550",
+            "colorTheme": "light",
+            "locale": "en"
+          });
+
+          // Append the script to the timeline widget container
+          document.getElementById('tradingview-timeline').appendChild(script);
+        }
+
+        // Function to load the Tickers Widget
+        function loadTickersWidget() {
+          // Create a new script element for the tickers widget
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-tickers.js';
+          script.async = true;
+
+          // Widget configuration
+          script.innerHTML = JSON.stringify({
+            "symbols": [
+              {
+                "proName": "FOREXCOM:SPXUSD",
+                "title": "S&P 500 Index"
+              },
+              {
+                "proName": "FOREXCOM:NSXUSD",
+                "title": "US 100 Cash CFD"
+              },
+              {
+                "proName": "FX_IDC:EURUSD",
+                "title": "EUR to USD"
+              },
+              {
+                "proName": "BITSTAMP:BTCUSD",
+                "title": "Bitcoin"
+              },
+              {
+                "proName": "BITSTAMP:ETHUSD",
+                "title": "Ethereum"
+              }
+            ],
+            "showSymbolLogo": true,
+            "colorTheme": "light",
+            "isTransparent": false,
+            "locale": "en"
+          });
+
+          // Append the script to the tickers widget container
+          document.getElementById('tradingview-tickers').appendChild(script);
+        }
+    </script>
+
+

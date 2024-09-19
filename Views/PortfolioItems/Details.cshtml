@@ -80,8 +80,14 @@
                 }
             };
 
-            const chart = new ApexCharts(document.querySelector("#chart-@Model.Id"), chartOptions);
+            const chart = new ApexCharts(
+                document.querySelector("#chart-@Model.Id"),
+                chartOptions
+            );
             chart.render();
+
+            // Get a reference to the dropdown button
+            const dropdownButton = document.getElementById('dropdownMenuButton');
 
             function updateChartData() {
                 const spinner = document.querySelector("#chart-spinner");
@@ -132,6 +138,16 @@
                     spinner.style.display = 'block';
 
                     const timeRange = this.getAttribute('data-range');
+
+                    // Update the button text to the selected range
+                    dropdownButton.textContent = this.textContent;
+
+                    // Optional: Highlight the selected item
+                    document.querySelectorAll('.dropdown-item').forEach(i => {
+                        i.classList.remove('active');
+                    });
+                    this.classList.add('active');
+
                     fetch(`/api/dashboards/chartdata-date-range/@Model.Id?timeRange=${timeRange}`)
                         .then(response => response.json())
                         .then(data => {

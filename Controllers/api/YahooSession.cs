@@ -277,7 +277,7 @@ namespace MarketAnalyticHub.Controllers.api
 
       var startTimestamp = ((DateTimeOffset)startDate).ToUnixTimeSeconds();
       var endTimestamp = ((DateTimeOffset)endDate).ToUnixTimeSeconds();
-
+      //"chart":{"result":null,"error":{"code":"Bad Request","description":"Invalid input - interval=d is not supported. Valid intervals: [1m, 2m, 5m, 15m, 30m, 60m, 90m, 1h, 1d, 5d, 1wk, 1mo, 3mo]"}}}
       var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startTimestamp}&period2={endTimestamp}&interval={interval}";
 
       try

@@ -4,96 +4,113 @@ async function fetchPurchaseDates(symbol, startDate, endDate) {
   return data;
 }
 
-function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', dateRange = '1y') {
+async function renderCandlestickChart(containerId, symbol, chartType = 'candlestick', dateRange = '1y') {
+  // Get the start and end dates for the date range
   const { startDate, endDate } = getDateRange(dateRange);
 
+  // API URL to fetch the data
   const apiUrl = `/api/Portfolio/historical-data?symbol=${symbol}&startDate=${startDate.toISOString()}&endDate=${endDate.toISOString()}`;
 
-  fetch(apiUrl)
-    .then(response => response.json())
-    .then(async data => {
-      let seriesData;
+  try {
+    // Fetch the data from the API
+    const response = await fetch(apiUrl);
+    const dataObj = await response.json();
 
-      if (chartType === 'candlestick') {
-        seriesData = data.map(item => ({
-          x: new Date(item.date),
-          y: [item.open, item.high, item.low, item.close]
-        }));
-      } else {
-        seriesData = data.map(item => ({
-          x: new Date(item.date),
-          y: item.close
-        }));
-      }
+    // Map the data to the required format
+    const data = dataObj.dates.map((dateStr, i) => ({
+      timestamp: new Date(dateStr),
+      open: dataObj.opens[i],
+      high: dataObj.highs[i],
+      low: dataObj.lows[i],
+      close: dataObj.closes[i],
+      volume: dataObj.volumes[i]
+    }));
 
-      // Fetch purchase dates for the symbol
-      const purchaseDates = await fetchPurchaseDates(symbol, startDate, endDate);
-      let annotations = purchaseDates.map(purchase => ({
-        
-        x: new Date(purchase.date).getTime(),
-        borderColor: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560',
-        label: {
-          borderColor: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560',
-          style: {
-            color: '#fff',
-            background: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560'
-          },
-          text: `Qty: ${purchase.quantity} - Op: ${purchase.operationType}`
-        }
+    // Filter data according to startDate and endDate
+    const filteredData = data.filter(item => item.timestamp >= startDate && item.timestamp <= endDate);
+
+    // Prepare the seriesData for the chart
+    let seriesData;
+
+    if (chartType === 'candlestick') {
+      seriesData = filteredData.map(item => ({
+        x: item.timestamp,
+        y: [item.open, item.high, item.low, item.close]
       }));
+    } else {
+      seriesData = filteredData.map(item => ({
+        x: item.timestamp,
+        y: item.close
+      }));
+    }
 
-      let options = {
-        series: [{
-          data: seriesData
-        }],
-        chart: {
-          type: chartType,
-          height: 350
+    // Fetch purchase dates for annotations (if available)
+    const purchaseDates = await fetchPurchaseDates(symbol, startDate, endDate);
+    let annotations = purchaseDates.map(purchase => ({
+      x: new Date(purchase.date).getTime(),
+      borderColor: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560',
+      label: {
+        borderColor: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560',
+        style: {
+          color: '#fff',
+          background: purchase.operationType === 'Buy' ? '#00FF00' : '#FF4560'
         },
-        title: {
-          text: symbol,
-          align: 'left'
-        },
-        xaxis: {
-          type: 'datetime'
-        },
-        yaxis: {
-          tooltip: {
-            enabled: true
-          }
-        },
-        annotations: {
-          xaxis: annotations
+        text: `Qty: ${purchase.quantity} - Op: ${purchase.operationType}`
+      }
+    }));
+
+    // Define the options for ApexCharts
+    let options = {
+      series: [{
+        data: seriesData
+      }],
+      chart: {
+        type: chartType,
+        height: 350
+      },
+      title: {
+        text: symbol,
+        align: 'left'
+      },
+      xaxis: {
+        type: 'datetime'
+      },
+      yaxis: {
+        tooltip: {
+          enabled: true
+        }
+      },
+      annotations: {
+        xaxis: annotations
+      }
+    };
+
+    // Adjust options for bar and line charts
+    if (chartType === 'bar') {
+      options.plotOptions = {
+        bar: {
+          horizontal: false,
         }
       };
+      options.dataLabels = {
+        enabled: false
+      };
+    } else if (chartType === 'line') {
+      options.stroke = {
+        curve: 'smooth'
+      };
+      options.dataLabels = {
+        enabled: false
+      };
+    }
 
-      // Adjust options for bar and line charts
-      if (chartType === 'bar') {
-        options.plotOptions = {
-          bar: {
-            horizontal: false,
-          }
-        };
-        options.dataLabels = {
-          enabled: false
-        };
-      } else if (chartType === 'line') {
-        options.stroke = {
-          curve: 'smooth'
-        };
-        options.dataLabels = {
-          enabled: false
-        };
-      }
-
-      const chart = new ApexCharts(document.querySelector(`#${containerId}`), options);
-      chart.render();
-    })
-    .catch(error => {
-      console.error('Error fetching data:', error);
-    });
+    // Render the chart using ApexCharts
+    const chart = new ApexCharts(document.querySelector(`#${containerId}`), options);
+    chart.render();
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
 }
-
 function getDateRange(dateRange) {
   const endDate = new Date();
   let startDate;

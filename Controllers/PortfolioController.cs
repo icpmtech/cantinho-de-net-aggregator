@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using MarketAnalyticHub.Controllers.api;
+using Microsoft.Graph;
+using System.Globalization;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -48,16 +50,43 @@ namespace MarketAnalyticHub.Controllers
         return BadRequest("Symbol is required.");
       }
 
-      var data = await _yahooFinanceService.GetHistoricalDataAsync(symbol, startDate, endDate , YahooFinanceApi.Period.Weekly);
+      var data = await YahooService.GetHistoricalDataAsync(symbol, startDate, endDate, "1wk");
 
       if (data == null || !data.Any())
       {
         return Ok(new { Message = "No historical data found", Data = 0 });
       }
-
-      return Ok(data);
+      // Ensure culture is set to InvariantCulture
+      CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+      CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+      // Create the DataResult object
+      var dataResult = new DataResult
+      {
+        Dates = data.Select(h => h.Timestamp.ToString("yyyy-MM-dd")).OfType<string>().ToArray(),
+        Opens = data.Select(h => ConvertToDecimal(h.Open)).OfType<decimal>().ToArray(),
+        Highs = data.Select(h => ConvertToDecimal(h.High)).OfType<decimal>().ToArray(),
+        Lows = data.Select(h => ConvertToDecimal(h.Low)).OfType<decimal>().ToArray(),
+        Closes = data.Select(h => ConvertToDecimal(h.Close)).OfType<decimal>().ToArray(),
+        Volumes = data.Select(h => ConvertToDecimal(h.Volume)).OfType<decimal>().ToArray()
+      };
+      return Ok(dataResult);
     }
+    private decimal ConvertToDecimal(dynamic value)
+    {
+      if (value == null)
+        return 0m; // or throw an exception or handle as appropriate
 
+      try
+      {
+        // Use invariant culture to handle decimal separators correctly
+        return Convert.ToDecimal(value, CultureInfo.InvariantCulture);
+      }
+      catch (Exception)
+      {
+        // Handle conversion errors
+        return 0m; // or handle as appropriate
+      }
+    }
 
     [HttpGet("stock-price")]
     public async Task<IActionResult> GetRealTimePrice([FromQuery] string symbol)

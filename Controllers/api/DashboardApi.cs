@@ -17,6 +17,11 @@ using static MarketAnalyticHub.Models.Portfolio.Portfolio;
 using Newtonsoft.Json;
 using static MarketAnalyticHub.Controllers.api.YahooFinanceController;
 using Newtonsoft.Json.Linq;
+using Nest;
+using System.Text.Encodings.Web;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using System.Globalization;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -63,54 +68,87 @@ namespace MarketAnalyticHub.Controllers.api
 
       var data = timeRange switch
       {
-        "1d" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now,YahooFinanceApi.Period.Daily),
-        "1w" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Daily),
-        "1m" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now,YahooFinanceApi.Period.Weekly),
-        "3m" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Weekly),
-        "6m" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Monthly),
-        "1y" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Monthly),
-        "5y" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Monthly),
-        "all" => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Monthly),
-        _ => await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, YahooFinanceApi.Period.Daily)
+        "1d" => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, timeRange),
+        "1w" => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, "1wk"),
+        "1m" => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, "1mo"),
+        "3m" => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, "3mo"),
+        "6m" => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, "3mo"),
+        "1y" => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, "3mo"),
+        "5y" => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, "3mo"),
+        "all" => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, "3mo"),
+        _ => await YahooService.GetHistoricalDataAsync(portfolioItem.Symbol, startDate, DateTime.Now, timeRange)
       };
 
-      var dataResult = new
+     
+      // Ensure culture is set to InvariantCulture
+      CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+      CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+      // Create the DataResult object
+      var dataResult = new DataResult
       {
-        dates = data.Select(h => h.Date.ToString(timeRange == "1d" ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd")).ToArray(),
-        opens = data.Select(h => h.Open).ToArray(),
-        highs = data.Select(h => h.High).ToArray(),
-        lows = data.Select(h => h.Low).ToArray(),
-        closes = data.Select(h => h.Close).ToArray(),
-        volumes = data.Select(h => h.Volume).ToArray()
+        Dates = data.Select(h => h.Timestamp.ToString(timeRange == "1d" ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd")).OfType<string>().ToArray(),
+        Opens = data.Select(h => ConvertToDecimal(h.Open)).OfType<decimal>().ToArray(),
+        Highs = data.Select(h => ConvertToDecimal(h.High)).OfType<decimal>().ToArray(),
+        Lows = data.Select(h => ConvertToDecimal(h.Low)).OfType<decimal>().ToArray(),
+        Closes = data.Select(h => ConvertToDecimal(h.Close)).OfType<decimal>().ToArray(),
+        Volumes = data.Select(h => ConvertToDecimal(h.Volume)).OfType<decimal>().ToArray()
+      };
+      return Ok(dataResult);
+    }
+    [HttpGet("chartdata/{id}")]
+    public async Task<IActionResult> GetChartData(int id)
+    {
+      var portfolioItem = await _context.PortfolioItems
+          .FirstOrDefaultAsync(p => p.Id == id);
+
+      if (portfolioItem == null)
+      {
+        return NotFound();
+      }
+
+      var data = await YahooService.GetHistoricalDataAsync(
+          portfolioItem.Symbol,
+          DateTime.Now.AddDays(-30),
+          DateTime.Now,
+          "1d"
+      );
+
+      // Ensure culture is set to InvariantCulture
+      CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+      CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+      // Create the DataResult object
+      var dataResult = new DataResult
+      {
+        Dates = data.Select(h => h.Timestamp.ToString("yyyy-MM-dd")).OfType<string>().ToArray(),
+        Opens = data.Select(h => ConvertToDecimal(h.Open)).OfType<decimal>().ToArray(),
+        Highs = data.Select(h => ConvertToDecimal(h.High)).OfType<decimal>().ToArray(),
+        Lows = data.Select(h => ConvertToDecimal(h.Low)).OfType<decimal>().ToArray(),
+        Closes = data.Select(h => ConvertToDecimal(h.Close)).OfType<decimal>().ToArray(),
+        Volumes = data.Select(h => ConvertToDecimal(h.Volume)).OfType<decimal>().ToArray()
       };
 
       return Ok(dataResult);
     }
-    [HttpGet("chartdata/{id}")]
-      public async Task<IActionResult> GetChartData(int id)
-      {
-        var portfolioItem = await _context.PortfolioItems
-            .FirstOrDefaultAsync(p => p.Id == id);
 
-        if (portfolioItem == null)
-        {
-          return NotFound();
-        }
-      var data = await _yahooFinanceService.GetHistoricalDataAsync(portfolioItem.Symbol, DateTime.Now.AddDays(-30), DateTime.Now,YahooFinanceApi.Period.Daily);
-      var dataResult = new
-      {
-        dates = data.Select(h => h.Date.ToString("yyyy-MM-dd")).ToArray(),
-        opens = data.Select(h => h.Open).ToArray(),
-        highs = data.Select(h => h.High).ToArray(),
-        lows = data.Select(h => h.Low).ToArray(),
-        closes = data.Select(h => h.Close).ToArray(),
-        volumes = data.Select(h => h.Volume).ToArray()
-      };
+    private decimal ConvertToDecimal(dynamic value)
+    {
+      if (value == null)
+        return 0m; // or throw an exception or handle as appropriate
 
-      return Ok(dataResult);
+      try
+      {
+        // Use invariant culture to handle decimal separators correctly
+        return Convert.ToDecimal(value, CultureInfo.InvariantCulture);
       }
+      catch (Exception)
+      {
+        // Handle conversion errors
+        return 0m; // or handle as appropriate
+      }
+    }
 
-      [HttpGet("data")]
+
+    [HttpGet("data")]
     public async Task<ActionResult<DashboardData>> GetDashboardData()
     {
       // Replace "userId" with the actual user ID from your authentication context

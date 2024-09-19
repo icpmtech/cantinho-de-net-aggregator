@@ -9,10 +9,10 @@
             <div>
                 <label for="pageSizeSelect" class="form-label">Page Size:</label>
                 <select id="pageSizeSelect" class="form-select d-inline-block w-auto" onchange="location.href='@Url.Action("Index", new { pageNumber = Model.PageIndex, pageSize = ViewData["CurrentPageSize"], sortOrder = ViewData["CurrentSort"], tab = "table" })'">
-                    <option value="5" selected=@(ViewData["CurrentPageSize"].ToString() == "5" ? "selected" : "")>5</option>
-                    <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "10" ? "selected" : "")>10</option>
-                    <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "20" ? "selected" : "")>20</option>
-                    <option value="50" selected=@(ViewData["CurrentPageSize"].ToString() == "50" ? "selected" : "")>50</option>
+                    <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "10")>10</option>
+                    <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "20")>20</option>
+                    <option value="50" selected=@(ViewData["CurrentPageSize"].ToString() == "50")>50</option>
+                    <option value="100" selected=@(ViewData["CurrentPageSize"].ToString() == "100")>100</option>
                 </select>
             </div>
         </div>

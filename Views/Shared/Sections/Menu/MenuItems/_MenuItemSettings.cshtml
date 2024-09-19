@@ -1,0 +1,33 @@
+@{
+    TempData.Keep();
+    string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+<li class='menu-item@(currentPage.StartsWith("/Pages/Account") || currentPage.StartsWith("/UserProfiles") ? " active open" : "")'>
+    <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx-dock-top"></i>
+        <div>Account Settings</div>
+    </a>
+    <ul class="menu-sub">
+        <li class='menu-item@(currentPage == "/Pages/AccountSettings" ? " active" : "")'>
+            <a asp-controller="Pages" asp-action="AccountSettings" class="menu-link">
+                <div>Account</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Pages/AccountSettingsNotifications" ? " active" : "")'>
+            <a asp-controller="Pages" asp-action="AccountSettingsNotifications" class="menu-link">
+                <div>Notifications</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Pages/AccountSettingsConnections" ? " active" : "")'>
+            <a asp-controller="Pages" asp-action="AccountSettingsConnections" class="menu-link">
+                <div>Connections</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/UserProfiles/Index" ? " active" : "")'>
+            <a asp-controller="UserProfiles" asp-action="Index" class="menu-link">
+                <div>Billing</div>
+            </a>
+        </li>
+
+    </ul>
+</li>
