@@ -1,0 +1,432 @@
+@using MarketAnalyticHub.Models.Portfolio.Entities
+@model PortfolioItem
+
+@{
+    ViewData["Title"] = "Edit";
+    Layout = "~/Views/Shared/_ContentNavbarLayout.cshtml";
+}
+
+@section PageScripts {
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        $(document).ready(function () {
+            $('#PortfolioId, #CompanyId, #OperationType, #Symbol').select2({
+                width: '100%'
+            });
+
+            // Fetch symbols from the API and populate the select2 dropdown
+            function fetchSymbols() {
+                $.ajax({
+                    url: '/api/symbolsAPI', // Replace with your Symbols API endpoint
+                    method: 'GET',
+                    success: function (data) {
+                        let symbols = data.map(function (symbol) {
+                            return { id: symbol, text: symbol };
+                        });
+                        $('#Symbol').select2({
+                            data: symbols,
+                            width: '100%'
+                        });
+                        // Set the selected option based on the model's Symbol value
+                        $('#Symbol').val('@Model.Symbol').trigger('change');
+                    },
+                    error: function (error) {
+                        console.error('Error fetching symbols:', error);
+                        showToast('Error fetching symbols:' + error,  'bg-danger');
+                    }
+                });
+            }
+
+            fetchSymbols();
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            let chartOptions = {
+                chart: {
+                    height: 300,
+                    type: "line",
+                    toolbar: { show: false },
+                    dropShadow: {
+                        enabled: true,
+                        top: 10,
+                        left: 5,
+                        blur: 3,
+                        color: "#FF4560",
+                        opacity: 0.15
+                    },
+                    animations: {
+                        enabled: true,
+                        easing: 'linear',
+                        dynamicAnimation: {
+                            speed: 1000
+                        }
+                    }
+                },
+                markers: {
+                    size: 6,
+                    colors: "transparent",
+                    strokeColors: "transparent",
+                    strokeWidth: 4,
+                    discrete: [
+                        {
+                            fillColor: "#FFFFFF",
+                            seriesIndex: 0,
+                            dataPointIndex: 3,
+                            strokeColor: "#FF4560",
+                            strokeWidth: 4,
+                            size: 6,
+                            radius: 2
+                        }
+                    ],
+                    hover: { size: 7 }
+                },
+                grid: { show: true, padding: { right: 8 } },
+                colors: ["#FF4560"],
+                dataLabels: { enabled: false },
+                stroke: { width: 5, curve: "smooth" },
+                series: [{
+                    name: 'Close Prices',
+                    data: []
+                }],
+                xaxis: {
+                    type: 'datetime',
+                    categories: [],
+                    labels: {
+                        format: 'yyyy-MM-dd HH:mm:ss'
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'Price'
+                    }
+                },
+                legend: {
+                    show: true,
+                    position: 'top',
+                    horizontalAlign: 'left'
+                },
+                tooltip: {
+                    enabled: true,
+                    theme: 'dark'
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#chart-@Model.Id"), chartOptions);
+            chart.render();
+
+            function updateChartData() {
+                const spinner = document.querySelector("#chart-spinner");
+                spinner.style.display = 'block';
+
+                fetch(`/api/dashboards/chartdata/@Model.Id`)
+                    .then(response => response.json())
+                    .then(data => {
+                        chart.updateSeries([{
+                            name: 'Close Prices',
+                            data: data.closes
+                        }]);
+                        chart.updateOptions({
+                            xaxis: {
+                                categories: data.dates
+                            }
+                        });
+                        showToast('Chart data updated successfully.', 'bg-success');
+                    })
+                    .catch(error => {
+                        console.error('Error fetching chart data:', error);
+                        showToast('Error fetching chart data.', 'bg-danger');
+                    })
+                    .finally(() => {
+                        spinner.style.display = 'none';
+                    });
+            }
+
+            function showToast(message, type) {
+                const toastMessage = document.getElementById('toast-message');
+                toastMessage.classList.remove('bg-success', 'bg-danger');
+                toastMessage.classList.add(type);
+                toastMessage.querySelector('.toast-body').innerText = message;
+                const toast = new bootstrap.Toast(toastMessage);
+                toast.show();
+            }
+
+            // Fetch initial data
+            updateChartData();
+
+            // Set interval to fetch data every minute
+            setInterval(updateChartData, 60000); // 60000 ms = 1 minute
+
+            // Event listeners for time range buttons
+            document.querySelectorAll('.dropdown-item').forEach(item => {
+                item.addEventListener('click', function () {
+                    const spinner = document.querySelector("#chart-spinner");
+                    spinner.style.display = 'block';
+
+                    const timeRange = this.getAttribute('data-range');
+                    fetch(`/api/dashboards/chartdata-date-range/@Model.Id?timeRange=${timeRange}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            chart.updateSeries([{
+                                name: 'Close Prices',
+                                data: data.closes
+                            }]);
+                            chart.updateOptions({
+                                xaxis: {
+                                    categories: data.dates
+                                }
+                            });
+                            showToast('Chart data updated successfully.', 'bg-success');
+                        })
+                        .catch(error => {
+                            console.error('Error fetching chart data:', error);
+                            showToast('Error fetching chart data.', 'bg-danger');
+                        })
+                        .finally(() => {
+                            spinner.style.display = 'none';
+                        });
+                });
+            });
+
+            // Event listeners for chart type buttons
+            document.querySelectorAll('.chart-type-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const spinner = document.querySelector("#chart-spinner");
+                    spinner.style.display = 'block';
+
+                    const chartType = this.getAttribute('data-chart-type');
+                    chart.updateOptions({
+                        chart: {
+                            type: chartType
+                        }
+                    }).then(() => {
+                        spinner.style.display = 'none';
+                        showToast('Chart type changed successfully.', 'bg-success');
+                    });
+                });
+            });
+        });
+    </script>
+}
+
+@section PageStyles {
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <style>
+        .custom-portfolio-items-toast-container {
+            top: 87px;
+            right: 129px;
+        }
+
+        /* Small devices (landscape phones, less than 768px) */
+        @@media (max-width: 767.98px) {
+            .custom-portfolio-items-toast-container {
+                top: 85px;
+                right: 20px;
+            }
+        }
+
+        /* Medium devices (tablets, 768px and up) */
+        @@media (min-width: 768px) and (max-width: 991.98px) {
+            .custom-portfolio-items-toast-container {
+                top: 85px;
+                right: 60px;
+            }
+        }
+
+        /* Large devices (desktops, 992px and up) */
+        @@media (min-width: 992px) and (max-width: 1199.98px) {
+            .custom-portfolio-items-toast-container {
+                top: 85px;
+                right: 100px;
+            }
+        }
+    </style>
+}
+
+<h1 class="mt-4">Edit Portfolio Item</h1>
+<div class="container mt-4">
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+                <div class="avatar flex-shrink-0">
+                    <img src="~/img/icons/unicons/chart.png" alt="wallet symbol" class="rounded">
+                </div>
+                <div class="dropdown">
+                    <button class="btn p-0" type="button" id="cardOpt5" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="bx bx-dots-vertical-rounded text-muted"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt5">
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt5">
+                            <a class="dropdown-item" href="Edit/@Model.Id">Edit</a>
+                            <a class="dropdown-item" href="Index">Back List</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @{
+                // Calculating revenue and percentage change
+                // Calculating revenue and percentage change
+                var revenue = Model.Quantity * Model.CurrentPrice - Model.Quantity * Model.PurchasePrice;
+                var purchasePrice = Model.PurchasePrice;
+                var currentPrice = Model.CurrentPrice;
+                var percentageChange = purchasePrice != 0 ? (currentPrice - purchasePrice) / purchasePrice * 100 : 0;
+            }
+
+            <p class="mb-1">Revenue</p>
+            <h4 class="card-title mb-3">
+                € @(String.Format("{0:N2}", revenue))
+            </h4>
+            <small class="@(revenue >= 0 ? "text-success" : "text-danger") fw-medium">
+                <i class="bx @(revenue >= 0 ? "bx-up-arrow-alt" : "bx-down-arrow-alt")"></i>
+                @(String.Format("{0:N2}", percentageChange)) %
+            </small>
+        </div>
+    </div>
+    <!-- Apex Chart Card -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4><i class="bx bx-chart-line"></i> Chart Portfolio Item</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="d-flex flex-column flex-md-row justify-content-between">
+                    <div id="chart-spinner" class="spinner-grow text-primary" role="status" style="display:none;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div aria-label="Time Range">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                Select Range
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="1d">Today</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="1w">1 Week</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="1m">1 Month</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="3m">3 Months</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="6m">6 Months</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="1y">1 Year</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="5y">5 Years</a></li>
+                                <li><a class="dropdown-item" href="javascript:void(0);" data-range="all">All</a></li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="col-12">
+                    <div id="chart-@Model.Id" class="mt-4"></div>
+                    <div class="btn-group mt-3" role="group" aria-label="Chart Type">
+                        <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="line">
+                            <i class="bx bx-chart-line"></i> Line
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary chart-type-btn" data-chart-type="bar">
+                            <i class="bx bx-chart-bar"></i> Bar
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container custom-portfolio-items-toast-container position-absolute">
+        <div id="toast-message" class="bs-toast fade toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class='bx bx-bell me-2'></i>
+                <div class="me-auto fw-medium">Notification</div>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                <!-- Toast message will be dynamically inserted here -->
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4>Portfolio Item</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Edit">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="Id" />
+                <div class="form-group">
+                    <label asp-for="OperationType" class="control-label"></label>
+                    <select asp-for="OperationType" class="form-control" id="OperationType">
+                        <option value="" disabled selected>Select an operation</option>
+                        <option value="Buy">Buy</option>
+                        <option value="Sell">Sell</option>
+                    </select>
+                    <span asp-validation-for="OperationType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <input asp-for="UserId" hidden class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="PortfolioId" class="control-label"></label>
+                    <select asp-for="PortfolioId" class="form-control" asp-items="ViewBag.PortfolioId" id="PortfolioId"></select>
+                    <span asp-validation-for="PortfolioId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Symbol" class="control-label"></label>
+                    <select asp-for="Symbol" class="form-control" id="Symbol">
+                        <option value="" disabled selected>Select a symbol</option>
+                    </select>
+                    <span asp-validation-for="Symbol" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PurchaseDate" class="control-label"></label>
+                    <input asp-for="PurchaseDate" class="form-control" />
+                    <span asp-validation-for="PurchaseDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Quantity" class="control-label"></label>
+                    <input asp-for="Quantity" class="form-control" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PurchasePrice" class="control-label"></label>
+                    <input asp-for="PurchasePrice" class="form-control" />
+                    <span asp-validation-for="PurchasePrice" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CurrentPrice" class="control-label"></label>
+                    <input asp-for="CurrentPrice" class="form-control" />
+                    <span asp-validation-for="CurrentPrice" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Commission" class="control-label"></label>
+                    <input asp-for="Commission" class="form-control" />
+                    <span asp-validation-for="Commission" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CompanyId" class="control-label"></label>
+                    <select asp-for="CompanyId" class="form-control" asp-items="ViewBag.CompanyId" id="CompanyId"></select>
+                    <span asp-validation-for="CompanyId" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Save" class="btn btn-primary" />
+                    <div class="spinner-border text-primary ml-3 spinner-grow" role="status" id="form-spinner" style="display:none;">
+                        <span class="sr-only">Saving...</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a class="btn btn-secondary" asp-action="Index">Back to List</a>
+</div>
+
+<script>
+    document.querySelector('form').addEventListener('submit', function () {
+        const spinner = document.getElementById('form-spinner');
+        spinner.style.display = 'inline-block';
+    });
+</script>

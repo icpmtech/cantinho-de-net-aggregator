@@ -1,0 +1,131 @@
+@model PaginatedList<GroupedPortfolioItems>
+
+@Html.Partial("_Cards", Model)
+
+<div class="col-12">
+    <h6 class="text-muted">My Holdings</h6>
+    <div class="nav-align-top mb-4">
+        <ul class="nav nav-pills mb-3 nav-fill" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link @(ViewData["CurrentTab"].ToString() == "list" ? "active" : "")" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-list" aria-controls="navs-pills-justified-list" aria-selected="true">
+                    <i class="tf-icons bx bx-wallet me-1"></i><span class="d-none d-sm-block"> List</span>
+                    <span id="portfolios-numbers" class="badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ms-1">@Model.Count()</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link @(ViewData["CurrentTab"].ToString() == "table" ? "active" : "")" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-table" aria-controls="navs-pills-justified-table" aria-selected="false">
+                    <i class="tf-icons bx bx-cube-alt me-1"></i><span class="d-none d-sm-block"> Table</span>
+                    <span id="portfolios-numbers" class="badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ms-1">@Model.Count()</span>
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade @(ViewData["CurrentTab"].ToString() == "list" ? "show active" : "")" id="navs-pills-justified-list" role="tabpanel">
+                @Html.Partial("_List", Model)
+            </div>
+            <div class="tab-pane fade @(ViewData["CurrentTab"].ToString() == "table" ? "show active" : "")" id="navs-pills-justified-table" role="tabpanel">
+                @Html.Partial("_Table", Model)
+            </div>
+        </div>
+    </div>
+</div>
+
+@section VendorScripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+}
+
+
+
+@section PageScripts {
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var pageSizeSelect = document.getElementById('pageSizeSelect');
+            var currentTab = document.querySelector('.nav-link.active').getAttribute('data-bs-target').replace('#navs-pills-justified-', '');
+
+            function updateUrlParam(param, value) {
+                var url = new URL(window.location.href);
+                url.searchParams.set(param, value);
+                url.searchParams.set('pageNumber', 1); // Reset to first page
+                url.searchParams.set('tab', currentTab); // Maintain the current tab
+                window.location.href = url.toString();
+            }
+
+            pageSizeSelect.addEventListener('change', function () {
+                updateUrlParam('pageSize', pageSizeSelect.value);
+            });
+
+            var tabs = document.querySelectorAll('[data-bs-toggle="tab"]');
+            tabs.forEach(function (tab) {
+                tab.addEventListener('click', function () {
+                    var newTab = tab.getAttribute('data-bs-target').replace('#navs-pills-justified-', '');
+                    var url = new URL(window.location.href);
+                    url.searchParams.set('tab', newTab);
+                    url.searchParams.set('pageNumber', 1); // Reset to first page
+                    window.location.href = url.toString();
+                });
+            });
+            function updateCardValues() {
+                // Fetch data from your API
+                fetch('/api/Dashboards/portfolio-statistics-overall')
+                    .then(response => response.json())
+                    .then(data => {
+                        // Calculate total values
+
+                        document.getElementById('totalCustMarketValue').textContent = `€${data.totalInvestment.toFixed(2)}`;
+                        document.getElementById('totalMarketValue').textContent = `€${data.currentMarketValue.toFixed(2)}`;
+                        document.getElementById('totalPortfolioPercentage').textContent = `${data.totalDifferencePercentage.toFixed(2)}%`;
+                        document.getElementById('dividends').textContent = `€${data.totalDividends.toFixed(2)}`;
+                        document.getElementById('totalDifferenceValue').textContent = `€${data.totalDifferenceValue.toFixed(2)}`;
+                        document.getElementById('totalProfit').textContent = `${data.totalProfitWithDividends.toFixed(2)}`;
+
+                        // Update difference icons and percentages
+                        const totalDifferencePercentageElement = document.getElementById('totalDifferenceValueText');
+
+                        // Add logic for positive or negative difference percentage
+                        const totalDifferenceIconElement = document.getElementById('totalDifferenceIcon');
+                        if (data.totalDifferencePercentage >= 0) {
+                            totalDifferencePercentageElement.classList.remove('text-danger');
+                            totalDifferencePercentageElement.classList.add('text-success');
+                            totalDifferenceIconElement.classList.remove('bx-down-arrow-alt');
+                            totalDifferenceIconElement.classList.add('bx-up-arrow-alt');
+                        } else {
+                            totalDifferencePercentageElement.classList.remove('text-success');
+                            totalDifferencePercentageElement.classList.add('text-danger');
+                            totalDifferenceIconElement.classList.remove('bx-up-arrow-alt');
+                            totalDifferenceIconElement.classList.add('bx-down-arrow-alt');
+                        }
+
+                        document.getElementById('totalDifferencePercentage').textContent = `${data.totalDifferencePercentage.toFixed(2)}%`;
+
+                        // Add logic for positive or negative difference percentage
+                        const totalProfitElement = document.getElementById('totalProfitText');
+                        const totalProfitIconIconElement = document.getElementById('totalProfitIcon');
+                        if (data.totalDifferencePercentage >= 0) {
+                            totalProfitElement.classList.remove('text-danger');
+                            totalProfitElement.classList.add('text-success');
+                            totalProfitIconIconElement.classList.remove('bx-down-arrow-alt');
+                            totalProfitIconIconElement.classList.add('bx-up-arrow-alt');
+                        } else {
+                            totalProfitElement.classList.remove('text-success');
+                            totalProfitElement.classList.add('text-danger');
+                            totalProfitIconIconElement.classList.remove('bx-up-arrow-alt');
+                            totalProfitIconIconElement.classList.add('bx-down-arrow-alt');
+                        }
+                        document.getElementById('totalProfitDifferencePercentage').textContent = `${data.totalProfitDifferencePercentage.toFixed(2)}%`;
+                    })
+                    .catch(error => console.error('Error fetching portfolio summary:', error));
+            }
+
+            // Call the function to update card values
+            updateCardValues();
+
+            // Optionally, set an interval to refresh data periodically
+            setInterval(updateCardValues, 60000); // Refresh every 60 seconds
+
+
+        });
+
+    </script>
+}

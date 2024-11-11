@@ -1,0 +1,75 @@
+@using MarketAnalyticHub.Models.Portfolio.Entities
+@model PortfolioItem
+
+@{
+    ViewData["Title"] = "Create";
+    Layout = "~/Views/Shared/_ContentNavbarLayout.cshtml";
+}
+
+<h1 class="mt-4">Create Portfolio Item</h1>
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4>Portfolio Item</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <div class="form-group">
+                    <label asp-for="OperationType" class="control-label"></label>
+                    <input asp-for="OperationType" class="form-control" />
+                    <span asp-validation-for="OperationType" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <input asp-for="UserId" hidden class="form-control" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="PortfolioId" class="control-label"></label>
+                    <select asp-for="PortfolioId" class="form-control" asp-items="ViewBag.PortfolioId"></select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Symbol" class="control-label"></label>
+                    <input asp-for="Symbol" class="form-control" />
+                    <span asp-validation-for="Symbol" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PurchaseDate" class="control-label"></label>
+                    <input asp-for="PurchaseDate" class="form-control" />
+                    <span asp-validation-for="PurchaseDate" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Quantity" class="control-label"></label>
+                    <input asp-for="Quantity" class="form-control" />
+                    <span asp-validation-for="Quantity" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="PurchasePrice" class="control-label"></label>
+                    <input asp-for="PurchasePrice" class="form-control" />
+                    <span asp-validation-for="PurchasePrice" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CurrentPrice" class="control-label"></label>
+                    <input asp-for="CurrentPrice" class="form-control" />
+                    <span asp-validation-for="CurrentPrice" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Commission" class="control-label"></label>
+                    <input asp-for="Commission" class="form-control" />
+                    <span asp-validation-for="Commission" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="CompanyId" class="control-label"></label>
+                    <select asp-for="CompanyId" class="form-control" asp-items="ViewBag.CompanyId"></select>
+                </div>
+                <div class="form-group">
+                    <input type="submit" value="Create" class="btn btn-primary" />
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a class="btn btn-secondary" asp-action="Index">Back to List</a>
+</div>

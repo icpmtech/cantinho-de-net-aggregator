@@ -19,6 +19,11 @@
                 <div>Transactions</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage == "/PortfolioHoldings/Index" ? " active" : "")'>
+            <a asp-controller="PortfolioHoldings" asp-action="Index" class="menu-link">
+                <div>Holdings</div>
+            </a>
+        </li>
         <li class='menu-item@(currentPage == "/Portfolio/Dividends" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Dividends" class="menu-link">
                 <div>Dividends</div>

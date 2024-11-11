@@ -1,0 +1,92 @@
+@model PaginatedList<GroupedPortfolioItems>
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+
+<div class="row">
+    <div class="col-lg-2 col-md-3 col-6 mb-4">
+        <div class="card shadow-sm border-0 rounded">
+            <div class="card-body">
+                <div class="card-title d-flex align-items-start justify-content-between">
+                    <div class="avatar flex-shrink-0">
+                        <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded" style="width: 40px; height: 40px;">
+                    </div>
+                   
+                </div>
+                <span class="fw-medium d-block">@Localizer["Cust. Invest."]</span>
+                <h4 id="totalCustMarketValue" class="card-title text-nowrap">€0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-3 col-6 mb-4">
+        <div class="card shadow-sm border-0 rounded">
+            <div class="card-body">
+                <div class="card-title d-flex align-items-start justify-content-between">
+                    <div class="avatar flex-shrink-0">
+                        <img src="~/img/icons/unicons/chart-success.png" alt="chart success" class="rounded" style="width: 40px; height: 40px;">
+                    </div>
+                   
+                </div>
+                <span class="fw-medium d-block">@Localizer["Market Value"]</span>
+                <h4 id="totalMarketValue" class="card-title text-nowrap ">€0</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-3 col-6 mb-4">
+        <div class="card shadow-sm border-0 rounded">
+            <div class="card-body">
+                <div class="card-title d-flex align-items-start justify-content-between">
+                    <div class="avatar flex-shrink-0">
+                        <img src="~/img/icons/unicons/chart.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
+                    </div>
+                   
+                </div>
+                <span class="fw-medium d-block">@Localizer["P/L"]</span>
+                <h4 id="totalPortfolioPercentage" class="card-title text-nowrap ">0%</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-3 col-6 mb-4">
+        <div class="card shadow-sm border-0 rounded">
+            <div class="card-body">
+                <div class="card-title d-flex align-items-start justify-content-between">
+                    <div class="avatar flex-shrink-0">
+                        <img src="~/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded" style="width: 40px; height: 40px;">
+                    </div>
+                </div>
+                <span class="fw-medium d-block">Dividends</span>
+                <h4 id="dividends" class="card-title text-nowrap">€0.00</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-3 col-6 mb-4">
+        <div class="card shadow-sm border-0 rounded">
+            <div class="card-body">
+                <div class="card-title d-flex align-items-start justify-content-between">
+                    <div class="avatar flex-shrink-0">
+                        <img src="~/img/icons/unicons/chart-success.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
+                    </div>
+                    
+                </div>
+                <span class="fw-medium d-block">@Localizer["P/L diff."]</span>
+                <h4 id="totalDifferenceValue" class="card-title text-nowrap ">€N/A</h4>
+                <small id="totalDifferenceValueText" class=" fw-medium"><i id="totalDifferenceIcon" class='bx bx-down-arrow-alt'></i> <span id="totalDifferencePercentage">0%</span></small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-2 col-md-3 col-6 mb-4">
+        <div class="card shadow-sm border-0 rounded">
+            <div class="card-body">
+                <div class="card-title d-flex align-items-start justify-content-between">
+                    <div class="avatar flex-shrink-0">
+                        <img src="~/img/icons/unicons/chart-success.png" alt="chart" class="rounded" style="width: 40px; height: 40px;">
+                    </div>
+                   
+                </div>
+                <span class="fw-medium d-block">@Localizer["P/L total"]</span>
+                <h4 id="totalProfit" class="card-title text-nowrap ">€N/A</h4>
+                <small id="totalProfitText" class=" fw-medium"><i id="totalProfitIcon" class='bx bx-up-arrow-alt'></i> <span id="totalProfitDifferencePercentage">0%</span></small>
+            </div>
+        </div>
+    </div>
+</div>

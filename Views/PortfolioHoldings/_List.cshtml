@@ -1,0 +1,172 @@
+@model PaginatedList<GroupedPortfolioItems>
+
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center my-3">
+            <a class="btn btn-primary mb-2 mb-md-0" asp-action="Create">
+                <i class='bx bx-plus'></i> Create New
+            </a>
+            <div class="d-flex align-items-center">
+                <label for="pageSizeSelect" class="form-label me-2 mb-0">Page Size:</label>
+                <select id="pageSizeSelect" class="form-select d-inline-block w-auto" onchange="location.href='@Url.Action("Index", new { pageNumber = Model.PageIndex, pageSize = ViewData["CurrentPageSize"], sortOrder = ViewData["CurrentSort"], tab = "list" })'">
+                    <option value="10" selected=@(ViewData["CurrentPageSize"].ToString() == "10")>10</option>
+                    <option value="20" selected=@(ViewData["CurrentPageSize"].ToString() == "20")>20</option>
+                    <option value="50" selected=@(ViewData["CurrentPageSize"].ToString() == "50")>50</option>
+                    <option value="100" selected=@(ViewData["CurrentPageSize"].ToString() == "100")>100</option>
+                </select>
+            </div>
+        </div>
+
+        @foreach (var group in Model)
+        {
+            <div class="card mb-3">
+                <div class="card-header d-flex align-items-center">
+                    <a class="d-flex align-items-center w-100" data-bs-toggle="collapse" href="#collapse-@group.Symbol" role="button" aria-expanded="false" aria-controls="collapse-@group.Symbol">
+                        <img src="https://via.placeholder.com/30?text=@group.Symbol" alt="@group.Symbol" class="rounded-circle me-2" style="width: 30px; height: 30px;">
+                        <span>@group.Symbol</span>
+                        @{
+                            var difference = group.CurrentMarketValue - group.TotalInvestment;
+                            var isPositive = difference >= 0;
+                            var differenceIcon = isPositive ? "bx bx-up-arrow-alt" : "bx bx-down-arrow-alt";
+                            var differenceBadgeClass = isPositive ? "bg-success" : "bg-danger";
+                            var iconColorClass = isPositive ? "text-success" : "text-danger";
+                        }
+                        <div class="ms-auto d-flex flex-column flex-sm-row align-items-start align-items-sm-center mt-2 mt-sm-0">
+                            <span class="badge bg-primary me-0 me-sm-2">N.Op. @group.Items.Count</span>
+                            <span class="badge bg-info me-0 me-sm-2 mt-1 mt-sm-0">Inv. @group.TotalInvestment</span>
+                            <div class="d-flex align-items-center mt-1 mt-sm-0">
+                                <span class="badge @differenceBadgeClass me-2 d-flex align-items-center">
+                                    Ma.V. @group.CurrentMarketValue
+                                </span>
+                                <span class="badge @differenceBadgeClass d-flex align-items-center">
+                                    Diff. @difference
+                                    <i class="@differenceIcon ms-1"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="collapse" id="collapse-@group.Symbol">
+                    <div class="card-body">
+                        <div id="line-chart-@group.Items[0].Id" style="height: 400px;"></div>
+                        <div id="stacked-area-chart-@group.Items[0].Id" style="height: 400px; margin-top: 20px;"></div>
+                        <script>
+                            document.addEventListener('DOMContentLoaded', function () {
+                                fetch('/api/dashboards/chartdata/@group.Items[0].Id')
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        // Line Chart for OHLC
+                                        var optionsLineChart = {
+                                            chart: {
+                                                height: 400,
+                                                type: 'line',
+                                                toolbar: { show: true }
+                                            },
+                                            series: [
+                                                { name: 'Open', data: data.opens },
+                                                { name: 'High', data: data.highs },
+                                                { name: 'Low', data: data.lows },
+                                                { name: 'Close', data: data.closes }
+                                            ],
+                                            xaxis: {
+                                                type: 'datetime',
+                                                categories: data.dates
+                                            },
+                                            yaxis: {
+                                                title: { text: 'Price' }
+                                            },
+                                            tooltip: { shared: true },
+                                            legend: { position: 'top', horizontalAlign: 'left' }
+                                        };
+                                        new ApexCharts(document.querySelector("#line-chart-@group.Items[0].Id"), optionsLineChart).render();
+
+                                        // Stacked Area Chart
+                                        var optionsStackedArea = {
+                                            chart: {
+                                                height: 400,
+                                                type: 'area',
+                                                stacked: true,
+                                                toolbar: { show: true }
+                                            },
+                                            series: [
+                                                { name: 'Open', data: data.opens },
+                                                { name: 'High', data: data.highs },
+                                                { name: 'Low', data: data.lows },
+                                                { name: 'Close', data: data.closes }
+                                            ],
+                                            xaxis: {
+                                                type: 'datetime',
+                                                categories: data.dates
+                                            },
+                                            yaxis: {
+                                                title: { text: 'Cumulative Price' }
+                                            },
+                                            plotOptions: {
+                                                area: { fillOpacity: 0.3 }
+                                            },
+                                            tooltip: { shared: true },
+                                            legend: { position: 'top', horizontalAlign: 'left' }
+                                        };
+                                        new ApexCharts(document.querySelector("#stacked-area-chart-@group.Items[0].Id"), optionsStackedArea).render();
+
+                                    })
+                                    .catch(error => console.error('Error fetching chart data:', error));
+                            });
+                        </script>
+                        @foreach (var item in @group.Items)
+                        {
+                            <div class="card mt-2">
+                                <div class="card-body">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <small>@item.PurchaseDate.ToShortDateString()</small>
+                                    </div>
+                                    <p class="mb-1">Quantity: @item.Quantity</p>
+                                    <p class="mb-1">Purchase Price: @item.PurchasePrice</p>
+                                    <p class="mb-1">Current Price: @item.CurrentPrice</p>
+                                    <p class="mb-1">Commission: @item.Commission</p>
+                                    <p class="mb-1">Industry: @(item.Industry != null ? item.Industry.Name : "N/A")</p>
+                                    <p class="mb-1">Portfolio: @(item.Portfolio != null ? item.Portfolio.Name : "N/A")</p>
+
+                                    <div class="btn-group mt-2" role="group" aria-label="Basic example">
+                                        <a class="btn btn-sm btn-warning" asp-action="Edit" asp-route-id="@item.Id">
+                                            <i class='bx bx-edit'></i> Edit
+                                        </a>
+                                        <a class="btn btn-sm btn-info" asp-action="Details" asp-route-id="@item.Id">
+                                            <i class='bx bx-detail'></i> Details
+                                        </a>
+                                        <a class="btn btn-sm btn-danger" asp-action="Delete" asp-route-id="@item.Id">
+                                            <i class='bx bx-trash'></i> Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="mt-3 d-flex justify-content-between">
+            @if (Model.HasPreviousPage)
+            {
+                <a class="btn btn-secondary" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex - 1)" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-pageSize="@ViewData["CurrentPageSize"]" asp-route-tab="list">Previous</a>
+            }
+            else
+            {
+                <span class="btn btn-secondary disabled">Previous</span>
+            }
+
+            <span>Page @Model.PageIndex of @Model.TotalPages</span>
+
+            @if (Model.HasNextPage)
+            {
+                <a class="btn btn-secondary" asp-action="Index" asp-route-pageNumber="@(Model.PageIndex + 1)" asp-route-sortOrder="@ViewData["CurrentSort"]" asp-route-pageSize="@ViewData["CurrentPageSize"]" asp-route-tab="list">Next</a>
+            }
+            else
+            {
+                <span class="btn btn-secondary disabled">Next</span>
+            }
+        </div>
+    </div>
+</div>
