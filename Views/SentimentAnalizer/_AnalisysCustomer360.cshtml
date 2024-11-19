@@ -1,0 +1,159 @@
+<div class="customer-analysis">
+    <div class="card">
+        <div class="card-header">
+            <img id="customer-analysis-img" src="" alt="Company Logo">
+            <h3 id="customer-analysis-title">Customer Analysis</h3>
+        </div>
+        <div class="card-body" id="customer-analysis-content">
+            Loading customer analysis data...
+        </div>
+        <!-- Nova seção para a tabela de dados financeiros -->
+        <div id="financial-table-container">
+            <h4>Customers</h4>
+            <table id="financial-data-table" border="1" cellpadding="5" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Company Name</th>
+                        <th>Market Cap</th>
+                        <th>Revenues</th>
+                        <th>Income</th>
+                        <th>Employees</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- As linhas de dados financeiros serão inseridas aqui dinamicamente -->
+                </tbody>
+            </table>
+        </div>
+
+        <button id="customer-ai-analysis-btn" class="ai-analysis-btn">
+            <i class='bx bx-brain'></i> AI Analysis
+        </button>
+    </div>
+</div>
+
+<script>
+    let customerData = '';
+
+    // Populate customer analysis content
+    function populateCustomerAnalysisContent(data) {
+        const contentElement = document.getElementById('customer-analysis-content');
+
+        const companyInfo = `
+                <h4>Company Name: ${data.companyName}</h4>
+                <p>Sector: ${data.sector}</p>
+                <p>Industry: ${data.industry}</p>
+            `;
+
+        const revenueByDivision = data.revenueByDivision && Object.keys(data.revenueByDivision).length > 0
+            ? `<h5>Revenue By Division:</h5><ul>` +
+            Object.entries(data.revenueByDivision)
+                .map(([division, revenue]) => `<li>${division}: ${revenue}</li>`)
+                .join('') +
+            `</ul>`
+            : '';
+
+        const revenueGrowthByIndustry = data.revenueGrowthByIndustry && data.revenueGrowthByIndustry.length > 0
+            ? `<h5>Revenue Growth By Industry:</h5><ul>` +
+            data.revenueGrowthByIndustry
+                .map(industry => `<li>${industry.industry}: ${industry.growthPercentage}</li>`)
+                .join('') +
+            `</ul>`
+            : '';
+
+        const customerPerformance = data.customerPerformanceMetrics
+            ? `<h5>Customer Performance Metrics:</h5>
+                    <p>Net Income Growth: ${data.customerPerformanceMetrics.netIncomeGrowth}</p>
+                    <p>Net Margin Growth: ${data.customerPerformanceMetrics.netMarginGrowth}</p>`
+            : '';
+
+        contentElement.innerHTML = companyInfo + revenueByDivision + revenueGrowthByIndustry + customerPerformance;
+
+        // Populando a tabela de dados financeiros
+        populateFinancialTable(data.financialTable);
+
+    }
+    // Função para preencher a tabela de dados financeiros
+    function populateFinancialTable(dataList) {
+      
+
+        const tableBody = document.getElementById('financial-data-table').querySelector('tbody');
+        tableBody.innerHTML = ''; // Limpa as linhas existentes
+
+        dataList.forEach(data => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${data.companyName}</td>
+                    <td>${data.marketCap}</td>
+                    <td>${data.revenues}</td>
+                    <td>${data.income}</td>
+                    <td>${data.employees}</td>
+                `;
+            tableBody.appendChild(row);
+        });
+    }
+
+    // Fetch customer data
+    async function fetchCustomerData(symbol) {
+        try {
+            const url = `/api/analizer-symbol-360/customer-analysis/${symbol}`;
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                customerData = data;  // Save data for AI analysis
+                populateCustomerAnalysisContent(data);  // Populate the UI
+            } else {
+                console.error('Error fetching customer data:', response.statusText);
+                document.getElementById('customer-analysis-content').innerText = 'Customer data not available.';
+            }
+        } catch (error) {
+            console.error('Error fetching customer data:', error);
+            document.getElementById('customer-analysis-content').innerText = 'Customer data not available.';
+        }
+    }
+
+    // Fetch AI analysis for customer data
+    async function fetchAiAnalysisForCustomer(data) {
+        try {
+            const url = `/api/llm/ai-financial-analysis`;
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: data })
+            });
+
+            if (response.ok) {
+                const aiAnalysisData = await response.json();
+                return aiAnalysisData.summary;
+            } else {
+                console.error('Error fetching AI analysis for customer data:', response.statusText);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching AI analysis for customer data:', error);
+            return null;
+        }
+    }
+
+    // AI analysis button event listener for customer analysis
+    document.getElementById('customer-ai-analysis-btn').addEventListener('click', async function () {
+        if (customerData) {
+            try {
+                const aiAnalysisSummary = await fetchAiAnalysisForCustomer(customerData);
+                if (aiAnalysisSummary) {
+                    document.getElementById('customer-analysis-content').innerHTML += `<p>${aiAnalysisSummary}</p>`;
+                } else {
+                    alert("AI analysis for customer data not available.");
+                }
+            } catch (error) {
+                console.error('Error fetching AI analysis for customer data:', error);
+                alert("An error occurred while fetching AI analysis for customer data.");
+            }
+        } else {
+            alert("Customer data not available for analysis.");
+        }
+    });
+
+</script>

@@ -1,12 +1,25 @@
+using DocumentFormat.OpenXml.Presentation;
+using HtmlAgilityPack;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
+using System.Net.Http;
+using System.Text;
+using HtmlAgilityPack;
+using Azure;
 namespace MarketAnalyticHub.Controllers.api
 {
   [ApiController]
   [Route("api/[controller]")]
   public class YahooFinanceController : ControllerBase
   {
+
+    private readonly HttpClient _httpClient;
+
+    public YahooFinanceController(HttpClient httpClient)
+    {
+      _httpClient = httpClient;
+    }
+
     // GET: api/yahoofinance/price/AAPL
     [HttpGet("price/{symbol}")]
     public async Task<IActionResult> GetPrice(string symbol)
@@ -21,6 +34,120 @@ namespace MarketAnalyticHub.Controllers.api
         return BadRequest(new { Message = ex.Message });
       }
     }
+
+    [HttpGet("customer-analysis/{symbol}")]
+    public async Task<IActionResult> GetCustomerData(string symbol)
+    {
+      var url = $"https://csimarket.com/stocks/markets_glance.php?code={symbol}";
+
+      try
+      {
+        // Fetch the HTML content from the URL
+        var responseMessage = await _httpClient.GetAsync(url);
+        responseMessage.EnsureSuccessStatusCode(); // Ensure the request was successful
+
+        // Read the content as a byte array and decode it with UTF-8
+        var responseBytes = await responseMessage.Content.ReadAsByteArrayAsync();
+        var responseContent = Encoding.UTF8.GetString(responseBytes);
+
+        // Load HTML into HtmlAgilityPack for parsing
+        var htmlDoc = new HtmlDocument();
+        htmlDoc.LoadHtml(responseContent);
+
+        // Extract data
+        var customerData = new ModelCustomerData
+        {
+          Symbol = symbol,
+          CompanyName = ExtractCompanyName(htmlDoc),
+          Sector = ExtractSector(htmlDoc),
+          Industry = ExtractIndustry(htmlDoc),
+          RevenueByDivision = ExtractRevenueByDivision(htmlDoc),
+          RevenueGrowthByIndustry = ExtractRevenueGrowthByIndustry(htmlDoc),
+          CustomerPerformanceMetrics = ExtractCustomerPerformanceMetrics(htmlDoc)
+        };
+
+        return Ok(customerData);
+      }
+      catch (HttpRequestException)
+      {
+        return StatusCode(500, "Error fetching data from csimarket.com");
+      }
+    }
+
+    private string ExtractCompanyName(HtmlDocument doc)
+    {
+      var node = doc.DocumentNode.SelectSingleNode("//div[@class='naslovcompet3']/h1");
+      return node?.InnerText.Trim() ?? "N/A";
+    }
+
+    private string ExtractSector(HtmlDocument doc)
+    {
+      var node = doc.DocumentNode.SelectSingleNode("//span[@class='sector']");
+      return node?.InnerText.Trim() ?? "N/A";
+    }
+
+    private string ExtractIndustry(HtmlDocument doc)
+    {
+      var node = doc.DocumentNode.SelectSingleNode("//span[@class='industry']");
+      return node?.InnerText.Trim() ?? "N/A";
+    }
+
+    private Dictionary<string, string> ExtractRevenueByDivision(HtmlDocument doc)
+    {
+      var divisions = new Dictionary<string, string>();
+      var divisionNodes = doc.DocumentNode.SelectNodes("//table//tr[@onmouseover='this.className=\"bgplv\"']");
+      if (divisionNodes != null)
+      {
+        foreach (var node in divisionNodes)
+        {
+          var divisionName = node.SelectSingleNode(".//td[@class='segtxt']")?.InnerText.Trim();
+          var revenuePercentage = node.SelectSingleNode(".//td[@class='deschardistance']")?.InnerText.Trim();
+
+          if (!string.IsNullOrEmpty(divisionName) && !string.IsNullOrEmpty(revenuePercentage))
+          {
+            divisions[divisionName] = revenuePercentage;
+          }
+        }
+      }
+      return divisions;
+    }
+    private List<IndustryGrowth> ExtractRevenueGrowthByIndustry(HtmlDocument doc)
+    {
+      var growthData = new List<IndustryGrowth>();
+      var industryNodes = doc.DocumentNode.SelectNodes("//table//tr[@valign='middle']");
+      if (industryNodes != null)
+      {
+        foreach (var node in industryNodes)
+        {
+          var industryName = node.SelectSingleNode(".//td[@class='segtxt']/a")?.InnerText.Trim();
+          var growthPercentage = node.SelectSingleNode(".//td[@class='lijevchar b lijevcharfont']")?.InnerText.Trim();
+
+          if (!string.IsNullOrEmpty(industryName) && !string.IsNullOrEmpty(growthPercentage))
+          {
+            growthData.Add(new IndustryGrowth
+            {
+              Industry = industryName,
+              GrowthPercentage = growthPercentage
+            });
+          }
+        }
+      }
+      return growthData;
+    }
+
+    private CustomerPerformanceMetrics ExtractCustomerPerformanceMetrics(HtmlDocument doc)
+    {
+      var netIncomeGrowth = doc.DocumentNode.SelectSingleNode("//span[@class='zv']")?.InnerText.Trim() ?? "N/A";
+      var netMarginGrowth = doc.DocumentNode.SelectSingleNode("//span[@class='zv']")?.InnerText.Trim() ?? "N/A";
+      return new CustomerPerformanceMetrics
+      {
+        NetIncomeGrowth = netIncomeGrowth,
+        NetMarginGrowth = netMarginGrowth
+      };
+    }
+
+
+
 
     // GET: api/yahoofinance/balance-sheet/AAPL
     [HttpGet("balance-sheet/{symbol}")]

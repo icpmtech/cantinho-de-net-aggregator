@@ -1,0 +1,157 @@
+<div class="fundamental-analysis">
+    <div class="card">
+        <div class="card-header">
+            <img id="analysis-img" src="" alt="Company Logo">
+            <h3 id="analysis-title">Fundamental Analysis</h3>
+        </div>
+        <div class="card-body" id="analysis-content">
+            This is the fundamental analysis content...
+        </div>
+        <button id="ai-analysis-btn" class="ai-analysis-btn">
+            <i class='bx bx-brain'></i> AI Analysis
+        </button>
+    </div>
+</div>
+<script>
+
+    let fundamentalAnalysisData = '';
+
+    async function fetchCompanySummary(companyName) {
+        const url = `/api/llm/search-company-summary/${companyName}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                return result.description;
+            } else {
+                console.error('Error fetching summary:', response.statusText);
+                return 'Summary not available.';
+            }
+        } catch (error) {
+            console.error('Error fetching summary:', error);
+            return 'Summary not available.';
+        }
+    }
+
+    async function fetchFundamentals(symbol) {
+        try {
+            const url = `/api/yahoofinance/price/${symbol}`;
+            const response = await fetch(url);
+
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            } else {
+                console.error('Error fetching fundamentals:', response.statusText);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching fundamentals:', error);
+            return null;
+        }
+    }
+
+    async function fetchAiAnalysis(fundamentalData) {
+        const url = `/api/llm/ai-financial-analysis`;
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: fundamentalData }) // Send the fundamental data as the content field in the body
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                return data; // Adjust this based on what data is returned
+            } else {
+                console.error('Error fetching AI analysis:', response.statusText);
+                return null;
+            }
+        } catch (error) {
+            console.error('Error fetching AI analysis:', error);
+            return null;
+        }
+    }
+
+    function displayAiAnalysis(data) {
+        // Process and display AI analysis data. Adjust this depending on the returned data structure
+        const analysisContent = document.getElementById('analysis-content');
+        analysisContent.innerHTML += `<p>${data.aiAnalysisSummary}</p>`;
+    }
+
+    function formatFundamentals(_fundamentals) {
+        if (!_fundamentals) return 'Fundamental data not available.';
+        const fundamentals = _fundamentals[0];
+        fundamentalAnalysisData = JSON.stringify(fundamentals);
+        const marketCap = fundamentals.marketCap ? `$${(fundamentals.marketCap / 1e12).toFixed(2)}T` : 'N/A';
+        const peRatio = fundamentals.trailingPE ? fundamentals.trailingPE.toFixed(2) : 'N/A';
+        const forwardPE = fundamentals.forwardPE ? fundamentals.forwardPE.toFixed(2) : 'N/A';
+        const priceToBook = fundamentals.priceToBook ? fundamentals.priceToBook.toFixed(2) : 'N/A';
+        const dividendYield = fundamentals.dividendYield ? `${(fundamentals.dividendYield * 100).toFixed(2)}%` : 'N/A';
+        const epsTrailingTwelveMonths = fundamentals.epsTrailingTwelveMonths ? fundamentals.epsTrailingTwelveMonths.toFixed(2) : 'N/A';
+        const epsForward = fundamentals.epsForward ? fundamentals.epsForward.toFixed(2) : 'N/A';
+        const epsCurrentYear = fundamentals.epsCurrentYear ? fundamentals.epsCurrentYear.toFixed(2) : 'N/A';
+        const fiftyDayAverage = fundamentals.fiftyDayAverage ? `$${fundamentals.fiftyDayAverage.toFixed(2)}` : 'N/A';
+        const twoHundredDayAverage = fundamentals.twoHundredDayAverage ? `$${fundamentals.twoHundredDayAverage.toFixed(2)}` : 'N/A';
+        const fiftyTwoWeekLow = fundamentals.fiftyTwoWeekLow ? `$${fundamentals.fiftyTwoWeekLow.toFixed(2)}` : 'N/A';
+        const fiftyTwoWeekHigh = fundamentals.fiftyTwoWeekHigh ? `$${fundamentals.fiftyTwoWeekHigh.toFixed(2)}` : 'N/A';
+        const trailingAnnualDividendRate = fundamentals.trailingAnnualDividendRate ? `$${fundamentals.trailingAnnualDividendRate.toFixed(2)}` : 'N/A';
+        const trailingAnnualDividendYield = fundamentals.trailingAnnualDividendYield ? `${(fundamentals.trailingAnnualDividendYield * 100).toFixed(2)}%` : 'N/A';
+        const bookValue = fundamentals.bookValue ? `$${fundamentals.bookValue.toFixed(2)}` : 'N/A';
+
+        return `
+                    <div id="financial-overview" class="finance-card">
+                        <h2>Financial Overview</h2>
+                        <ul>
+                            <li><span>Market Cap:</span> ${marketCap}</li>
+                            <li><span>P/E Ratio:</span> ${peRatio}</li>
+                            <li><span>Forward P/E Ratio:</span> ${forwardPE}</li>
+                            <li><span>Price to Book:</span> ${priceToBook}</li>
+                            <li><span>Dividend Yield:</span> ${dividendYield}</li>
+                            <li><span>EPS (TTM):</span> ${epsTrailingTwelveMonths}</li>
+                            <li><span>EPS (Forward):</span> ${epsForward}</li>
+                            <li><span>EPS (Current Year):</span> ${epsCurrentYear}</li>
+                            <li><span>50-Day Average:</span> ${fiftyDayAverage}</li>
+                            <li><span>200-Day Average:</span> ${twoHundredDayAverage}</li>
+                            <li><span>52-Week Low:</span> ${fiftyTwoWeekLow}</li>
+                            <li><span>52-Week High:</span> ${fiftyTwoWeekHigh}</li>
+                            <li><span>Trailing Annual Dividend Rate:</span> ${trailingAnnualDividendRate}</li>
+                            <li><span>Trailing Annual Dividend Yield:</span> ${trailingAnnualDividendYield}</li>
+                            <li><span>Book Value:</span> ${bookValue}</li>
+                        </ul>
+                    </div>`;
+    }
+
+   
+    document.getElementById('ai-analysis-btn').addEventListener('click', async function () {
+
+        if (fundamentalAnalysisData) {
+            showSpinner(true); // Show spinner while loading
+
+            try {
+                const aiAnalysisData = await fetchAiAnalysis(fundamentalAnalysisData);
+                if (aiAnalysisData) {
+                    displayAiAnalysis(aiAnalysisData);
+                } else {
+                    alert("AI analysis not available.");
+                }
+            } catch (error) {
+                console.error('Error fetching AI analysis:', error);
+                alert("An error occurred while fetching AI analysis.");
+            } finally {
+                showSpinner(false); // Hide spinner
+            }
+        } else {
+            alert("Please select a valid symbol.");
+        }
+    });
+</script>
