@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Ai-Pilot-Forecast Price Tool</title>
+    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+            .search-box input[type="text"] {
+                width: 100%;
+                padding: 10px 10px 10px 40px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+            }
+
+            .search-box i {
+                position: absolute;
+                left: 10px;
+                font-size: 20px;
+                color: #007bff;
+            }
+
+        .suggestions {
+            position: absolute;
+            top: 45px;
+            width: 100%;
+            border: 1px solid #ccc;
+            border-top: none;
+            background-color: #fff;
+            z-index: 1000;
+            display: none;
+        }
+
+        .forecast-tools,
+        .sparkline {
+            margin-top: 20px;
+        }
+
+        .forecast-tools {
+            display: none;
+        }
+
+        #sparkline {
+            width: 100%;
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        .forecast-model {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="text-center chat-assistant-logo">
+        <h2>Forecast Price Tool</h2>
+        <img class="rounded-circle" src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
+        <h3> Ai-Pilot</h3>
+        <p> Your everyday AI analyzer companion</p>
+    </div>
+    <div class="container">
+    <!-- Search Box -->
+    <div class="search-box">
+        <i class='bx bx-search'></i>
+        <input type="text" id="search-input" placeholder="Search Symbol..." oninput="search()">
+        <div class="suggestions" id="suggestions"></div>
+    </div>
+    </div>
+    <div class="container mt-4">
+       
+
+      
+
+        <!-- Forecast Options -->
+        <div class="forecast-tools mt-4">
+            <div class="row g-3">
+                <!-- Select Forecast Models -->
+                <div class="col-md-6">
+                    <label for="forecast-model" class="form-label">Select Forecast Models:</label>
+                    <select id="forecast-model" class="form-select" multiple>
+                        <option value="linearTrend">Linear Trend</option>
+                        <option value="movingAverage">Moving Average</option>
+                        <option value="weightedMovingAverage">Weighted Moving Average</option>
+                        <option value="exponentialSmoothing">Exponential Smoothing</option>
+                        <option value="holtLinearTrend">Holt’s Linear Trend</option>
+                        <option value="seasonal">Seasonal Forecast</option>
+                        <option value="naive">Naive Forecast</option>
+                        <option value="polynomialRegression">Polynomial Regression</option>
+                    </select>
+                    <small class="form-text text-muted">Hold Ctrl (or Cmd on Mac) to select multiple models.</small>
+                </div>
+
+                <!-- Forecast Days -->
+                <div class="col-md-6">
+                    <label for="forecast-days" class="form-label">Forecast Days:</label>
+                    <input type="number" id="forecast-days" class="form-control" placeholder="e.g., 5" min="1">
+                </div>
+
+                <!-- Fetch Button -->
+                <div class="col-12 text-center">
+                    <button id="fetch-data" type="button" class="btn btn-primary">
+                        <i class='bx bxs-brain'></i> <i class='bx bx-line-chart'></i> Forecast Data
+                    </button>
+                </div>
+
+            </div>
+        </div>
+        <!-- Sparkline -->
+        <div id="sparkline"></div>
+    </div>
+
+    <script>
+        const chartContainer = document.getElementById('sparkline');
+        let chart; // ApexCharts instance
+
+        async function search() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const suggestionsBox = document.getElementById('suggestions');
+            suggestionsBox.innerHTML = ''; // Clear previous suggestions
+
+            if (query) {
+                try {
+                    const url = `/api/yahoofinance/search/${query}`;
+                    const response = await fetch(url);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.length > 0) {
+                            suggestionsBox.style.display = 'block';
+                            data.forEach(result => {
+                                const suggestionItem = document.createElement('div');
+                                suggestionItem.classList.add('suggestion-item');
+
+                                suggestionItem.innerHTML = `
+                                    <p>${result.symbol} - ${result.shortname}</p>
+                                `;
+
+                                suggestionItem.onclick = () => selectSuggestion(result);
+                                suggestionsBox.appendChild(suggestionItem);
+                            });
+                        } else {
+                            suggestionsBox.style.display = 'none';
+                        }
+                    } else {
+                        console.error('Error fetching symbols:', response.statusText);
+                        suggestionsBox.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error fetching symbols:', error);
+                    suggestionsBox.style.display = 'none';
+                }
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        }
+
+        function selectSuggestion(result) {
+            document.getElementById('search-input').value = result.symbol;
+            document.getElementById('suggestions').style.display = 'none';
+
+            document.querySelector('.forecast-tools').style.display = 'block';
+
+            fetchSparklineData(result.symbol);
+        }
+
+        async function fetchSparklineData(symbol) {
+            try {
+                const url = `/api/yahoofinance/chart-symbol/${symbol}`;
+                const response = await fetch(url);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    renderSparkline(data);
+                } else {
+                    console.error('Error fetching sparkline data:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching sparkline data:', error);
+            }
+        }
+
+        function renderSparkline(data) {
+            const chartData = data.map(item => ({
+                x: new Date(item.timestamp),
+                y: [item.open, item.high, item.low, item.close],
+            }));
+
+            const options = {
+                series: [{
+                    name: 'Price',
+                    data: chartData,
+                }],
+                chart: {
+                    type: 'candlestick',
+                    height: 300,
+                },
+                xaxis: {
+                    type: 'datetime',
+                },
+                tooltip: {
+                    enabled: true,
+                },
+                plotOptions: {
+                    candlestick: {
+                        colors: {
+                            upward: '#00B746',
+                            downward: '#EF403C',
+                        },
+                    },
+                },
+            };
+
+            if (chart) {
+                chart.updateSeries(options.series);
+            } else {
+                chart = new ApexCharts(chartContainer, options);
+                chart.render();
+            }
+        }
+
+                   document.getElementById('fetch-data').addEventListener('click', async () => {
+            const symbol = document.getElementById('search-input').value.trim();
+            const forecastModels = Array.from(
+                document.getElementById('forecast-model').selectedOptions
+            ).map(option => option.value); // Get selected models
+            const forecastDays = parseInt(document.getElementById('forecast-days').value, 10);
+
+            if (!symbol || forecastModels.length === 0 || isNaN(forecastDays) || forecastDays <= 0) {
+                alert('Please enter a valid stock symbol, select at least one model, and provide forecast days.');
+                return;
+            }
+
+            try {
+                // Fetch historical data
+                const url = `/api/yahoofinance/chart-symbol/${symbol}`;
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data.');
+                }
+
+                const data = await response.json();
+                const dates = data.map(item => new Date(item.timestamp));
+                const closingPrices = data.map(item => item.close);
+
+                // Generate forecasts for each selected model
+                const forecasts = [];
+                forecastModels.forEach(model => {
+                    let forecast = [];
+                    switch (model) {
+                        case 'linearTrend':
+                            forecast = linearTrendForecast(closingPrices, forecastDays);
+                            break;
+                        case 'movingAverage':
+                            forecast = movingAverageForecast(closingPrices, 5, forecastDays);
+                            break;
+                        case 'weightedMovingAverage':
+                            forecast = weightedMovingAverageForecast(closingPrices, 5, forecastDays);
+                            break;
+                        case 'exponentialSmoothing':
+                            forecast = exponentialSmoothingForecast(closingPrices, 0.2, forecastDays);
+                            break;
+                        case 'holtLinearTrend':
+                            forecast = holtLinearTrendForecast(closingPrices, 0.3, 0.2, forecastDays);
+                            break;
+                        case 'seasonal':
+                            forecast = seasonalForecast(closingPrices, 7, forecastDays);
+                            break;
+                        case 'naive':
+                            forecast = naiveForecast(closingPrices, forecastDays);
+                            break;
+                        case 'polynomialRegression':
+                            forecast = polynomialRegressionForecast(closingPrices, 2, forecastDays);
+                            break;
+                    }
+                    forecasts.push({ model, forecast });
+                });
+
+                // Generate forecast dates
+                const lastDate = dates[dates.length - 1];
+                const forecastDates = [];
+                for (let i = 1; i <= forecastDays; i++) {
+                    const nextDate = new Date(lastDate);
+                    nextDate.setDate(nextDate.getDate() + i);
+                    forecastDates.push(nextDate);
+                }
+
+                // Render chart with all forecasts
+                renderMultiForecastChart(dates, closingPrices, forecastDates, forecasts);
+            } catch (error) {
+                console.error('Error during forecasting:', error);
+                alert('Failed to generate forecast. Please try again.');
+            }
+        });
+
+        function renderMultiForecastChart(dates, actualPrices, forecastDates, forecasts) {
+            const actualData = dates.map((date, index) => ({
+                x: new Date(date),
+                y: actualPrices[index],
+            }));
+
+            const series = [
+                {
+                    name: 'Actual Prices',
+                    data: actualData,
+                    color: '#007bff',
+                },
+            ];
+
+            forecasts.forEach((forecastData, index) => {
+                const forecastSeries = forecastDates.map((date, i) => ({
+                    x: new Date(date),
+                    y: forecastData.forecast[i],
+                }));
+
+                series.push({
+                    name: `Forecast (${forecastData.model})`,
+                    data: forecastSeries,
+                    color: getColor(index),
+                    dashArray: 5 + index * 2, // Make each forecast line distinct
+                });
+            });
+
+            const options = {
+                series: series,
+                chart: {
+                    type: 'line',
+                    height: 400,
+                },
+                xaxis: {
+                    type: 'datetime',
+                    labels: {
+                        format: 'dd MMM yyyy',
+                    },
+                    title: {
+                        text: 'Date',
+                    },
+                },
+                yaxis: {
+                    title: {
+                        text: 'Price (USD)',
+                    },
+                },
+                stroke: {
+                    curve: 'smooth',
+                },
+                markers: {
+                    size: 5,
+                },
+                tooltip: {
+                    shared: true,
+                    intersect: false,
+                    x: {
+                        format: 'dd MMM yyyy',
+                    },
+                },
+                legend: {
+                    position: 'top',
+                },
+            };
+
+            if (chart) {
+                chart.updateOptions(options);
+            } else {
+                chart = new ApexCharts(document.querySelector("#sparkline"), options);
+                chart.render();
+            }
+        }
+
+        function getColor(index) {
+            const colors = ['#00b746', '#feb019', '#ff4560', '#775dd0', '#f48024', '#00e396', '#775dd0'];
+            return colors[index % colors.length];
+        }
+        // Forecast Models
+        function linearTrendForecast(data, forecastDays) {
+            const n = data.length;
+            const x = Array.from({ length: n }, (_, i) => i + 1);
+            const y = data;
+
+            const meanX = x.reduce((a, b) => a + b, 0) / n;
+            const meanY = y.reduce((a, b) => a + b, 0) / n;
+            const slope =
+                x.reduce((sum, xi, i) => sum + (xi - meanX) * (y[i] - meanY), 0) /
+                x.reduce((sum, xi) => sum + (xi - meanX) ** 2, 0);
+            const intercept = meanY - slope * meanX;
+
+            return Array.from({ length: forecastDays }, (_, i) =>
+                slope * (n + i + 1) + intercept
+            );
+        }
+
+        function movingAverageForecast(data, windowSize, forecastDays) {
+            const movingAverage = data
+                .slice(-windowSize)
+                .reduce((sum, value) => sum + value, 0) / windowSize;
+
+            return Array.from({ length: forecastDays }, () => movingAverage);
+        }
+
+        function weightedMovingAverageForecast(data, windowSize, forecastDays) {
+            const weights = Array.from({ length: windowSize }, (_, i) => i + 1);
+            const weightedSum = data
+                .slice(-windowSize)
+                .reduce((sum, value, i) => sum + value * weights[i], 0);
+            const weightTotal = weights.reduce((a, b) => a + b, 0);
+            const weightedAverage = weightedSum / weightTotal;
+
+            return Array.from({ length: forecastDays }, () => weightedAverage);
+        }
+
+        function exponentialSmoothingForecast(data, alpha, forecastDays) {
+            let smoothed = data[0];
+            for (let i = 1; i < data.length; i++) {
+                smoothed = alpha * data[i] + (1 - alpha) * smoothed;
+            }
+
+            return Array.from({ length: forecastDays }, () => smoothed);
+        }
+
+        function holtLinearTrendForecast(data, alpha, beta, forecastDays) {
+            let level = data[0];
+            let trend = data[1] - data[0];
+            const forecasts = [];
+
+            for (let i = 1; i < data.length; i++) {
+                const prevLevel = level;
+                level = alpha * data[i] + (1 - alpha) * (level + trend);
+                trend = beta * (level - prevLevel) + (1 - beta) * trend;
+            }
+
+            for (let i = 1; i <= forecastDays; i++) {
+                forecasts.push(level + i * trend);
+            }
+
+            return forecasts;
+        }
+
+        function seasonalForecast(data, seasonLength, forecastDays) {
+            const season = data.slice(-seasonLength);
+
+            return Array.from({ length: forecastDays }, (_, i) => season[i % season.length]);
+        }
+
+        function naiveForecast(data, forecastDays) {
+            const lastValue = data[data.length - 1];
+
+            return Array.from({ length: forecastDays }, () => lastValue);
+        }
+
+        function polynomialRegressionForecast(data, degree, forecastDays) {
+            const x = Array.from({ length: data.length }, (_, i) => i + 1);
+            const y = data;
+
+            // Fit a polynomial of the given degree
+            const coefficients = polynomialFit(x, y, degree);
+
+            // Predict future values
+            const futureX = Array.from({ length: forecastDays }, (_, i) => x.length + i + 1);
+            return futureX.map(xVal => evaluatePolynomial(coefficients, xVal));
+        }
+
+        function polynomialFit(x, y, degree) {
+            const matrix = [];
+            const vector = [];
+            const n = x.length;
+
+            for (let row = 0; row <= degree; row++) {
+                const matrixRow = [];
+                for (let col = 0; col <= degree; col++) {
+                    matrixRow.push(x.reduce((sum, xi) => sum + xi ** (row + col), 0));
+                }
+                matrix.push(matrixRow);
+                vector.push(x.reduce((sum, xi, i) => sum + y[i] * xi ** row, 0));
+            }
+
+            return gaussianElimination(matrix, vector);
+        }
+
+        function evaluatePolynomial(coefficients, x) {
+            return coefficients.reduce((sum, coef, i) => sum + coef * x ** i, 0);
+        }
+
+        function gaussianElimination(matrix, vector) {
+            const n = vector.length;
+
+            for (let i = 0; i < n; i++) {
+                let maxRow = i;
+                for (let k = i + 1; k < n; k++) {
+                    if (Math.abs(matrix[k][i]) > Math.abs(matrix[maxRow][i])) {
+                        maxRow = k;
+                    }
+                }
+
+                [matrix[i], matrix[maxRow]] = [matrix[maxRow], matrix[i]];
+                [vector[i], vector[maxRow]] = [vector[maxRow], vector[i]];
+
+                for (let k = i + 1; k < n; k++) {
+                    const factor = matrix[k][i] / matrix[i][i];
+                    for (let j = i; j < n; j++) {
+                        matrix[k][j] -= factor * matrix[i][j];
+                    }
+                    vector[k] -= factor * vector[i];
+                }
+            }
+
+            const result = Array(n).fill(0);
+            for (let i = n - 1; i >= 0; i--) {
+                result[i] = vector[i] / matrix[i][i];
+                for (let k = 0; k < i; k++) {
+                    vector[k] -= matrix[k][i] * result[i];
+                }
+            }
+
+            return result;
+        }
+    </script>
+</body>
+
+</html>

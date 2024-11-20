@@ -33,6 +33,14 @@ namespace MarketAnalyticHub.Controllers
 
       return View();
     }
+
+    public async Task<IActionResult> ForecastPrice()
+    {
+
+
+      return View();
+    }
+
     public async Task<IActionResult> PredictiveSearch()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

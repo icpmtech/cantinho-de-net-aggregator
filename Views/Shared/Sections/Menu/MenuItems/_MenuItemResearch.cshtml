@@ -63,6 +63,11 @@
                 <div>Forecast</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage == "/SentimentAnalizer/ForecastPrice" ? " active" : "")'>
+            <a asp-controller="SentimentAnalizer" asp-action="ForecastPrice" class="menu-link">
+                <div>Forecast Price </div>
+            </a>
+        </li>
         <li class='menu-item@(currentPage == "/SentimentAnalizer/Playground" ? " active" : "")'>
             <a asp-controller="SentimentAnalizer" asp-action="Playground" class="menu-link">
                 <div>Playground</div>
