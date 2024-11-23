@@ -92,11 +92,15 @@ function generatePortfolioHTML(portfolio) {
                             <button class="btn p-0" type="button" id="portfolioActions-${portfolio.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="bx bx-dots-vertical-rounded"></i>
                             </button>
+
                             <div class="dropdown-menu dropdown-menu-end" aria-labelledby="portfolioActions-${portfolio.id}">
                                 <a class="dropdown-item" href="javascript:toggleChart(${portfolio.id})">
                                     <i class="bx bx-line-chart"></i> View Chart
                                 </a>
-                                <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">
+                                <a class="dropdown-item" href="javascript:showAIAnalisysPortfolioItemModal(${portfolio.id});">
+                                    <i class="bx bx-bot bx-sm"></i> AI Analisys
+                                </a>
+                                 <a class="dropdown-item" href="javascript:showAddPortfolioItemModal(${portfolio.id});">
                                     <i class="bx bx-plus"></i> Add Op.
                                 </a>
                                 <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name.replace(/'/g, "\\'")}');">
@@ -163,12 +167,13 @@ function generateGroupedItemsHTML(group, portfolioId) {
             <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">${group.symbol}</span>
             <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">Op. ${group.items.length}</span>
             <!-- Sparkline Chart Container -->
-            <div id="sparkline-chart-${sanitizedSymbol}" class="sparkline-chart flex-grow-1"></div>
+            <div id="sparkline-chart-${sanitizedSymbol}" class="sparkline-chart bg-white flex-grow-1">
+            </div>
         </div>
         <!-- Right Section: Today's Change and ROI -->
         <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center w-100 mt-3 mt-md-0">
             <button class="btn btn-link text-start w-100" type="button">
-                <span class="badge bg-white text-primary">
+                <span class="badge  w-100 bg-white text-primary">
                     <div class="mb-1">
                         <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
                             <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i>
@@ -321,6 +326,9 @@ async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
   }
   throw new Error('Too many requests');
 }
+
+
+
 async function renderSparklineChart(elementId, symbol) {
   const url = `api/Dashboards/Stock/${symbol}?interval=5m`;
 
@@ -338,51 +346,64 @@ async function renderSparklineChart(elementId, symbol) {
 
     const data = await response.json();
 
-    // Map data to a format suitable for the area sparkline chart
-    const marketData = data.map(item => ({
-      x: new Date(item.timestamp), // Date object for x-axis
-      y: item.close, // Close price for y-axis
-      open: item.open // Open price for comparison
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('Invalid or empty data received');
+    }
+
+    // Sort data by timestamp ascending
+    data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    // Map data for the candlestick sparkline
+    const candlestickData = data.map(item => ({
+      x: new Date(item.timestamp).getTime(), // Timestamp in milliseconds
+      y: [item.open, item.high, item.low, item.close] // [Open, High, Low, Close]
     }));
 
-    // Determine colors based on open and close prices
-    const colors = marketData.map(point => point.y >= point.open ? '#00C851' : '#FF4444'); // Green if close >= open, otherwise red
+    // Define colors for upward and downward candles
+    const positiveColor = '#00C851'; // Green for upward candles
+    const negativeColor = '#FF4444'; // Red for downward candles
 
     const options = {
       chart: {
-        type: 'area', // Set to area chart
-        height: 80, // Height for sparkline
+        type: 'candlestick',
+        height: 90, // Small height for sparkline
         sparkline: {
           enabled: true // Enable sparkline mode
+        },
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800,
+          animateGradually: {
+            enabled: true,
+            delay: 150
+          },
+          dynamicAnimation: {
+            enabled: true,
+            speed: 350
+          }
+        },
+        toolbar: {
+          show: false // Hide the toolbar for a cleaner look
         }
       },
-      stroke: {
-        width: 2,
-        curve: 'smooth' // Smoother curve for the sparkline
-      },
-      fill: {
-        type: 'gradient', // Gradient fill to mimic the area chart in the image
-        gradient: {
-          shadeIntensity: 1,
-          opacityFrom: 0.7,
-          opacityTo: 0.2,
-          stops: [0, 90, 100],
-          colorStops: [
-            {
-              offset: 0,
-              color: colors[0], // Start with the color of the first point
-              opacity: 0.7
-            },
-            {
-              offset: 100,
-              color: colors[colors.length - 1], // End with the color of the last point
-              opacity: 0.2
-            }
-          ]
+      plotOptions: {
+        candlestick: {
+          colors: {
+            upward: positiveColor,
+            downward: negativeColor
+          },
+          wick: {
+            useFillColor: true // Use the fill color for the wicks
+          }
         }
       },
+      series: [{
+        name: 'OHLC',
+        data: candlestickData
+      }],
       xaxis: {
-        type: 'datetime', // Use datetime for x-axis
+        type: 'datetime',
         labels: {
           show: false // Hide x-axis labels for sparkline
         },
@@ -398,27 +419,65 @@ async function renderSparklineChart(elementId, symbol) {
           show: false // Hide y-axis labels for sparkline
         }
       },
-      series: [{
-        name: 'Close Price',
-        data: marketData.map(point => ({
-          x: point.x,
-          y: point.y,
-          fillColor: point.y >= point.open ? '#00C851' : '#FF4444' // Set the color based on the trend
-        }))
-      }],
-      colors: [colors[colors.length - 1]], // Line color based on the last point
       tooltip: {
-        enabled: false // Disable tooltips
-      }
+        enabled: false // Disable tooltips for minimalism
+      },
+      grid: {
+        show: false // Hide grid for a cleaner sparkline look
+      },
+      responsive: [{
+        breakpoint: 600,
+        options: {
+          chart: {
+            height: 60
+          }
+        }
+      }]
     };
 
-    // Render the chart
+    // Initialize the chart
     const chart = new ApexCharts(document.querySelector(`#${elementId}`), options);
     chart.render();
+
+    // Optional: Add dynamic coloring or other enhancements if needed
+    // Since the candlestick colors already reflect trends, additional markers are optional
+    // If you still want to add markers, ensure correct data mapping
+
+    /*
+    // Example of adding markers based on trend changes
+    const markerData = data.map((point, index) => {
+      if (index === 0) return null; // No marker for the first point
+      const previousClose = data[index - 1].close;
+      const currentClose = point.close;
+      return currentClose >= previousClose ? positiveColor : negativeColor;
+    });
+
+    // Update chart options to include markers
+    chart.updateOptions({
+      markers: {
+        size: 2, // Small size for sparkline
+        colors: markerData,
+        strokeColors: ['#fff'],
+        strokeWidth: 1,
+        hover: {
+          size: 4
+        }
+      }
+    });
+    */
+
   } catch (error) {
     console.error('Error fetching market data:', error);
+    // Optionally, display an error message in the UI
+    const chartElement = document.querySelector(`#${elementId}`);
+    if (chartElement) {
+      chartElement.innerHTML = `<p style="color: red; text-align: center;">Failed to load chart data.</p>`;
+    }
   }
 }
+
+
+
 
 async function fetchWithRetry(url, options, retries = 5, delay = 1000) {
   for (let i = 0; i < retries; i++) {

@@ -1,0 +1,40 @@
+<!-- AI Portfolio Item Modal -->
+<div id="aiPortfolioItemModal" class="modal fade" tabindex="-1" aria-labelledby="aiPortfolioItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="aiPortfolioItemModalLabel">AI Portfolio Analysis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="aiPortfolioItemForm">
+                    <input type="hidden" id="portfolioId" name="portfolioId">
+
+                    <!-- Prompt Input Field -->
+                    <div class="mb-3">
+                        <label for="promptText" class="form-label">Analysis Instructions (Optional)</label>
+                        <textarea class="form-control" id="promptText" name="promptText" rows="4" placeholder="Default prompt will be used if left empty.">
+Please analyze the sentiment of all portfolio investments based on the provided data and give me a summarized table. Present the results in a Div container format with the following columns: Symbol, Quantity, Purchase Price, Purchase Date, Current Price, Sentiment.
+                        </textarea>
+                        <div id="promptHelp" class="form-text">You can customize the analysis instructions or leave it empty to use the default prompt.</div>
+                    </div>
+
+                    <p>Click the button below to analyze the sentiment of your selected portfolio.</p>
+                    <button type="submit" class="btn btn-primary">Analyze Portfolio</button>
+                </form>
+
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="spinner-border text-primary mt-3" role="status" style="display: none;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+
+                <!-- Sentiment Report Container -->
+                <div class="card mt-3" id="sentimentReportContainer" style="display: none;" aria-live="polite">
+                    <div class="card-body">
+                        <!-- Sentiment Report will be injected here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -54,7 +54,7 @@ namespace AspnetCoreMvcFull.Services
       var completionRequest = new CompletionRequest
       {
         Prompt = propmt,
-        MaxTokens = 500,
+        MaxTokens = 2000,
         Temperature = 0.3,
       };
 

@@ -12,7 +12,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Nest;
 using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
+using System.Text;
+using static MarketAnalyticHub.Controllers.api.PortfolioIdDto;
 using static MarketAnalyticHub.Controllers.SocialSentimentService;
 
 namespace MarketAnalyticHub.Controllers.api
@@ -22,18 +25,21 @@ namespace MarketAnalyticHub.Controllers.api
   [Route("api/[controller]")]
   public class LlmController : ControllerBase
   {
+    private readonly ILogger<LlmController> _logger;
     private readonly LlmService _llmService;
     private readonly DataIndexingService _dataIndexingService;
     private readonly ElasticSearchService _elasticSearchService;
     private readonly ApplicationDbContext _context;
+    private readonly PortfolioService _portfolioService;
 
-
-    public LlmController(ApplicationDbContext context, ElasticSearchService elasticSearchService, DataIndexingService dataIndexingService, LlmService llmService)
+    public LlmController(ApplicationDbContext context, ILogger<LlmController> logger, PortfolioService portfolioService, ElasticSearchService elasticSearchService, DataIndexingService dataIndexingService, LlmService llmService)
     {
       _llmService = llmService;
       _dataIndexingService = dataIndexingService;
       _elasticSearchService = elasticSearchService;
       _context = context;
+      _portfolioService = portfolioService;
+      _logger = logger;
 
     }
     public class SummaryViewModel
@@ -208,8 +214,81 @@ namespace MarketAnalyticHub.Controllers.api
       var analysis = await _llmService.GeneratePortfolioReportAsync(prompt);
       return Ok(analysis);
     }
+    [HttpPost("analyze-sentiment-for-portfolio")]
+    public async Task<IActionResult> AnalyzeSentimentForPortfolio([FromBody]  PortfolioAnalysisDto analysisDto)
+    {
+      if (analysisDto.PortfolioId <= 0)
+      {
+        return BadRequest("Invalid portfolio ID.");
+      }
 
+      var portfolioWallet = await _portfolioService.GetPortfolioByIdAsync(analysisDto.PortfolioId);
+      if (portfolioWallet == null)
+      {
+        return NotFound($"Portfolio with ID {analysisDto.PortfolioId} not found.");
+      }
 
+      // Initialize StringBuilder for prompt construction
+      StringBuilder promptBuilder = new StringBuilder();
+      promptBuilder.AppendLine("## Analysis of Portfolio Stocks Investment:");
+      promptBuilder.AppendLine();
+      promptBuilder.AppendLine("| Symbol | Quantity | Purchase Price | Purchase Date | Current Price |");
+      promptBuilder.AppendLine("|--------|----------|----------------|---------------|---------------|");
+
+      // Iterate through each portfolio item and fetch current price sequentially
+      foreach (var portfolioItem in portfolioWallet.Items)
+      {
+        try
+        {
+          var currentPrice = await _portfolioService.GetCurrentPriceAsync(portfolioItem.Symbol);
+          // Format current price as currency
+          double formattedCurrentPrice = currentPrice.CurrentPrice;
+
+          // Append row to the prompt
+          promptBuilder.AppendLine($"| {portfolioItem.Symbol} | {portfolioItem.Quantity} | {portfolioItem.PurchasePrice:C} | {portfolioItem.PurchaseDate:yyyy-MM-dd} | {formattedCurrentPrice} |");
+        }
+        catch (Exception ex)
+        {
+          // Log the exception
+          _logger.LogError(ex, $"Failed to fetch current price for symbol: {portfolioItem.Symbol}");
+
+          // Append row with "N/A" for current price
+          promptBuilder.AppendLine($"| {portfolioItem.Symbol} | {portfolioItem.Quantity} | {portfolioItem.PurchasePrice:C} | {portfolioItem.PurchaseDate:yyyy-MM-dd} | N/A |");
+        }
+      }
+
+      promptBuilder.AppendLine(); // Add an empty line for better readability
+      var prompt = "";
+      if (string.IsNullOrEmpty(analysisDto.PromptInput))
+      {
+         prompt = $"{promptBuilder.ToString()}\n\n" +
+                  "Please provide a concise summary of the portfolio sentiment analysis and include actionable recommendations. " +
+                  "Focus on key insights and strategic advice based on the sentiment data. " +
+                  "Present the results within an HTML `<div>` container with the following columns: Symbol, Quantity, Purchase Price, Purchase Date, Current Price, Sentiment.\n\n" +
+                  "Ensure that the HTML is well-structured and formatted for easy integration into the frontend.";
+      }
+      // Construct the final prompt
+      prompt = $"{promptBuilder.ToString()}\n\n" + prompt;
+
+       // Generate the sentiment analysis report
+       string sentimentReport;
+      try
+      {
+        sentimentReport = await _llmService.GeneratePredictsAsync(prompt);
+      }
+      catch (Exception ex)
+      {
+        _logger.LogError(ex, "Failed to generate sentiment analysis report.");
+        return StatusCode(500, "An error occurred while generating the sentiment analysis report.");
+      }
+
+      if (string.IsNullOrWhiteSpace(sentimentReport))
+      {
+        return StatusCode(500, "The sentiment analysis report is empty.");
+      }
+
+      return Ok(sentimentReport);
+    }
     [HttpPost("analyze-sentiment-for-stock")]
     public async Task<IActionResult> AnalyzeSentimentForStock(string tickerSymbol)
     {
