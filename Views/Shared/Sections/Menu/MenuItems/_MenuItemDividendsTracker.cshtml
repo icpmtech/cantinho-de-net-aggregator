@@ -14,6 +14,11 @@
                 <div>Upcoming Dividends</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage == "/DividendsTracker/DividendsHistory" ? " active" : "")'>
+            <a asp-controller="DividendsTracker" asp-action="DividendsHistory" class="menu-link">
+                <div>History Dividends</div>
+            </a>
+        </li>
         @*  <li class='menu-item@(currentPage == "/DividendsTracker/Index" ? " active" : "")'>
         <a asp-controller="DividendsTracker" asp-action="Index" class="menu-link">
         <div>Transactions</div>

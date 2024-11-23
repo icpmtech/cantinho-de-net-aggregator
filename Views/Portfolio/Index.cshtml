@@ -3,7 +3,32 @@
 @{
     ViewData["Title"] = "Portfolio Manager";
 }
+<style>
+    /* Ensure the chart containers are responsive */
+    .sparkline-chart, .candlestick-chart {
+        width: 100%;
+        height: auto;
+    }
 
+    /* Adjust chart height on different screen sizes if needed */
+    @@media (max-width: 768px) {
+        .candlestick-chart
+
+    {
+        height: 300px !important;
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .candlestick-chart
+
+    {
+        height: 250px !important;
+    }
+
+    }
+    </style>
 <h4 class="py-3 mb-4">
     <span class="text-muted fw-light">@Localizer["Portfolio Manager"] /</span> @Localizer["Portfolios"]
 </h4>

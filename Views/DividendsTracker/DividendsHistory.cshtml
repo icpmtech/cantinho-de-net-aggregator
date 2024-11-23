@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dividend Tracker: Dividends History</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+       
+
+        main {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+      
+        /* Search Container */
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        #search-button {
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            border: none;
+            padding: 0.5rem 1rem;
+            color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            #search-button:hover {
+                background-color: #0056b3;
+            }
+
+        /* Suggestions Dropdown */
+        .suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border: 1px solid #ced4da;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 250px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+            .suggestion-item:hover, .suggestion-item:focus {
+                background-color: #f1f1f1;
+            }
+
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+            table th, table td {
+                padding: 1rem;
+                text-align: left;
+                border-bottom: 1px solid #dee2e6;
+            }
+
+            table th {
+                background-color: #f8f9fa;
+                cursor: pointer;
+                position: relative;
+            }
+
+                table th.sortable:hover {
+                    background-color: #e9ecef;
+                }
+
+                table th .sort-indicator {
+                    margin-left: 0.5rem;
+                    font-size: 0.8rem;
+                }
+
+        /* Chart Styles */
+        #chart {
+            background-color: #fff;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* News Section */
+        .news-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .news-card {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+            .news-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .news-card h4 {
+                font-size: 1.25rem;
+                margin-bottom: 0.75rem;
+                color: #007bff;
+            }
+
+            .news-card p {
+                font-size: 0.95rem;
+                color: #495057;
+            }
+
+            .news-card a {
+                display: inline-block;
+                margin-top: 0.75rem;
+                color: #007bff;
+                text-decoration: none;
+                font-weight: 500;
+            }
+
+                .news-card a:hover {
+                    text-decoration: underline;
+                }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @@keyframes spin {
+            0%
+
+        {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        /* Media Queries */
+        @@media (max-width: 768px) {
+            .news-container
+
+        {
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        }
+
+     
+
+        }
+
+        @@media (max-width: 576px) {
+            .news-container
+
+        {
+            grid-template-columns: 1fr;
+        }
+
+      
+
+        }</style>
+</head>
+<body>
+    <main >
+        <div class="container my-4">
+            <!-- Search Section -->
+            <section class="card p-4 mb-4 shadow-sm">
+                <div class="search-container">
+                    <div class="form-group">
+                        <label for="search-input" class="sr-only">Search for a stock symbol</label>
+                        <input type="text" id="search-input" placeholder="Search for a stock symbol..." aria-label="Search for a stock symbol" class="form-control">
+                    </div>
+                    <button id="search-button" aria-label="Search" class="btn btn-primary btn-block">Search</button>
+                    <div class="suggestions mt-2" id="suggestions" role="listbox"></div>
+                </div>
+            </section>
+
+            <!-- Dividend Data Table -->
+            <section class="card p-4 mb-4 shadow-sm">
+                <h5 class="card-title">Dividend Data</h5>
+                <div class="table-responsive">
+                    <table class="table" aria-label="Dividend Data Table">
+                        <thead>
+                            <tr>
+                                <th class="sortable" data-sort="year">Year <span class="sort-indicator"></span></th>
+                                <th class="sortable" data-sort="amount">Adjusted Amount (USD) <span class="sort-indicator"></span></th>
+                            </tr>
+                        </thead>
+                        <tbody id="dividend-table-body">
+                            <tr>
+                                <td colspan="2" class="text-center">Please search for a stock symbol to view data.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Dividend Chart and Company Summary Side by Side -->
+            <div class="row mb-4">
+                <!-- Dividend Chart -->
+                <div class="col-lg-8 col-md-12 mb-4 mb-lg-0">
+                    <section class="card p-4 shadow-sm h-100">
+                        <h5 class="card-title">Dividend Chart</h5>
+                        <div id="chart">No data to display.</div>
+                    </section>
+                </div>
+                <!-- Company Summary -->
+                <div class="col-lg-4 col-md-12">
+                    <section class="card p-4 shadow-sm h-100">
+                        <div class="company-summary" id="company-summary">
+                            <h5>Company Summary</h5>
+                            <p>Please search for a stock symbol to view the company summary.</p>
+                        </div>
+                    </section>
+                </div>
+            </div>
+            <!-- Calendar Events -->
+            <section class="card p-4 mb-4 shadow-sm">
+                <div class="calendar-events" id="calendar-events">
+                    <h5>Calendar Events</h5>
+                    <p>Please search for a stock symbol to view upcoming calendar events.</p>
+                </div>
+            </section>
+            <!-- Financial News -->
+            <section class="card p-4 mb-4 shadow-sm">
+                <h5 class="card-title">Financial News</h5>
+                <div class="news-container" id="news-container">
+                    <p>No news available. Please search for a stock symbol to view related news.</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        const API_KEY = '60c4b7c12emshfe21a6a1ec58d8bp1a396cjsn6bc88b0f02f5';
+        const API_KEY_SUMMARY = '60c4b7c12emshfe21a6a1ec58d8bp1a396cjsn6bc88b0f02f5';
+        const BASE_DIVIDEND_URL = 'https://seeking-alpha.p.rapidapi.com/symbols/get-dividend-history';
+        const BASE_NEWS_URL = 'https://eodhd.com/api/news';
+        const API_TOKEN = '6632a629405f03.92688528';
+        const BASE_SEARCH_URL = '/api/yahoofinance/search/';
+        const BASE_COMPANY_URL = 'https://yahoo-finance166.p.rapidapi.com/api/stock/get-company-outlook-summary';
+        const BASE_CALENDAR_EVENTS_URL = 'https://yahoo-finance166.p.rapidapi.com/api/stock/get-calendar-events'; // Hypothetical endpoint
+
+        let currentSort = { key: '', direction: 'asc' };
+        let debounceTimeout;
+
+           // Utility function to get URL parameters
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+          // **Fetch Calendar Events**
+        async function fetchCalendarEvents(stockSymbol) {
+            const apiUrl = `${BASE_CALENDAR_EVENTS_URL}?region=US&symbol=${stockSymbol}`;
+            try {
+                const response = await axios.get(apiUrl, {
+                    headers: {
+                        'X-RapidAPI-Host': 'yahoo-finance166.p.rapidapi.com',
+                        'X-RapidAPI-Key': API_KEY_SUMMARY
+                    }
+                });
+                return response.data.quoteSummary.result[0].calendarEvents || null;
+            } catch (error) {
+                console.error('Error fetching calendar events:', error);
+                return null;
+            }
+        }
+        // Fetch Dividend Data
+        async function fetchDividendData(stockSymbol) {
+            const apiUrl = `${BASE_DIVIDEND_URL}?symbol=${stockSymbol}&years=6&group_by=year`;
+            try {
+                const response = await axios.get(apiUrl, {
+                    headers: {
+                        'X-RapidAPI-Host': 'seeking-alpha.p.rapidapi.com',
+                        'X-RapidAPI-Key': API_KEY
+                    }
+                });
+                return response.data.data || [];
+            } catch (error) {
+                console.error('Error fetching dividend data:', error);
+                return [];
+            }
+        }
+
+        // Fetch News Data
+        async function fetchNews(stockSymbol) {
+            const apiUrl = `${BASE_NEWS_URL}?s=${stockSymbol}.US&offset=0&limit=10&api_token=${API_TOKEN}&fmt=json`;
+            try {
+                const response = await axios.get(apiUrl);
+                return response.data || [];
+            } catch (error) {
+                console.error('Error fetching news data:', error);
+                return [];
+            }
+        }
+
+        // Fetch Company Summary
+        async function fetchCompanySummary(stockSymbol) {
+            const apiUrl = `${BASE_COMPANY_URL}?region=US&symbol=${stockSymbol}`;
+            try {
+                const response = await axios.get(apiUrl, {
+                    headers: {
+                        'X-RapidAPI-Host': 'yahoo-finance166.p.rapidapi.com',
+                        'X-RapidAPI-Key': API_KEY_SUMMARY
+                    }
+                });
+                return response.data || null;
+            } catch (error) {
+                console.error('Error fetching company summary:', error);
+                return null;
+            }
+        }
+
+        // Populate Dividend Table
+        function populateTable(data) {
+            const tableBody = document.getElementById('dividend-table-body');
+            tableBody.innerHTML = '';
+
+            if (data.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="2" class="text-center">No dividend data available.</td></tr>';
+                return;
+            }
+
+            data.forEach(entry => {
+                const year = entry.attributes.year || 'N/A';
+                const amount = entry.attributes.adjusted_amount?.toFixed(4) || '0.0000';
+                const row = `
+                    <tr>
+                        <td>${year}</td>
+                        <td>$${amount}</td>
+                    </tr>
+                `;
+                tableBody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // Populate News Section
+        function populateNews(news) {
+            const newsContainer = document.getElementById('news-container');
+            newsContainer.innerHTML = '';
+
+            if (!news || news.length === 0) {
+                newsContainer.innerHTML = '<p>No news available.</p>';
+                return;
+            }
+
+            news.forEach(article => {
+                const title = article.title || 'No Title';
+                const date = new Date(article.date).toLocaleDateString();
+                const content = article.content?.substring(0, 150) || 'No content available';
+                const link = article.link || '#';
+
+                const card = `
+                    <div class="news-card">
+                        <h4>${title}</h4>
+                        <p><small>${date}</small></p>
+                        <p>${content}...</p>
+                        <a href="${link}" target="_blank" rel="noopener noreferrer">Read more</a>
+                    </div>
+                `;
+                newsContainer.insertAdjacentHTML('beforeend', card);
+            });
+        }
+
+        // Populate Company Summary
+        function populateCompanySummary(summary) {
+            const summaryContainer = document.getElementById('company-summary');
+            summaryContainer.innerHTML = '';
+
+            if (!summary) {
+                summaryContainer.innerHTML = '<p>No company summary available.</p>';
+                return;
+            }
+
+            // Extract relevant fields from the new JSON structure
+            const symbol = summary?.finance?.result?.metaData?.symbol ?? 'N/A';
+            const innovationScore = summary?.finance?.result?.innovations?.score ?? 'N/A';
+            const innovationText = summary?.finance?.result?.innovations?.text ?? 'N/A';
+            const sectorAvg = summary?.finance?.result?.innovations?.sectorAvg != null
+                ? summary.finance.result.innovations.sectorAvg.toFixed(2)
+                : 'N/A';
+            const innovationTrend = summary?.finance?.result?.companyOutlookSummary?.innovationTrend ?? 'N/A';
+            const innovationPerformance = summary?.finance?.result?.companyOutlookSummary?.innovationPerformance ?? 'N/A';
+
+            const content = `
+                <h5>
+                    <i class='bx bx-building-house' style='margin-right: 8px;'></i>
+                    Company Summary: ${symbol}
+                </h5>
+                <p>
+                    <strong>
+                        <i class='bx bx-star' style='margin-right: 5px;'></i>
+                        Innovation Score:
+                    </strong>
+                    ${innovationScore}
+                    <span class=''>
+                        <i class='bx bx-info-circle' style='margin-left: 5px;'></i>
+                        <span class=''>A metric representing the company’s innovation level compared to peers.</span>
+                    </span>
+                </p>
+                <p>
+                    <strong>
+                        <i class='bx bx-trending-up' style='margin-right: 5px;'></i>
+                        Innovation Performance:
+                    </strong>
+                    ${innovationPerformance}
+                    <span class=''>
+                        <i class='bx bx-info-circle' style='margin-left: 5px;'></i>
+                        <span class=''>Measures how the company is performing in innovation initiatives over time.</span>
+                    </span>
+                </p>
+                <p>
+                    <strong>
+                        <i class='bx bx-trend-down' style='margin-right: 5px;'></i>
+                        Innovation Trend:
+                    </strong>
+                    ${innovationTrend}
+                    <span class=''>
+                        <i class='bx bx-info-circle' style='margin-left: 5px;'></i>
+                        <span class=''>Indicates the direction of the company’s innovation efforts (e.g., increasing, stable, declining).</span>
+                    </span>
+                </p>
+                <p>
+                    <strong>
+                        <i class='bx bx-bar-chart-alt-2' style='margin-right: 5px;'></i>
+                        Sector Average Innovation Score:
+                    </strong>
+                    ${sectorAvg}
+                    <span class=''>
+                        <i class='bx bx-info-circle' style='margin-left: 5px;'></i>
+                        <span class=''>The average innovation score of companies within the same sector.</span>
+                    </span>
+                </p>
+                <p>
+                    <strong>
+                        <i class='bx bx-text' style='margin-right: 5px;'></i>
+                        Innovation Text:
+                    </strong>
+                    ${innovationText}
+                    <span class=''>
+                        <i class='bx bx-info-circle' style='margin-left: 5px;'></i>
+                        <span class=''>A descriptive summary of the company’s innovation activities and strategies.</span>
+                    </span>
+                </p>
+            `;
+
+            summaryContainer.innerHTML = content;
+        }
+        // **Populate Calendar Events Section**
+        function populateCalendarEvents(calendarEvents) {
+            const calendarContainer = document.getElementById('calendar-events');
+            calendarContainer.innerHTML = '';
+
+            if (!calendarEvents) {
+                calendarContainer.innerHTML = '<p>No calendar events available.</p>';
+                return;
+            }
+
+            const { earnings, exDividendDate, dividendDate } = calendarEvents;
+
+            // Earnings Dates
+            let earningsDates = 'N/A';
+            if (earnings && earnings.earningsDate && earnings.earningsDate.length > 0) {
+                earningsDates = earnings.earningsDate.map(date => date.fmt).join(', ');
+            }
+
+            // Earnings Call Dates
+            let earningsCallDates = 'N/A';
+            if (earnings && earnings.earningsCallDate && earnings.earningsCallDate.length > 0) {
+                earningsCallDates = earnings.earningsCallDate.map(date => date.fmt).join(', ');
+            }
+
+            // Ex-Dividend Date
+            const exDividend = exDividendDate ? exDividendDate.fmt : 'N/A';
+
+            // Dividend Date
+            const dividend = dividendDate ? dividendDate.fmt : 'N/A';
+
+            // Earnings Estimates
+            const earningsAvg = earnings && earnings.earningsAverage ? earnings.earningsAverage.fmt : 'N/A';
+            const earningsLow = earnings && earnings.earningsLow ? earnings.earningsLow.fmt : 'N/A';
+            const earningsHigh = earnings && earnings.earningsHigh ? earnings.earningsHigh.fmt : 'N/A';
+
+            // Revenue Estimates
+            const revenueAvg = earnings && earnings.revenueAverage ? earnings.revenueAverage.fmt : 'N/A';
+            const revenueLow = earnings && earnings.revenueLow ? earnings.revenueLow.fmt : 'N/A';
+            const revenueHigh = earnings && earnings.revenueHigh ? earnings.revenueHigh.fmt : 'N/A';
+
+            const content = `
+                <h5>Calendar Events</h5>
+                <table>
+                    <tr>
+                        <th>Earnings Date(s)</th>
+                        <td>${earningsDates}</td>
+                    </tr>
+                    <tr>
+                        <th>Earnings Call Date(s)</th>
+                        <td>${earningsCallDates}</td>
+                    </tr>
+                    <tr>
+                        <th>Ex-Dividend Date</th>
+                        <td>${exDividend}</td>
+                    </tr>
+                    <tr>
+                        <th>Dividend Date</th>
+                        <td>${dividend}</td>
+                    </tr>
+                    <tr>
+                        <th>Earnings Estimate (Avg)</th>
+                        <td>${earningsAvg}</td>
+                    </tr>
+                    <tr>
+                        <th>Earnings Estimate (Low)</th>
+                        <td>${earningsLow}</td>
+                    </tr>
+                    <tr>
+                        <th>Earnings Estimate (High)</th>
+                        <td>${earningsHigh}</td>
+                    </tr>
+                    <tr>
+                        <th>Revenue Estimate (Avg)</th>
+                        <td>${revenueAvg}</td>
+                    </tr>
+                    <tr>
+                        <th>Revenue Estimate (Low)</th>
+                        <td>${revenueLow}</td>
+                    </tr>
+                    <tr>
+                        <th>Revenue Estimate (High)</th>
+                        <td>${revenueHigh}</td>
+                    </tr>
+                </table>
+            `;
+            calendarContainer.innerHTML = content;
+        }
+        // Render Chart with Zoom and Truncated Values
+        function renderChart(data) {
+            if (data.length === 0) {
+                document.getElementById('chart').innerHTML = '<p class="text-center">No data to display.</p>';
+                return;
+            }
+
+            const chartData = data.map(entry => ({
+                x: entry.attributes.year.toString(),
+                y: parseFloat(entry.attributes.adjusted_amount.toFixed(4))
+            }));
+
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 350,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            reset: true
+                        }
+                    },
+                    zoom: {
+                        enabled: true,
+                        type: 'x',
+                        autoScaleYaxis: true
+                    }
+                },
+                series: [{
+                    name: 'Adjusted Amount',
+                    data: chartData
+                }],
+                xaxis: {
+                    title: {
+                        text: 'Year'
+                    },
+                    categories: chartData.map(item => item.x),
+                    labels: {
+                        rotate: -45
+                    }
+                },
+                yaxis: {
+                    title: {
+                        text: 'Dividend Amount (USD)'
+                    },
+                    labels: {
+                        formatter: function (val) {
+                            return parseFloat(val).toFixed(4);
+                        }
+                    }
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return `$${val.toFixed(4)}`;
+                        }
+                    }
+                },
+                title: {
+                    text: 'Dividend History by Year',
+                    align: 'center',
+                    style: {
+                        fontSize: '16px',
+                        fontWeight: 'bold'
+                    }
+                },
+                responsive: [{
+                    breakpoint: 768,
+                    options: {
+                        chart: {
+                            height: 300
+                        },
+                        xaxis: {
+                            labels: {
+                                rotate: -90
+                            }
+                        }
+                    }
+                }]
+            };
+
+            const chartElement = document.getElementById('chart');
+            chartElement.innerHTML = '';
+            const chart = new ApexCharts(chartElement, options);
+            chart.render();
+        }
+
+        // **Display Loading Spinner**
+         function showLoading(target) {
+             const loading = `<div class="spinner"></div>`;
+             target.innerHTML = loading;
+         }
+
+         // **Handle Search Input with Debounce**
+         function search() {
+             const query = document.getElementById('search-input').value.trim().toLowerCase();
+             const suggestionsBox = document.getElementById('suggestions');
+             suggestionsBox.innerHTML = '';
+
+             if (debounceTimeout) clearTimeout(debounceTimeout);
+
+             if (query.length === 0) {
+                 suggestionsBox.style.display = 'none';
+                 return;
+             }
+
+             debounceTimeout = setTimeout(async () => {
+                 try {
+                     const url = `${BASE_SEARCH_URL}${encodeURIComponent(query)}`;
+                     const response = await fetch(url);
+
+                     if (response.ok) {
+                         const data = await response.json();
+                         if (data.length > 0) {
+                             suggestionsBox.style.display = 'block';
+                             data.forEach(result => {
+                                 const suggestionItem = document.createElement('div');
+                                 suggestionItem.classList.add('suggestion-item');
+                                 suggestionItem.setAttribute('role', 'option');
+                                 suggestionItem.setAttribute('tabindex', '0');
+
+                                 // Highlight matching text
+                                 const regex = new RegExp(`(${query})`, 'gi');
+                                 const symbol = result.symbol.replace(regex, '<strong>$1</strong>');
+                                 const name = result.shortname.replace(regex, '<strong>$1</strong>');
+
+                                 suggestionItem.innerHTML = `<p>${symbol} - ${name}</p>`;
+                                 suggestionItem.onclick = () => selectSuggestion(result);
+                                 suggestionItem.onkeypress = (e) => {
+                                     if (e.key === 'Enter') selectSuggestion(result);
+                                 };
+                                 suggestionsBox.appendChild(suggestionItem);
+                             });
+                         } else {
+                             suggestionsBox.style.display = 'none';
+                         }
+                     } else {
+                         console.error('Error fetching symbols:', response.statusText);
+                         suggestionsBox.style.display = 'none';
+                     }
+                 } catch (error) {
+                     console.error('Error fetching symbols:', error);
+                     suggestionsBox.style.display = 'none';
+                 }
+             }, 300); // Debounce delay
+         }
+
+               // **Select Suggestion**
+        function selectSuggestion(result) {
+            const stockSymbol = result.symbol.toUpperCase();
+            document.getElementById('search-input').value = stockSymbol;
+            document.getElementById('suggestions').style.display = 'none';
+
+            // Update the URL with the selected symbol without reloading the page
+            const newUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}?symbol=${stockSymbol}`;
+            window.history.pushState({ path: newUrl }, '', newUrl);
+
+            // Fetch and display data for the selected symbol
+            fetchAllData(stockSymbol);
+        }
+
+             async function fetchAllData(stockSymbol) {
+            // Show loading indicators
+            const tableBody = document.getElementById('dividend-table-body');
+            const chartElement = document.getElementById('chart');
+            const newsContainer = document.getElementById('news-container');
+            const summaryContainer = document.getElementById('company-summary');
+            const calendarContainer = document.getElementById('calendar-events');
+
+            tableBody.innerHTML = '<tr><td colspan="2" class="text-center"><div class="spinner"></div></td></tr>';
+            chartElement.innerHTML = '<div class="spinner"></div>';
+            newsContainer.innerHTML = '<div class="spinner"></div>';
+            summaryContainer.innerHTML = '<p>Loading company summary...</p>';
+            calendarContainer.innerHTML = '<p>Loading calendar events...</p>';
+
+            try {
+                const [dividends, news, summary, calendarEvents] = await Promise.all([
+                    fetchDividendData(stockSymbol),
+                    fetchNews(stockSymbol),
+                    fetchCompanySummary(stockSymbol),
+                    fetchCalendarEvents(stockSymbol)
+                ]);
+
+                populateTable(dividends);
+                renderChart(dividends);
+                populateNews(news);
+                populateCompanySummary(summary);
+                populateCalendarEvents(calendarEvents);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                tableBody.innerHTML = '<tr><td colspan="2" class="text-center">Failed to load dividend data.</td></tr>';
+                chartElement.innerHTML = '<p class="text-center">Failed to load chart data.</p>';
+                newsContainer.innerHTML = '<p class="text-center">Failed to load news.</p>';
+                summaryContainer.innerHTML = '<p>Failed to load company summary.</p>';
+                calendarContainer.innerHTML = '<p>Failed to load calendar events.</p>';
+            }
+        }
+
+
+         // **Sort Table**
+         function sortTable(key) {
+             const tableBody = document.getElementById('dividend-table-body');
+             const rows = Array.from(tableBody.querySelectorAll('tr')).filter(row => row.children.length > 1);
+
+             if (rows.length === 0) return;
+
+             const sortedRows = rows.sort((a, b) => {
+                 let aText = a.children[key === 'year' ? 0 : 1].textContent.replace(/[^0-9.]/g, '');
+                 let bText = b.children[key === 'year' ? 0 : 1].textContent.replace(/[^0-9.]/g, '');
+
+                 aText = key === 'year' ? parseInt(aText) : parseFloat(aText);
+                 bText = key === 'year' ? parseInt(bText) : parseFloat(bText);
+
+                 if (currentSort.key === key) {
+                     return currentSort.direction === 'asc' ? aText - bText : bText - aText;
+                 } else {
+                     return aText - bText;
+                 }
+             });
+
+             if (currentSort.key === key) {
+                 currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+             } else {
+                 currentSort.key = key;
+                 currentSort.direction = 'asc';
+             }
+
+             tableBody.innerHTML = '';
+             sortedRows.forEach(row => tableBody.appendChild(row));
+
+             updateSortIndicators();
+         }
+
+         // **Update Sort Indicators**
+         function updateSortIndicators() {
+             const headers = document.querySelectorAll('th.sortable');
+             headers.forEach(header => {
+                 const indicator = header.querySelector('.sort-indicator');
+                 const key = header.getAttribute('data-sort');
+
+                 if (key === currentSort.key) {
+                     indicator.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+                 } else {
+                     indicator.textContent = '';
+                 }
+             });
+         }
+              document.addEventListener('DOMContentLoaded', () => {
+            const symbol = getUrlParameter('symbol');
+            if (symbol) {
+                const upperSymbol = symbol.toUpperCase();
+                document.getElementById('search-input').value = upperSymbol;
+                fetchAllData(upperSymbol);
+            }
+        });
+            // **Event Listeners**
+        document.getElementById('search-input').addEventListener('input', search);
+        document.getElementById('search-button').addEventListener('click', () => {
+            const query = document.getElementById('search-input').value.trim();
+            if (query) {
+                // Assuming the first suggestion is the intended one if search button is clicked
+                const firstSuggestion = document.querySelector('.suggestion-item');
+                if (firstSuggestion) {
+                    firstSuggestion.click();
+                }
+            }
+        });
+
+        // Allow pressing "Enter" to trigger search
+        document.getElementById('search-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const firstSuggestion = document.querySelector('.suggestion-item');
+                if (firstSuggestion) {
+                    firstSuggestion.click();
+                }
+            }
+        });
+
+        // Sortable Table Headers
+        document.querySelectorAll('th.sortable').forEach(header => {
+            header.addEventListener('click', () => {
+                const key = header.getAttribute('data-sort');
+                sortTable(key);
+            });
+        });
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!document.querySelector('.search-container').contains(e.target)) {
+                document.getElementById('suggestions').style.display = 'none';
+            }
+        });
+    </script>
+
+
+
+  </body>
+</html>

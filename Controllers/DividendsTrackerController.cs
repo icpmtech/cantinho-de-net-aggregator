@@ -8,7 +8,10 @@ namespace MarketAnalyticHub.Controllers
     {
       return View();
     }
+    public IActionResult DividendsHistory()
+    {
+      return View();
+    }
 
-   
   }
 }

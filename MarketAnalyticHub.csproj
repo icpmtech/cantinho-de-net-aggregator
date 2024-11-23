@@ -50,6 +50,7 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Data\" />
+    <Folder Include="Controllers\DividendsTracker\" />
     <Folder Include="wwwroot\assets\snapshots\" />
   </ItemGroup>
 
