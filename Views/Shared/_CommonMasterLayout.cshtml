@@ -42,12 +42,26 @@
 </head>
 
 <body>
+    <!-- Layout wrapper -->
+    <div class="layout-wrapper layout-content-navbar  ">
+        <div class="layout-container">
   <!-- Layout Content -->
     <div>
         @await Html.PartialAsync("Chat/_Chat")
     </div>
   @RenderBody()
   <!--/ Layout Content -->
+    <!-- Overlay -->
+    <div class="layout-overlay layout-menu-toggle"></div>
+
+
+    <!-- Drag Target Area To SlideIn Menu On Small Screens -->
+    <div class="drag-target"></div>
+        </div>
+        <!-- Content wrapper -->
+    </div>
+    <!-- / Layout page -->
+
 
   <!-- Core Scripts -->
   @await Html.PartialAsync("Sections/_Scripts")

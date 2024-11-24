@@ -1,3 +1,8 @@
+
+@{
+    ViewData["navbarWithOutSearch"] = true;
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +41,7 @@
         #search-button {
             position: absolute;
             right: 0.5rem;
-            top: 50%;
+            top: 5px;
             border: none;
             padding: 0.5rem 1rem;
             color: #fff;
@@ -150,7 +155,7 @@
             .news-card a {
                 display: inline-block;
                 margin-top: 0.75rem;
-                color: #007bff;
+                
                 text-decoration: none;
                 font-weight: 500;
             }
@@ -207,13 +212,12 @@
         }</style>
 </head>
 <body>
-    <main >
-        <div class="container my-4">
+   
+        <div >
             <!-- Search Section -->
             <section class="card p-4 mb-4 shadow-sm">
                 <div class="search-container">
                     <div class="form-group">
-                        <label for="search-input" class="sr-only">Search for a stock symbol</label>
                         <input type="text" id="search-input" placeholder="Search for a stock symbol..." aria-label="Search for a stock symbol" class="form-control">
                     </div>
                     <button id="search-button" aria-label="Search" class="btn btn-primary btn-block">Search</button>
@@ -224,7 +228,7 @@
             <!-- Dividend Data Table -->
             <section class="card p-4 mb-4 shadow-sm">
                 <h5 class="card-title">Dividend Data</h5>
-                <div class="table-responsive">
+            <div class="card-datatable table-responsive">
                     <table class="table" aria-label="Dividend Data Table">
                         <thead>
                             <tr>
@@ -275,7 +279,7 @@
                 </div>
             </section>
         </div>
-    </main>
+    
 
     <script>
         const API_KEY = '60c4b7c12emshfe21a6a1ec58d8bp1a396cjsn6bc88b0f02f5';
@@ -381,7 +385,7 @@
         }
 
         // Populate News Section
-        function populateNews(news) {
+        function populateNews(news,symbol) {
             const newsContainer = document.getElementById('news-container');
             newsContainer.innerHTML = '';
 
@@ -395,13 +399,20 @@
                 const date = new Date(article.date).toLocaleDateString();
                 const content = article.content?.substring(0, 150) || 'No content available';
                 const link = article.link || '#';
+                
+                const encodedTitle = encodeURIComponent(title);
+                const encodedSource = encodeURIComponent(link);
+                const encodedSymbol = encodeURIComponent(symbol);
+                const encodedDetails = encodeURIComponent(content);
+                 const createStockEventUrl = `/StockEvents/Create?eventName=${encodedTitle}&symbol=${encodedSymbol}&details=${encodedDetails}&source=${encodedSource}`;
 
                 const card = `
                     <div class="news-card">
                         <h4>${title}</h4>
                         <p><small>${date}</small></p>
                         <p>${content}...</p>
-                        <a href="${link}" target="_blank" rel="noopener noreferrer">Read more</a>
+                        <a href="${link}" class="btn btn-sm btn-info"  target="_blank" rel="noopener noreferrer">Read more</a>
+                        <a href="${createStockEventUrl}" class="btn btn-sm btn-primary"  target="_blank" rel="noopener noreferrer">Create Stock Event</a>
                     </div>
                 `;
                 newsContainer.insertAdjacentHTML('beforeend', card);
@@ -768,7 +779,7 @@
 
                 populateTable(dividends);
                 renderChart(dividends);
-                populateNews(news);
+                populateNews(news,stockSymbol);
                 populateCompanySummary(summary);
                 populateCalendarEvents(calendarEvents);
             } catch (error) {

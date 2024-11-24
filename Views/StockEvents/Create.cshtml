@@ -5,12 +5,8 @@
     Layout = "~/Areas/Admin/Views/Shared/_ContentNavbarLayout.cshtml";
 }
 
-<h1>Create</h1>
-
-<h4>StockEvent</h4>
-<hr />
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-12">
         <div class="card">
             <div class="card-header">
                 <i class="bi bi-pencil-square"></i> Create New Stock Event
@@ -82,6 +78,44 @@
     </div>
 </div>
 
-<div>
+<div class="card">
     <a asp-action="Index"><i class="bi bi-arrow-left"></i> Back to List</a>
 </div>
+@section PageScripts {
+   
+    <script>
+        // Function to get query parameters
+        function getQueryParams() {
+            const params = {};
+            const queryString = window.location.search.substring(1);
+            const pairs = queryString.split("&");
+            for (let i = 0; i < pairs.length; i++) {
+                const pair = pairs[i].split("=");
+                params[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+            }
+            return params;
+        }
+
+        // Set form fields on page load
+        document.addEventListener("DOMContentLoaded", function () {
+            const params = getQueryParams();
+            if (params.eventName) {
+                document.getElementById("EventName").value = params.eventName;
+            }
+           
+            if (params.details) {
+                document.getElementById("Details").value = params.details;
+            }
+             if (params.source) {
+                document.getElementById("Source").value = params.source;
+            }
+             if (params.symbol) {
+                document.getElementById("Symbol").value = params.symbol;
+            }
+           
+
+
+
+        });
+    </script>
+    }

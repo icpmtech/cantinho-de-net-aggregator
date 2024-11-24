@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\payment-page.html" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="ClosedXML" Version="0.102.2" />
     <PackageReference Include="Elasticsearch.Net" Version="7.17.5" />
     <PackageReference Include="Hangfire" Version="1.8.14" />
@@ -85,6 +89,7 @@
     <None Include="wwwroot\assets\vendor\libs\nouislider\nouislider.js" />
     <None Include="wwwroot\assets\vendor\libs\popper\popper.js" />
     <None Include="wwwroot\assets\vendor\libs\swiper\swiper.js" />
+    <None Include="wwwroot\payment-page.html" />
   </ItemGroup>
 
   <ItemGroup>

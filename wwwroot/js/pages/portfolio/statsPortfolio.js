@@ -167,12 +167,12 @@ function generateGroupedItemsHTML(group, portfolioId) {
             <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">${group.symbol}</span>
             <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">Op. ${group.items.length}</span>
             <!-- Sparkline Chart Container -->
-            <div id="sparkline-chart-${sanitizedSymbol}" class="sparkline-chart bg-white flex-grow-1">
+            <div id="sparkline-chart-${sanitizedSymbol}" class="badge sparkline-chart bg-white flex-grow-1">
             </div>
         </div>
         <!-- Right Section: Today's Change and ROI -->
-        <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center w-100 mt-3 mt-md-0">
-            <button class="btn btn-link text-start w-100" type="button">
+        <div class="d-flex flex-column flex-md-row align-items-start  align-items-md-center w-100 mt-3 mt-md-0"  >
+            <button class="btn btn-link text-start w-100" style="height: 90px;" type="button">
                 <span class="badge  w-100 bg-white text-primary">
                     <div class="mb-1">
                         <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
@@ -366,7 +366,7 @@ async function renderSparklineChart(elementId, symbol) {
     const options = {
       chart: {
         type: 'candlestick',
-        height: 90, // Small height for sparkline
+        height: 80, // Small height for sparkline
         sparkline: {
           enabled: true // Enable sparkline mode
         },
@@ -471,7 +471,7 @@ async function renderSparklineChart(elementId, symbol) {
     // Optionally, display an error message in the UI
     const chartElement = document.querySelector(`#${elementId}`);
     if (chartElement) {
-      chartElement.innerHTML = `<p style="color: red; text-align: center;">Failed to load chart data.</p>`;
+      chartElement.innerHTML = `<p style="color: red; text-align: center;min-height: 80px;">Failed to load chart data. </p>`;
     }
   }
 }

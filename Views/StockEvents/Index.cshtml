@@ -44,9 +44,6 @@
     </style>
 
 }
-<h4 class="py-3 mb-4">
-    <span class="text-muted fw-light">@Localizer["StockEvents Manager"] /</span> @Localizer["StockEvents"]
-</h4>
 <div class="card mb-3">
     <div class="card-header">
         Filter Stock Events
@@ -95,7 +92,75 @@
         </form>
     </div>
 </div>
+<div class="row mb-6 g-6">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body row widget-separator g-0">
+                <div class="col-sm-5 border-shift border-end pe-sm-6">
+                    <h3 class="text-primary d-flex align-items-center gap-2 mb-2">4.89<i class="bx bx-face bx-30px"></i></h3>
+                    <p class="h6 mb-2">Total @Model.Count() events</p>
+                    <p class="pe-2 mb-2">All events analysed by you</p>
+                    <span class="badge bg-label-primary mb-4 mb-sm-0">+5 This week</span>
+                    <hr class="d-sm-none">
+                </div>
 
+                <div class="col-sm-7 gap-2 text-nowrap d-flex flex-column justify-content-between ps-sm-6 pt-2 py-sm-2">
+                     <div class="d-flex align-items-center gap-2">
+                        <small><i class='bx bx-smile' style='color: green;'></i>Positive </small>
+                        <div class="progress w-100 bg-label-primary" style="height:8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 35%" aria-valuenow="@Model.Count(s=>s.Sentiment=="Positive")" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="w-px-20 text-end">@Model.Count(s => s.Sentiment == "Positive")</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <small>
+                            <i class='bx bx-meh' style='color: gray;'></i>
+                            Neutral 
+                        </small>
+                        <div class="progress w-100 bg-label-primary" style="height:8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 18%" aria-valuenow="@Model.Count(s=>s.Sentiment=="Neutral")" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="w-px-20 text-end">@Model.Count(s=>s.Sentiment=="Neutral")</small>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <small>
+                            <i class='bx bx-frown' style='color: red;'></i>
+                            Negative 
+                        </small>
+                        <div class="progress w-100 bg-label-primary" style="height:8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 10%" aria-valuenow="@Model.Count(s=>s.Sentiment=="Neutral")" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <small class="w-px-20 text-end">@Model.Count(s => s.Sentiment == "Negative")</small>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-body row">
+                <div class="col-sm-5">
+                    <div class="mb-12">
+                        <h5 class="mb-2 text-nowrap">Events statistics</h5>
+                        <p class="mb-0"> <span class="me-2">@Model.Count() New events</span> <span class="badge bg-label-success">+8.4%</span></p>
+                    </div>
+
+                    <div>
+                        <h6 class="mb-2 fw-normal">
+                            <span class="text-success me-1">87%</span>Positive events
+                        </h6>
+                        <small>Weekly Report</small>
+                    </div>
+                </div>
+                <div class="col-sm-7 d-flex justify-content-sm-end align-items-end">
+                    <div id="reviewsChart"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="col-12">
     <h6 class="text-muted">My Events</h6>
@@ -198,5 +263,183 @@
 
             });
         });
-    </script>
+
+
+             // Definição de variáveis de cores
+        const COLORS = {
+          success: "#71dd37",
+          successOpacity: "#71dd3729",
+          info: "#03c3ec",
+          infoOpacity: "#03c3ec29",
+          warningOpacity: "#ffab0029",
+          primaryLabelOpacity: "#696cff29",
+          secondaryLabelOpacity: "#8592a329",
+          darkLabelOpacity: "#181c211a",
+          white: "#fff",
+        };
+
+        // Aguarda o carregamento completo do DOM antes de executar o script
+        document.addEventListener('DOMContentLoaded', function () {
+          // Seleciona o elemento do gráfico no DOM
+          const reviewsChartElement = document.querySelector("#reviewsChart");
+
+          // Verifica se o elemento existe antes de tentar renderizar o gráfico
+          if (reviewsChartElement !== null) {
+            // Configuração do gráfico ApexCharts
+            const chartOptions = {
+              chart: {
+                height: 160,
+                width: 190,
+                type: "bar",
+                toolbar: { show: false },
+              },
+              plotOptions: {
+                bar: {
+                  barHeight: "75%",
+                  columnWidth: "40%",
+                  startingShape: "rounded",
+                  endingShape: "rounded",
+                  borderRadius: 5,
+                  distributed: true,
+                },
+              },
+              grid: {
+                show: false,
+                padding: { top: -25, bottom: -12 },
+              },
+              colors: [
+                COLORS.successOpacity,
+                COLORS.successOpacity,
+                COLORS.successOpacity,
+                COLORS.successOpacity,
+                COLORS.success,
+                COLORS.successOpacity,
+                COLORS.successOpacity,
+              ],
+              dataLabels: { enabled: false },
+              series: [{ data: [20, 40, 60, 80, 100, 80, 60] }],
+              legend: { show: false },
+              xaxis: {
+                categories: ["M", "T", "W", "T", "F", "S", "S"],
+                axisBorder: { show: false },
+                axisTicks: { show: false },
+                labels: {
+                  style: {
+                    colors: [
+                      COLORS.primaryLabelOpacity,
+                      COLORS.secondaryLabelOpacity,
+                      COLORS.successOpacity,
+                      COLORS.infoOpacity,
+                      COLORS.warningOpacity,
+                      COLORS.dangerOpacity,
+                      COLORS.darkLabelOpacity,
+                    ],
+                    fontSize: "13px",
+                  },
+                },
+              },
+              yaxis: { labels: { show: false } },
+              annotations: {
+                yaxis: [
+                  {
+                    y: 70, // Valor no eixo Y onde a linha será posicionada
+                    borderColor: COLORS.info, // Cor da linha (info)
+                    label: {
+                      borderColor: COLORS.info,
+                      style: {
+                        color: COLORS.white,
+                        background: COLORS.info,
+                      },
+                      text: 'Meta',
+                    },
+                  },
+                ],
+              },
+              responsive: [
+                // ... (mesmas configurações de responsividade)
+              ],
+            };
+
+            // Inicializa o gráfico
+            const reviewsChart = new ApexCharts(reviewsChartElement, chartOptions);
+            reviewsChart.render();
+
+            // Função para aplicar tema escuro ou claro
+            function applyTheme(isDark) {
+              if (isDark) {
+                // Atualiza as cores do gráfico para o modo escuro
+                chartOptions.colors = [
+                  COLORS.success,
+                  COLORS.success,
+                  COLORS.success,
+                  COLORS.success,
+                  COLORS.success,
+                  COLORS.success,
+                  COLORS.success,
+                ];
+
+                // Atualiza as cores dos rótulos do eixo X para o modo escuro
+                chartOptions.xaxis.labels.style.colors = [
+                  "#ffffff", // primary
+                  "#b2b2c4", // secondary
+                  COLORS.success,
+                  COLORS.info,
+                  "#ffab00", // warning
+                  "#ff3e1d", // danger
+                  "#d5d5e2", // dark
+                ];
+
+                // Atualiza a anotação para o modo escuro
+                chartOptions.annotations.yaxis[0].borderColor = COLORS.info;
+                chartOptions.annotations.yaxis[0].label.style.background = COLORS.info;
+              } else {
+                // Atualiza as cores do gráfico para o modo claro
+                chartOptions.colors = [
+                  COLORS.successOpacity,
+                  COLORS.successOpacity,
+                  COLORS.successOpacity,
+                  COLORS.successOpacity,
+                  COLORS.success,
+                  COLORS.successOpacity,
+                  COLORS.successOpacity,
+                ];
+
+                // Atualiza as cores dos rótulos do eixo X para o modo claro
+                chartOptions.xaxis.labels.style.colors = [
+                  COLORS.primaryLabelOpacity,
+                  COLORS.secondaryLabelOpacity,
+                  COLORS.successOpacity,
+                  COLORS.infoOpacity,
+                  COLORS.warningOpacity,
+                  COLORS.dangerOpacity,
+                  COLORS.darkLabelOpacity,
+                ];
+
+                // Atualiza a anotação para o modo claro
+                chartOptions.annotations.yaxis[0].borderColor = COLORS.info;
+                chartOptions.annotations.yaxis[0].label.style.background = COLORS.info;
+              }
+
+              // Atualiza o gráfico com as novas opções
+              reviewsChart.updateOptions(chartOptions);
+            }
+
+            // Detecta se o usuário prefere o tema escuro
+            const prefersDarkScheme = window.matchMedia("(prefers-color-scheme: dark)");
+
+            // Aplica o tema inicial com base na preferência do usuário
+            applyTheme(prefersDarkScheme.matches);
+
+            // Adiciona um listener para detectar mudanças na preferência do usuário
+            prefersDarkScheme.addEventListener("change", (e) => {
+              applyTheme(e.matches);
+            });
+          }
+        });
+
+
+
+
+
+                </script>
 }

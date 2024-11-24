@@ -49,7 +49,11 @@ else
                             <p class="card-text"><strong>Price Change:</strong> @Html.DisplayFor(modelItem => item.PriceChange)</p>
                             @if (item.PortfolioItem != null)
                             {
-                                <p class="card-text"><strong>Portfolio Item:</strong> @Html.DisplayFor(modelItem => item.PortfolioItem.Id)</p>
+                                <p class="card-text"><strong>Portfolio Item:</strong>
+                                  @Html.DisplayFor(modelItem => item.PortfolioItem.Symbol)
+                                  
+                                </p>
+
                             }
                             <div class="mt-2">
                                 <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
@@ -61,6 +65,7 @@ else
                                 <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
                                     <i class="bx bx-trash"></i> Delete
                                 </a>
+                                <a class="btn btn-sm btn-info" href="/DividendsTracker/DividendsHistory?symbol=@item.PortfolioItem.Symbol">Dividends History</a>
                             </div>
                         </div>
                     </div>
