@@ -162,7 +162,7 @@
     </div>
 </div>
 
-<div class="col-12">
+<div class="mt-3 col-12">
     <h6 class="text-muted">My Events</h6>
     <div class="nav-align-top mb-4">
         <ul class="nav nav-pills mb-3 nav-fill" role="tablist">
@@ -230,13 +230,22 @@
            
 
         });
-       
-        document.addEventListener('DOMContentLoaded', function () {
-            var rows = document.querySelectorAll('.clickable-row');
-            rows.forEach(function (row) {
-                row.addEventListener('click', function () {
-                    var id = this.getAttribute('data-id');
+
+               document.addEventListener('DOMContentLoaded', function () {
+            // Select all td elements with the class 'clickable-cell'
+            var cells = document.querySelectorAll('.clickable-cell');
+
+            cells.forEach(function (cell) {
+                cell.style.cursor = 'pointer'; // Optional: Change cursor to pointer for better UX
+
+                cell.addEventListener('click', function (event) {
+                    // Prevent the event from bubbling up to parent elements if necessary
+                    event.stopPropagation();
+
+                    var row = this.closest('tr'); // Find the parent row
+                    var id = row.getAttribute('data-id'); // Get the data-id from the row
                     var detailsRow = document.getElementById('details-' + id);
+
                     if (detailsRow.style.display === 'none' || detailsRow.style.display === '') {
                         detailsRow.style.display = 'table-row';
                     } else {
@@ -244,8 +253,8 @@
                     }
                 });
             });
-           
         });
+
         document.querySelectorAll('.toggle-details').forEach(function (button) {
             button.addEventListener('click', function () {
                 const target = document.querySelector(button.getAttribute('data-bs-target'));

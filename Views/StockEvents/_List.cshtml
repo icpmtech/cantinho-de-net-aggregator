@@ -6,7 +6,6 @@
     </a>
 </p>
 
-
 <div class="mb-3">
     <label for="pageSizeSelect" class="form-label">Page Size:</label>
     <select id="pageSizeSelect" class="form-select d-inline-block w-auto" onchange="location.href='@Url.Action("Index", new { pageSize = ViewData["CurrentPageSize"].ToString(), pageNumber = 1, sortOrder = ViewData["CurrentSort"] })'">
@@ -33,27 +32,37 @@ else
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
+                                <p class="badge bg-label-primary mb-4 mb-sm-0">
+                                    <a href="/PortfolioItems">@Html.DisplayFor(modelItem => item.PortfolioItem.Symbol)</a>
+                                </p>
                                 <h5 class="card-title">@Html.DisplayFor(modelItem => item.EventName)</h5>
                                 <h6 class="card-subtitle mb-2 text-muted">@Html.DisplayFor(modelItem => item.Date)</h6>
+                                
+                                <!-- Updated Span with Unique ID and Data Attributes -->
+                                <span id="stock-change-@item.Id" class="badge @(item.PriceChange >= 0 ? "bg-label-success" : "bg-label-danger")" data-symbol="@item.PortfolioItem.Symbol" data-region="US">
+                                    @(item.PriceChange >= 0 ? "+" : "")@Html.DisplayFor(modelItem => item.PriceChange)%
+                                </span>
+                                 <span id="stock-price-@item.Id" class="badge bg-label-primary"></span>
+
                             </div>
-                            <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#details-list-@item.Id" aria-expanded="false">
-                                <i class="bx bx-chevron-down"></i>
-                            </button>
+                            <span class="badge bg-primary-subtle">
+                                <button class="btn btn-link" data-bs-toggle="collapse" data-bs-target="#details-list-@item.Id" aria-expanded="false">
+                                    <i class="bx bx-chevron-down"></i>
+                                </button>
+                            </span>
                         </div>
                         <div id="details-list-@item.Id" class="collapse details-section">
                             <p class="card-text"><strong>Details:</strong> @Html.DisplayFor(modelItem => item.Details)</p>
                             <p class="card-text"><strong>Impact:</strong> @Html.DisplayFor(modelItem => item.Impact)</p>
                             <p class="card-text"><strong>Sentiment:</strong> @Html.DisplayFor(modelItem => item.Sentiment)</p>
-                            <p class="card-text"><strong>Source:</strong> @Html.DisplayFor(modelItem => item.Source)</p>
-                            <p class="card-text"><strong>Price:</strong> @Html.DisplayFor(modelItem => item.Price)</p>
+                            <p class="card-text"><strong>Source:</strong> <a href="@item.Source">@item.Source</a></p>
+                            <p class="card-text"><strong>Price:</strong> <span  class="badge bg-label-primary">$@Html.DisplayFor(modelItem => item.Price)</span></p>
                             <p class="card-text"><strong>Price Change:</strong> @Html.DisplayFor(modelItem => item.PriceChange)</p>
                             @if (item.PortfolioItem != null)
                             {
                                 <p class="card-text"><strong>Portfolio Item:</strong>
                                   @Html.DisplayFor(modelItem => item.PortfolioItem.Symbol)
-                                  
                                 </p>
-
                             }
                             <div class="mt-2">
                                 <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
@@ -65,7 +74,9 @@ else
                                 <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">
                                     <i class="bx bx-trash"></i> Delete
                                 </a>
-                                <a class="btn btn-sm btn-info" href="/DividendsTracker/DividendsHistory?symbol=@item.PortfolioItem.Symbol">Dividends History</a>
+                                <a class="btn btn-sm btn-info" href="/DividendsTracker/DividendsHistory?symbol=@item.PortfolioItem.Symbol">
+                                    <i class="bx bx-chart"></i> Info
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -106,3 +117,77 @@ else
         </div>
     </div>
 }
+
+<!-- JavaScript to Fetch and Update Stock Data -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Function to fetch and update stock data
+        const updateStockChange = async (symbol, region, elementId) => {
+            try {
+                const response = await fetch(`/api/SymbolsApi/stock-price?symbol=${encodeURIComponent(symbol)}&region=${encodeURIComponent(region)}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Extract the necessary data
+                const price = data.price.regularMarketPrice; // e.g., 229.87
+                const changePercent = data.price.regularMarketChangePercent; // e.g., "0.59%"
+                const changeRaw = data.price.regularMarketChangePercent; // e.g., 0.0059075383
+
+                // Select the HTML element
+                const stockChangeElement = document.getElementById(elementId);
+                const stockPriceElement = document.getElementById(`stock-price-${elementId.split('-').pop()}`);
+
+                // Update the stock price if the element exists
+                if (stockPriceElement) {
+                    stockPriceElement.textContent = `$${price.toFixed(3)}`;
+                }
+
+                // Update the change percentage
+                if (stockChangeElement) {
+                    stockChangeElement.textContent = (changeRaw >= 0 ? "+" : "") + changePercent.toFixed(4) + "%";
+
+                    // Update the badge class based on positive or negative change
+                    if (changeRaw >= 0) {
+                        stockChangeElement.classList.remove('bg-label-danger');
+                        stockChangeElement.classList.add('bg-label-success');
+                    } else {
+                        stockChangeElement.classList.remove('bg-label-success');
+                        stockChangeElement.classList.add('bg-label-danger');
+                    }
+                }
+
+            } catch (error) {
+                console.error(`Error fetching data for symbol ${symbol}:`, error);
+                // Optionally, update the UI to indicate an error
+                const stockChangeElement = document.getElementById(elementId);
+                if (stockChangeElement) {
+                    stockChangeElement.textContent = "N/A";
+                    stockChangeElement.classList.remove('bg-label-success', 'bg-label-danger');
+                    stockChangeElement.classList.add('bg-label-secondary');
+                }
+            }
+        };
+
+        // Select all spans with IDs starting with 'stock-change-'
+        const stockChangeSpans = document.querySelectorAll('span[id^="stock-change-"]');
+
+        // Iterate over each span and fetch/update data
+        stockChangeSpans.forEach(span => {
+            const elementId = span.id;
+            const symbol = span.getAttribute('data-symbol');
+            const region = span.getAttribute('data-region') || 'US'; // Default to 'US' if not specified
+
+            // Fetch data on page load
+            updateStockChange(symbol, region, elementId);
+
+            // Set an interval to update data periodically (e.g., every 5 minutes)
+            setInterval(() => {
+                updateStockChange(symbol, region, elementId);
+            }, 300000); // 300,000 ms = 5 minutes
+        });
+    });
+</script>
