@@ -9,7 +9,7 @@
 <h4>Company</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div class="card">
             <div class="card-header">
                 Create New Company
@@ -28,6 +28,22 @@
                         <span asp-validation-for="Description" class="text-danger"></span>
                     </div>
                     <div class="form-group">
+                        <label asp-for="TickerSymbol" class="control-label"></label>
+                        <input asp-for="TickerSymbol" class="form-control" />
+                        <span asp-validation-for="TickerSymbol" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="Industry" class="control-label"></label>
+                        <input asp-for="Industry" class="form-control" />
+                        <span asp-validation-for="Industry" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="LogoUrl" class="control-label"></label>
+                        <input asp-for="LogoUrl" class="form-control" />
+                        <span asp-validation-for="LogoUrl" class="text-danger"></span>
+                    </div>
+                    <!-- Add fields for complex properties if needed -->
+                    <div class="form-group">
                         <input type="submit" value="Create" class="btn btn-primary" />
                     </div>
                 </form>
@@ -37,5 +53,7 @@
 </div>
 
 <div>
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
 </div>
+
+

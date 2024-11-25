@@ -1,0 +1,148 @@
+@{
+    ViewBag.Title = "Portfolio Performance";
+}
+
+<div class="container mt-5">
+    <!-- Action Button (Centered) -->
+    <div class="d-flex justify-content-center mb-4">
+        <button id="updatePortfolio" class="btn btn-primary btn-lg">
+            <i class="bx bx-refresh"></i> Update Portfolio
+        </button>
+    </div>
+
+    <!-- Loading and Error Messages -->
+    <div id="loading" class="text-center d-none">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2">Loading...</p>
+    </div>
+    <div id="error" class="alert alert-danger d-none" role="alert">
+        <!-- Error messages will appear here -->
+    </div>
+    <div class="row mb-4">
+        <div class="col-12">
+       <!-- New Card for Historical Portfolio Performance -->
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h4 class="card-title text-center">Historical Portfolio Performance</h4>
+                    <!-- Time Period Selection -->
+                    <div class="d-flex justify-content-center mb-3">
+                        <select id="timePeriodSelect" class="form-select w-auto">
+                            <option value="1D">1 Day</option>
+                            <option value="5D">5 Days</option>
+                            <option value="3M">3 Months</option>
+                            <option value="6M">6 Months</option>
+                            <option value="1Y" selected>1 Year</option>
+                            <option value="5Y">5 Years</option>
+                            <option value="AllTime">All Time</option>
+                        </select>
+                    </div>
+                    <!-- Chart Container -->
+                    <div id="historicalPortfolioChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Today Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="shadow-sm">
+                <div>
+                    <div id="today-container">
+                        @Html.Partial("PerformanceSections/Today")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Highlights and Portfolio Evolution Section -->
+    <div class="row mb-4">
+        <!-- Highlights Section -->
+        <div class="col-md-4 col-sm-12">
+            <div class="shadow-sm">
+                <div>
+                    <div id="highlights-container">
+                        @Html.Partial("PerformanceSections/Highlights")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Portfolio Evolution Section (Line Chart) -->
+        <div class="col-md-8 col-sm-12 mt-4 mt-md-0">
+            <div class="shadow-sm">
+                <div>
+                    <div id="portfolio-evolution-container">
+                        @Html.Partial("PerformanceSections/PortfolioEvolution")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HeatMap Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="shadow-sm">
+                <div>
+                    <div id="heatmap-container">
+                        @Html.Partial("PerformanceSections/HeatMap")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly Stock Returns and Radar Chart Section -->
+    <div class="row mb-4">
+        <!-- Monthly Stock Returns Section (Bar Chart) -->
+        <div class="col-md-6 col-sm-12">
+            <div class="shadow-sm">
+                <div>
+                    <div id="monthly-stock-returns-container">
+                        @Html.Partial("PerformanceSections/MonthlyStockReturns")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Radar Chart Section -->
+        <div class="col-md-6 col-sm-12 mt-4 mt-md-0">
+            <div class="shadow-sm">
+                <div>
+                    <div id="radar-chart-container">
+                        @Html.Partial("PerformanceSections/RadarChart")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Allocation and Event Sentiments Section -->
+    <div class="row mb-4">
+        <!-- Portfolio Allocation -->
+        <div class="col-md-6 col-sm-12">
+            <div class="shadow-sm">
+                <div>
+                    <div id="portfolio-allocation-container">
+                        @Html.Partial("PerformanceSections/PortfolioAllocation")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Event Sentiments -->
+        <div class="col-md-6 col-sm-12 mt-4 mt-md-0">
+            <div class="shadow-sm">
+                <div>
+                    <div id="event-sentiments-container">
+                        @Html.Partial("PerformanceSections/EventSentiments")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section PageScripts {
+     
+        <script type="module" src="/js/pages/portfolio/performance/main.js"></script>
+}
+

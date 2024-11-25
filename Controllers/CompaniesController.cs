@@ -84,9 +84,10 @@ namespace MarketAnalyticHub.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Name,Description")] Company company)
-        {
-            if (ModelState.IsValid)
+    public async Task<IActionResult> Create([Bind("Id,Name,Description,TickerSymbol,Industry,LogoUrl")] Company company)
+
+    {
+      if (ModelState.IsValid)
             {
                 _context.Add(company);
                 await _context.SaveChangesAsync();
@@ -116,7 +117,7 @@ namespace MarketAnalyticHub.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description")] Company company)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name,Description,TickerSymbol,Industry,LogoUrl")] Company company)
         {
             if (id != company.Id)
             {

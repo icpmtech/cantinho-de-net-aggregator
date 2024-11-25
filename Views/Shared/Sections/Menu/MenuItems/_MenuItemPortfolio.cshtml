@@ -9,9 +9,15 @@
     </a>
 
     <ul class="menu-sub">
+
+        <li class='menu-item@(currentPage == "/Portfolio/Performance" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Performance" class="menu-link">
+                <div>Performance</div>
+            </a>
+        </li>
         <li class='menu-item@(currentPage == "/Portfolio/Index" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Index" class="menu-link">
-                <div>Overview</div>
+                <div>Manage</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/PortfolioItems/Index" ? " active" : "")'>

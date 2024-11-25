@@ -151,109 +151,111 @@ function generatePortfolioHTML(portfolio) {
 function generateGroupedItemsHTML(group, portfolioId) {
   const sanitizedSymbol = sanitizeSymbol(group.symbol);
   const { roi, currentMarketValue, totalInvestment } = calculateROIandValue(group.items);
+
   return `
-         <div class="card mt-3 shadow-sm rounded border-1">
-    <!-- Card Header -->
-    <div
-        data-bs-toggle="collapse"
-        data-bs-target="#group-${sanitizedSymbol}" 
-        aria-expanded="false" 
-        aria-controls="group-${sanitizedSymbol}" 
-        class="text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center rounded p-3 bg-primary"
-        id="group-header-${sanitizedSymbol}"
-    >
-        <!-- Left Section: Symbol and Operations -->
-        <div class="d-flex flex-column flex-md-row align-items-center w-100">
-            <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">${group.symbol}</span>
-            <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">Op. ${group.items.length}</span>
-            <!-- Sparkline Chart Container -->
-            <div id="sparkline-chart-${sanitizedSymbol}" class="badge sparkline-chart bg-white flex-grow-1">
+    <div class="card mt-3 shadow-sm rounded border-1">
+        <!-- Card Header -->
+        <div
+            data-bs-toggle="collapse"
+            data-bs-target="#group-${sanitizedSymbol}" 
+            aria-expanded="false" 
+            aria-controls="group-${sanitizedSymbol}" 
+            class="text-white d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center rounded p-3 collapsed"
+            id="group-header-${sanitizedSymbol}"
+        >
+            <div class="container-fluid">
+                <div class="row w-100">
+                    <!-- Left Section: Symbol and Operations -->
+                    <div class="col-12 col-md-6 d-flex flex-column flex-md-row align-items-center">
+                        <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">${group.symbol}</span>
+                        <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">Op. ${group.items.length}</span>
+                    </div>
+                    <!-- Right Section: Today's Change and ROI -->
+                    <div class="col-12 col-md-6 d-flex flex-column flex-md-row align-items-start align-items-md-center mt-3 mt-md-0">
+                        <button class="btn btn-link text-start w-100" type="button">
+                            <span class="badge bg-white text-primary w-100 p-2">
+                                <div class="mb-1">
+                                    <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
+                                        <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i>
+                                        Today: ${group.items[0].change.toFixed(3)}%
+                                    </small>
+                                </div>
+                                <div>
+                                    <small class="${roi > 0 ? 'text-success' : 'text-danger'} fw-medium">
+                                        <i class='bx ${roi > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i>
+                                        ROI: ${roi}%
+                                        <br>Invest. V.: €${totalInvestment.toLocaleString()}
+                                        <br>Market V.: €${currentMarketValue.toLocaleString()}
+                                        <br>Diff V.: €${(currentMarketValue - totalInvestment).toFixed(3)}
+                                    </small>
+                                </div>
+                            </span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- Right Section: Today's Change and ROI -->
-        <div class="d-flex flex-column flex-md-row align-items-start  align-items-md-center w-100 mt-3 mt-md-0"  >
-            <button class="btn btn-link text-start w-100" style="height: 90px;" type="button">
-                <span class="badge  w-100 bg-white text-primary">
-                    <div class="mb-1">
-                        <small class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
-                            <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i>
-                            Today: ${group.items[0].change.toFixed(3)}%
-                        </small>
-                    </div>
-                    <div>
-                        <small class="${roi > 0 ? 'text-success' : 'text-danger'} fw-medium">
-                            <i class='bx ${roi > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i>
-                            ROI: ${roi}%
-                            <br>Invest. V.: €${totalInvestment.toLocaleString()}
-                            <br>Market V.: €${currentMarketValue.toLocaleString()}
-                            <br>Diff V.: €${(currentMarketValue - totalInvestment).toFixed(3)}
-                        </small>
-                    </div>
-                </span>
-            </button>
-        </div>
-    </div>
 
-    <!-- Collapsible Content -->
-    <div id="group-${sanitizedSymbol}" class="collapse" aria-labelledby="group-header-${sanitizedSymbol}" data-parent="#details-${portfolioId}">
-        <div class="card-body">
-            <!-- Price Details -->
-            <div class="row">
-                <div class="col-12 col-md-6 mb-3">
-                    <p><strong>Current Price:</strong> €${group.items[0].currentPrice.toFixed(2)}</p>
-                    <p><strong>Change:</strong> ${group.items[0].change.toFixed(3)}%</p>
+        <!-- Collapsible Content -->
+        <div id="group-${sanitizedSymbol}" class="collapse" aria-labelledby="group-header-${sanitizedSymbol}" data-parent="#details-${portfolioId}">
+            <div class="card-body">
+                <!-- Price Details -->
+                <div class="row">
+                    <div class="col-12 col-md-10 mb-3">
+                        <p><strong>Current Price:</strong> €${group.items[0].currentPrice.toFixed(2)}</p>
+                        <p><strong>Change:</strong> ${group.items[0].change.toFixed(3)}%</p>
+                        <p>
+                            <strong>Percent Change:</strong>
+                            <span class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
+                                <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> 
+                                ${group.items[0].change.toFixed(3)}%
+                            </span>
+                            <!-- Progress Bar -->
+                            <div class="progress mt-2" style="height: 8px;">
+                                <div 
+                                    class="progress-bar ${group.items[0].change > 0 ? 'bg-success' : 'bg-danger'}" 
+                                    role="progressbar" 
+                                    style="width: ${Math.min(Math.abs(group.items[0].change), 100)}%;" 
+                                    aria-valuenow="${Math.abs(group.items[0].change).toFixed(3)}" 
+                                    aria-valuemin="0" 
+                                    aria-valuemax="100"
+                                ></div>
+                            </div>
+                        </p>
+                    </div>
+                    <div class="col-12 col-md-2 mb-3">
+                        <p><strong>High Price:</strong> €${group.items[0].highPrice.toFixed(2)}</p>
+                        <p><strong>Low Price:</strong> €${group.items[0].lowPrice.toFixed(2)}</p>
+                        <p><strong>Open Price:</strong> €${group.items[0].openPrice.toFixed(2)}</p>
+                        <p><strong>Previous Close:</strong> €${group.items[0].previousClosePrice.toFixed(2)}</p>
+                    </div>
+                </div>
+                <!-- Dividends History Link -->
+                <div class="mt-4">
                     <p>
-                        <strong>Percent Change:</strong>
-                        <span class="${group.items[0].change > 0 ? 'text-success' : 'text-danger'} fw-medium">
-                            <i class='bx ${group.items[0].change > 0 ? 'bx-up-arrow-alt' : 'bx-down-arrow-alt'}'></i> 
-                            ${group.items[0].change.toFixed(3)}%
-                        </span>
-                        <!-- Progress Bar -->
-                        <div class="progress mt-2" style="height: 8px;">
-                            <div 
-                                class="progress-bar ${group.items[0].change > 0 ? 'bg-success' : 'bg-danger'}" 
-                                role="progressbar" 
-                                style="width: ${Math.min(Math.abs(group.items[0].change), 100)}%;" 
-                                aria-valuenow="${Math.abs(group.items[0].change).toFixed(3)}" 
-                                aria-valuemin="0" 
-                                aria-valuemax="100"
-                            ></div>
-                        </div>
+                        For more information about ${group.symbol}, visit the 
+                        <a 
+                            href="/DividendsTracker/DividendsHistory?symbol=${encodeURIComponent(sanitizedSymbol)}" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            class="btn btn-primary btn-sm"
+                        >
+                            Dividends History
+                        </a>
                     </p>
                 </div>
-                <div class="col-12 col-md-6 mb-3">
-                    <p><strong>High Price:</strong> €${group.items[0].highPrice.toFixed(2)}</p>
-                    <p><strong>Low Price:</strong> €${group.items[0].lowPrice.toFixed(2)}</p>
-                    <p><strong>Open Price:</strong> €${group.items[0].openPrice.toFixed(2)}</p>
-                    <p><strong>Previous Close:</strong> €${group.items[0].previousClosePrice.toFixed(2)}</p>
-                </div>
+                <!-- Candlestick Chart Container -->
+                <div id="candlestick-chart-${sanitizedSymbol}" class="img-fluid mb-4"></div>
+                <!-- Portfolio Items List -->
+                <ul class="list-group list-group-flush">
+                    ${group.items.map(item => generatePortfolioItemHTML(item)).join('')}
+                </ul>
             </div>
-            <!-- Dividends History Link -->
-            <div class="mt-4">
-                <p>
-                    For more information about ${group.symbol}, visit the 
-                    <a 
-                        href="/DividendsTracker/DividendsHistory?symbol=${encodeURIComponent(sanitizedSymbol)}" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        class="btn btn-primary btn-sm"
-                    >
-                        Dividends History
-                    </a>
-                </p>
-            </div>
-            <!-- Candlestick Chart Container -->
-            <div id="candlestick-chart-${sanitizedSymbol}" class="img-fluid mb-4"></div>
-            <!-- Portfolio Items List -->
-            <ul class="list-group list-group-flush">
-                ${group.items.map(item => generatePortfolioItemHTML(item)).join('')}
-            </ul>
         </div>
     </div>
-</div>
-
-        `;
+  `;
 }
+
 
 function generatePortfolioItemHTML(item) {
   const roiValue = (item.quantity * item.currentPrice) - (item.purchasePrice * item.quantity) - item.commission;

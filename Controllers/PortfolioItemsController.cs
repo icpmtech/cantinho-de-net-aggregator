@@ -114,6 +114,7 @@ namespace MarketAnalyticHub.Controllers
     {
       ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name");
       ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name");
+      ViewData["IndustryList"] = new SelectList(_context.Companies, "Id", "Industry");
       return View();
     }
 
@@ -145,15 +146,21 @@ namespace MarketAnalyticHub.Controllers
         return NotFound();
       }
 
-      var portfolioItem = await _context.PortfolioItems.FindAsync(id);
+      var portfolioItem = await _context.PortfolioItems
+       .Include(p => p.Industry) // Include Industry navigation property
+       .FirstOrDefaultAsync(p => p.Id == id);
       if (portfolioItem == null)
       {
         return NotFound();
       }
+
+     
+
       var dataPrice = await _portfolioService.GetCurrentPriceAsync(portfolioItem.Symbol);
       portfolioItem.CurrentPrice = (decimal)dataPrice.CurrentPrice;
       ViewData["CompanyId"] = new SelectList(_context.Companies, "Id", "Name", portfolioItem.CompanyId);
       ViewData["PortfolioId"] = new SelectList(_context.Portfolios, "Id", "Name", portfolioItem.PortfolioId);
+      ViewData["IndustryList"] = new SelectList(_context.Companies, "Id", "Industry", portfolioItem.CompanyId);
       return View(portfolioItem);
     }
 

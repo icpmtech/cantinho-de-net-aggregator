@@ -25,9 +25,48 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
       _context = context;
     }
 
-
     
-       public IActionResult LossesManager()
+     public IActionResult Performance()
+    {
+
+      return View();
+    }
+    // Partial view for the Highlights section
+    public ActionResult Highlights()
+    {
+      return PartialView(); // Renders the Highlights section
+    }
+
+    // Partial view for the Portfolio Evolution (Line Chart)
+    public ActionResult PortfolioEvolution()
+    {
+      return PartialView(); // Renders the Portfolio Evolution chart
+    }
+
+    // Partial view for the Radar Chart
+    public ActionResult RadarChart()
+    {
+      return PartialView(); // Renders the Radar Chart
+    }
+
+    // Partial view for Monthly Stock Returns (Bar Chart)
+    public ActionResult MonthlyStockReturns()
+    {
+      return PartialView(); // Renders the Bar Chart
+    }
+
+    // Partial view for Portfolio Allocation (Pie Chart)
+    public ActionResult PortfolioAllocation()
+    {
+      return PartialView(); // Renders the Pie Chart
+    }
+
+    // Partial view for Event Sentiments (Events Chart)
+    public ActionResult EventSentiments()
+    {
+      return PartialView(); // Renders the Events Sentiment chart
+    }
+    public IActionResult LossesManager()
     {
 
       return View();
