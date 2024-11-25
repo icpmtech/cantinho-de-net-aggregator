@@ -1,5 +1,7 @@
 import ApexCharts from 'https://cdn.jsdelivr.net/npm/apexcharts@3.37.2/dist/apexcharts.esm.js';
-import { calculateHistoricalPortfolioData, historicalChartInstance } from './chartRenderer.js';
+import { calculateHistoricalPortfolioData } from './chartRenderer.js';
+// Initialize chart instances globally
+export let  historicalChartInstance;
 
 export function renderHistoricalChart(data, period) {
     const historicalData = calculateHistoricalPortfolioData(data.items, period);

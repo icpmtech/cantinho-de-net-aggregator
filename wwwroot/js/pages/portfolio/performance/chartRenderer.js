@@ -5,7 +5,7 @@ import ApexCharts from 'https://cdn.jsdelivr.net/npm/apexcharts@3.37.2/dist/apex
 
 
 // Initialize chart instances globally
-export let lineChartInstance, radarChartInstance, barChartInstance, pieChartInstance, eventsChartInstance, heatmapChartInstance, historicalChartInstance;
+export let lineChartInstance, radarChartInstance, barChartInstance, pieChartInstance, eventsChartInstance, heatmapChartInstance;
 
 // Function to render charts
 export function renderCharts(data) {
