@@ -20,6 +20,10 @@ function getPastDate(period, dataItems) {
     case '5D':
       datePast = new Date(dateNow.getTime() - 5 * 24 * 60 * 60 * 1000);
       break;
+    case '1M': // Newly Added Case
+      datePast = new Date();
+      datePast.setMonth(datePast.getMonth() - 1);
+      break;
     case '3M':
       datePast = new Date();
       datePast.setMonth(datePast.getMonth() - 3);
