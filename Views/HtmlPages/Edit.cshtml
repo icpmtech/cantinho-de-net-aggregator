@@ -39,7 +39,7 @@
 
             <div class="form-group mb-3">
                 <label asp-for="Content" class="control-label"></label>
-                <textarea asp-for="Content" class="form-control" rows="10" id="Content"></textarea>
+                <textarea asp-for="Content" class="form-control" rows="10" ></textarea>
                 <span asp-validation-for="Content" class="text-danger"></span>
             </div>
 
@@ -54,7 +54,12 @@
                 <textarea asp-for="MetaDescription" class="form-control" rows="3"></textarea>
                 <span asp-validation-for="MetaDescription" class="text-danger"></span>
             </div>
-
+            <div class="form-group mb-3">
+                <label asp-for="ChangeHistory" class="control-label"></label>
+                <textarea readonly asp-for="ChangeHistory" class="form-control" rows="3"></textarea>
+                <span asp-validation-for="ChangeHistory" class="text-danger"></span>
+            </div>
+            
             <div class="form-group mb-3">
                 <label asp-for="Keywords" class="control-label"></label>
                 <input asp-for="Keywords" class="form-control" />
@@ -100,15 +105,5 @@
     <!-- TinyMCE Integration -->
     <script src="https://cdn.tiny.cloud/1/t9rz4fmx4fkm29mh38r8e69mcv9lij6qsy7szgk1vzca4wks/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
 
-    <script>
-        tinymce.init({
-            selector: 'textarea#Content',
-            plugins: 'lists link image preview',
-            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image | preview',
-            height: 300,
-            menubar: false,
-           
-           
-        });
-    </script>
+  
 }

@@ -1,9 +1,16 @@
 using Ganss.Xss;
 using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -13,14 +20,46 @@ namespace MarketAnalyticHub.Controllers
     private readonly ApplicationDbContext _context;
     private readonly ILogger<HtmlPagesController> _logger;
     private readonly IWebHostEnvironment _environment;
-
-    public HtmlPagesController(ApplicationDbContext context, ILogger<HtmlPagesController> logger, IWebHostEnvironment environment)
+    private readonly IRazorViewEngine _viewEngine;
+    private readonly ITempDataProvider _tempDataProvider;
+    private readonly IServiceProvider _serviceProvider;
+    public HtmlPagesController(ApplicationDbContext context, IRazorViewEngine viewEngine,
+    ITempDataProvider tempDataProvider,
+    IServiceProvider serviceProvider, ILogger<HtmlPagesController> logger, IWebHostEnvironment environment)
     {
+      _viewEngine = viewEngine;
+      _tempDataProvider = tempDataProvider;
+      _serviceProvider = serviceProvider;
       _context = context;
       _logger = logger;
       _environment = environment;
     }
+    [HttpGet]
+    
+    public async Task<IActionResult> Preview(int? id)
+    {
+      if (id == null)
+      {
+        _logger.LogWarning("Preview action called with null id.");
+        return BadRequest();
+      }
 
+      var htmlPage = await _context.HtmlPages.FindAsync(id);
+      if (htmlPage == null)
+      {
+        _logger.LogWarning($"Preview action: HtmlPage with id {id} not found.");
+        return NotFound();
+      }
+
+      // Optionally, check if the page is published
+      // For example, you might have a Published flag in the HtmlPage model
+      // if (!htmlPage.IsPublished)
+      // {
+      //     return BadRequest("Page is not published.");
+      // }
+
+      return View(htmlPage);
+    }
 
     // POST: HtmlPages/Publish/5
     [HttpPost]
@@ -41,7 +80,7 @@ namespace MarketAnalyticHub.Controllers
       }
 
       // Define the path where the static HTML file will be saved
-      string pagesDirectory = Path.Combine(_environment.WebRootPath, "HelpeCenter", "Pages");
+      string pagesDirectory = Path.Combine(_environment.WebRootPath, "HelpCenter", "Pages");
 
       // Ensure the directory exists
       if (!Directory.Exists(pagesDirectory))
@@ -58,13 +97,12 @@ namespace MarketAnalyticHub.Controllers
 
       try
       {
-        // Optionally, sanitize the HTML content here to prevent XSS
-        // For example, using HtmlSanitizer library
-         var sanitizer = new HtmlSanitizer();
-         string sanitizedContent = sanitizer.Sanitize(htmlPage.Content);
+        // Render the Razor view to a string
+        string viewName = "Template"; // The name of your Razor view
+        string htmlContent = await RenderViewToStringAsync(viewName, htmlPage);
 
-        // For simplicity, we'll assume the content is safe
-        await System.IO.File.WriteAllTextAsync(filePath, htmlPage.Content);
+        // Write the rendered HTML to the file
+        await System.IO.File.WriteAllTextAsync(filePath, htmlContent);
 
         _logger.LogInformation($"Published HtmlPage with id {id} to {filePath}.");
 
@@ -82,6 +120,41 @@ namespace MarketAnalyticHub.Controllers
       return RedirectToAction(nameof(Index));
     }
 
+    // Helper method to render a view to a string
+    private async Task<string> RenderViewToStringAsync(string viewName, object model)
+    {
+      var actionContext = new ActionContext(HttpContext, RouteData, ControllerContext.ActionDescriptor);
+
+      using (var sw = new StringWriter())
+      {
+        var viewResult = _viewEngine.FindView(actionContext, viewName, false);
+
+        if (viewResult.View == null)
+        {
+          throw new InvalidOperationException($"View '{viewName}' not found.");
+        }
+
+        var viewDictionary = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary())
+        {
+          Model = model
+        };
+
+        var tempData = new TempDataDictionary(HttpContext, _tempDataProvider);
+
+        var viewContext = new ViewContext(
+            actionContext,
+            viewResult.View,
+            viewDictionary,
+            tempData,
+            sw,
+            new HtmlHelperOptions()
+        );
+
+        await viewResult.View.RenderAsync(viewContext);
+
+        return sw.ToString();
+      }
+    }
     [HttpGet]
     public async Task<IActionResult> Index(string searchString, int? pageNumber)
     {
@@ -147,7 +220,7 @@ namespace MarketAnalyticHub.Controllers
     // POST: HtmlPages/Edit/5
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Slug,Content,MetaTitle,MetaDescription,Keywords")] HtmlPage htmlPage)
+    public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Slug,Content,MetaTitle,MetaDescription,Keywords,ChangeHistory")] HtmlPage htmlPage)
     {
       if (id != htmlPage.Id)
       {
@@ -163,7 +236,6 @@ namespace MarketAnalyticHub.Controllers
           htmlPage.UpdatedAt = DateTime.UtcNow;
           htmlPage.LastEditedBy = currentUser;
           htmlPage.ChangeHistory += $"\nPage edited by {currentUser} on {DateTime.UtcNow}.";
-
           _context.Update(htmlPage);
           await _context.SaveChangesAsync();
         }

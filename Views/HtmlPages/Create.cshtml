@@ -53,14 +53,15 @@
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
     <script src="https://cdn.tiny.cloud/1/t9rz4fmx4fkm29mh38r8e69mcv9lij6qsy7szgk1vzca4wks/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
-
     <script>
         tinymce.init({
             selector: 'textarea#Content',
-            plugins: 'lists link image preview',
-            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image | preview',
+            plugins: 'lists link image preview code ',
+            toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image code | preview',
             height: 300,
-            menubar: false
+            menubar: false,
+
+
         });
     </script>
 }
