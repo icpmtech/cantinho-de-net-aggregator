@@ -1,0 +1,196 @@
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+@{
+    ViewData["Title"] = "Manage Markets";
+}
+
+<h2>Manage Markets</h2>
+
+<div>
+    <button id="btnAddMarket">Add New Market</button>
+</div>
+<!-- File Upload Form -->
+<form id="importForm" enctype="multipart/form-data">
+    <label for="csvFile">Upload CSV File:</label>
+    <input type="file" id="csvFile" name="csvFile" accept=".csv" />
+    <button type="button" id="btnUpload">Upload</button>
+</form>
+<table id="marketsTable" border="1">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>MIC</th>
+            <th>Region</th>
+            <th>City</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <!-- Rows populated by JavaScript -->
+    </tbody>
+</table>
+
+<!-- Add/Edit Modal -->
+<div id="marketModal" style="display:none;">
+    <h3 id="modalTitle"></h3>
+    <form id="marketForm">
+        <input type="hidden" id="marketId" />
+        <label>Name:</label>
+        <input type="text" id="marketName" /><br />
+        <label>MIC:</label>
+        <input type="text" id="marketMIC" /><br />
+        <label>Region:</label>
+        <input type="text" id="marketRegion" /><br />
+        <label>City:</label>
+        <input type="text" id="marketCity" /><br />
+        <button type="button" id="btnSaveMarket">Save</button>
+    </form>
+</div>
+@section PageScripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            loadMarkets();
+
+            function loadMarkets() {
+                $.ajax({
+                    url: "/api/stockextange",
+                    type: "GET",
+                    success: function (data) {
+                        var rows = '';
+                        data.forEach(market => {
+                            rows += `
+                                <tr>
+                                    <td>${market.id}</td>
+                                    <td>${market.stockExchangeName}</td>
+                                    <td>${market.mic}</td>
+                                    <td>${market.region}</td>
+                                    <td>${market.city}</td>
+                                    <td>
+                                        <button class="btnEdit" data-id="${market.id}">Edit</button>
+                                        <button class="btnDelete" data-id="${market.id}">Delete</button>
+                                    </td>
+                                </tr>`;
+                        });
+                        $('#marketsTable tbody').html(rows);
+                    },
+                    error: function () {
+                        alert("Error loading markets.");
+                    }
+                });
+            }
+
+            $('#btnAddMarket').click(function () {
+                $('#modalTitle').text('Add New Market');
+                $('#marketId').val('');
+                $('#marketForm')[0].reset();
+                $('#marketModal').show();
+            });
+
+            $('#marketsTable').on('click', '.btnEdit', function () {
+                var id = $(this).data('id');
+                $.ajax({
+                    url: `/api/stockextange/${id}`,
+                    type: "GET",
+                    success: function (data) {
+                        $('#modalTitle').text('Edit Market');
+                        $('#marketId').val(data.id);
+                        $('#marketName').val(data.stockExchangeName);
+                        $('#marketMIC').val(data.mic);
+                        $('#marketRegion').val(data.region);
+                        $('#marketCity').val(data.city);
+                        $('#marketModal').show();
+                    },
+                    error: function () {
+                        alert("Error fetching market details.");
+                    }
+                });
+            });
+
+            $('#btnSaveMarket').click(function () {
+                var market = {
+                    id: $('#marketId').val(),
+                    stockExchangeName: $('#marketName').val(),
+                    mic: $('#marketMIC').val(),
+                    region: $('#marketRegion').val(),
+                    city: $('#marketCity').val()
+                };
+
+                var type = market.id ? "PUT" : "POST";
+                var url = market.id ? `/api/stockextange/${market.id}` : "/api/MarketsImporter";
+
+                $.ajax({
+                    url: url,
+                    type: type,
+                    contentType: "application/json",
+                    data: JSON.stringify(market),
+                    success: function () {
+                        $('#marketModal').hide();
+                        loadMarkets();
+                    },
+                    error: function () {
+                        alert("Error saving market.");
+                    }
+                });
+            });
+
+            $('#marketsTable').on('click', '.btnDelete', function () {
+                var id = $(this).data('id');
+                if (confirm("Are you sure you want to delete this market?")) {
+                    $.ajax({
+                        url: `/api/stockextange/${id}`,
+                        type: "DELETE",
+                        success: function () {
+                            loadMarkets();
+                        },
+                        error: function () {
+                            alert("Error deleting market.");
+                        }
+                    });
+                }
+            });
+
+             $('#btnUpload').click(function () {
+            var formData = new FormData();
+            var fileInput = $('#csvFile')[0].files[0];
+
+            if (!fileInput) {
+                alert("Please select a CSV file to upload.");
+                return;
+            }
+
+            formData.append("csvFile", fileInput);
+
+            $.ajax({
+                url: "/api/stockextange/import",
+                type: "POST",
+                data: formData,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    $('#message').html(`<p style="color:green;">${response.successMessage || "File uploaded successfully!"}</p>`);
+                    if (response.errors && response.errors.length > 0) {
+                        $('#message').append("<ul style='color:red;'>");
+                        response.errors.forEach(error => {
+                            $('#message').append(`<li>${error}</li>`);
+                        });
+                        $('#message').append("</ul>");
+                    }
+                },
+                error: function (xhr) {
+                    var error = xhr.responseJSON?.message || "An error occurred while uploading the file.";
+                    $('#message').html(`<p style="color:red;">${error}</p>`);
+                }
+            });
+        });
+
+
+        });
+    </script>
+
+
+}

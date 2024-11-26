@@ -114,3 +114,17 @@ else
         </li>
     </ul>
 </li>
+<li class='menu-item@(currentPage.StartsWith("/managestockexanges") ? " active open" : "")' )'>
+    <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx bx-archive"></i>
+        <div>StockExchanges</div>
+    </a>
+    <ul class="menu-sub">
+
+        <li class='menu-item@(currentPage == "/managestockexanges/Index" ? " active" : "")'>
+            <a asp-controller="managestockexanges" asp-action="Index" class="menu-link">
+                <div>StockExchanges</div>
+            </a>
+        </li>
+    </ul>
+</li>

@@ -1,0 +1,94 @@
+@using MarketAnalyticHub.Models.SetupDb
+@model HtmlPage
+
+@{
+    ViewData["Title"] = "Page Details";
+}
+
+<h1>@Model.Title</h1>
+
+<!-- Breadcrumb Navigation (Optional) -->
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="HtmlPages" asp-action="Index">Manage Pages</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Details</li>
+    </ol>
+</nav>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <strong>Page Information</strong>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">Title</dt>
+            <dd class="col-sm-9">@Model.Title</dd>
+
+            <dt class="col-sm-3">Slug</dt>
+            <dd class="col-sm-9">@Model.Slug</dd>
+
+            <dt class="col-sm-3">Content</dt>
+            <dd class="col-sm-9">
+                @Html.Raw(Model.Content)
+            </dd>
+
+            <dt class="col-sm-3">Meta Title</dt>
+            <dd class="col-sm-9">@Model.MetaTitle</dd>
+
+            <dt class="col-sm-3">Meta Description</dt>
+            <dd class="col-sm-9">@Model.MetaDescription</dd>
+
+            <dt class="col-sm-3">Keywords</dt>
+            <dd class="col-sm-9">@Model.Keywords</dd>
+
+            <dt class="col-sm-3">Created At</dt>
+            <dd class="col-sm-9">@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+
+            <dt class="col-sm-3">Updated At</dt>
+            <dd class="col-sm-9">@Model.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</dd>
+
+            <dt class="col-sm-3">Last Edited By</dt>
+            <dd class="col-sm-9">@Model.LastEditedBy</dd>
+
+            <dt class="col-sm-3">Change History</dt>
+            <dd class="col-sm-9">
+                @foreach (var change in Model.ChangeHistory.Split('\n'))
+                {
+                    <p>@change</p>
+                }
+            </dd>
+        </dl>
+    </div>
+</div>
+
+<div class="mb-4">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-warning">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    <!-- Preview Button -->
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#previewModal">
+        Preview Content
+    </button>
+</div>
+
+<!-- Preview HTML Modal -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">@Model.Title - Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @* Render the HTML content safely *@
+                <div>
+                    @Html.Raw(System.Net.@WebUtility.HtmlDecode(Model.Content))
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+

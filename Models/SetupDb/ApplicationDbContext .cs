@@ -12,7 +12,7 @@ namespace MarketAnalyticHub.Models.SetupDb
         : base(options)
     {
     }
-
+    public DbSet<HtmlPage> HtmlPages { get; set; }
     public DbSet<UserCredit> UserCredits { get; set; }
     public DbSet<Dividend> Dividends { get; set; }
     public DbSet<NewsItem> News { get; set; }
@@ -30,6 +30,7 @@ namespace MarketAnalyticHub.Models.SetupDb
     public DbSet<MarketAnalyticHub.Models.Portfolio.Portfolio> Portfolios { get; set; }
     public DbSet<PortfolioItem> PortfolioItems { get; set; }
     public DbSet<SymbolItem> Symbols { get; set; }
+    public DbSet<StockExchange> StockExchanges { get; set; }
     public DbSet<NewsScrapingItem> NewsScrapingItems { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<PaymentMethod> PaymentMethods { get; set; }
@@ -44,6 +45,10 @@ namespace MarketAnalyticHub.Models.SetupDb
       base.OnModelCreating(modelBuilder);
 
       // Configure relationships
+      modelBuilder.Entity<StockExchange>().OwnsOne(s => s.OpenHoursLocal);
+      modelBuilder.Entity<StockExchange>().OwnsOne(s => s.OpenHoursUTC);
+
+
       modelBuilder.Entity<PortfolioItem>()
           .HasMany(p => p.StockEvents)
           .WithOne(e => e.PortfolioItem)
