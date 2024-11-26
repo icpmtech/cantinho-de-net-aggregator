@@ -1,0 +1,18 @@
+@model MarketAnalyticHub.Models.PaymentMethod
+
+<div class="form-group">
+    @Html.LabelFor(model => model.CardNumber, htmlAttributes: new { @class = "control-label" })
+    <div>
+        @Html.EditorFor(model => model.CardNumber, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.CardNumber, "", new { @class = "text-danger" })
+    </div>
+</div>
+
+<div class="form-group">
+    @Html.LabelFor(model => model.ExpiryDate, htmlAttributes: new { @class = "control-label" })
+    <div>
+        @Html.EditorFor(model => model.ExpiryDate, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(model => model.ExpiryDate, "", new { @class = "text-danger" })
+    </div>
+</div>
+

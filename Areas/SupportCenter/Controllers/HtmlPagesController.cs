@@ -12,9 +12,9 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace MarketAnalyticHub.Controllers
+namespace MarketAnalyticHub.Areas.SupportCenter.Controllers
 {
-
+  [Area("SupportCenter")]
   public class HtmlPagesController : Controller
   {
     private readonly ApplicationDbContext _context;
@@ -35,7 +35,7 @@ namespace MarketAnalyticHub.Controllers
       _environment = environment;
     }
     [HttpGet]
-    
+
     public async Task<IActionResult> Preview(int? id)
     {
       if (id == null)
@@ -163,7 +163,7 @@ namespace MarketAnalyticHub.Controllers
       var pages = from p in _context.HtmlPages
                   select p;
 
-      if (!String.IsNullOrEmpty(searchString))
+      if (!string.IsNullOrEmpty(searchString))
       {
         pages = pages.Where(p => p.Title.Contains(searchString) || p.Slug.Contains(searchString));
       }
@@ -308,4 +308,4 @@ namespace MarketAnalyticHub.Controllers
       return Json(new { success = true });
     }
   }
-  }
+}

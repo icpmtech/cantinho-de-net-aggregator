@@ -55,10 +55,10 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Data\" />
-    <Folder Include="Areas\BackOffice\Controllers\" />
     <Folder Include="Areas\BackOffice\Data\" />
     <Folder Include="Areas\BackOffice\Models\" />
-    <Folder Include="Areas\BackOffice\Views\" />
+    <Folder Include="Areas\SupportCenter\Data\" />
+    <Folder Include="Areas\SupportCenter\Models\" />
     <Folder Include="Controllers\DividendsTracker\" />
     <Folder Include="wwwroot\assets\snapshots\" />
   </ItemGroup>
