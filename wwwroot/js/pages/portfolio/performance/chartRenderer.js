@@ -237,73 +237,175 @@ export function renderCharts(data) {
   renderHeatmapChart(data);
 }
 
-// Function to render the Industry Market Value Heatmap
+/**
+ * Renders a heatmap chart using ApexCharts with enhanced color scales.
+ *
+ * @param {Object} data - The data object containing items.
+ * @param {Array} data.items - Array of objects with 'sectorActivity', 'symbol', and 'currentMarketValue'.
+ */
 export function renderHeatmapChart(data) {
-  const heatmapSeries = [{
-    name: "Market Value",
-    data: data.industryHeatmapData.map(item => ({
-      x: item.x, // Industry name
-      y: item.y   // Market value for the industry
-    }))
-  }];
+  // Validate input data
+  if (!data || !Array.isArray(data.items)) {
+    console.error('Invalid data format. Expected data.items as an array.');
+    return;
+  }
 
+  // Step 1: Aggregate the total market value per sectorActivity and symbol
+  const aggregatedData = {};
+
+  data.items.forEach(item => {
+    const { sectorActivity, symbol, currentMarketValue } = item;
+
+    if (!sectorActivity || !symbol || typeof currentMarketValue !== 'number') {
+      // Skip invalid entries
+      return;
+    }
+
+    // Initialize nested objects if they don't exist
+    if (!aggregatedData[sectorActivity]) {
+      aggregatedData[sectorActivity] = {};
+    }
+
+    if (!aggregatedData[sectorActivity][symbol]) {
+      aggregatedData[sectorActivity][symbol] = 0;
+    }
+
+    // Sum the market values
+    aggregatedData[sectorActivity][symbol] += currentMarketValue;
+  });
+
+  // Step 2: Extract unique industries and symbols
+  const industries = Object.keys(aggregatedData);
+  const symbolsSet = new Set();
+
+  industries.forEach(industry => {
+    Object.keys(aggregatedData[industry]).forEach(symbol => {
+      symbolsSet.add(symbol);
+    });
+  });
+
+  const symbols = Array.from(symbolsSet);
+
+  // Step 3: Prepare series data for ApexCharts
+  const heatmapSeries = industries.map(industry => {
+    const dataPoints = symbols.map(symbol => {
+      const value = aggregatedData[industry][symbol] || 0;
+      return {
+        x: symbol,
+        y: value
+      };
+    });
+
+    return {
+      name: industry,
+      data: dataPoints
+    };
+  });
+
+  // Step 4: Define heatmap chart options with enhanced color scales
   const heatmapOptions = {
     series: heatmapSeries,
     chart: {
       type: 'heatmap',
-      height: 350
+      height: 450,
+      toolbar: {
+        show: true
+      }
     },
     plotOptions: {
       heatmap: {
-        shadeIntensity: 0.5,
+        shadeIntensity: 0.8,
+        radius: 0,
+        useFillColorAsStroke: true,
         colorScale: {
           ranges: [
             {
               from: 0,
-              to: 10000,
+              to: 1000,
+              name: 'Very Low',
+              color: '#D4EFDF' // Light Green
+            },
+            {
+              from: 1001,
+              to: 5000,
               name: 'Low',
-              color: '#00A100'
+              color: '#ABEBC6' // Green
+            },
+            {
+              from: 5001,
+              to: 10000,
+              name: 'Medium',
+              color: '#F9E79F' // Light Yellow
             },
             {
               from: 10001,
               to: 50000,
-              name: 'Medium',
-              color: '#FFB200'
+              name: 'High',
+              color: '#F4D03F' // Yellow
             },
             {
               from: 50001,
               to: 100000,
-              name: 'High',
-              color: '#FF0000'
+              name: 'Very High',
+              color: '#E67E22' // Orange
+            },
+            {
+              from: 100001,
+              to: 1000000,
+              name: 'Extreme',
+              color: '#CB4335' // Red
             }
           ]
         }
       }
     },
-    xaxis: {
-      type: 'category',
-      title: {
-        text: 'Industry'
-      }
-    },
-    yaxis: {
-      title: {
-        text: 'Market Value ($)'
-      }
-    },
     dataLabels: {
-      enabled: false
+      enabled: true,
+      style: {
+        colors: ['#000000']
+      },
+      formatter: function (val) {
+        return `$${val.toLocaleString()}`;
+      }
+    },
+    stroke: {
+      width: 1
     },
     title: {
       text: 'Industry Market Value Heatmap',
       align: 'center'
+    },
+    xaxis: {
+      type: 'category',
+      categories: symbols,
+      title: {
+        text: 'Stock Symbol'
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'Industry'
+      }
+    },
+    tooltip: {
+      y: {
+        formatter: function (val) {
+          return `Market Value: $${val.toLocaleString()}`;
+        }
+      }
     }
   };
 
+  // Step 5: Render or update the heatmap chart
   if (heatmapChartInstance) {
     heatmapChartInstance.updateOptions(heatmapOptions);
   } else {
-    heatmapChartInstance = new ApexCharts(document.querySelector("#industryHeatmap"), heatmapOptions);
+    const chartElement = document.querySelector("#industryHeatmap");
+    if (!chartElement) {
+      console.error('Chart container with id "industryHeatmap" not found.');
+      return;
+    }
+    heatmapChartInstance = new ApexCharts(chartElement, heatmapOptions);
     heatmapChartInstance.render();
   }
 }

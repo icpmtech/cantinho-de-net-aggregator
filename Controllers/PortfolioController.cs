@@ -217,9 +217,13 @@ namespace MarketAnalyticHub.Controllers
         {
           portfolio.PortfolioPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
         }
-
-        // Group portfolio items by symbol
-        var groupedItems = portfolio.Items
+        
+        foreach (var portfolioItem in portfolio.Items)
+        {
+          portfolioItem.SectorActivity= await _portfolioService.GetIndustryBySymbol(portfolioItem.Symbol);
+        }
+       // Group portfolio items by symbol
+       var groupedItems = portfolio.Items
             .GroupBy(item => item.Symbol)
             .Select(group => new GroupedPortfolioItem
             {

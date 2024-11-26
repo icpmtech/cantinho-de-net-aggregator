@@ -16,6 +16,8 @@ using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Models.Portfolio.Entities;
 using Microsoft.AspNetCore.SignalR;
 using MarketAnalyticHub.Controllers.AIPilot;
+using AngleSharp.Text;
+using MarketAnalyticHub.Controllers.api;
 
 namespace MarketAnalyticHub.Services
 {
@@ -906,6 +908,12 @@ namespace MarketAnalyticHub.Services
           Auth = subscriptionEntity.Auth
         }
       };
+    }
+
+    public async Task<string> GetIndustryBySymbol(string symbol)
+    {
+     var res=  await YahooService.GetIndustryBySymbolAsync(symbol);
+      return res;
     }
 
 

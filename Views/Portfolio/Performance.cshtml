@@ -27,12 +27,12 @@
                     <!-- Time Period Selection -->
                     <div class="d-flex justify-content-center mb-3">
                         <select id="timePeriodSelect" class="form-select w-auto">
-                            <option value="1D">1 Day</option>
+                            <option value="1D" selected>1 Day</option>
                             <option value="5D">5 Days</option>
                             <option value="1M">1 Months</option>
                             <option value="3M">3 Months</option>
                             <option value="6M">6 Months</option>
-                            <option value="1Y" selected>1 Year</option>
+                            <option value="1Y" >1 Year</option>
                             <option value="5Y">5 Years</option>
                             <option value="AllTime">All Time</option>
                         </select>
@@ -80,13 +80,23 @@
         </div>
     </div>
 
-    <!-- HeatMap Section -->
+    <!-- HeatMap and Portfolio Allocation and Section -->
     <div class="row mb-4">
-        <div class="col-12">
+        <div class="col-8 col-md-8 col-sm-12">
             <div class="shadow-sm">
                 <div>
                     <div id="heatmap-container">
                         @Html.Partial("PerformanceSections/HeatMap")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Portfolio Allocation -->
+        <div class="col-4 col-md-4 col-sm-12">
+            <div class="shadow-sm">
+                <div>
+                    <div id="portfolio-allocation-container">
+                        @Html.Partial("PerformanceSections/PortfolioAllocation")
                     </div>
                 </div>
             </div>
@@ -117,20 +127,11 @@
         </div>
     </div>
 
-    <!-- Portfolio Allocation and Event Sentiments Section -->
+    <!--  Event Sentiments Section -->
     <div class="row mb-4">
-        <!-- Portfolio Allocation -->
-        <div class="col-md-6 col-sm-12">
-            <div class="shadow-sm">
-                <div>
-                    <div id="portfolio-allocation-container">
-                        @Html.Partial("PerformanceSections/PortfolioAllocation")
-                    </div>
-                </div>
-            </div>
-        </div>
+        
         <!-- Event Sentiments -->
-        <div class="col-md-6 col-sm-12 mt-4 mt-md-0">
+        <div class="col-md12 col-sm-12 mt-4 mt-md-0">
             <div class="shadow-sm">
                 <div>
                     <div id="event-sentiments-container">

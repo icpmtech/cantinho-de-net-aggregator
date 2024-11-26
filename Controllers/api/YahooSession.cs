@@ -1,5 +1,6 @@
 using Flurl;
 using Flurl.Http;
+using MarketAnalyticHub.YaooServive.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -240,7 +241,53 @@ namespace MarketAnalyticHub.Controllers.api
       public decimal Close { get; set; }
       public long Volume { get; set; }
     }
+    /// <summary>
+    /// Fetches the industry information for a given stock symbol.
+    /// </summary>
+    /// <param name="symbol">The stock symbol.</param>
+    /// <param name="token">Cancellation token.</param>
+    /// <returns>The industry associated with the symbol.</returns>
+    public static async Task<string> GetIndustryBySymbolAsync(string symbol, CancellationToken token = default)
+    {
+      if (string.IsNullOrWhiteSpace(symbol))
+        throw new ArgumentException("Symbol cannot be null or empty.", nameof(symbol));
 
+      // Initialize necessary components
+      await InitAsync(token);
+
+      // Construct the URL
+      var url = $"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{Uri.EscapeDataString(symbol)}?modules=assetProfile";
+
+      try
+      {
+        var response = await url
+            .SetQueryParam("crumb", Crumb)
+            .WithCookie(_cookie.Name, _cookie.Value)
+            .WithHeader(UserAgentKey, UserAgentValue)
+            .GetAsync(token)
+            .ReceiveJson<QuoteSummaryResponse>();
+
+        var industry = response?.QuoteSummary?.Result?[0]?.AssetProfile?.Industry;
+
+        if (string.IsNullOrEmpty(industry))
+        {
+          throw new InvalidOperationException($"Industry information not found for symbol: {symbol}");
+        }
+
+        return industry;
+      }
+      catch (FlurlHttpException ex)
+      {
+        var errorResponse = await ex.GetResponseStringAsync();
+        Console.WriteLine($"Flurl HTTP Error in GetIndustryBySymbolAsync: {ex.Message}\nResponse: {errorResponse}");
+        throw new HttpRequestException("Error fetching industry information from Yahoo Finance.", ex);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Unexpected Error in GetIndustryBySymbolAsync: {ex.Message}");
+        throw;
+      }
+    }
     public static async Task<List<dynamic>> SearchSymbolsAsync(string query, CancellationToken token = default)
     {
       await InitAsync(token);

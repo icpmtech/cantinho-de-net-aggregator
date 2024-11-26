@@ -58,5 +58,7 @@ namespace MarketAnalyticHub.Models.Portfolio.Entities
 
     // Foreign key relationship to Portfolio
     public Portfolio? Portfolio { get; set; }
+    [NotMapped]
+    public string? SectorActivity { get;  set; }
   }
 }
