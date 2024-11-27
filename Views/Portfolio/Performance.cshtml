@@ -2,6 +2,96 @@
     ViewBag.Title = "Portfolio Performance";
 }
 <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+<style>
+    /* Skeleton Base Style */
+    .skeleton {
+        background-color: #e2e2e2;
+        border-radius: 4px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        /* Animation */
+        .skeleton::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -150px;
+            height: 100%;
+            width: 150px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            animation: loading 1.5s infinite;
+        }
+
+    @@keyframes loading {
+        0%
+
+    {
+        left: -150px;
+    }
+
+    50% {
+        left: 100%;
+    }
+
+    100% {
+        left: 100%;
+    }
+
+    }
+
+    /* Specific Skeleton Styles */
+
+    /* Card Skeleton */
+    .skeleton-card {
+        width: 100%;
+        height: 150px;
+        margin-bottom: 1rem;
+    }
+
+    /* Chart Skeleton */
+    .skeleton-chart {
+        width: 100%;
+        height: 300px;
+        margin-bottom: 1rem;
+    }
+
+    /* Highlights Skeleton */
+    .skeleton-highlights {
+        width: 100%;
+        height: 200px;
+        margin-bottom: 1rem;
+    }
+
+    /* HeatMap Skeleton */
+    .skeleton-heatmap {
+        width: 100%;
+        height: 400px;
+        margin-bottom: 1rem;
+    }
+
+    /* Portfolio Allocation Skeleton */
+    .skeleton-allocation {
+        width: 100%;
+        height: 200px;
+        margin-bottom: 1rem;
+    }
+
+    /* Event Sentiments Skeleton */
+    .skeleton-event-sentiments {
+        width: 100%;
+        height: 250px;
+        margin-bottom: 1rem;
+    }
+
+    /* Cards Section Skeleton */
+    .skeleton-cards {
+        width: 100%;
+        height: 300px;
+        margin-bottom: 1rem;
+    }
+</style>
+
 <div class="container mt-5">
     <!-- Action Button (Centered) -->
     <div class="d-flex justify-content-center mb-4">
@@ -18,162 +108,161 @@
     <div id="error" class="alert alert-danger d-none" role="alert">
         <!-- Error messages will appear here -->
     </div>
-    <div class="row mb-4">
-        <div class="col-12">
-            <!-- New Card for Historical Portfolio Performance -->
-            <div class="card shadow-sm">
-                <div class="card-body">
-                    <h4 class="card-title text-center">Historical Portfolio Performance</h4>
-                    <!-- Time Period Selection -->
-                    <div class="d-flex justify-content-center mb-3">
-                        <select id="timePeriodSelect" class="form-select w-auto">
-                            <option value="1D" selected>1 Day</option>
-                            <option value="5D">5 Days</option>
-                            <option value="1M">1 Months</option>
-                            <option value="3M">3 Months</option>
-                            <option value="6M">6 Months</option>
-                            <option value="1Y">1 Year</option>
-                            <option value="5Y">5 Years</option>
-                            <option value="AllTime">All Time</option>
-                        </select>
+
+    <!-- Main Content Wrapper -->
+    <div id="mainContent">
+        <!-- Historical Portfolio Performance Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h4 class="card-title text-center">Historical Portfolio Performance</h4>
+                        <!-- Time Period Selection -->
+                        <div class="d-flex justify-content-center mb-3">
+                            <select id="timePeriodSelect" class="form-select w-auto">
+                                <option value="1D" selected>1 Day</option>
+                                <option value="5D">5 Days</option>
+                                <option value="1M">1 Month</option>
+                                <option value="3M">3 Months</option>
+                                <option value="6M">6 Months</option>
+                                <option value="1Y">1 Year</option>
+                                <option value="5Y">5 Years</option>
+                                <option value="AllTime">All Time</option>
+                            </select>
+                        </div>
+                        <!-- Chart Container -->
+                        <div id="historicalPortfolioChart"></div>
                     </div>
-                    <!-- Chart Container -->
-                    <div id="historicalPortfolioChart"></div>
                 </div>
             </div>
         </div>
-    </div>
-    <!-- Performance cards Section -->
-    <div class="row  mb-4">
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
-            <div class="shadow-sm">
-                <div>
-                    <div id="today-container">
+
+        <!-- Performance Cards Section -->
+        <div class="row mb-4">
+            <!-- Today Performance -->
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="shadow-sm">
+                    <!-- Skeleton Placeholder -->
+                    <div class="skeleton skeleton-card"></div>
+                    <!-- Actual Content -->
+                    <div id="today-container" class="content d-none">
                         @Html.Partial("PerformanceSections/Today")
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
-            <div class="shadow-sm">
-                <div>
-                    <div id="week-container">
+            <!-- Week Performance -->
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-card"></div>
+                    <div id="week-container" class="content d-none">
                         @Html.Partial("PerformanceSections/Week")
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
-            <div class="shadow-sm">
-                <div>
-                    <div id="month-container">
+            <!-- Month Performance -->
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-card"></div>
+                    <div id="month-container" class="content d-none">
                         @Html.Partial("PerformanceSections/Month")
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
-            <div class="shadow-sm">
-                <div>
-                    <div id="year-container">
+            <!-- Year Performance -->
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-card"></div>
+                    <div id="year-container" class="content d-none">
                         @Html.Partial("PerformanceSections/Year")
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Highlights and Portfolio Evolution Section -->
-    <div class="row mb-4">
-        <!-- Highlights Section -->
-        <div class="col-md-4 col-sm-12">
-            <div class="shadow-sm">
-                <div>
-                    <div id="highlights-container">
+        <!-- Highlights and Portfolio Evolution Section -->
+        <div class="row mb-4">
+            <!-- Highlights Section -->
+            <div class="col-md-4 col-sm-12">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-highlights"></div>
+                    <div id="highlights-container" class="content d-none">
                         @Html.Partial("PerformanceSections/Highlights")
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- Portfolio Evolution Section (Line Chart) -->
-        <div class="col-md-8 col-sm-12 mt-4 mt-md-0">
-            <div class="shadow-sm">
-                <div>
-                    <div id="portfolio-evolution-container">
+            <!-- Portfolio Evolution Section (Line Chart) -->
+            <div class="col-md-8 col-sm-12 mt-4 mt-md-0">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-chart"></div>
+                    <div id="portfolio-evolution-container" class="content d-none">
                         @Html.Partial("PerformanceSections/PortfolioEvolution")
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- HeatMap and Portfolio Allocation and Section -->
-    <div class="row mb-4">
-        <div class="col-8 col-md-8 col-sm-12">
-            <div class="shadow-sm">
-                <div>
-                    <div id="heatmap-container">
+        <!-- HeatMap and Portfolio Allocation Section -->
+        <div class="row mb-4">
+            <!-- HeatMap Section -->
+            <div class="col-8 col-md-8 col-sm-12">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-heatmap"></div>
+                    <div id="heatmap-container" class="content d-none">
                         @Html.Partial("PerformanceSections/HeatMap")
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- Portfolio Allocation -->
-        <div class="col-4 col-md-4 col-sm-12">
-            <div class="shadow-sm">
-                <div>
-                    <div id="portfolio-allocation-container">
+            <!-- Portfolio Allocation Section -->
+            <div class="col-4 col-md-4 col-sm-12">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-allocation"></div>
+                    <div id="portfolio-allocation-container" class="content d-none">
                         @Html.Partial("PerformanceSections/PortfolioAllocation")
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Monthly Stock Returns and Radar Chart Section -->
-    <div class="row mb-4">
-        <!-- Monthly Stock Returns Section (Bar Chart) -->
-        <div class="col-md-6 col-sm-12">
-            <div class="shadow-sm">
-                <div>
-                    <div id="monthly-stock-returns-container">
+        <!-- Monthly Stock Returns and Radar Chart Section -->
+        <div class="row mb-4">
+            <!-- Monthly Stock Returns Section (Bar Chart) -->
+            <div class="col-md-6 col-sm-12">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-chart"></div>
+                    <div id="monthly-stock-returns-container" class="content d-none">
                         @Html.Partial("PerformanceSections/MonthlyStockReturns")
                     </div>
                 </div>
             </div>
-        </div>
-        <!-- Radar Chart Section -->
-        <div class="col-md-6 col-sm-12 mt-4 mt-md-0">
-            <div class="shadow-sm">
-                <div>
-                    <div id="radar-chart-container">
+            <!-- Radar Chart Section -->
+            <div class="col-md-6 col-sm-12 mt-4 mt-md-0">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-chart"></div>
+                    <div id="radar-chart-container" class="content d-none">
                         @Html.Partial("PerformanceSections/RadarChart")
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!--  Event Sentiments Section -->
-    <div class="row mb-4">
-
-        <!-- Event Sentiments -->
-        <div class="col-md-12 col-sm-12 mt-4 mt-md-0">
-
-            <div id="event-sentiments-container">
-                @Html.Partial("PerformanceSections/EventSentiments")
+        <!-- Event Sentiments Section -->
+        <div class="row mb-4">
+            <div class="col-md-12 col-sm-12 mt-4 mt-md-0">
+                <div class="shadow-sm">
+                    <div class="skeleton skeleton-event-sentiments"></div>
+                    <div id="event-sentiments-container" class="content d-none">
+                        @Html.Partial("PerformanceSections/EventSentiments")
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-
-
-    <!--  Cards Section -->
-    <div class="row mb-4">
-
-        <!-- Cards -->
-        <div class="col-md-12 col-sm-12 mt-4 mt-md-0">
-            <div id="event-sentiments-container">
-                @Html.Partial("PerformanceSections/Cards")
+        <!-- Cards Section -->
+        <div class="row mb-4">
+            <div class="shadow-sm">
+                <div class="skeleton skeleton-cards"></div>
+                <div id="cards-container" class="content d-none">
+                    @await Html.PartialAsync("PerformanceSections/Cards")
+                </div>
             </div>
         </div>
     </div>

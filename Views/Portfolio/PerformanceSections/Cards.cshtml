@@ -58,17 +58,63 @@
 
         // Stock card
         const stockCard = document.createElement('div');
-        stockCard.className = 'card shadow-sm h-100';
-
         stockCard.innerHTML = `
-            <div class="card-body">
-                <h5 class="card-title">${metaData.longName} (${metaData.symbol})</h5>
-                <p class="card-text"><strong>Exchange:</strong> ${metaData.exchangeName}</p>
-                <p class="card-text"><strong>Currency:</strong> ${metaData.currency}</p>
-                <p class="card-text"><strong>52 Week High:</strong> €${metaData.fiftyTwoWeekHigh}</p>
-                <p class="card-text"><strong>52 Week Low:</strong> €${metaData.fiftyTwoWeekLow}</p>
-                <p class="card-text"><strong>Regular Market Price:</strong> €${metaData.regularMarketPrice}</p>
+           <div class="card shadow-sm mb-4">
+    <div class="card-header  d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 d-flex align-items-center">
+            <i class='bx bxs-bar-chart me-2'></i>
+            ${metaData.longName} (${metaData.symbol})
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <p class="card-text">
+                    <i class='bx bx-buildings me-2 text-primary'></i>
+                    <strong>Exchange:</strong> ${metaData.exchangeName}
+                </p>
+                <p class="card-text">
+                    <i class='bx bx-detail me-2 text-primary'></i>
+                    <strong>Full Exchange Name:</strong> ${metaData.fullExchangeName}
+                </p>
+                <p class="card-text">
+                    <i class='bx bx-pie-chart-alt-2 me-2 text-primary'></i>
+                    <strong>Instrument Type:</strong> ${metaData.instrumentType}
+                </p>
             </div>
+            <div class="col-md-6">
+                <p class="card-text">
+                    <i class='bx bx-money me-2 text-success'></i>
+                    <strong>Currency:</strong> ${metaData.currency}
+                </p>
+                <p class="card-text">
+                    <i class='bx bx-up-arrow-circle me-2 text-danger'></i>
+                    <strong>52 Week High:</strong> €${metaData.fiftyTwoWeekHigh}
+                </p>
+                <p class="card-text">
+                    <i class='bx bx-down-arrow-circle me-2 text-warning'></i>
+                    <strong>52 Week Low:</strong> €${metaData.fiftyTwoWeekLow}
+                </p>
+            </div>
+        </div>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <p class="card-text mb-0">
+                    <i class='bx bx-dollar-circle me-2 text-info'></i>
+                    <strong>Regular Market Price:</strong> €${metaData.regularMarketPrice}
+                </p>
+                <p class="card-text mb-0">
+                    <i class='bx bx-bar-chart-alt-2 me-2 text-info'></i>
+                    <strong>Regular Market Volume:</strong> ${metaData.regularMarketVolume}
+                </p>
+            </div>
+            <a href="/SentimentAnalizer/SearchSymbols" class="btn btn-outline-primary btn-sm">
+                <i class='bx bx-line-chart me-1'></i> View Chart
+            </a>
+        </div>
+    </div>
+</div>
         `;
 
         stockCardColumn.appendChild(stockCard);
