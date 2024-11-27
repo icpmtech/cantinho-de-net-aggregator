@@ -1,7 +1,7 @@
 @{
     ViewBag.Title = "Portfolio Performance";
 }
-
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
 <div class="container mt-5">
     <!-- Action Button (Centered) -->
     <div class="d-flex justify-content-center mb-4">
@@ -20,7 +20,7 @@
     </div>
     <div class="row mb-4">
         <div class="col-12">
-       <!-- New Card for Historical Portfolio Performance -->
+            <!-- New Card for Historical Portfolio Performance -->
             <div class="card shadow-sm">
                 <div class="card-body">
                     <h4 class="card-title text-center">Historical Portfolio Performance</h4>
@@ -32,7 +32,7 @@
                             <option value="1M">1 Months</option>
                             <option value="3M">3 Months</option>
                             <option value="6M">6 Months</option>
-                            <option value="1Y" >1 Year</option>
+                            <option value="1Y">1 Year</option>
                             <option value="5Y">5 Years</option>
                             <option value="AllTime">All Time</option>
                         </select>
@@ -43,13 +43,40 @@
             </div>
         </div>
     </div>
-    <!-- Today Section -->
-    <div class="row mb-4">
-        <div class="col-12">
+    <!-- Performance cards Section -->
+    <div class="row  mb-4">
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
             <div class="shadow-sm">
                 <div>
                     <div id="today-container">
                         @Html.Partial("PerformanceSections/Today")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+            <div class="shadow-sm">
+                <div>
+                    <div id="week-container">
+                        @Html.Partial("PerformanceSections/Week")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+            <div class="shadow-sm">
+                <div>
+                    <div id="month-container">
+                        @Html.Partial("PerformanceSections/Month")
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-3">
+            <div class="shadow-sm">
+                <div>
+                    <div id="year-container">
+                        @Html.Partial("PerformanceSections/Year")
                     </div>
                 </div>
             </div>
@@ -129,22 +156,31 @@
 
     <!--  Event Sentiments Section -->
     <div class="row mb-4">
-        
+
         <!-- Event Sentiments -->
-        <div class="col-md12 col-sm-12 mt-4 mt-md-0">
-            <div class="shadow-sm">
-                <div>
-                    <div id="event-sentiments-container">
-                        @Html.Partial("PerformanceSections/EventSentiments")
-                    </div>
-                </div>
+        <div class="col-md-12 col-sm-12 mt-4 mt-md-0">
+
+            <div id="event-sentiments-container">
+                @Html.Partial("PerformanceSections/EventSentiments")
+            </div>
+        </div>
+    </div>
+
+
+    <!--  Cards Section -->
+    <div class="row mb-4">
+
+        <!-- Cards -->
+        <div class="col-md-12 col-sm-12 mt-4 mt-md-0">
+            <div id="event-sentiments-container">
+                @Html.Partial("PerformanceSections/Cards")
             </div>
         </div>
     </div>
 </div>
 
 @section PageScripts {
-     
-        <script type="module" src="/js/pages/portfolio/performance/main.js"></script>
+
+    <script type="module" src="/js/pages/portfolio/performance/main.js"></script>
 }
 

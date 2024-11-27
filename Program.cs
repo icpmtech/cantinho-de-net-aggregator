@@ -132,7 +132,8 @@ builder.Services.AddSingleton<IMilvusService, MilvusService>();
 builder.Services.AddSingleton<IArticleProcessor, ArticleProcessor>();
 builder.Services.AddScoped<IDividendsTrackerRepository, DividendsTrackerRepository>();
 builder.Services.AddScoped<IIndicesDividendsTrackerRepository, IndicesDividendsTrackerRepository>();
-
+builder.Services.AddScoped<IStockPriceService, StockPriceService>();
+builder.Services.AddScoped<IDataRepository, DataRepository>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHangfire(configuration => configuration

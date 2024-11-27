@@ -2,37 +2,37 @@
     // This partial view will display the highlights such as day return, best stock, sharpe ratio, etc.
 }
 
-<!-- New Card for Today's Performance -->
+<!-- New Card for Month's Performance -->
 <div class="card shadow-sm">
     <div class="card-body">
         <!-- Card Title with Badge -->
         <h4 class="card-title text-center">
-            Today's Performance
+            Montly's Performance
             <span class="badge bg-primary ms-2">Live</span>
         </h4>
 
-        <div id="today-performance">
-            <!-- Total Amount Today with Badge -->
+        <div id="Month-performance">
+            <!-- Total Amount Month with Badge -->
             <p>
                 <strong>Total Amount :</strong>
-                $<span id="totalAmountToday" class="value">0.00</span>
+                $<span id="totalAmountMonth" class="value">0.00</span>
                 <span class="badge bg-success ms-2">Updated</span>
             </p>
 
-            <!-- Change in Market Value Today with Badge -->
+            <!-- Change in Market Value Month with Badge -->
             <p>
                 <strong>Change in Market Value :</strong>
-                <span id="changeInMarketValueToday" class="value change">
+                <span id="changeInMarketValueMonth" class="value change">
                     $<span id="marketValueAmount">0.00</span>
                     <i id="marketValueIcon" class='bx'></i>
                 </span>
                 <span class="badge bg-warning ms-2">Change</span>
             </p>
 
-            <!-- Percent Change Today with Badge -->
+            <!-- Percent Change Month with Badge -->
             <p>
                 <strong>Percent Change :</strong>
-                <span id="percentChangeToday" class="value change">
+                <span id="percentChangeMonth" class="value change">
                     <span id="percentChangeAmount">0.00</span>%
                     <i id="percentChangeIcon" class='bx'></i>
                 </span>
@@ -46,12 +46,12 @@
 <!-- Script to Update Icons and Colors Based on Values -->
 <script>
     // Example data - replace these with your actual data sources
-    const totalAmountToday = 0; // Example value
-    const changeInMarketValueToday = 0; // Positive change
-    const percentChangeToday = 0; // Negative change
+    const totalAmountMonth = 0; // Example value
+    const changeInMarketValueMonth = 0; // Positive change
+    const percentChangeMonth = 0; // Negative change
 
-    // Update Total Amount Today
-    document.getElementById('totalAmountToday').textContent = totalAmountToday.toFixed(2);
+    // Update Total Amount Month
+    document.getElementById('totalAmountMonth').textContent = totalAmountMonth.toFixed(2);
 
     // Function to update change elements
     function updateChangeElement(amount, isPercent, amountElementId, iconElementId) {
@@ -79,11 +79,11 @@
         }
     }
 
-    // Update Change in Market Value Today
-    updateChangeElement(changeInMarketValueToday, false, 'marketValueAmount', 'marketValueIcon');
+    // Update Change in Market Value Month
+    updateChangeElement(changeInMarketValueMonth, false, 'marketValueAmount', 'marketValueIcon');
 
-    // Update Percent Change Today
-    updateChangeElement(percentChangeToday, true, 'percentChangeAmount', 'percentChangeIcon');
+    // Update Percent Change Month
+    updateChangeElement(percentChangeMonth, true, 'percentChangeAmount', 'percentChangeIcon');
 </script>
 
 <!-- Optional: Custom Styles -->

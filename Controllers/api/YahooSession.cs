@@ -1,6 +1,8 @@
 using Flurl;
 using Flurl.Http;
+using MarketAnalyticHub.Models.YahooFinance;
 using MarketAnalyticHub.YaooServive.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -455,7 +457,100 @@ namespace MarketAnalyticHub.Controllers.api
     }
 
 
+    public static async Task<List<dynamic>> GetHistoricalDataAsync(string symbol, DateTime date, CancellationToken token = default)
+    {
+      await InitAsync(token);
 
+      var startTimestamp = ((DateTimeOffset)date).ToUnixTimeSeconds();
+
+      var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startTimestamp}&period2={startTimestamp}&interval=1d";
+
+      try
+      {
+        // Sending the request to Yahoo Finance API and receiving the JSON response
+        var response = await url
+            .SetQueryParam("crumb", Crumb) // Assuming 'Crumb' is a predefined string variable
+            .WithCookie(_cookie.Name, _cookie.Value) // Assuming '_cookie' is a predefined object
+            .WithHeader(UserAgentKey, UserAgentValue) // Assuming 'UserAgentKey' and 'UserAgentValue' are predefined
+            .GetStringAsync(token);
+
+        var chartResponse = JsonConvert.DeserializeObject<ChartResponse>(response);
+
+        // Combining timestamps with quotes into a historical data list
+        var historicalData = new List<dynamic>();
+          historicalData.Add(new
+          {
+            Timestamp = date,
+            Open = chartResponse.Chart.Result.FirstOrDefault().Indicators.Quote.FirstOrDefault().Open.FirstOrDefault().Value,
+            Close = chartResponse.Chart.Result.FirstOrDefault().Indicators.Quote.FirstOrDefault().Close.FirstOrDefault().Value,
+            High = chartResponse.Chart.Result.FirstOrDefault().Indicators.Quote.FirstOrDefault().High.FirstOrDefault().Value,
+            Low = chartResponse.Chart.Result.FirstOrDefault().Indicators.Quote.FirstOrDefault().Low.FirstOrDefault().Value,
+            Volume = chartResponse.Chart.Result.FirstOrDefault().Indicators.Quote.FirstOrDefault().Volume.FirstOrDefault().Value,
+          });
+
+        return historicalData;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error during GetHistoricalDataAsync: {ex.Message}");
+        throw;
+      }
+    }
+    public static async Task<ChartResponse> GetHistoricalJsonDataAsync(string symbol, DateTime period1, DateTime period2, CancellationToken token = default)
+    {
+      await InitAsync(token);
+
+      var startTimestamp = ((DateTimeOffset)period1).ToUnixTimeSeconds();
+      var endTimestamp = ((DateTimeOffset)period2).ToUnixTimeSeconds();
+      var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startTimestamp}&period2={endTimestamp}&interval=1d";
+
+      try
+      {
+        // Sending the request to Yahoo Finance API and receiving the JSON response
+        var response = await url
+            .SetQueryParam("crumb", Crumb) // Assuming 'Crumb' is a predefined string variable
+            .WithCookie(_cookie.Name, _cookie.Value) // Assuming '_cookie' is a predefined object
+            .WithHeader(UserAgentKey, UserAgentValue) // Assuming 'UserAgentKey' and 'UserAgentValue' are predefined
+            .GetStringAsync(token);
+
+        var chartResponse = JsonConvert.DeserializeObject<ChartResponse>(response);
+
+        return chartResponse;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error during GetHistoricalDataAsync: {ex.Message}");
+        throw;
+      }
+    }
+
+    public static async Task<ChartResponse> GetHistoricalJsonDataAsync(string symbol, DateTime date, CancellationToken token = default)
+    {
+      await InitAsync(token);
+
+      var startTimestamp = ((DateTimeOffset)date).ToUnixTimeSeconds();
+
+      var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startTimestamp}&period2={startTimestamp}&interval=1d";
+
+      try
+      {
+        // Sending the request to Yahoo Finance API and receiving the JSON response
+        var response = await url
+            .SetQueryParam("crumb", Crumb) // Assuming 'Crumb' is a predefined string variable
+            .WithCookie(_cookie.Name, _cookie.Value) // Assuming '_cookie' is a predefined object
+            .WithHeader(UserAgentKey, UserAgentValue) // Assuming 'UserAgentKey' and 'UserAgentValue' are predefined
+            .GetStringAsync(token);
+
+        var chartResponse = JsonConvert.DeserializeObject<ChartResponse>(response);
+
+        return chartResponse;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error during GetHistoricalDataAsync: {ex.Message}");
+        throw;
+      }
+    }
 
     public static async Task<List<dynamic>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate, CancellationToken token = default)
     {
@@ -482,7 +577,7 @@ namespace MarketAnalyticHub.Controllers.api
         // Combining timestamps with quotes into a historical data list
         var historicalData = new List<dynamic>();
 
-        for (int i = 0; i < timestamps.Count; i++)
+        for (int i = 0; i < timestamps?.Count; i++)
         {
           long time = Convert.ToInt64(timestamps[i]);
           var Open= quotes.open[i];

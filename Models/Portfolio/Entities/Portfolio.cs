@@ -43,5 +43,11 @@ namespace MarketAnalyticHub.Models.Portfolio
     public decimal LossPercentage { get; internal set; }
     [NotMapped]
     public bool IsLossAlertTriggered { get; internal set; }
+    [NotMapped]
+    public decimal? WeeklyPercentage { get; internal set; }
+    [NotMapped]
+    public decimal? MonthlyPercentage { get; internal set; }
+    [NotMapped]
+    public decimal? YearlyPercentage { get; internal set; }
   }
 }

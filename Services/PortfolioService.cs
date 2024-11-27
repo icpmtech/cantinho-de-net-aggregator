@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.SignalR;
 using MarketAnalyticHub.Controllers.AIPilot;
 using AngleSharp.Text;
 using MarketAnalyticHub.Controllers.api;
+using MarketAnalyticHub.Repositories;
 
 namespace MarketAnalyticHub.Services
 {
@@ -33,10 +34,15 @@ namespace MarketAnalyticHub.Services
     private object value;
     private object value1;
     private object value2;
+    private readonly IDataRepository _dataRepository;
+    private readonly IStockPriceService _stockPriceService;
 
-    public PortfolioService(ApplicationDbContext context, IHubContext<NotificationHub> hubContext, FinnhubService finnhubService, OpenAIService openAIService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
+
+    public PortfolioService(ApplicationDbContext context, IDataRepository dataRepository, IStockPriceService stockPriceService, IHubContext<NotificationHub> hubContext, FinnhubService finnhubService, OpenAIService openAIService, IYahooFinanceService yahooFinanceService, ILogger<PortfolioService> logger, SentimentAnalysisService sentimentAnalysisService)
     {
       _context = context;
+      _dataRepository = dataRepository;
+      _stockPriceService = stockPriceService;
       _yahooFinanceService = yahooFinanceService;
       _logger = logger;
       _sentimentAnalysisService = sentimentAnalysisService;
@@ -651,7 +657,12 @@ namespace MarketAnalyticHub.Services
     {
       return ((currentMarketValue - originalMarketValue) / originalMarketValue) * 100;
     }
- 
+    public decimal CalculatePercentageChange(decimal originalMarketValue, decimal currentMarketValue)
+    {
+      return ((currentMarketValue - originalMarketValue) / originalMarketValue) * 100;
+    }
+
+
     public async Task<List<TotalPortfolioPercentageResponse>> CalculatePortfolioPercentagesAsync(List<Portfolio> portfolios)
     {
       var portfolioPercentageResponses = new List<TotalPortfolioPercentageResponse>();
@@ -915,6 +926,125 @@ namespace MarketAnalyticHub.Services
      var res=  await YahooService.GetIndustryBySymbolAsync(symbol);
       return res;
     }
+
+ 
+
+    // Cálculo Semanal
+    public async Task<decimal?> CalculateWeeklyPortfolioPercentageAsync(Portfolio portfolio)
+    {
+      var historicalDate = DateTime.Now.AddDays(-7);
+      decimal historicalValue = 0;
+
+      var tasks = portfolio.Items.Select(async item =>
+      {
+        var price = await _stockPriceService.GetHistoricalPriceAsync(item.Symbol, historicalDate);
+        if (price.Any())
+        {
+          return item.Quantity * price.First().Close;
+        }
+        return 0m;
+      });
+
+      var results = await Task.WhenAll(tasks);
+      historicalValue = results.Sum();
+
+      var currentMarketValue = portfolio.CurrentMarketValue;
+
+      if (historicalValue == 0) return null;
+
+      return (decimal?)CalculatePercentageChange((double)historicalValue, (double)currentMarketValue);
+    }
+
+    // Cálculo Mensal
+    public async Task<decimal?> CalculateMonthlyPortfolioPercentageAsync(Portfolio portfolio)
+    {
+      var historicalDate = DateTime.Now.AddMonths(-1);
+      decimal historicalValue = 0;
+
+      var tasks = portfolio.Items.Select(async item =>
+      {
+        var price = await _stockPriceService.GetHistoricalPriceAsync(item.Symbol, historicalDate);
+        if (price.Any())
+        {
+          return item.Quantity * price.First().Close;
+        }
+        return 0m;
+      });
+
+      var results = await Task.WhenAll(tasks);
+      historicalValue = results.Sum();
+
+      var currentMarketValue = portfolio.CurrentMarketValue;
+
+      if (historicalValue == 0) return null;
+
+      return (decimal?)CalculatePercentageChange((double)historicalValue, (double)currentMarketValue);
+    }
+
+    // Cálculo Anual
+    public async Task<decimal?> CalculateYearlyPortfolioPercentageAsync(Portfolio portfolio)
+    {
+      var historicalDate = DateTime.Now.AddYears(-1);
+      decimal historicalValue = 0;
+
+      var tasks = portfolio.Items.Select(async item =>
+      {
+        var price = await _stockPriceService.GetHistoricalPriceAsync(item.Symbol, historicalDate);
+        if (price.Any())
+        {
+          return item.Quantity * price.First().Close;
+        }
+        return 0m;
+      });
+
+      var results = await Task.WhenAll(tasks);
+      historicalValue = results.Sum();
+
+      var currentMarketValue = portfolio.CurrentMarketValue;
+
+      if (historicalValue == 0) return null;
+
+      return (decimal?)CalculatePercentageChange((double)historicalValue, (double)currentMarketValue);
+    }
+
+    // Cálculo de perda e gatilho de alerta
+    public void CalculateLossAlert(Portfolio portfolio)
+    {
+      portfolio.LossPercentage = portfolio.TotalGainsLosses < 0
+          ? Math.Abs(portfolio.TotalGainsLosses / portfolio.TotalInvestment * 100)
+          : 0;
+
+      // Exemplo: disparar alerta se a perda for maior que 10%
+      portfolio.IsLossAlertTriggered = portfolio.LossPercentage > 10;
+    }
+
+    // Método principal para calcular todas as métricas
+    public async Task CalculatePortfolioMetricsAsync(Portfolio portfolio)
+    {
+      portfolio.WeeklyPercentage = await CalculateWeeklyPortfolioPercentageAsync(portfolio);
+      portfolio.MonthlyPercentage = await CalculateMonthlyPortfolioPercentageAsync(portfolio);
+      portfolio.YearlyPercentage = await CalculateYearlyPortfolioPercentageAsync(portfolio);
+
+      // Calcular alertas
+      CalculateLossAlert(portfolio);
+    }
+
+    // Novo: Calcular métricas para um PortfolioItem
+    public async Task CalculatePortfolioItemMetricsAsync(PortfolioItem portfolioItem)
+    {
+      // Exemplo: Calcular variação percentual diária
+      if (portfolioItem.PreviousClosePrice.HasValue && portfolioItem.CurrentPrice != 0)
+      {
+        portfolioItem.Change = portfolioItem.CurrentPrice - portfolioItem.PreviousClosePrice.Value;
+        portfolioItem.PercentChange = CalculatePercentageChange(portfolioItem.PreviousClosePrice.Value, portfolioItem.CurrentPrice);
+      }
+
+     
+
+      // Outros cálculos baseados em StockEvents, etc., podem ser adicionados aqui
+    }
+
+
 
 
 

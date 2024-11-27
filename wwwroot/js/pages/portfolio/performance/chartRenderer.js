@@ -26,6 +26,24 @@ export function renderCharts(data) {
   document.getElementById('changeInMarketValueToday').textContent = data.todayMetrics.changeInMarketValueToday;
   document.getElementById('percentChangeToday').textContent = data.todayMetrics.percentChangeToday;
 
+  // Display week's metrics
+  document.getElementById('totalAmountWeek').textContent = data.todayMetrics.totalAmountToday;
+  document.getElementById('changeInMarketValueWeek').textContent = data.todayMetrics.changeInMarketValueToday;
+  document.getElementById('percentChangeWeek').textContent = data.todayMetrics.percentChangeToday;
+
+
+  // Display montly's metrics
+  document.getElementById('totalAmountMonth').textContent = data.todayMetrics.totalAmountToday;
+  document.getElementById('changeInMarketValueMonth').textContent = data.todayMetrics.changeInMarketValueToday;
+  document.getElementById('percentChangeMonth').textContent = data.todayMetrics.percentChangeToday;
+
+
+  // Display year's metrics
+  document.getElementById('totalAmountYear').textContent = data.todayMetrics.totalAmountToday;
+  document.getElementById('changeInMarketValueYear').textContent = data.todayMetrics.changeInMarketValueToday;
+  document.getElementById('percentChangeYear').textContent = data.todayMetrics.percentChangeToday;
+
+
   // Radar Chart Options
   const radarOptions = {
     series: [{

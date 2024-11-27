@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using MarketAnalyticHub.Controllers.api;
 using Microsoft.Graph;
 using System.Globalization;
+using MarketAnalyticHub.Repositories;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -21,12 +22,14 @@ namespace MarketAnalyticHub.Controllers
     private readonly PortfolioService _portfolioService;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IYahooFinanceService _yahooFinanceService;
+    private readonly IDataRepository _dataRepository; // Para acesso direto, se necessário
 
-    public PortfolioController(PortfolioService portfolioService, UserManager<ApplicationUser> userManager, IYahooFinanceService yahooFinanceService)
+    public PortfolioController(PortfolioService portfolioService, IDataRepository dataRepository, UserManager<ApplicationUser> userManager, IYahooFinanceService yahooFinanceService)
     {
       _portfolioService = portfolioService;
       _userManager = userManager;
       _yahooFinanceService = yahooFinanceService;
+      _dataRepository = dataRepository;
     }
 
     
@@ -70,6 +73,78 @@ namespace MarketAnalyticHub.Controllers
         Volumes = data.Select(h => ConvertToDecimal(h.Volume)).OfType<decimal>().ToArray()
       };
       return Ok(dataResult);
+    }
+    // Endpoint para calcular e obter percentuais de um portfólio específico
+    [HttpGet("{portfolioId}/percentages")]
+    public async Task<IActionResult> GetPortfolioPercentages(int portfolioId)
+    {
+      var portfolio = await _dataRepository.GetPortfolioByIdAsync(portfolioId);
+      if (portfolio == null)
+      {
+        return NotFound();
+      }
+
+      await _portfolioService.CalculatePortfolioMetricsAsync(portfolio);
+
+      var percentages = new
+      {
+        portfolio.WeeklyPercentage,
+        portfolio.MonthlyPercentage,
+        portfolio.YearlyPercentage,
+        portfolio.LossPercentage,
+        portfolio.IsLossAlertTriggered,
+        Items = portfolio.Items.Select(item => new
+        {
+          item.Id,
+          item.Symbol,
+          item.Quantity,
+          item.PurchasePrice,
+          item.CurrentPrice,
+          item.TotalInvestment,
+          item.CurrentMarketValue,
+          item.TotalDividendIncome,
+          item.PercentChange,
+          item.Change,
+          item.SentimentImpact,
+          item.AdjustedPrice,
+         
+          item.SectorActivity
+        })
+      };
+
+      return Ok(percentages);
+    }
+
+    // Opcional: Endpoint para obter métricas de um PortfolioItem específico
+    [HttpGet("items/{itemId}/metrics")]
+    public async Task<IActionResult> GetPortfolioItemMetrics(int itemId)
+    {
+      var portfolioItem = await _dataRepository.GetPortfolioItemByIdAsync(itemId);
+      if (portfolioItem == null)
+      {
+        return NotFound();
+      }
+
+      await _portfolioService.CalculatePortfolioItemMetricsAsync(portfolioItem);
+
+      var metrics = new
+      {
+        portfolioItem.Id,
+        portfolioItem.Symbol,
+        portfolioItem.Quantity,
+        portfolioItem.PurchasePrice,
+        portfolioItem.CurrentPrice,
+        portfolioItem.TotalInvestment,
+        portfolioItem.CurrentMarketValue,
+        portfolioItem.TotalDividendIncome,
+        portfolioItem.PercentChange,
+        portfolioItem.Change,
+        portfolioItem.SentimentImpact,
+        portfolioItem.AdjustedPrice,
+        portfolioItem.SectorActivity
+      };
+
+      return Ok(metrics);
     }
     private decimal ConvertToDecimal(dynamic value)
     {
@@ -212,25 +287,29 @@ namespace MarketAnalyticHub.Controllers
 
       foreach (var portfolio in portfolios)
       {
+        // Total percentage for portfolio
         var portfolioPercentageResponse = await _portfolioService.CalculateTotalPortfolioPercentagesAsync(portfolio);
         if (portfolioPercentageResponse != null)
         {
           portfolio.PortfolioPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
         }
-        
+
+       
+
         foreach (var portfolioItem in portfolio.Items)
         {
-          portfolioItem.SectorActivity= await _portfolioService.GetIndustryBySymbol(portfolioItem.Symbol);
+          portfolioItem.SectorActivity = await _portfolioService.GetIndustryBySymbol(portfolioItem.Symbol);
         }
-       // Group portfolio items by symbol
-       var groupedItems = portfolio.Items
-            .GroupBy(item => item.Symbol)
-            .Select(group => new GroupedPortfolioItem
-            {
-              Symbol = group.Key,
-              Items = group.ToList()
-            })
-            .ToList();
+
+        // Group portfolio items by symbol
+        var groupedItems = portfolio.Items
+             .GroupBy(item => item.Symbol)
+             .Select(group => new GroupedPortfolioItem
+             {
+               Symbol = group.Key,
+               Items = group.ToList()
+             })
+             .ToList();
 
         // Assign grouped items to the portfolio
         portfolio.GroupedItems = groupedItems;
@@ -238,7 +317,6 @@ namespace MarketAnalyticHub.Controllers
 
       return Ok(portfolios);
     }
-
 
     [HttpPost("CalculateOriginalMarketValue")]
     public ActionResult<MarketValueResponse> CalculateOriginalMarketValue([FromBody] MarketValueRequest request)

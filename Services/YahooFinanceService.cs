@@ -1,5 +1,6 @@
 namespace MarketAnalyticHub.Services
 {
+  using MarketAnalyticHub.Controllers.api;
   using System;
   using System.Collections.Generic;
   using System.Threading.Tasks;
@@ -132,10 +133,10 @@ public class YahooFinanceService : IYahooFinanceService
     {
       try
       {
-        var data = await Yahoo.GetHistoricalAsync(symbol, dateTime);
-        return data.Select(data => new HistoricalData
+        var data = await YahooService.GetHistoricalDataAsync(symbol, dateTime);
+        return data?.Select(data => new HistoricalData
         {
-          Date = data.DateTime,
+          Date = dateTime,
           Open = data.Open,
           High = data.High,
           Low = data.Low,
