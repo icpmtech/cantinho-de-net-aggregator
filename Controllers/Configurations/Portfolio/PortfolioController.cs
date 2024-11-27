@@ -25,8 +25,11 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
       _context = context;
     }
 
-    
-     public IActionResult Performance()
+ 
+
+  
+   
+    public IActionResult Performance()
     {
 
       return View();

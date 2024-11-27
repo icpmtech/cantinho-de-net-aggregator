@@ -15,6 +15,11 @@
                 <div>Performance</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage == "/PortfolioScrener" ? " active" : "")'>
+            <a asp-controller="PortfolioScrener" asp-action="Index" class="menu-link">
+                <div>Screener</div>
+            </a>
+        </li>
         <li class='menu-item@(currentPage == "/Portfolio/Index" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Index" class="menu-link">
                 <div>Manage</div>
