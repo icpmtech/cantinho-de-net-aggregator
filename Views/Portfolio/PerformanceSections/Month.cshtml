@@ -3,88 +3,57 @@
 }
 
 <!-- New Card for Month's Performance -->
-<div class="card shadow-sm">
-    <div class="card-body">
+<!-- Modern Card for Monthly's Performance -->
+<div class="card shadow-lg border-0">
+    <div class="card-body p-4">
         <!-- Card Title with Badge -->
-        <h4 class="card-title text-center">
-            Montly's Performance
-            <span class="badge bg-primary ms-2">Live</span>
+        <h4 class="card-title text-center mb-4">
+            Monthly's Performance
+            <span class="badge bg-gradient-primary ms-2">Live</span>
         </h4>
 
-        <div id="Month-performance">
+        <div id="Month-performance" class="text-center">
             <!-- Total Amount Month with Badge -->
-            <p>
-                <strong>Total Amount :</strong>
-                $<span id="totalAmountMonth" class="value">0.00</span>
-                <span class="badge bg-success ms-2">Updated</span>
-            </p>
+            <div class="mb-3">
+                <strong>
+                    <i class='bx bx-dollar-circle text-success'></i>
+                    Total Amount:
+                </strong>
+                <span id="totalAmountMonth" class="fw-bold fs-5">0.00</span>
+                <span class="badge bg-gradient-success ms-2">Updated</span>
+            </div>
 
             <!-- Change in Market Value Month with Badge -->
-            <p>
-                <strong>Change in Market Value :</strong>
-                <span id="changeInMarketValueMonth" class="value change">
-                    $<span id="marketValueAmount">0.00</span>
+            <div class="mb-3">
+                <strong>
+                    <i class='bx bx-line-chart text-warning'></i>
+                    Change in Market Value:
+                </strong>
+                <span id="changeInMarketValueMonth" class="fw-bold fs-5">
+                    <span id="marketValueAmount">$0.00</span>
                     <i id="marketValueIcon" class='bx'></i>
                 </span>
-                <span class="badge bg-warning ms-2">Change</span>
-            </p>
+                <span class="badge bg-gradient-warning ms-2">Change</span>
+            </div>
 
             <!-- Percent Change Month with Badge -->
-            <p>
-                <strong>Percent Change :</strong>
-                <span id="percentChangeMonth" class="value change">
+            <div>
+                <strong>
+                    <i class='bx bx-pie-chart-alt-2 text-info'></i>
+                    Percent Change:
+                </strong>
+                <span id="percentChangeMonth" class="fw-bold fs-5">
                     <span id="percentChangeAmount">0.00</span>%
                     <i id="percentChangeIcon" class='bx'></i>
                 </span>
-                <span class="badge bg-info ms-2">Percentage</span>
-            </p>
+                <span class="badge bg-gradient-info ms-2">Percentage</span>
+            </div>
         </div>
     </div>
 </div>
 
 
-<!-- Script to Update Icons and Colors Based on Values -->
-<script>
-    // Example data - replace these with your actual data sources
-    const totalAmountMonth = 0; // Example value
-    const changeInMarketValueMonth = 0; // Positive change
-    const percentChangeMonth = 0; // Negative change
 
-    // Update Total Amount Month
-    document.getElementById('totalAmountMonth').textContent = totalAmountMonth.toFixed(2);
-
-    // Function to update change elements
-    function updateChangeElement(amount, isPercent, amountElementId, iconElementId) {
-        const amountElement = document.getElementById(amountElementId);
-        const iconElement = document.getElementById(iconElementId);
-        const parentElement = amountElement.parentElement;
-
-        // Determine if the change is positive or negative
-        const isPositive = amount >= 0;
-
-        // Update the amount text
-        amountElement.textContent = Math.abs(amount).toFixed(2);
-
-        // Update the color based on positive or negative
-        if (isPositive) {
-            parentElement.classList.add('text-success');
-            parentElement.classList.remove('text-danger');
-            iconElement.classList.add('bx-up-arrow-alt', 'icon-positive');
-            iconElement.classList.remove('bx-down-arrow-alt', 'icon-negative');
-        } else {
-            parentElement.classList.add('text-danger');
-            parentElement.classList.remove('text-success');
-            iconElement.classList.add('bx-down-arrow-alt', 'icon-negative');
-            iconElement.classList.remove('bx-up-arrow-alt', 'icon-positive');
-        }
-    }
-
-    // Update Change in Market Value Month
-    updateChangeElement(changeInMarketValueMonth, false, 'marketValueAmount', 'marketValueIcon');
-
-    // Update Percent Change Month
-    updateChangeElement(percentChangeMonth, true, 'percentChangeAmount', 'percentChangeIcon');
-</script>
 
 <!-- Optional: Custom Styles -->
 <style>

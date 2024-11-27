@@ -54,49 +54,7 @@
 
 
 
-<!-- Script to Update Icons and Colors Based on Values -->
-<script>
-    // Example data - replace these with your actual data sources
-    const totalAmountYear = 0; // Example value
-    const changeInMarketValueYear = 0; // Positive change
-    const percentChangeYear = 0; // Negative change
-
-    // Update Total Amount Year
-    document.getElementById('totalAmountYear').textContent = totalAmountYear.toFixed(2);
-
-    // Function to update change elements
-    function updateChangeElement(amount, isPercent, amountElementId, iconElementId) {
-        const amountElement = document.getElementById(amountElementId);
-        const iconElement = document.getElementById(iconElementId);
-        const parentElement = amountElement.parentElement;
-
-        // Determine if the change is positive or negative
-        const isPositive = amount >= 0;
-
-        // Update the amount text
-        amountElement.textContent = Math.abs(amount).toFixed(2);
-
-        // Update the color based on positive or negative
-        if (isPositive) {
-            parentElement.classList.add('text-success');
-            parentElement.classList.remove('text-danger');
-            iconElement.classList.add('bx-up-arrow-alt', 'icon-positive');
-            iconElement.classList.remove('bx-down-arrow-alt', 'icon-negative');
-        } else {
-            parentElement.classList.add('text-danger');
-            parentElement.classList.remove('text-success');
-            iconElement.classList.add('bx-down-arrow-alt', 'icon-negative');
-            iconElement.classList.remove('bx-up-arrow-alt', 'icon-positive');
-        }
-    }
-
-    // Update Change in Market Value Year
-    updateChangeElement(changeInMarketValueYear, false, 'marketValueAmountYear', 'marketValueIconYear');
-
-    // Update Percent Change Year
-    updateChangeElement(percentChangeYear, true, 'percentChangeAmountYear', 'percentChangeIconYear');
-</script>
-
+calcul
 <!-- Optional: Custom Styles -->
 <style>
     .value {
