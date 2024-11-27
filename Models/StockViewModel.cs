@@ -8,9 +8,9 @@ namespace MarketAnalyticHub.Models
   {
     public string Symbol { get; set; }
     public string CompanyName { get; set; }
-    public decimal Price { get; set; }
-    public decimal Change { get; set; }
-    public long MarketCap { get; set; }
+    public double? Price { get; set; }
+    public double? Change { get; set; }
+    public long? MarketCap { get; set; }
     public string Sector { get; set; }
     public string Industry { get; set; }
     public string Description { get; set; }
@@ -20,12 +20,12 @@ namespace MarketAnalyticHub.Models
     public double SentimentScore { get; set; }
 
     // New Financial Details
-    public double PERatio { get; set; }          // Price-Earnings Ratio
-    public decimal EPS { get; set; }             // Earnings Per Share
-    public decimal FiftyTwoWeekHigh { get; set; } // 52-Week High
-    public decimal FiftyTwoWeekLow { get; set; }  // 52-Week Low
-    public long Volume { get; set; }              // Trading Volume
-    public double DividendYield { get; set; }     // Dividend Yield (%)
+    public double? PERatio { get; set; }          // Price-Earnings Ratio
+    public double? EPS { get; set; }             // Earnings Per Share
+    public double? FiftyTwoWeekHigh { get; set; } // 52-Week High
+    public double? FiftyTwoWeekLow { get; set; }  // 52-Week Low
+    public long?   Volume { get; set; }              // Trading Volume
+    public double? DividendYield { get; set; }     // Dividend Yield (%)
   }
 
 

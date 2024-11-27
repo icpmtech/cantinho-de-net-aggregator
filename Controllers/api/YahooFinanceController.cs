@@ -163,6 +163,22 @@ namespace MarketAnalyticHub.Controllers.api
         return BadRequest(new { Message = ex.Message });
       }
     }
+
+    // GET: api/yahoofinance/search-news/{query}
+    [HttpGet("search-news/{query}")]
+    public async Task<IActionResult> SearchNews(string query)
+    {
+      try
+      {
+        var symbols = await YahooService.SearchNewsAsync(query);
+        return Ok(symbols);
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(new { Message = ex.Message });
+      }
+    }
+
     // GET: api/yahoofinance/search/{query}
     [HttpGet("search/{query}")]
     public async Task<IActionResult> SearchSymbols(string query)
@@ -177,6 +193,21 @@ namespace MarketAnalyticHub.Controllers.api
         return BadRequest(new { Message = ex.Message });
       }
     }
+    // GET: api/yahoofinance/summary/AAPL
+    [HttpGet("summary/{symbol}")]
+    public async Task<IActionResult> GetSummaryRawAssetProfile(string symbol)
+    {
+      try
+      {
+        var summary = await YahooService.GetSummaryRawAsync(symbol);
+        return Ok(summary);
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(new { Message = ex.Message });
+      }
+    }
+
     // GET: api/yahoofinance/cash-flow/AAPL
     [HttpGet("cash-flow/{symbol}")]
     public async Task<IActionResult> GetCashFlow(string symbol)
@@ -191,6 +222,7 @@ namespace MarketAnalyticHub.Controllers.api
         return BadRequest(new { Message = ex.Message });
       }
     }
+    
 
     // GET: api/yahoofinance/multiple-quotes?symbols=AAPL,MSFT,GOOGL
     [HttpGet("multiple-quotes")]

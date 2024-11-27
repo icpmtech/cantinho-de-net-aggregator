@@ -110,14 +110,21 @@
     <div class="card-body">
         <form id="stockScreenerForm" method="get" action="@Url.Action("Index", "PortfolioScrener")">
             <div class="row g-3">
-                <div class="col-md-4">
+                <!-- Stock Symbol Field with Autocomplete -->
+                <div class="col-md-4 position-relative">
                     <label for="stockSymbol" class="form-label">Stock Symbol</label>
-                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" placeholder="e.g., AAPL">
+                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" placeholder="e.g., AAPL" autocomplete="off" oninput="searchStockSymbol()">
+                    <div id="stockSymbolSuggestions" class="dropdown-menu" style="display: none;"></div>
                 </div>
-                <div class="col-md-4">
+
+                <!-- Company Name Field with Autocomplete -->
+                <div class="col-md-4 position-relative">
                     <label for="companyName" class="form-label">Company Name</label>
-                    <input type="text" class="form-control" id="companyName" name="companyName" placeholder="e.g., Apple Inc.">
+                    <input type="text" class="form-control" id="companyName" name="companyName" placeholder="e.g., Apple Inc." autocomplete="off" oninput="searchCompanyName()">
+                    <div id="companyNameSuggestions" class="dropdown-menu" style="display: none;"></div>
                 </div>
+
+                <!-- Search Button -->
                 <div class="col-md-4 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class='bx bx-search me-2'></i> Search
@@ -188,7 +195,7 @@
                                                     <i class='bx bx-line-chart fs-2 text-primary me-3'></i>
                                                     <div>
                                                         <h6 class="card-title mb-1">P/E Ratio</h6>
-                                                        <p class="card-text mb-0">@((stock.PERatio > 0) ? stock.PERatio.ToString("F2") : "N/A")</p>
+                                                        <p class="card-text mb-0">@((stock.PERatio > 0) ? stock.PERatio?.ToString("F2") : "N/A")</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -200,7 +207,7 @@
                                                     <i class='bx bx-money fs-2 text-success me-3'></i>
                                                     <div>
                                                         <h6 class="card-title mb-1">Earnings Per Share (EPS)</h6>
-                                                        <p class="card-text mb-0">@((stock.EPS > 0) ? stock.EPS.ToString("F2") : "N/A")</p>
+                                                        <p class="card-text mb-0">@((stock.EPS > 0) ? stock.EPS?.ToString("F2") : "N/A")</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -212,7 +219,7 @@
                                                     <i class='bx bx-up-arrow-circle fs-2 text-warning me-3'></i>
                                                     <div>
                                                         <h6 class="card-title mb-1">52-Week High</h6>
-                                                        <p class="card-text mb-0">@((stock.FiftyTwoWeekHigh > 0) ? stock.FiftyTwoWeekHigh.ToString("C") : "N/A")</p>
+                                                        <p class="card-text mb-0">@((stock.FiftyTwoWeekHigh > 0) ? stock.FiftyTwoWeekHigh?.ToString("C") : "N/A")</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -224,7 +231,7 @@
                                                     <i class='bx bx-down-arrow-circle fs-2 text-danger me-3'></i>
                                                     <div>
                                                         <h6 class="card-title mb-1">52-Week Low</h6>
-                                                        <p class="card-text mb-0">@((stock.FiftyTwoWeekLow > 0) ? stock.FiftyTwoWeekLow.ToString("C") : "N/A")</p>
+                                                        <p class="card-text mb-0">@((stock.FiftyTwoWeekLow > 0) ? stock.FiftyTwoWeekLow?.ToString("C") : "N/A")</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -236,7 +243,7 @@
                                                     <i class='bx bx-bar-chart-square fs-2 text-info me-3'></i>
                                                     <div>
                                                         <h6 class="card-title mb-1">Volume</h6>
-                                                        <p class="card-text mb-0">@((stock.Volume > 0) ? stock.Volume.ToString("N0") : "N/A")</p>
+                                                        <p class="card-text mb-0">@((stock.Volume > 0) ? stock.Volume?.ToString("N0") : "N/A")</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -248,7 +255,7 @@
                                                     <i class='bx bx-pie-chart-alt fs-2 text-secondary me-3'></i>
                                                     <div>
                                                         <h6 class="card-title mb-1">Dividend Yield</h6>
-                                                        <p class="card-text mb-0">@((stock.DividendYield > 0) ? stock.DividendYield.ToString("F2") + "%" : "N/A")</p>
+                                                        <p class="card-text mb-0">@((stock.DividendYield > 0) ? stock.DividendYield?.ToString("F2") + "%" : "N/A")</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -491,4 +498,89 @@
             });
         }
     </script>
+    <script>
+        // Function to search for stock symbols
+        async function searchStockSymbol() {
+            const query = document.getElementById('stockSymbol').value.trim();
+            const suggestionsBox = document.getElementById('stockSymbolSuggestions');
+            suggestionsBox.innerHTML = ''; // Clear previous suggestions
+
+            if (query.length > 1) {
+                try {
+                    const url = `/api/yahoofinance/search/${query}`;
+                    const response = await fetch(url);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.length > 0) {
+                            suggestionsBox.style.display = 'block';
+                            data.forEach(result => {
+                                const suggestionItem = document.createElement('div');
+                                suggestionItem.classList.add('dropdown-item');
+                                suggestionItem.innerHTML = `<strong>${result.symbol}</strong> - ${result.shortname}`;
+                                suggestionItem.onclick = () => {
+                                    document.getElementById('stockSymbol').value = result.symbol;
+                                    suggestionsBox.style.display = 'none';
+                                };
+                                suggestionsBox.appendChild(suggestionItem);
+                            });
+                        } else {
+                            suggestionsBox.style.display = 'none';
+                        }
+                    } else {
+                        console.error('Error fetching stock symbols:', response.statusText);
+                        suggestionsBox.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error fetching stock symbols:', error);
+                    suggestionsBox.style.display = 'none';
+                }
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        }
+
+        // Function to search for company names
+        async function searchCompanyName() {
+            const query = document.getElementById('companyName').value.trim();
+            const suggestionsBox = document.getElementById('companyNameSuggestions');
+            suggestionsBox.innerHTML = ''; // Clear previous suggestions
+
+            if (query.length > 1) {
+                try {
+                    const url = `/api/yahoofinance/search/${query}`;
+                    const response = await fetch(url);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.length > 0) {
+                            suggestionsBox.style.display = 'block';
+                            data.forEach(result => {
+                                const suggestionItem = document.createElement('div');
+                                suggestionItem.classList.add('dropdown-item');
+                                suggestionItem.innerHTML = `<strong>${result.shortname}</strong>`;
+                                suggestionItem.onclick = () => {
+                                    document.getElementById('companyName').value = result.shortname;
+                                    suggestionsBox.style.display = 'none';
+                                };
+                                suggestionsBox.appendChild(suggestionItem);
+                            });
+                        } else {
+                            suggestionsBox.style.display = 'none';
+                        }
+                    } else {
+                        console.error('Error fetching company names:', response.statusText);
+                        suggestionsBox.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error fetching company names:', error);
+                    suggestionsBox.style.display = 'none';
+                }
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        }
+    </script>
+
+
 }

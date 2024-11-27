@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using YahooFinanceApi;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -290,6 +291,114 @@ namespace MarketAnalyticHub.Controllers.api
         throw;
       }
     }
+
+    public static async Task<AssetProfile> GetSummaryBySymbolAsync(string symbol, CancellationToken token = default)
+    {
+      if (string.IsNullOrWhiteSpace(symbol))
+        throw new ArgumentException("Symbol cannot be null or empty.", nameof(symbol));
+
+      // Initialize necessary components
+      await InitAsync(token);
+
+      // Construct the URL
+      var url = $"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{Uri.EscapeDataString(symbol)}?modules=assetProfile";
+
+      try
+      {
+        var response = await url
+            .SetQueryParam("crumb", Crumb)
+            .WithCookie(_cookie.Name, _cookie.Value)
+            .WithHeader(UserAgentKey, UserAgentValue)
+            .GetAsync(token)
+            .ReceiveJson<QuoteSummaryResponse>();
+
+        var industry = response?.QuoteSummary?.Result?[0]?.AssetProfile;
+
+       
+
+        return industry;
+      }
+      catch (FlurlHttpException ex)
+      {
+        var errorResponse = await ex.GetResponseStringAsync();
+        Console.WriteLine($"Flurl HTTP Error in GetIndustryBySymbolAsync: {ex.Message}\nResponse: {errorResponse}");
+        throw new HttpRequestException("Error fetching industry information from Yahoo Finance.", ex);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Unexpected Error in GetIndustryBySymbolAsync: {ex.Message}");
+        throw;
+      }
+    }
+    public static async Task<dynamic> GetSummaryRawAsync(string symbol, CancellationToken token = default)
+    {
+      if (string.IsNullOrWhiteSpace(symbol))
+        throw new ArgumentException("Symbol cannot be null or empty.", nameof(symbol));
+
+      // Initialize necessary components
+      await InitAsync(token);
+
+      // Construct the URL
+      var url = $"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{Uri.EscapeDataString(symbol)}?modules=assetProfile";
+
+      try
+      {
+        var response = await url
+            .SetQueryParam("crumb", Crumb)
+            .WithCookie(_cookie.Name, _cookie.Value)
+            .WithHeader(UserAgentKey, UserAgentValue)
+            .GetAsync(token)
+            .ReceiveJson<dynamic>();
+
+
+
+
+        return response;
+      }
+      catch (FlurlHttpException ex)
+      {
+        var errorResponse = await ex.GetResponseStringAsync();
+        Console.WriteLine($"Flurl HTTP Error in GetIndustryBySymbolAsync: {ex.Message}\nResponse: {errorResponse}");
+        throw new HttpRequestException("Error fetching industry information from Yahoo Finance.", ex);
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Unexpected Error in GetIndustryBySymbolAsync: {ex.Message}");
+        throw;
+      }
+    }
+
+    public static async Task<List<dynamic>> SearchNewsAsync(string query, CancellationToken token = default)
+    {
+      await InitAsync(token);
+
+      var url = $"https://query1.finance.yahoo.com/v1/finance/search?q={query}";
+
+      try
+      {
+        var response = await url
+            .SetQueryParam("crumb", Crumb)
+            .WithCookie(_cookie.Name, _cookie.Value)
+            .WithHeader(UserAgentKey, UserAgentValue)
+            .GetAsync(token)
+            .ReceiveJson();
+
+        var symbols = response.news;
+
+        if (symbols == null)
+        {
+          throw new Exception($"No symbols found for query: {query}");
+        }
+
+        return symbols;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error during SearchSymbolsAsync: {ex.Message}");
+        throw;
+      }
+    }
+
     public static async Task<List<dynamic>> SearchSymbolsAsync(string query, CancellationToken token = default)
     {
       await InitAsync(token);
@@ -581,6 +690,55 @@ namespace MarketAnalyticHub.Controllers.api
         {
           long time = Convert.ToInt64(timestamps[i]);
           var Open= quotes.open[i];
+          historicalData.Add(new
+          {
+            Timestamp = DateTimeOffset.FromUnixTimeSeconds(time).DateTime,
+            Open = Open,
+            Close = quotes.close[i],
+            High = quotes.high[i],
+            Low = quotes.low[i],
+            Volume = quotes.volume[i]
+          });
+        }
+
+        return historicalData;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error during GetHistoricalDataAsync: {ex.Message}");
+        throw;
+      }
+    }
+
+    public static async Task<IEnumerable<dynamic>> GetHistoricalAsync(string symbol, DateTime startDate, DateTime endDate, Period daily, CancellationToken token = default)
+    {
+      await InitAsync(token);
+
+      var startTimestamp = ((DateTimeOffset)startDate).ToUnixTimeSeconds();
+      var endTimestamp = ((DateTimeOffset)endDate).ToUnixTimeSeconds();
+
+      var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startTimestamp}&period2={endTimestamp}&interval=1d";
+
+      try
+      {
+        // Sending the request to Yahoo Finance API and receiving the JSON response
+        var response = await url
+            .SetQueryParam("crumb", Crumb) // Assuming 'Crumb' is a predefined string variable
+            .WithCookie(_cookie.Name, _cookie.Value) // Assuming '_cookie' is a predefined object
+            .WithHeader(UserAgentKey, UserAgentValue) // Assuming 'UserAgentKey' and 'UserAgentValue' are predefined
+            .GetJsonAsync<dynamic>(token);
+
+        // Extracting quotes and timestamps from the response
+        var quotes = response.chart.result[0].indicators.quote[0];
+        var timestamps = response.chart.result[0].timestamp;
+
+        // Combining timestamps with quotes into a historical data list
+        var historicalData = new List<dynamic>();
+
+        for (int i = 0; i < timestamps?.Count; i++)
+        {
+          long time = Convert.ToInt64(timestamps[i]);
+          var Open = quotes.open[i];
           historicalData.Add(new
           {
             Timestamp = DateTimeOffset.FromUnixTimeSeconds(time).DateTime,
