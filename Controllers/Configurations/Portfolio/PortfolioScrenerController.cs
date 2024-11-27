@@ -89,22 +89,106 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 
     private void PopulateAdditionalMockData(StockViewModel stock)
     {
-      // Mock Company Details
+      // Existing Mock Company Details
       stock.Sector = GetMockSector(stock.Symbol);
       stock.Industry = GetMockIndustry(stock.Symbol);
       stock.Description = GetMockDescription(stock.Symbol);
       stock.CEO = GetMockCEO(stock.Symbol);
 
-      // Mock Chart Data
+      // Existing Mock Chart Data
       stock.ChartData = GetMockChartData(stock.Symbol);
 
-      // Mock News Articles
+      // Existing Mock News Articles
       stock.News = GetMockNews(stock.Symbol);
 
-      // Mock Sentiment Score
+      // Existing Mock Sentiment Score
       stock.SentimentScore = GetMockSentiment(stock.Symbol);
+
+      // New Mock Financial Details
+      stock.PERatio = GetMockPERatio(stock.Symbol);
+      stock.EPS = GetMockEPS(stock.Symbol);
+      stock.FiftyTwoWeekHigh = GetMockFiftyTwoWeekHigh(stock.Symbol);
+      stock.FiftyTwoWeekLow = GetMockFiftyTwoWeekLow(stock.Symbol);
+      stock.Volume = GetMockVolume(stock.Symbol);
+      stock.DividendYield = GetMockDividendYield(stock.Symbol);
+    }
+    private double GetMockPERatio(string symbol)
+    {
+      var peRatios = new Dictionary<string, double>
+    {
+        { "AAPL", 28.5 },
+        { "MSFT", 35.2 },
+        { "GOOGL", 30.1 }
+        // Add more mappings as needed
+    };
+
+      return peRatios.ContainsKey(symbol) ? peRatios[symbol] : 0.0;
     }
 
+    private decimal GetMockEPS(string symbol)
+    {
+      var epsValues = new Dictionary<string, decimal>
+    {
+        { "AAPL", 5.11m },
+        { "MSFT", 8.05m },
+        { "GOOGL", 6.24m }
+        // Add more mappings as needed
+    };
+
+      return epsValues.ContainsKey(symbol) ? epsValues[symbol] : 0.0m;
+    }
+
+    private decimal GetMockFiftyTwoWeekHigh(string symbol)
+    {
+      var highs = new Dictionary<string, decimal>
+    {
+        { "AAPL", 180.00m },
+        { "MSFT", 310.00m },
+        { "GOOGL", 3000.00m }
+        // Add more mappings as needed
+    };
+
+      return highs.ContainsKey(symbol) ? highs[symbol] : 0.0m;
+    }
+
+    private decimal GetMockFiftyTwoWeekLow(string symbol)
+    {
+      var lows = new Dictionary<string, decimal>
+    {
+        { "AAPL", 120.00m },
+        { "MSFT", 220.00m },
+        { "GOOGL", 2500.00m }
+        // Add more mappings as needed
+    };
+
+      return lows.ContainsKey(symbol) ? lows[symbol] : 0.0m;
+    }
+
+    private long GetMockVolume(string symbol)
+    {
+      var volumes = new Dictionary<string, long>
+    {
+        { "AAPL", 75000000 },
+        { "MSFT", 60000000 },
+        { "GOOGL", 50000000 }
+        // Add more mappings as needed
+    };
+
+      return volumes.ContainsKey(symbol) ? volumes[symbol] : 0;
+    }
+
+    private double GetMockDividendYield(string symbol)
+    {
+      var dividendYields = new Dictionary<string, double>
+    {
+        { "AAPL", 0.6 },
+        { "MSFT", 0.8 },
+        { "GOOGL", 0.0 } // GOOG doesn't pay dividends
+        // Add more mappings as needed
+    };
+
+      return dividendYields.ContainsKey(symbol) ? dividendYields[symbol] : 0.0;
+    }
     private string GetMockSector(string symbol)
     {
       var sectors = new Dictionary<string, string>

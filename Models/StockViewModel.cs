@@ -9,24 +9,25 @@ namespace MarketAnalyticHub.Models
     public string Symbol { get; set; }
     public string CompanyName { get; set; }
     public decimal Price { get; set; }
-    public decimal Change { get; set; } // Percentage change
-    public long MarketCap { get; set; } // Market capitalization in dollars
-
-    // New Properties
+    public decimal Change { get; set; }
+    public long MarketCap { get; set; }
     public string Sector { get; set; }
     public string Industry { get; set; }
     public string Description { get; set; }
     public string CEO { get; set; }
-
-    // Chart Data (Mock data points)
     public List<ChartDataPoint> ChartData { get; set; }
-
-    // News Articles
     public List<NewsItemScreener> News { get; set; }
+    public double SentimentScore { get; set; }
 
-    // Sentiment Scores
-    public double SentimentScore { get; set; } // Example: -1 to 1
+    // New Financial Details
+    public double PERatio { get; set; }          // Price-Earnings Ratio
+    public decimal EPS { get; set; }             // Earnings Per Share
+    public decimal FiftyTwoWeekHigh { get; set; } // 52-Week High
+    public decimal FiftyTwoWeekLow { get; set; }  // 52-Week Low
+    public long Volume { get; set; }              // Trading Volume
+    public double DividendYield { get; set; }     // Dividend Yield (%)
   }
+
 
   public class ChartDataPoint
   {
