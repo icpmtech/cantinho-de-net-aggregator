@@ -56,6 +56,30 @@
                         <label for="marketCity" class="form-label">City:</label>
                         <input type="text" id="marketCity" class="form-control" />
                     </div>
+                    <div class="mb-3">
+                        <label for="marketCap" class="form-label">Market Cap (USD Trillions):</label>
+                        <input type="number" id="marketCapUsdTrillion" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="tradeVolume" class="form-label">Monthly Trade Volume (USD Billions):</label>
+                        <input type="number" id="monthlyTradeVolumeUsdBillion" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="timeZone" class="form-label">Time Zone:</label>
+                        <input type="text" id="timeZone" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="utcOffset" class="form-label">UTC Offset:</label>
+                        <input type="text"  id="utcOffset" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="dst" class="form-label">DST:</label>
+                        <input type="text" id="dst" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description:</label>
+                        <textarea id="description" class="form-control"></textarea>
+                    </div>
                     <button type="button" id="btnSaveMarket" class="btn btn-primary w-100">Save</button>
                 </form>
             </div>
@@ -73,16 +97,13 @@
     }
 
     @@keyframes shimmer {
-        0%
+        0% {
+            background-position: -200% 0;
+        }
 
-    {
-        background-position: -200% 0;
-    }
-
-    100% {
-        background-position: 200% 0;
-    }
-
+        100% {
+            background-position: 200% 0;
+        }
     }
 
     .market-card {
@@ -145,6 +166,11 @@
                                   <p><strong>MIC:</strong> ${market.mic}</p>
                                   <p><strong>Region:</strong> ${market.region}</p>
                                   <p><strong>City:</strong> ${market.city}</p>
+                                   <p><strong>Description:</strong> ${market.description}</p>
+                                    <p><strong>Market Cap (USD Trillions):</strong> ${market.marketCapUsdTrillion}</p>
+                                    <p><strong>Trade Volume (USD Billions):</strong> ${market.monthlyTradeVolumeUsdBillion}</p>
+                                    <p><strong>Time Zone:</strong> ${market.timeZone}</p>
+                                    <p><strong>UTC Offset:</strong> ${market.utcOffset}</p>
                                   <div class="actions">
                                       <button class="btn btn-sm btn-primary btnEdit" data-id="${market.stockExchangeName}">Edit</button>
                                       <button class="btn btn-sm btn-danger btnDelete" data-id="${market.stockExchangeName}">Delete</button>
@@ -178,11 +204,17 @@
                         .then((response) => response.json())
                         .then((data) => {
                             modalTitle.textContent = "Edit Market";
-                            document.getElementById("marketId").value = data.id;
+                            document.getElementById("marketId").value = data.stockExchangeName;
                             document.getElementById("marketName").value = data.stockExchangeName;
                             document.getElementById("marketMIC").value = data.mic;
                             document.getElementById("marketRegion").value = data.region;
                             document.getElementById("marketCity").value = data.city;
+                            document.getElementById("description").value = data.description;
+                            document.getElementById("marketCapUsdTrillion").value = data.marketCapUsdTrillion;
+                            document.getElementById("monthlyTradeVolumeUsdBillion").value = data.monthlyTradeVolumeUsdBillion;
+                            document.getElementById("timeZone").value = data.timeZone;
+                             document.getElementById("utcOffset").value = data.utcOffset;
+                              document.getElementById("dst").value = data.dst;
                             marketModal.show();
                         })
                         .catch(() => {
@@ -193,15 +225,21 @@
 
             // Save Market (Add/Edit)
             btnSaveMarket.addEventListener("click", () => {
-                const market = {
-                    id: document.getElementById("marketId").value,
-                    stockExchangeName: document.getElementById("marketName").value,
-                    mic: document.getElementById("marketMIC").value,
-                    region: document.getElementById("marketRegion").value,
-                    city: document.getElementById("marketCity").value,
-                };
+                       const market = {
+            id: document.getElementById("marketId").value,
+            stockExchangeName: document.getElementById("marketName").value,
+            mic: document.getElementById("marketMIC").value,
+            region: document.getElementById("marketRegion").value,
+            city: document.getElementById("marketCity").value,
+            description: document.getElementById("description").value,
+              marketCapUsdTrillion: parseFloat(document.getElementById("marketCapUsdTrillion").value),
+            monthlyTradeVolumeUsdBillion: parseFloat(document.getElementById("monthlyTradeVolumeUsdBillion").value),
+            timeZone: document.getElementById("timeZone").value,
+            utcOffset: parseFloat(document.getElementById("utcOffset").value),
+            dst: document.getElementById("dst").value,
+        };
 
-                const method = market.id ? "PUT" : "POST";
+                const method = market.stockExchangeName ? "PUT" : "POST";
                 const url = market.id ? `/api/stockextange/edit/${market.id}` : "/api/stockextange/create";
 
                 fetch(url, {

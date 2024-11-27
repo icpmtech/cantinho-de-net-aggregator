@@ -9,6 +9,7 @@ namespace MarketAnalyticHub.Models
     [Key]
     public string? StockExchangeName { get; set; }
     public string MIC { get; set; }
+    public string? Description { get; set; }
     public string Region { get; set; }
     public string? City { get; set; }
     public double? MarketCapUsdTrillion { get; set; }

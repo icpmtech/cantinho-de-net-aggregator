@@ -318,6 +318,7 @@ namespace MarketAnalyticHub.Controllers
         existingMarket.DST = updatedMarket.DST;
         existingMarket.OpenHoursLocal = updatedMarket.OpenHoursLocal;
         existingMarket.OpenHoursUTC = updatedMarket.OpenHoursUTC;
+        existingMarket.Description = updatedMarket.Description;
 
         _context.StockExchanges.Update(existingMarket);
         await _context.SaveChangesAsync();
