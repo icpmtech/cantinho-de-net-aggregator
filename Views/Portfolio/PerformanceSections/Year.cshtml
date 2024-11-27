@@ -3,44 +3,55 @@
 }
 
 <!-- New Card for Year's Performance -->
-<div class="card shadow-sm">
-    <div class="card-body">
+<!-- Modern Card for Year's Performance -->
+<div class="card shadow-lg border-0">
+    <div class="card-body p-4">
         <!-- Card Title with Badge -->
-        <h4 class="card-title text-center">
+        <h4 class="card-title text-center mb-4">
             Year's Performance
-            <span class="badge bg-primary ms-2">Live</span>
+            <span class="badge bg-gradient-primary ms-2">Live</span>
         </h4>
 
-        <div id="Year-performance">
+        <div id="Year-performance" class="text-center">
             <!-- Total Amount Year with Badge -->
-            <p>
-                <strong>Total Amount :</strong>
-                $<span id="totalAmountYear" class="value">0.00</span>
-                <span class="badge bg-success ms-2">Updated</span>
-            </p>
+            <div class="mb-3">
+                <strong>
+                    <i class='bx bx-dollar-circle text-success'></i>
+                    Total Amount:
+                </strong>
+                <span id="totalAmountYear" class="fw-bold fs-5">0.00</span>
+                <span class="badge bg-gradient-success ms-2">Updated</span>
+            </div>
 
             <!-- Change in Market Value Year with Badge -->
-            <p>
-                <strong>Change in Market Value :</strong>
-                <span id="changeInMarketValueYear" class="value change">
-                    $<span id="marketValueAmount">0.00</span>
-                    <i id="marketValueIcon" class='bx'></i>
+            <div class="mb-3">
+                <strong>
+                    <i class='bx bx-line-chart text-warning'></i>
+                    Change in Market Value:
+                </strong>
+                <span id="changeInMarketValueYear" class="fw-bold fs-5">
+                    <span id="marketValueAmountYear">$0.00</span>
+                    <i id="marketValueIconYear" class='bx'></i>
                 </span>
-                <span class="badge bg-warning ms-2">Change</span>
-            </p>
+                <span class="badge bg-gradient-warning ms-2">Change</span>
+            </div>
 
             <!-- Percent Change Year with Badge -->
-            <p>
-                <strong>Percent Change :</strong>
-                <span id="percentChangeYear" class="value change">
-                    <span id="percentChangeAmount">0.00</span>%
-                    <i id="percentChangeIcon" class='bx'></i>
+            <div>
+                <strong>
+                    <i class='bx bx-pie-chart-alt-2 text-info'></i>
+                    Percent Change:
+                </strong>
+                <span id="percentChangeYear" class="fw-bold fs-5">
+                    <span id="percentChangeAmountYear">0.00</span>%
+                    <i id="percentChangeIconYear" class='bx'></i>
                 </span>
-                <span class="badge bg-info ms-2">Percentage</span>
-            </p>
+                <span class="badge bg-gradient-info ms-2">Percentage</span>
+            </div>
         </div>
     </div>
 </div>
+
 
 
 <!-- Script to Update Icons and Colors Based on Values -->
@@ -80,10 +91,10 @@
     }
 
     // Update Change in Market Value Year
-    updateChangeElement(changeInMarketValueYear, false, 'marketValueAmount', 'marketValueIcon');
+    updateChangeElement(changeInMarketValueYear, false, 'marketValueAmountYear', 'marketValueIconYear');
 
     // Update Percent Change Year
-    updateChangeElement(percentChangeYear, true, 'percentChangeAmount', 'percentChangeIcon');
+    updateChangeElement(percentChangeYear, true, 'percentChangeAmountYear', 'percentChangeIconYear');
 </script>
 
 <!-- Optional: Custom Styles -->

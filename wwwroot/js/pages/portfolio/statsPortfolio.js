@@ -231,19 +231,39 @@ function generateGroupedItemsHTML(group, portfolioId) {
                     </div>
                 </div>
                 <!-- Dividends History Link -->
-                <div class="mt-4">
-                    <p>
-                        For more information about ${group.symbol}, visit the 
-                        <a 
-                            href="/DividendsTracker/DividendsHistory?symbol=${encodeURIComponent(sanitizedSymbol)}" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            class="btn btn-primary btn-sm"
-                        >
-                            Dividends History
-                        </a>
-                    </p>
-                </div>
+               <div class="container mt-4">
+    <div class="row">
+        <!-- First Column: Dividend History -->
+        <div class="col-md-6 mb-3">
+            <p>
+                For more information about ${group.symbol}'s dividends, visit the 
+                <a 
+                    href="/DividendsTracker/DividendsHistory?symbol=${encodeURIComponent(sanitizedSymbol)}" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="btn btn-primary btn-sm"
+                >
+                    Dividend History
+                </a>.
+            </p>
+        </div>
+        <!-- Second Column: Portfolio Screener -->
+        <div class="col-md-6 mb-3">
+            <p>
+                For additional details about ${group.symbol}, check the 
+                <a 
+                    href="/PortfolioScrener?stockSymbol=${encodeURIComponent(sanitizedSymbol)}" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="btn btn-primary btn-sm"
+                >
+                    Portfolio Screener
+                </a>.
+            </p>
+        </div>
+    </div>
+</div>
+
                 <!-- Candlestick Chart Container -->
                 <div id="candlestick-chart-${sanitizedSymbol}" class="img-fluid mb-4"></div>
                 <!-- Portfolio Items List -->

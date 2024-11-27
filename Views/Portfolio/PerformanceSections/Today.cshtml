@@ -3,44 +3,55 @@
 }
 
 <!-- New Card for Today's Performance -->
-<div class="card shadow-sm">
-    <div class="card-body">
+<!-- Modern Card for Today's Performance -->
+<div class="card shadow-lg border-0">
+    <div class="card-body p-4">
         <!-- Card Title with Badge -->
-        <h4 class="card-title text-center">
+        <h4 class="card-title text-center mb-4">
             Today's Performance
-            <span class="badge bg-primary ms-2">Live</span>
+            <span class="badge bg-gradient-primary ms-2">Live</span>
         </h4>
 
-        <div id="today-performance">
+        <div id="today-performance" class="text-center">
             <!-- Total Amount Today with Badge -->
-            <p>
-                <strong>Total Amount :</strong>
-                $<span id="totalAmountToday" class="value">0.00</span>
-                <span class="badge bg-success ms-2">Updated</span>
-            </p>
+            <div class="mb-3">
+                <strong>
+                    <i class='bx bx-dollar-circle text-success'></i>
+                    Total Amount:
+                </strong>
+                <span id="totalAmountToday" class="fw-bold fs-5">0.00</span>
+                <span class="badge bg-gradient-success ms-2">Updated</span>
+            </div>
 
             <!-- Change in Market Value Today with Badge -->
-            <p>
-                <strong>Change in Market Value :</strong>
-                <span id="changeInMarketValueToday" class="value change">
-                    $<span id="marketValueAmount">0.00</span>
+            <div class="mb-3">
+                <strong>
+                    <i class='bx bx-line-chart text-warning'></i>
+                    Change in Market Value:
+                </strong>
+                <span id="changeInMarketValueToday" class="fw-bold fs-5">
+                    <span id="marketValueAmount">$0.00</span>
                     <i id="marketValueIcon" class='bx'></i>
                 </span>
-                <span class="badge bg-warning ms-2">Change</span>
-            </p>
+                <span class="badge bg-gradient-warning ms-2">Change</span>
+            </div>
 
             <!-- Percent Change Today with Badge -->
-            <p>
-                <strong>Percent Change :</strong>
-                <span id="percentChangeToday" class="value change">
+            <div>
+                <strong>
+                    <i class='bx bx-pie-chart-alt-2 text-info'></i>
+                    Percent Change:
+                </strong>
+                <span id="percentChangeToday" class="fw-bold fs-5">
                     <span id="percentChangeAmount">0.00</span>%
                     <i id="percentChangeIcon" class='bx'></i>
                 </span>
-                <span class="badge bg-info ms-2">Percentage</span>
-            </p>
+                <span class="badge bg-gradient-info ms-2">Percentage</span>
+            </div>
         </div>
     </div>
 </div>
+
 
 
 <!-- Script to Update Icons and Colors Based on Values -->
