@@ -8,28 +8,10 @@ import { renderHistoricalChart } from './renderHistoricalChart.js';
 import { initializeEventHandlers } from './eventHandlers.js';
 import { hideError } from "./hideError.js";
 import { showError } from "./showError.js";
+import { showSkeletons, hideSkeletons } from './skeletons.js'; // Import skeleton functions
 
 // Global variable to store data
 let dataFromApi;
-
-// Function to show all skeleton placeholders
-function showSkeletons() {
-  const skeletons = document.querySelectorAll('.skeleton');
-  skeletons.forEach(skeleton => skeleton.classList.remove('d-none'));
-
-  const contents = document.querySelectorAll('.content');
-  contents.forEach(content => content.classList.add('d-none'));
-}
-
-// Function to hide all skeleton placeholders
-function hideSkeletons() {
-  const skeletons = document.querySelectorAll('.skeleton');
-  skeletons.forEach(skeleton => skeleton.classList.add('d-none'));
-
-  const contents = document.querySelectorAll('.content');
-  contents.forEach(content => content.classList.remove('d-none'));
-}
-
 async function initialize() {
   // Get the necessary DOM elements
   const loadingIndicator = document.getElementById('loading');

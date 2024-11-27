@@ -129,6 +129,9 @@
     <Content Update="wwwroot\js\pages\portfolio\performance\fetchPortfolioData.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Update="wwwroot\js\pages\portfolio\performance\skeletons.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="wwwroot\js\pages\portfolio\performance\hideError.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
