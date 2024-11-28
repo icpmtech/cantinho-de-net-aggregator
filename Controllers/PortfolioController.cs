@@ -312,7 +312,10 @@ namespace MarketAnalyticHub.Controllers
              .ToList();
 
         // Assign grouped items to the portfolio
-        portfolio.GroupedItems = groupedItems;
+        portfolio.WeeklyPercentage = await _portfolioService.CalculateWeeklyPortfolioPercentageAsync(portfolio);
+        portfolio.MonthlyPercentage = await _portfolioService.CalculateMonthlyPortfolioPercentageAsync(portfolio);
+        portfolio.YearlyPercentage = await _portfolioService.CalculateYearlyPortfolioPercentageAsync(portfolio);
+          portfolio.GroupedItems = groupedItems;
       }
 
       return Ok(portfolios);
