@@ -62,10 +62,10 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     // GET: PortfolioScrener
     public async Task<ActionResult> Details(string stockSymbol, string companyName)
     {
-      var viewModel = new ScreenerViewModel
+      var viewModel = new DetailScreenerViewModel
       {
         HasQuery = !string.IsNullOrWhiteSpace(stockSymbol) || !string.IsNullOrWhiteSpace(companyName),
-        Stocks = new List<StockViewModel>()
+        Stock = new StockViewModel()
       };
 
       if (viewModel.HasQuery)
@@ -86,7 +86,7 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
           stock.News = await _yahooFinanceService.GetMockNews(stockSymbol); // Replace with actual implementation if needed
           stock.SentimentScore = GetMockSentiment(stockSymbol); // Replace with actual implementation if needed
 
-          viewModel.Stocks.Add(stock);
+          viewModel.Stock=stock;
         }
       }
 

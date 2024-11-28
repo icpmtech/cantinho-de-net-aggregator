@@ -1,0 +1,153 @@
+
+
+using MarketAnalyticHub.Controllers.Configurations.Reddit;
+using MarketAnalyticHub.Models;
+using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Services;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MarketAnalyticHub.Controllers.api
+{
+
+  [ApiController]
+  [Route("api/stockfinance")]
+  public class StockFinanceController : ControllerBase
+  {
+    private readonly PortfolioService _portfolioService;
+    private readonly NewsService _newsService;
+    private readonly ILogger<PortfolioScrenerController> _logger;
+    private readonly ApplicationDbContext _context;
+
+    private readonly IYahooFinanceService _yahooFinanceService;
+
+    public StockFinanceController(IYahooFinanceService yahooFinanceService, ApplicationDbContext context, PortfolioService portfolioService, NewsService newsService, ILogger<PortfolioScrenerController> logger)
+    {
+      _newsService = newsService;
+      _portfolioService = portfolioService;
+      _logger = logger;
+      _context = context;
+      _yahooFinanceService = yahooFinanceService;
+    }
+    /// <summary>
+    /// Obtém dados históricos de uma ação em um intervalo de datas específico.
+    /// </summary>
+    /// <param name="symbol">Símbolo da ação (ex: AAPL).</param>
+    /// <param name="startDate">Data de início.</param>
+    /// <param name="endDate">Data de fim.</param>
+    /// <param name="interval">Intervalo de dados (ex: 1d, 1wk, 1mo). Padrão: 1d.</param>
+    /// <returns>Dados históricos da ação.</returns>
+    [HttpGet("GetHistoricalData")]
+    public async Task<IActionResult> GetHistoricalData(
+        [FromQuery] string symbol,
+        [FromQuery] DateTime startDate,
+        [FromQuery] DateTime endDate,
+        [FromQuery] string interval = "1d",
+        CancellationToken token = default)
+    {
+      if (string.IsNullOrWhiteSpace(symbol))
+      {
+        return BadRequest(new { Message = "Symbol is required." });
+      }
+
+      if (endDate < startDate)
+      {
+        return BadRequest(new { Message = "End date must be greater than or equal to start date." });
+      }
+
+      try
+      {
+        var historicalData = await YahooService.GetHistoricalJsonDataAsync(symbol, startDate , endDate, token);
+
+        if (historicalData == null )
+        {
+          return Ok(new { Message = "No historical data found.", Data = (object)null });
+        }
+
+       
+
+        return Ok(historicalData);
+      }
+      catch (Exception ex)
+      {
+        // Log the exception details as needed
+        Console.WriteLine($"Error in GetHistoricalData: {ex.Message}");
+        return StatusCode(500, new { Message = "An error occurred while processing your request.", Details = ex.Message });
+      }
+    }
+    [HttpGet("search-finance")]
+    public async Task<ActionResult> Details(string symbol)
+    {
+      // Validate input: Ensure at least one parameter is provided.
+      if (string.IsNullOrWhiteSpace(symbol) )
+      {
+        return BadRequest("The stockSymbol must be provided.");
+      }
+
+      // Initialize the ViewModel with basic query flag and empty stock model.
+      var viewModel = new DetailScreenerViewModel
+      {
+        HasQuery = !string.IsNullOrWhiteSpace(symbol) ,
+        Stock = new StockViewModel()
+      };
+
+      try
+      {
+        if (viewModel.HasQuery)
+        {
+          // Fetch stock data and summary information.
+          var stock = await _yahooFinanceService.GetStockDataAsync(symbol);
+          var summary = await _yahooFinanceService.GetSummaryBySymbolAsync(symbol);
+
+          if (stock != null && summary != null)
+          {
+            // Map summary data to the stock model.
+            stock.Industry = summary.Industry;
+            stock.CEO = summary.CEO;
+            stock.Sector = summary.Sector;
+            stock.Description = summary.Description;
+
+            // Fetch historical chart data.
+            stock.ChartData = await _yahooFinanceService.GetHistoricalDataAsync(
+                symbol,
+                DateTime.Today.AddMonths(-1),
+                DateTime.Today
+            );
+
+            // Optional: Mock news and sentiment data.
+            stock.News = await _yahooFinanceService.GetMockNews(symbol); // Replace with actual implementation if available.
+            stock.SentimentScore = GetMockSentiment(symbol); // Replace with actual implementation if available.
+
+            // Populate the ViewModel with stock data.
+            viewModel.Stock = stock;
+          }
+        }
+
+        // Return the ViewModel as an OK response.
+        return Ok(viewModel);
+      }
+      catch (Exception ex)
+      {
+        // Log the exception for debugging.
+        _logger.LogError(ex, "An error occurred while fetching stock details for symbol: {StockSymbol}", symbol);
+
+        // Return a server error response.
+        return StatusCode(500, "An error occurred while processing your request. Please try again later.");
+      }
+    }
+
+    private double GetMockSentiment(string symbol)
+    {
+      // Mock sentiment score between -1 (negative) and 1 (positive)
+      var sentiments = new Dictionary<string, double>
+            {
+                { "AAPL", 0.8 },
+                { "MSFT", 0.6 },
+                { "GOOGL", 0.7 }
+                // Add more mappings as needed
+            };
+
+      return sentiments.ContainsKey(symbol) ? sentiments[symbol] : 0.0;
+    }
+
+  }
+}

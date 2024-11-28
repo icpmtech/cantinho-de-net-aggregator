@@ -8,4 +8,10 @@ namespace MarketAnalyticHub.Models
     public List<StockViewModel> Stocks { get; set; }
     public bool HasQuery { get; set; }
   }
+  public class DetailScreenerViewModel
+  {
+    public StockViewModel Stock { get; set; }
+    public bool HasQuery { get; set; }
+  }
+
 }
