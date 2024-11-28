@@ -3,590 +3,198 @@
 @using Newtonsoft.Json
 
 @{
-    ViewBag.Title = "Portfolio Screener";
+    ViewBag.Title = "Portfolio Stock Screener Details";
 }
 
-@functions {
-    /// <summary>
-    /// Sanitizes a string to be used safely in HTML IDs and JavaScript variable names.
-    /// Replaces any non-alphanumeric character with an underscore.
-    /// </summary>
-    /// <param name="input">The input string to sanitize.</param>
-    /// <returns>A sanitized string containing only letters, digits, and underscores.</returns>
-    public string SanitizeString(string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return "unknown";
-
-        var sanitized = new System.Text.StringBuilder();
-        foreach (var ch in input)
-        {
-            if (char.IsLetterOrDigit(ch) || ch == '_')
-                sanitized.Append(ch);
-            else
-                sanitized.Append('_'); // Replace invalid characters with an underscore
-        }
-        return sanitized.ToString();
-    }
-}
-
-
-<!-- Boxicons CSS -->
-<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-
-<!-- Custom CSS for Skeleton Loaders and Animations -->
-<style>
-    /* Skeleton Loader Styles */
-    .skeleton {
-        background-color: #e0e0e0;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .skeleton::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -150px;
-            height: 100%;
-            width: 150px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            animation: loading 1.5s infinite;
-        }
-
-    @@keyframes loading {
-        0%
-
-    {
-        left: -150px;
-    }
-
-    50% {
-        left: 100%;
-    }
-
-    100% {
-        left: 100%;
-    }
-
-    }
-
-    /* Smooth Transition for Loaded Content */
-    .fade-in {
-        animation: fadeIn 0.5s ease-in-out forwards;
-    }
-
-    @@keyframes fadeIn {
-        from
-
-    {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-
-    }
-
-    /* Modern Accordion Header */
-    .accordion-button:not(.collapsed) {
-        color: #fff;
-        background-color: #696cff;
-    }
-
-   
-</style>
-
-<h1 class="mt-0 mb-4 card card-body text-center">📈 Stock Portfolio Screener</h1>
-
-<div class="card shadow-sm">
-    <div class="card-body">
-        <form id="stockScreenerForm" method="get" action="@Url.Action("Index", "PortfolioScrener")">
-            <div class="row g-3">
-                <!-- Stock Symbol Field with Autocomplete -->
-                <div class="col-md-4 position-relative">
-                    <label for="stockSymbol" class="form-label">Stock Symbol</label>
-                    <input type="text" class="form-control" id="stockSymbol" name="stockSymbol" placeholder="e.g., AAPL" autocomplete="off" oninput="searchStockSymbol()">
-                    <div id="stockSymbolSuggestions" class="dropdown-menu" style="display: none;"></div>
-                </div>
-
-                <!-- Company Name Field with Autocomplete -->
-                <div class="col-md-4 position-relative">
-                    <label for="companyName" class="form-label">Company Name</label>
-                    <input type="text" class="form-control" id="companyName" name="companyName" placeholder="e.g., Apple Inc." autocomplete="off" oninput="searchCompanyName()">
-                    <div id="companyNameSuggestions" class="dropdown-menu" style="display: none;"></div>
-                </div>
-
-                <!-- Search Button -->
-                <div class="col-md-4 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class='bx bx-search me-2'></i> Search
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div id="results" class="mt-4">
-    @if (Model.Stocks != null && Model.Stocks.Any())
-    {
-        <h2 class="card card-body mb-4">🔍 Search Results</h2>
-        <div class="accordion" id="stockAccordion">
-            @foreach (var stock in Model.Stocks)
-            {
-                var sanitizedSymbol = SanitizeString(stock.Symbol);
-                var seriesData = stock.ChartData?.Select(point => point.Close).ToList() ?? new List<decimal>();
-                var categories = stock.ChartData?.Select(point => point.Date.ToString("MM/dd")).ToList() ?? new List<string>();
-
-                <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading@sanitizedSymbol">
-                        <button class="accordion-button " type="button" >
-                            <i class='bx bx-bar-chart-line me-2'></i> @stock.Symbol - @stock.CompanyName
-                        </button>
-                    </h2>
-                    <div id="collapse-@sanitizedSymbol" class="" aria-labelledby="heading@sanitizedSymbol" >
-                        <div class="accordion-body mt-4">
-                            <div class="row">
-                                <!-- Company Details -->
-                                <div class="col-md-6">
-                                    <h5><i class='bx bx-building-house me-2'></i> Company Details</h5>
-                                    <p><strong>Sector:</strong> @stock.Sector</p>
-                                    <p><strong>Industry:</strong> @stock.Industry</p>
-                                    <p><strong>CEO:</strong> @stock.CEO</p>
-                                    <p><strong>Description:</strong> @stock.Description</p>
-                                </div>
-                                <!-- Chart and Sentiment -->
-                                <div class="col-md-6">
-                                    <h5><i class='bx bx-chart me-2'></i> Stock Performance</h5>
-                                    <!-- Skeleton Loader for Chart -->
-                                    <div class="apex-chart skeleton"
-                                         id="chart-@sanitizedSymbol"
-                                         data-series='@Html.Raw(JsonConvert.SerializeObject(new[] { new { name = stock.Symbol + " Price", data = seriesData } }))'
-                                         data-categories='@Html.Raw(JsonConvert.SerializeObject(categories))'
-                                         style="height: 200px;">
-                                    </div>
-                                    <!-- Sentiment Score -->
-                                    <p class="mt-3">
-                                        <strong>Sentiment Score:</strong>
-                                        <i class='bx @(stock.SentimentScore >= 0 ? "bx-smile text-success" : "bx-frown text-danger") me-1'></i>
-                                        <span class="@(stock.SentimentScore >= 0 ? "text-success" : "text-danger")">
-                                            @stock.SentimentScore
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                            <!-- Financial Details Section -->
-                            <div class="row mt-4">
-                                <div class="col-md-12">
-                                    <h5><i class='bx bx-dollar-circle me-2'></i> Financial Details</h5>
-                                    <div class="row">
-                                        <!-- P/E Ratio Card -->
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-body d-flex align-items-center">
-                                                    <i class='bx bx-line-chart fs-2 text-primary me-3'></i>
-                                                    <div>
-                                                        <h6 class="card-title mb-1">P/E Ratio</h6>
-                                                        <p class="card-text mb-0">@((stock.PERatio > 0) ? stock.PERatio?.ToString("F2") : "N/A")</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- EPS Card -->
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-body d-flex align-items-center">
-                                                    <i class='bx bx-money fs-2 text-success me-3'></i>
-                                                    <div>
-                                                        <h6 class="card-title mb-1">Earnings Per Share (EPS)</h6>
-                                                        <p class="card-text mb-0">@((stock.EPS > 0) ? stock.EPS?.ToString("F2") : "N/A")</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- 52-Week High Card -->
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-body d-flex align-items-center">
-                                                    <i class='bx bx-up-arrow-circle fs-2 text-warning me-3'></i>
-                                                    <div>
-                                                        <h6 class="card-title mb-1">52-Week High</h6>
-                                                        <p class="card-text mb-0">@((stock.FiftyTwoWeekHigh > 0) ? stock.FiftyTwoWeekHigh?.ToString("C") : "N/A")</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- 52-Week Low Card -->
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-body d-flex align-items-center">
-                                                    <i class='bx bx-down-arrow-circle fs-2 text-danger me-3'></i>
-                                                    <div>
-                                                        <h6 class="card-title mb-1">52-Week Low</h6>
-                                                        <p class="card-text mb-0">@((stock.FiftyTwoWeekLow > 0) ? stock.FiftyTwoWeekLow?.ToString("C") : "N/A")</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- Volume Card -->
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-body d-flex align-items-center">
-                                                    <i class='bx bx-bar-chart-square fs-2 text-info me-3'></i>
-                                                    <div>
-                                                        <h6 class="card-title mb-1">Volume</h6>
-                                                        <p class="card-text mb-0">@((stock.Volume > 0) ? stock.Volume?.ToString("N0") : "N/A")</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <!-- Dividend Yield Card -->
-                                        <div class="col-md-4 mb-3">
-                                            <div class="card h-100">
-                                                <div class="card-body d-flex align-items-center">
-                                                    <i class='bx bx-pie-chart-alt fs-2 text-secondary me-3'></i>
-                                                    <div>
-                                                        <h6 class="card-title mb-1">Dividend Yield</h6>
-                                                        <p class="card-text mb-0">@((stock.DividendYield > 0) ? stock.DividendYield?.ToString("F2") + "%" : "N/A")</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Optional: Additional Styling for Cards -->
-                            <style>
-                                .card {
-                                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                                    transition: transform 0.2s, box-shadow 0.2s;
-                                }
-
-                                    .card:hover {
-                                        transform: translateY(-5px);
-                                        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
-                                    }
-
-                                .card-title {
-                                    font-size: 1rem;
-                                    font-weight: 600;
-                                }
-
-                                .card-text {
-                                    font-size: 1.25rem;
-                                    font-weight: 700;
-                                }
-                            </style>
-
-                            <!-- News Section -->
-                            <div class="mt-4">
-                                <h5><i class='bx bx-news me-2'></i> Recent News</h5>
-                                @if (stock.News != null && stock.News.Any())
-                                {
-                                    <ul class="list-group">
-                                        @foreach (var news in stock.News)
-                                        {
-                                            <li class="list-group-item d-flex align-items-start">
-                                                <i class='bx bx-news me-3 fs-4'></i>
-                                                <div>
-                                                    <a href="@news.Url" target="_blank" class="fw-bold">@news.Title</a>
-                                                    <br />
-                                                    <small class="text-muted">Source: @news.Source | Published: @news.PublishedDate.ToString("MMM dd, yyyy")</small>
-                                                </div>
-                                            </li>
-                                        }
-                                    </ul>
-                                }
-                                else
-                                {
-                                    <!-- Skeleton Loader for News -->
-                                    <div class="skeleton" style="height: 50px;"></div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-    else if (Model.HasQuery && Model.Stocks != null && !Model.Stocks.Any())
-    {
-        <div class="alert alert-warning mt-4 d-flex align-items-center" role="alert">
-            <i class='bx bx-exclamation-triangle me-2 fs-4'></i>
-            No results found for the given criteria.
-        </div>
-    }
-    else
-    {
-        <!-- Initial State: Optionally, show instructions or leave blank -->
-    }
-</div>
-
-<!-- Include Bootstrap 5 JS Bundle (includes Popper) -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Include jQuery if not already included -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- Include ApexCharts via CDN -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<!-- Optional: Include a Spinner Icon for AJAX Loading -->
-<style>
-    /* Spinner Overlay */
-    .spinner-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255, 255, 255, 0.7);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        display: none; /* Hidden by default */
-    }
-</style>
 
-<div class="spinner-overlay" id="spinnerOverlay">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+<div class="container my-4">
+    <h1 class="text-center mb-4">Stock Market Dashboard</h1>
+
+    <!-- Company Summary -->
+    @Html.Partial("Detail_CompanySummary")
+
+    <!-- Main Stock Information -->
+    <div class="row">
+        <div class="col-md-4">
+            <!-- Sidebar Tabs -->
+            @Html.Partial("Detail/_Tabs")
+        </div>
+        <div class="col-md-8">
+            <!-- Tab Content -->
+            @Html.Partial("Detail_TabContents")
+        </div>
     </div>
 </div>
 
-@section PageScripts {
+
+    <!-- Bootstrap Bundle (JS) -->
     <script>
-        $(document).ready(function(){
+        // Example stock symbol
+        const stockSymbol = "SON.LS";
 
-          // Check if 'symbol' parameter exists in the URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const symbol = urlParams.get('symbol');
+        // Mock data for fallback
+        const mockStockData = {
+            shortName: "Sonae SGPS",
+            longName: "Sonae SGPS S.A.",
+            sector: "Retail",
+            industry: "Consumer Goods",
+            regularMarketPrice: 0.942,
+            currency: "EUR",
+            regularMarketChange: 0.003,
+            regularMarketChangePercent: 0.32,
+            marketCap: "3.4B EUR",
+            peRatio: 15.8,
+        eps: 0.35,
+        technicalSignals: { RSI: 70, MACD: 80, MovingAverage: 60 },
+        analystRatings: { Buy: 60, Hold: 30, Sell: 10 },
+            dividendYield: "2.5%",
+            dividends: [
+                { date: "2024-11-15", exDate: "2024-11-10", amount: "0.10 EUR" },
+                { date: "2024-08-15", exDate: "2024-08-10", amount: "0.12 EUR" },
+            ],
+            news: [
+                { title: "Sonae Reports Q3 Results", url: "#" },
+                { title: "Sonae Announces Dividend Increase", url: "#" },
+            ],
+            chartData: [0.94, 0.95, 0.942, 0.938, 0.94, 0.945, 0.94],
+        };
 
-            // Prefill the form field and initiate search if 'symbol' is present
-            if (symbol) {
-                $('#stockSymbol').val(symbol.trim());
-                $('#stockScreenerForm').submit();
-            }
+        // Function to display company summary
+        function renderCompanySummary(data) {
+            const summaryDiv = document.getElementById("companySummary");
+            summaryDiv.innerHTML = `
+                <p><strong>Company:</strong> ${data.longName}</p>
+                <p><strong>Sector:</strong> ${data.sector}</p>
+                <p><strong>Industry:</strong> ${data.industry}</p>
+                <p><strong>Market Cap:</strong> ${data.marketCap}</p>
+            `;
+        }
 
+        // Function to display chart
+        function renderChart(data) {
+            const options = {
+                series: [{ name: "Price", data: data }],
+                chart: {
+                    type: "line",
+                    height: 300,
+                },
+                xaxis: {
+                    categories: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7"],
+                },
+            };
 
-            $('#stockScreenerForm').on('submit', function(e){
-                e.preventDefault();
-                // Show Spinner Overlay
-                $('#spinnerOverlay').show();
+            const chart = new ApexCharts(document.querySelector("#chartContainer"), options);
+            chart.render();
+        }
 
-                $.ajax({
-                    url: '@Url.Action("Index", "PortfolioScrener")',
-                    type: 'GET',
-                    data: $(this).serialize(),
-                    success: function(data){
-                        $('#results').html($(data).find('#results').html());
-                        initializeCharts();
-                        // Hide Spinner Overlay
-                        $('#spinnerOverlay').hide();
-                        // Reinitialize Bootstrap tooltips or other dynamic elements if necessary
-                    },
-                    error: function(){
-                        alert('An error occurred while processing your request.');
-                        // Hide Spinner Overlay
-                        $('#spinnerOverlay').hide();
-                    }
+        // Function to display news
+        function renderNews(news) {
+            const newsList = document.getElementById("newsList");
+            newsList.innerHTML = ""; // Clear existing items
+
+            news.forEach(item => {
+                const listItem = document.createElement("li");
+                listItem.classList.add("list-group-item");
+                listItem.innerHTML = `<a href="${item.url}" target="_blank">${item.title}</a>`;
+                newsList.appendChild(listItem);
+            });
+        }
+
+        // Function to display details
+        function renderDetails(data) {
+            const detailsTable = document.getElementById("detailsTable");
+            detailsTable.innerHTML = `
+                <tr><th>Symbol</th><td>${stockSymbol}</td></tr>
+                <tr><th>Name</th><td>${data.shortName}</td></tr>
+                <tr><th>Price</th><td>${data.regularMarketPrice} ${data.currency}</td></tr>
+                <tr><th>Change</th><td>${data.regularMarketChange} (${data.regularMarketChangePercent}%)</td></tr>
+            `;
+        }
+
+        // Function to display fundamentals
+        function renderFundamentals(data) {
+            const fundamentalsTable = document.getElementById("fundamentalsTable");
+            fundamentalsTable.innerHTML = `
+                <tr><th>P/E Ratio</th><td>${data.peRatio}</td></tr>
+                <tr><th>EPS</th><td>${data.eps}</td></tr>
+                <tr><th>Dividend Yield</th><td>${data.dividendYield}</td></tr>
+                <tr><th>Market Cap</th><td>${data.marketCap}</td></tr>
+            `;
+        }
+
+        // Function to display dividends
+        function renderDividends(data) {
+            const dividendsTable = document.getElementById("dividendsTable");
+            dividendsTable.innerHTML = ""; // Clear existing data
+
+            if (data.dividends && data.dividends.length > 0) {
+                data.dividends.forEach(dividend => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${dividend.date}</td>
+                        <td>${dividend.exDate}</td>
+                        <td>${dividend.amount}</td>
+                    `;
+                    dividendsTable.appendChild(row);
                 });
-            });
-
-            // Initialize charts on page load if there are any
-            if ($('.apex-chart').length > 0) {
-                initializeCharts();
-            }
-        });
-
-        function initializeCharts() {
-            $('.apex-chart').each(function(){
-                var chartDiv = $(this);
-                var seriesData = chartDiv.attr('data-series');
-                var categoriesData = chartDiv.attr('data-categories');
-
-                // Remove skeleton class once data is available
-                chartDiv.removeClass('skeleton');
-
-                // Check if data-series and data-categories are defined and not empty
-                if (!seriesData || seriesData.trim() === '') {
-                    console.warn('Missing or empty data-series for chart:', chartDiv.attr('id'));
-                    return; // Skip this chart
-                }
-
-                if (!categoriesData || categoriesData.trim() === '') {
-                    console.warn('Missing or empty data-categories for chart:', chartDiv.attr('id'));
-                    return; // Skip this chart
-                }
-
-                var series, categories;
-                try {
-                    series = JSON.parse(seriesData);
-                    categories = JSON.parse(categoriesData);
-                } catch (e) {
-                    console.error('Invalid JSON in data attributes for chart:', chartDiv.attr('id'), e);
-                    return; // Skip this chart
-                }
-
-                if (!series || !Array.isArray(series) || series.length === 0) {
-                    console.warn('Invalid or empty series data for chart:', chartDiv.attr('id'));
-                    return;
-                }
-
-                if (!categories || !Array.isArray(categories) || categories.length === 0) {
-                    console.warn('Invalid or empty categories data for chart:', chartDiv.attr('id'));
-                    return;
-                }
-
-                var options = {
-                    chart: {
-                        type: 'line',
-                        height: 200,
-                        toolbar: {
-                            show: false
-                        }
-                    },
-                    series: series,
-                    xaxis: {
-                        categories: categories,
-                        title: {
-                            text: 'Date'
-                        },
-                        labels: {
-                            rotate: -45
-                        }
-                    },
-                    yaxis: {
-                        title: {
-                            text: 'Price (USD)'
-                        },
-                        labels: {
-                            formatter: function (val) {
-                                return val.toFixed(2);
-                            }
-                        }
-                    },
-                    tooltip: {
-                        y: {
-                            formatter: function (val) {
-                                return "$" + val.toFixed(2);
-                            }
-                        }
-                    },
-                    stroke: {
-                        curve: 'smooth'
-                    },
-                    markers: {
-                        size: 3
-                    },
-                    grid: {
-                        borderColor: '#f1f1f1',
-                    },
-                    colors: ['#0d6efd'],
-                    responsive: [{
-                        breakpoint: 768,
-                        options: {
-                            chart: {
-                                height: 150
-                            },
-                            xaxis: {
-                                labels: {
-                                    rotate: -90
-                                }
-                            }
-                        }
-                    }]
-                };
-
-                var chart = new ApexCharts(this, options);
-                chart.render();
-            });
-        }
-    </script>
-    <script>
-        // Function to search for stock symbols
-        async function searchStockSymbol() {
-            const query = document.getElementById('stockSymbol').value.trim();
-            const suggestionsBox = document.getElementById('stockSymbolSuggestions');
-            suggestionsBox.innerHTML = ''; // Clear previous suggestions
-
-            if (query.length > 1) {
-                try {
-                    const url = `/api/yahoofinance/search/${query}`;
-                    const response = await fetch(url);
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.length > 0) {
-                            suggestionsBox.style.display = 'block';
-                            data.forEach(result => {
-                                const suggestionItem = document.createElement('div');
-                                suggestionItem.classList.add('dropdown-item');
-                                suggestionItem.innerHTML = `<strong>${result.symbol}</strong> - ${result.shortname}`;
-                                suggestionItem.onclick = () => {
-                                    document.getElementById('stockSymbol').value = result.symbol;
-                                    suggestionsBox.style.display = 'none';
-                                };
-                                suggestionsBox.appendChild(suggestionItem);
-                            });
-                        } else {
-                            suggestionsBox.style.display = 'none';
-                        }
-                    } else {
-                        console.error('Error fetching stock symbols:', response.statusText);
-                        suggestionsBox.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Error fetching stock symbols:', error);
-                    suggestionsBox.style.display = 'none';
-                }
             } else {
-                suggestionsBox.style.display = 'none';
+                const noDataRow = document.createElement("tr");
+                noDataRow.innerHTML = `<td colspan="3">No dividend data available.</td>`;
+                dividendsTable.appendChild(noDataRow);
             }
         }
+       function renderTechnicalSignals(data) {
+        const options = {
+            series: [{
+                name: "Score",
+                data: Object.values(data),
+            }],
+            chart: {
+                type: "bar",
+                height: 300,
+            },
+            xaxis: {
+                categories: Object.keys(data),
+            },
+            title: {
+                text: "Technical Signals",
+            },
+        };
 
-        // Function to search for company names
-        async function searchCompanyName() {
-            const query = document.getElementById('companyName').value.trim();
-            const suggestionsBox = document.getElementById('companyNameSuggestions');
-            suggestionsBox.innerHTML = ''; // Clear previous suggestions
+        const chart = new ApexCharts(document.querySelector("#technicalSignalsChart"), options);
+        chart.render();
+    }
 
-            if (query.length > 1) {
-                try {
-                    const url = `/api/yahoofinance/search/${query}`;
-                    const response = await fetch(url);
+    function renderAnalystSignals(data) {
+        const options = {
+            series: Object.values(data),
+            labels: Object.keys(data),
+            chart: {
+                type: "pie",
+                height: 300,
+            },
+            title: {
+                text: "Analyst Ratings",
+            },
+        };
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.length > 0) {
-                            suggestionsBox.style.display = 'block';
-                            data.forEach(result => {
-                                const suggestionItem = document.createElement('div');
-                                suggestionItem.classList.add('dropdown-item');
-                                suggestionItem.innerHTML = `<strong>${result.shortname}</strong>`;
-                                suggestionItem.onclick = () => {
-                                    document.getElementById('companyName').value = result.shortname;
-                                    suggestionsBox.style.display = 'none';
-                                };
-                                suggestionsBox.appendChild(suggestionItem);
-                            });
-                        } else {
-                            suggestionsBox.style.display = 'none';
-                        }
-                    } else {
-                        console.error('Error fetching company names:', response.statusText);
-                        suggestionsBox.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Error fetching company names:', error);
-                    suggestionsBox.style.display = 'none';
-                }
-            } else {
-                suggestionsBox.style.display = 'none';
-            }
+        const chart = new ApexCharts(document.querySelector("#analystSignalsChart"), options);
+        chart.render();
+    }
+
+        // Initialize Dashboard
+        function initializeDashboard() {
+           renderTechnicalSignals(mockStockData.technicalSignals);
+            renderAnalystSignals(mockStockData.analystRatings);
+            renderCompanySummary(mockStockData);
+            renderChart(mockStockData.chartData);
+            renderNews(mockStockData.news);
+            renderDetails(mockStockData);
+            renderFundamentals(mockStockData);
+            renderDividends(mockStockData);
         }
+
+        initializeDashboard();
     </script>
 
-
-}

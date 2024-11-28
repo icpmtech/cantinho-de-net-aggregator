@@ -1,0 +1,35 @@
+<ul class="nav nav-tabs" id="stockTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab">
+            Chart
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">
+            News
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">
+            Details
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="fundamentals-tab" data-bs-toggle="tab" data-bs-target="#fundamentals" type="button" role="tab">
+            Fundamentals
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="dividends-tab" data-bs-toggle="tab" data-bs-target="#dividends" type="button" role="tab">
+            Dividends
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button" role="tab">
+            Signals
+        </button>
+    </li>
+</ul>
+<div class="tab-content mt-3" id="stockTabContent">
+    @Html.Partial("_TabContents")
+</div>

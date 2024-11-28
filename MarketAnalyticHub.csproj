@@ -114,6 +114,39 @@
     <Content Update="wwwroot\js\pages\dashboard\dashboard.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\chartRenderer.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\dataFetcher.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\dataProcessor.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\eventHandlers.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\fetchPortfolioData.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\hideError.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\main.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\mapData.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\renderHistoricalChart.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\showError.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Update="wwwroot\js\pages\portfolio - Copy\performance\skeletons.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="wwwroot\js\pages\portfolio\performance\chartRenderer.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

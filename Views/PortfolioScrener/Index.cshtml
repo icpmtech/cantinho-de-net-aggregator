@@ -142,9 +142,9 @@
 
                 <div class="accordion-item">
                     <h2 class="accordion-header" id="heading@sanitizedSymbol">
-                        <button class="accordion-button " type="button" >
-                            <i class='bx bx-bar-chart-line me-2'></i> @stock.Symbol - @stock.CompanyName
-                        </button>
+                        <a class="accordion-button" href="/PortfolioScrener/Details?stockSymbol=@stock.Symbol">
+                            <i class='bx bx-bar-chart me-2'></i>@stock.Symbol - @stock.CompanyName
+                        </a>
                     </h2>
                     <div id="collapse-@sanitizedSymbol" class="" aria-labelledby="heading@sanitizedSymbol" >
                         <div class="accordion-body mt-4">

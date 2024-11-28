@@ -59,8 +59,41 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 
       return View(viewModel);
     }
+    // GET: PortfolioScrener
+    public async Task<ActionResult> Details(string stockSymbol, string companyName)
+    {
+      var viewModel = new ScreenerViewModel
+      {
+        HasQuery = !string.IsNullOrWhiteSpace(stockSymbol) || !string.IsNullOrWhiteSpace(companyName),
+        Stocks = new List<StockViewModel>()
+      };
 
-  
+      if (viewModel.HasQuery)
+      {
+        var stock = await _yahooFinanceService.GetStockDataAsync(stockSymbol);
+        var summary = await _yahooFinanceService.GetSummaryBySymbolAsync(stockSymbol);
+
+        if (stock != null && summary != null)
+        {
+          stock.Industry = summary.Industry;
+          stock.CEO = summary.CEO;
+          stock.Sector = summary.Sector;
+          stock.Description = summary.Description;
+          // Fetch historical data
+          stock.ChartData = await _yahooFinanceService.GetHistoricalDataAsync(stockSymbol, DateTime.Today.AddMonths(-1), DateTime.Today);
+
+          // Mock News and Sentiment (optional)
+          stock.News = await _yahooFinanceService.GetMockNews(stockSymbol); // Replace with actual implementation if needed
+          stock.SentimentScore = GetMockSentiment(stockSymbol); // Replace with actual implementation if needed
+
+          viewModel.Stocks.Add(stock);
+        }
+      }
+
+      return View(viewModel);
+    }
+
+
     private double GetMockSentiment(string symbol)
     {
       // Mock sentiment score between -1 (negative) and 1 (positive)
