@@ -125,8 +125,10 @@
     </div>
 </div>
 <script>
+
     // Example stock symbol
-    const stockSymbol = "SON.LS";
+    const urlParams = new URLSearchParams(window.location.search);
+    const stockSymbol = urlParams.get('stockSymbol');
 
     // Base API endpoint
     const apiEndpoint = "/api/stockfinance/search-finance";
@@ -157,19 +159,81 @@
         `;
     }
 
-    // Function to display chart
+        // Function to display chart
     function renderChart(data) {
-        const options = {
-            series: [{ name: "Price", data: data }],
+        // Extract series data and categories from the data array
+        var seriesData = data.map(point => {
+            return {
+                x: new Date(point.date).toLocaleDateString("en-US"),
+                y: point.close
+            };
+        });
+
+        // Set chart options
+        var options = {
             chart: {
-                type: "line",
-                height: 300,
+                type: 'line',
+                height: 200,
+                toolbar: {
+                    show: false
+                }
             },
+            series: [{
+                name: 'Price',
+                data: seriesData
+            }],
             xaxis: {
-                categories: ["Day 1", "Day 2", "Day 3", "Day 4", "Day 5", "Day 6", "Day 7"],
+                type: 'category', // Updated x-axis to use category
+                title: {
+                    text: 'Date'
+                },
+                labels: {
+                    rotate: -45
+                }
             },
+            yaxis: {
+                title: {
+                    text: 'Price (USD)'
+                },
+                labels: {
+                    formatter: function (val) {
+                        return val.toFixed(2);
+                    }
+                }
+            },
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return "$" + val.toFixed(2);
+                    }
+                }
+            },
+            stroke: {
+                curve: 'smooth'
+            },
+            markers: {
+                size: 3
+            },
+            grid: {
+                borderColor: '#f1f1f1',
+            },
+            colors: ['#0d6efd'],
+            responsive: [{
+                breakpoint: 768,
+                options: {
+                    chart: {
+                        height: 150
+                    },
+                    xaxis: {
+                        labels: {
+                            rotate: -90
+                        }
+                    }
+                }
+            }]
         };
 
+        // Render the chart
         const chart = new ApexCharts(document.querySelector("#chartContainer"), options);
         chart.render();
     }
@@ -290,6 +354,8 @@
             console.error("Failed to fetch stock data. Please check the API or fallback to mock data.");
         }
     }
-
-    initializeDashboard();
+        document.addEventListener('DOMContentLoaded', function () {
+       initializeDashboard();
+    });
+   
 </script>

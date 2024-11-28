@@ -77,16 +77,16 @@ namespace MarketAnalyticHub.Controllers.api
     [HttpGet("search-finance")]
     public async Task<ActionResult> Details(string symbol)
     {
-      // Validate input: Ensure at least one parameter is provided.
-      if (string.IsNullOrWhiteSpace(symbol) )
+      // Validate input
+      if (string.IsNullOrWhiteSpace(symbol))
       {
-        return BadRequest("The stockSymbol must be provided.");
+        return BadRequest("The stock symbol must be provided.");
       }
 
-      // Initialize the ViewModel with basic query flag and empty stock model.
+      // Initialize the ViewModel
       var viewModel = new DetailScreenerViewModel
       {
-        HasQuery = !string.IsNullOrWhiteSpace(symbol) ,
+        HasQuery = !string.IsNullOrWhiteSpace(symbol),
         Stock = new StockViewModel()
       };
 
@@ -94,45 +94,82 @@ namespace MarketAnalyticHub.Controllers.api
       {
         if (viewModel.HasQuery)
         {
-          // Fetch stock data and summary information.
+          // Fetch stock data
           var stock = await _yahooFinanceService.GetStockDataAsync(symbol);
           var summary = await _yahooFinanceService.GetSummaryBySymbolAsync(symbol);
 
           if (stock != null && summary != null)
           {
-            // Map summary data to the stock model.
+            // Map summary data to the stock model
             stock.Industry = summary.Industry;
             stock.CEO = summary.CEO;
             stock.Sector = summary.Sector;
             stock.Description = summary.Description;
 
-            // Fetch historical chart data.
+            // Fetch historical chart data
             stock.ChartData = await _yahooFinanceService.GetHistoricalDataAsync(
                 symbol,
                 DateTime.Today.AddMonths(-1),
                 DateTime.Today
             );
 
-            // Optional: Mock news and sentiment data.
-            stock.News = await _yahooFinanceService.GetMockNews(symbol); // Replace with actual implementation if available.
-            stock.SentimentScore = GetMockSentiment(symbol); // Replace with actual implementation if available.
+            // Fetch additional data
+            stock.TechnicalSignals = GetTechnicalSignals(symbol); // Method for calculating technical signals
+            stock.AnalystRatings = GetAnalystRatings(symbol); // Method for fetching analyst ratings
+            stock.DividendYield = summary.DividendYield; // Assuming this is part of the summary
+            stock.Dividends = GetDividends(symbol); // Fetch or mock dividend data
+            stock.News = await _yahooFinanceService.GetMockNews(symbol); // Replace with actual implementation
+            stock.SentimentScore = GetMockSentiment(symbol); // Replace with actual sentiment calculation
 
-            // Populate the ViewModel with stock data.
+            // Populate the ViewModel
             viewModel.Stock = stock;
           }
         }
 
-        // Return the ViewModel as an OK response.
+        // Return the ViewModel
         return Ok(viewModel);
       }
       catch (Exception ex)
       {
-        // Log the exception for debugging.
-        _logger.LogError(ex, "An error occurred while fetching stock details for symbol: {StockSymbol}", symbol);
+        // Log the error for debugging
+        _logger.LogError(ex, "An error occurred while fetching stock details for symbol: {Symbol}", symbol);
 
-        // Return a server error response.
+        // Return a server error response
         return StatusCode(500, "An error occurred while processing your request. Please try again later.");
       }
+    }
+ 
+
+    private List<DividendScreenViewModel> GetDividends(string symbol)
+    {
+      // Replace with actual logic or API calls to fetch dividends
+      return new List<DividendScreenViewModel>
+    {
+        new DividendScreenViewModel { Date = "2024-11-15", ExDate = "2024-11-10", Amount = "0.10 EUR" },
+        new DividendScreenViewModel { Date = "2024-08-15", ExDate = "2024-08-10", Amount = "0.12 EUR" }
+    };
+    }
+
+    private Dictionary<string, int> GetAnalystRatings(string symbol)
+    {
+      // Replace with actual logic or API calls to get analyst ratings
+      return new Dictionary<string, int>
+    {
+        { "Buy", 60 },
+        { "Hold", 30 },
+        { "Sell", 10 }
+    };
+    }
+
+    private Dictionary<string, decimal> GetTechnicalSignals(string symbol)
+    {
+      // Replace with actual logic or API calls to calculate technical signals
+      return new Dictionary<string, decimal>
+    {
+        { "RSI", 70 },
+        { "MACD", 80 },
+        { "MovingAverage", 60 }
+    };
     }
 
     private double GetMockSentiment(string symbol)

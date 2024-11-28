@@ -1,4 +1,5 @@
 // File: Models/StockViewModel.cs
+using MarketAnalyticHub.Controllers.api;
 using System;
 using System.Collections.Generic;
 
@@ -26,6 +27,9 @@ namespace MarketAnalyticHub.Models
     public double? FiftyTwoWeekLow { get; set; }  // 52-Week Low
     public long?   Volume { get; set; }              // Trading Volume
     public double? DividendYield { get; set; }     // Dividend Yield (%)
+    public Dictionary<string, decimal> TechnicalSignals { get; internal set; }
+    public Dictionary<string, int> AnalystRatings { get; internal set; }
+    internal List<DividendScreenViewModel> Dividends { get; set; }
   }
 
 
