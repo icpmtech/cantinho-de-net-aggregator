@@ -1104,6 +1104,8 @@ namespace MarketAnalyticHub.Services
 
       // Calculate total gain
       var totalGain = currentPrices.Sum(p => (p.CurrentPrice - (double) p.AveragePurchasePrice) * p.Quantity);
+      // Calculate total initial value (based on average purchase price)
+      var totalInitialValue = currentPrices.Sum(p => p.AveragePurchasePrice * p.Quantity);
 
       // Calculate percentage
       var percentage = (totalValueForSymbol / (double)totalPortfolioValue.TotalMarketValue) * 100;
@@ -1111,6 +1113,11 @@ namespace MarketAnalyticHub.Services
       var percentageDayGain = totalValueAtStartOfDay > 0
           ? (totalDayGain / totalValueAtStartOfDay) * 100
           : 0;
+      // Calculate total gain percentage
+      var totalGainPercentage = (double)totalInitialValue > 0
+          ? (totalGain / (double)totalInitialValue) * 100
+          : 0;
+
       // Return the DTO with all calculated metrics
       return new PortfolioCardDto
       {
@@ -1120,7 +1127,8 @@ namespace MarketAnalyticHub.Services
         Shares = totalSharesForSymbol,
         DayGain = (decimal)Math.Round(totalDayGain, 2),
         TotalGain = (decimal)Math.Round(totalGain, 2),
-        DayGainPercentage = (decimal) percentageDayGain
+        DayGainPercentage = (decimal) percentageDayGain,
+        TotalGainPercentage = (decimal)totalGainPercentage
       };
     }
     /// <summary>
