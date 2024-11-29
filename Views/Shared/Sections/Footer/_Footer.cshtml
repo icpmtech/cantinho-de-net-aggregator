@@ -3,7 +3,7 @@
   ViewData["containerNav"] = (ViewData["containerNav"] ??= "container-fluid");
 }
 
-<footer class="content-footer footer bg-footer-theme">
+<footer class="content-footer bg-primary footer bg-footer-theme">
   <div class='@ViewData["containerNav"] d-flex flex-wrap justify-content-between py-2 flex-md-row flex-column'>
     <div class="mb-2 mb-md-0">
       ©
@@ -14,7 +14,7 @@
     </div>
     <div class="d-none d-lg-inline-block">
       <a href='@TempData.Peek("licenseUrl")' class="footer-link me-4" target="_blank">License</a>
-      <a href='@TempData.Peek("authorUrl")' target="_blank" class="footer-link me-4">More Themes</a>
+      <a href='@TempData.Peek("authorUrl")' target="_blank" class="footer-link me-4">Contact</a>
       <a href='@TempData.Peek("documentation")' target="_blank" class="footer-link me-4">Documentation</a>
       <a href='@TempData.Peek("support")' target="_blank" class="footer-link d-none d-sm-inline-block">Support</a>
     </div>

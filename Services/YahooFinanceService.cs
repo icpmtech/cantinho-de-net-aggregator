@@ -2,6 +2,7 @@ namespace MarketAnalyticHub.Services
 {
   using MarketAnalyticHub.Controllers.api;
   using MarketAnalyticHub.Models;
+  using MarketAnalyticHub.Services.ApiDataApp.Services;
   using MarketAnalyticHub.YaooServive.Models;
   using System;
   using System.Collections.Generic;
@@ -52,8 +53,14 @@ public  class YahooFinanceService : IYahooFinanceService
              Field.FiftyTwoWeekHighChange,
              Field.FiftyTwoWeekHighChangePercent,
              Field.FiftyTwoWeekLowChange,
-             Field.FiftyTwoWeekLowChangePercent
-          
+             Field.FiftyTwoWeekLowChangePercent,
+               Field.PostMarketChange,
+     Field.PostMarketChangePercent,
+     Field.PostMarketPrice,
+     Field.PostMarketTime,
+     Field.MarketState
+
+
         ).QueryAsync();
 
         if (!securities.ContainsKey(symbol))
@@ -82,7 +89,13 @@ public  class YahooFinanceService : IYahooFinanceService
           FiftyTwoWeekHighChangePercent = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekHighChangePercent , 0.0),
           FiftyTwoWeekLowChange = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekLowChange,0),
           FiftyTwoWeekLowChangePercent = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekLowChangePercent , 0.0),
-          TrailingAnnualDividendYield= SafeValueUtil.GetValueOrDefault(() => security?.TrailingAnnualDividendYield, 0.0)
+          TrailingAnnualDividendYield= SafeValueUtil.GetValueOrDefault(() => security?.TrailingAnnualDividendYield, 0.0),
+          PostMarketChange = SafeValueUtil.GetValueOrDefault(() => security?.PostMarketChange, 0.0),
+          PostMarketChangePercent = SafeValueUtil.GetValueOrDefault(() => security?.PostMarketChangePercent, 0.0),
+          PostMarketPrice = SafeValueUtil.GetValueOrDefault(() => security?.PostMarketPrice, 0.0),
+          PostMarketTime = SafeValueUtil.GetValueOrDefault(() => security?.PostMarketTime, 0),
+          MarketState= Utility.GetValidString(SafeValueUtil.GetValueOrDefault(() => security?.MarketState, "Unknown"), "Unknown"),
+
         };
         return stockViewModel;
 

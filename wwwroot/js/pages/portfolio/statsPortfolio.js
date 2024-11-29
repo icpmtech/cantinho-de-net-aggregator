@@ -252,12 +252,12 @@ function generateGroupedItemsHTML(group, portfolioId) {
             <p>
                 For additional details about ${group.symbol}, check the 
                 <a 
-                    href="/PortfolioScrener?stockSymbol=${encodeURIComponent(sanitizedSymbol)}" 
+                    href="/PortfolioScrener/Details?stockSymbol=${encodeURIComponent(sanitizedSymbol)}" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     class="btn btn-primary btn-sm"
                 >
-                    Portfolio Screener
+                    View More...
                 </a>.
             </p>
         </div>

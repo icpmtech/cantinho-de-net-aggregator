@@ -121,7 +121,7 @@
 <div id="mainContent" style="display: none;">
     <div class="row">
         <!-- First Column -->
-        <div class="col-md-8 col-lg-8">
+        <div class="col-md-6 col-lg-6">
             <div>
                 <div>
                     <h6 id="companySummary" class="card-title">Loading...</h6>
@@ -129,7 +129,7 @@
             </div>
         </div>
         <!-- Second Column -->
-            <div class="col-md-4 col-lg-4 order-1 mb-6">
+            <div class="col-md-6 col-lg-6 order-1 mb-6">
                 <div class="card h-100 portfolio-card">
                     <!-- Card Header -->
                     <div class="card-header nav-align-top">
@@ -158,17 +158,26 @@
                                 <!-- Main Metrics -->
                                 <div class="d-flex mb-4">
                                     <div class="avatar flex-shrink-0 me-3">
-                                        <img src="../assets/img/icons/unicons/wallet.png" alt="Portfolio Icon">
+                                        <img src="/img/icons/unicons/wallet.png" alt="Portfolio Icon">
                                     </div>
                                     <div>
                                         <p class="mb-0">Portfolio Value</p>
                                         <div class="d-flex align-items-center">
-                                            <h6 id="portfolioAmount" class="mb-0 me-1">$N/A</h6>
+                                            <div id="portfolioAmount" class="mb-0 me-1">$N/A</div>
                                             <small id="portfolioPercentage" class="text-success fw-medium">N/A% of your portfolios</small>
                                         </div>
                                     </div>
+                                
                                 </div>
-
+                            <hr class="m-0">
+                            <div id="finance-card" d-flex mb-4>
+                                <div id="market-state">Market State: Loading...</div>
+                                <p id="post-market-change">Post-Market Change: --</p>
+                                <p id="post-market-change-percent">Post-Market Change Percent: --</p>
+                                <p id="post-market-price">Post-Market Price: --</p>
+                                <p id="post-market-time">Post-Market Time: --</p>
+                            </div>
+                            <hr class="m-0">
                                 <!-- Gains/Losses -->
                                 <div class="d-flex justify-content-between align-items-center my-3">
                                     <div class="text-center">
@@ -186,8 +195,21 @@
                                         </h6>
                                     </div>
                                 </div>
+                            <div class="card-footer">
+                                <div class="d-flex justify-content-between">
+                                    <small class="text-body">
+                                        Manage your portfolio efficiently.<br>
+                                        Check your portfolio for more details.
+                                    </small>
+                                    <div>
+                                        <a class="btn btn-outline-primary mt-2" href="/Portfolio">
+                                            <i class="bx bx-bar-chart me-2"></i>View Details...
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
-
+                            </div>
+                        
                             <!-- Details Tab -->
                             <div class="tab-pane fade" id="portfolioDetails" role="tabpanel">
                                 <h6 class="mb-4">Portfolio Details</h6>
@@ -216,7 +238,7 @@
                         <i class="bx bx-bar-chart"></i> More Information
                     </div>
                     <!-- Tabs -->
-                    <ul class="nav nav-tabs" id="stockTabs" role="tablist">
+                    <ul class="nav nav-pills" id="stockTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab" aria-controls="chart" aria-selected="true">
                                 <i class="bx bx-line-chart"></i> Chart
@@ -252,7 +274,16 @@
                     <div class="tab-content mt-3" id="stockTabContent">
                         <!-- Chart Tab -->
                         <div class="tab-pane fade show active" id="chart" role="tabpanel" aria-labelledby="chart-tab">
+                           
+                            <button type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
+                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
+                                </svg>
+                            </button>
                             <div id="chartContainer"></div>
+                            <div id="dynamic-container"></div>
+
                         </div>
                         <!-- News Tab -->
                         <div class="tab-pane fade" id="news" role="tabpanel" aria-labelledby="news-tab">
@@ -276,6 +307,12 @@
                         </div>
                         <!-- Fundamentals Tab -->
                         <div class="tab-pane fade" id="fundamentals" role="tabpanel" aria-labelledby="fundamentals-tab">
+                            <button type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
+                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
+                                </svg>
+                            </button>
                             <div class="table-responsive text-nowrap">
                                 <table class="table">
                                     <tbody id="fundamentalsTable">
@@ -289,6 +326,12 @@
                         </div>
                         <!-- Dividends Tab -->
                         <div class="tab-pane fade" id="dividends" role="tabpanel" aria-labelledby="dividends-tab">
+                            <button type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
+                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
+                                </svg>
+                            </button>
                             <div class="table-responsive text-nowrap">
                                 <table class="table">
                                     <thead>
@@ -308,6 +351,12 @@
                         </div>
                         <!-- Signals Tab -->
                         <div class="tab-pane fade" id="signals" role="tabpanel" aria-labelledby="signals-tab">
+                            <button type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
+                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
+                                </svg>
+                            </button>
                             <div id="technicalSignalsChart" style="height: 300px;"></div>
                             <div id="analystSignalsChart" style="height: 300px; margin-top: 20px;"></div>
                         </div>
@@ -317,6 +366,8 @@
         </div>
     </div>
 </div>
+<!-- Include TradingView Widget Library -->
+<script src="https://s3.tradingview.com/tv.js"></script>
 
 <script>
 
@@ -424,166 +475,228 @@
     
 
 
-        // Function to display chart
-    function renderChart(data) {
-        // Extract series data and categories from the data array
-        var seriesData = data.map(point => {
-            return {
-                x: new Date(point.date).toLocaleDateString("en-US"),
-                y: point.close
-            };
-        });
+  function renderChart(data) {
+    // Extract series data and categories from the data array
+    const seriesData = data.map(point => ({
+        x: new Date(point.date).toLocaleDateString("en-US"),
+        y: point.close,
+    }));
 
-        // Set chart options
-        var options = {
-            chart: {
-                type: 'line',
-                height: 200,
-                toolbar: {
-                    show: false
-                }
-            },
-            series: [{
-                name: 'Price',
-                data: seriesData
-            }],
-            xaxis: {
-                type: 'category', // Updated x-axis to use category
-                title: {
-                    text: 'Date'
-                },
-                labels: {
-                    rotate: -45
-                }
-            },
-            yaxis: {
-                title: {
-                    text: 'Price (USD)'
-                },
-                labels: {
-                    formatter: function (val) {
-                        return val.toFixed(2);
-                    }
-                }
-            },
-            tooltip: {
-                y: {
-                    formatter: function (val) {
-                        return "$" + val.toFixed(2);
-                    }
-                }
-            },
-            stroke: {
-                curve: 'smooth'
-            },
-            markers: {
-                size: 3
-            },
-            grid: {
-                borderColor: '#f1f1f1',
-            },
-            colors: ['#0d6efd'],
-            responsive: [{
-                breakpoint: 768,
-                options: {
-                    chart: {
-                        height: 150
-                    },
-                    xaxis: {
-                        labels: {
-                            rotate: -90
-                        }
-                    }
-                }
-            }]
-        };
-
-        // Render the chart
-        const chart = new ApexCharts(document.querySelector("#chartContainer"), options);
-        chart.render();
-    }
-
-
-         // Function to display chart portfolio
-   function renderChartPortfolio(data) {
+    // Set chart options
     const options = {
         chart: {
-            height: 120, // Slightly taller for better visibility
-            type: "radialBar",
+            type: 'line',
+            height: 200,
+            zoom: {
+                enabled: true, // Enable zoom functionality
+                type: 'x', // Allow zooming along the x-axis
+                autoScaleYaxis: true, // Adjust y-axis when zooming
+            },
             toolbar: {
-                show: false, // Hide unnecessary toolbar
-            },
-        },
-        series: [data?.percentage || 0], // Default to 0 if data is unavailable
-        colors: ["#007bff"], // Modern blue color
-        plotOptions: {
-            radialBar: {
-                startAngle: -135,
-                endAngle: 135,
-                hollow: {
-                    size: "70%", // Larger hollow area for a cleaner design
-                    background: "transparent",
-                    image: undefined,
-                },
-                track: {
-                    background: "#e8eaf6", // Subtle background for track
-                    strokeWidth: "100%",
-                },
-                dataLabels: {
-                    name: {
-                        offsetY: -10,
-                        show: true,
-                        color: "#6c757d", // Subtle gray for the name
-                        fontSize: "14px",
-                        fontWeight: "bold",
-                        formatter: function () {
-                            return "Portfolio %";
-                        },
-                    },
-                    value: {
-                        offsetY: 5,
-                        fontSize: "20px",
-                        fontWeight: "bold",
-                        color: "#007bff", // Same as the chart color for consistency
-                        formatter: function (val) {
-                            return `${val.toFixed(1)}%`; // One decimal place
-                        },
-                    },
+                show: true, // Display the toolbar
+                tools: {
+                    download: true, // Enable download button
+                    selection: true, // Enable selection tool
+                    zoom: true, // Enable zoom tool
+                    zoomin: true, // Enable zoom-in tool
+                    zoomout: true, // Enable zoom-out tool
+                    pan: true, // Enable panning
+                    reset: true, // Enable reset zoom button
                 },
             },
         },
-        fill: {
-            type: "gradient",
-            gradient: {
-                shade: "light",
-                type: "horizontal",
-                gradientToColors: ["#80d4ff"], // Gradient for modern look
-                stops: [0, 100],
+        series: [{
+            name: 'Price',
+            data: seriesData,
+        }],
+        xaxis: {
+            type: 'category', // Use category for x-axis
+            title: {
+                text: 'Date',
+            },
+            labels: {
+                rotate: -45,
+                style: {
+                    fontSize: '12px',
+                },
+            },
+        },
+        yaxis: {
+            title: {
+                text: 'Price (USD)',
+            },
+            labels: {
+                formatter: function (val) {
+                    return `$${val.toFixed(2)}`;
+                },
+            },
+        },
+        tooltip: {
+            y: {
+                formatter: function (val) {
+                    return `$${val.toFixed(2)}`;
+                },
             },
         },
         stroke: {
-            lineCap: "round", // Smooth edges for a modern design
+            curve: 'smooth', // Smooth line curve
         },
-        labels: ["Portfolio Contribution"], // Additional descriptive label
+        markers: {
+            size: 4, // Slightly larger markers for better visibility
+        },
+        grid: {
+            borderColor: '#f1f1f1', // Subtle grid color
+        },
+        colors: ['#0d6efd'], // Primary blue for line color
         responsive: [
             {
                 breakpoint: 768,
                 options: {
                     chart: {
-                        height: 100, // Adjust for smaller screens
+                        height: 150, // Adjust height for smaller screens
+                    },
+                    xaxis: {
+                        labels: {
+                            rotate: -90, // Rotate labels for better fit
+                        },
+                    },
+                },
+            },
+            {
+                breakpoint: 480,
+                options: {
+                    chart: {
+                        height: 120, // Further adjust height for very small screens
+                    },
+                    xaxis: {
+                        labels: {
+                            show: false, // Hide x-axis labels on very small screens
+                        },
                     },
                 },
             },
         ],
     };
 
-    const chart = new ApexCharts(document.querySelector("#portfolioChart"), options);
+    // Render the chart
+    const chart = new ApexCharts(document.querySelector("#chartContainer"), options);
     chart.render();
 }
 
 
 
-    // Function to display news
+         // Function to display chart portfolio
+      function renderChartPortfolio(data) {
+        const options = {
+            chart: {
+                height: 240, // Optimal height for visibility
+                type: "radialBar",
+                toolbar: {
+                    show: false, // Hide the toolbar for a cleaner look
+                },
+            },
+            series: [data?.percentage || 0], // Default to 0 if no data is provided
+            labels: ["Portfolio Contribution"], // Descriptive label
+            colors: ["#007bff"], // Modern blue color
+            plotOptions: {
+                radialBar: {
+                    size: 150,
+                    offsetY: 10,
+                    startAngle: -150,
+                    endAngle: 150,
+                    hollow: {
+                        size: "55%", // Hollow size for a clean design
+                        background: "transparent",
+                    },
+                    track: {
+                        background: "#e8eaf6", // Subtle background color
+                        strokeWidth: "100%",
+                    },
+                    stroke: {
+                        dashArray: 5, // Dashed stroke for modern design
+                    },
+                    dataLabels: {
+                        name: {
+                            offsetY: 15,
+                            color: "#6c757d", // Subtle gray for label text
+                            fontSize: "15px",
+                            fontWeight: "500",
+                            fontFamily: "Public Sans",
+                            formatter: function () {
+                                return "Portfolio %";
+                            },
+                        },
+                        value: {
+                            offsetY: -25,
+                            color: "#007bff", // Match the main chart color
+                            fontSize: "22px",
+                            fontWeight: "500",
+                            fontFamily: "Public Sans",
+                            formatter: function (val) {
+                                return `${val.toFixed(1)}%`; // Display one decimal place
+                            },
+                        },
+                    },
+                },
+            },
+            fill: {
+                type: "gradient",
+                gradient: {
+                    shade: "dark",
+                    shadeIntensity: 0.5,
+                    gradientToColors: ["#80d4ff"], // Gradient for a modern look
+                    inverseColors: true,
+                    opacityFrom: 1,
+                    opacityTo: 0.6,
+                    stops: [30, 70, 100],
+                },
+            },
+            stroke: {
+                lineCap: "round", // Rounded ends for a polished look
+            },
+            grid: {
+                padding: {
+                    top: -35,
+                    bottom: -10,
+                },
+            },
+            states: {
+                hover: {
+                    filter: {
+                        type: "none",
+                    },
+                },
+                active: {
+                    filter: {
+                        type: "none",
+                    },
+                },
+            },
+            responsive: [
+                {
+                    breakpoint: 768,
+                    options: {
+                        chart: {
+                            height: 180, // Adjust height for smaller screens
+                        },
+                    },
+                },
+            ],
+        };
+
+        const chart = new ApexCharts(document.querySelector("#portfolioChart"), options);
+        chart.render();
+
+
+
+
+
+    }
+
+
+
+
+        // Function to display news
     function renderNews(news) {
         const newsList = document.getElementById("newsList");
         newsList.innerHTML = ""; // Clear existing items
@@ -688,8 +801,8 @@
         const chart = new ApexCharts(document.querySelector("#analystSignalsChart"), options);
         chart.render();
     }
-function updatePortfolioCard(data) {
-    // Helper function to check for valid data
+    function updatePortfolioCard(data,stock) {
+        // Helper function to check for valid data
     const isValid = (value) => value !== null && value !== undefined;
 
     // Update percentage of portfolio
@@ -701,8 +814,8 @@ function updatePortfolioCard(data) {
     // Update amount (current value)
     const amountElement = document.getElementById("portfolioAmount");
     amountElement.textContent = isValid(data?.currentValue)
-        ? `$${(data.currentValue ?? 0).toFixed(2)}`
-        : "N/A";
+                ? `${stock?.currency} ${(data.currentValue ?? 0).toFixed(2)}`
+            : "N/A";
 
     // Update shares
     const sharesElement = document.getElementById("portfolioShares");
@@ -715,7 +828,7 @@ function updatePortfolioCard(data) {
     const dayGainBadge = document.getElementById("portfolioDayGainBadge");
     if (isValid(data?.dayGain) && isValid(data?.dayGainPercentage)) {
         const dayGainClass = data.dayGain >= 0 ? "gain text-success" : "lose text-danger";
-        dayGainElement.textContent = `${data.dayGain >= 0 ? '+' : '-'} ${Math.abs((data.dayGain ?? 0).toFixed(2))}`;
+                dayGainElement.textContent = ` ${stock?.currency} ${data.dayGain >= 0 ? '+' : '-'} ${Math.abs((data.dayGain ?? 0).toFixed(2))}`;
         dayGainElement.className = `badge bg-light ${dayGainClass}`;
         dayGainBadge.textContent = `${(data.dayGainPercentage ?? 0).toFixed(2)}%`;
         dayGainBadge.className = `badge bg-light ${dayGainClass}`;
@@ -730,8 +843,8 @@ function updatePortfolioCard(data) {
     const totalGainBadge = document.getElementById("portfolioTotalGainBadge");
     if (isValid(data?.totalGain) && isValid(data?.totalGainPercentage)) {
         const totalGainClass = data.totalGain >= 0 ? "gain text-success" : "lose text-danger";
-        totalGainElement.textContent = `${data.totalGain >= 0 ? '+' : '-'} ${Math.abs((data.totalGain ?? 0).toFixed(2))}`;
-        totalGainBadge.textContent = `${(data?.totalGainPercentage ?? 0).toFixed(2)}%`;
+            totalGainElement.textContent = ` ${stock?.currency} ${data.totalGain >= 0 ? '+' : '-'} ${Math.abs((data.totalGain ?? 0).toFixed(2))}`;
+            totalGainBadge.textContent = `${(data?.totalGainPercentage ?? 0).toFixed(2)}%`;
         totalGainBadge.className = `badge bg-light ${totalGainClass}`;
         totalGainElement.className = `badge bg-light ${totalGainClass}`;
     } else {
@@ -740,14 +853,74 @@ function updatePortfolioCard(data) {
         totalGainBadge.className = "badge bg-light text-muted";
     }
 }
+    // Function to format UNIX timestamp to human-readable date
+    function formatTimestamp(timestamp) {
+        if (!timestamp) return "--";
+        const date = new Date(timestamp * 1000); // Convert to milliseconds
+        return date.toLocaleString();
+    }
 
+    // Function render the post market data
+         function renderPostMarketCard(data) {
+           
 
-    // Initialize Dashboard
+            // Update the card with the fetched data
+            document.getElementById('market-state').innerText = `Market State: ${data?.marketState || '--'}`;
+            document.getElementById('post-market-change').innerText = `Post-Market Change: ${data?.postMarketChange?.toFixed(2) || '--'}`;
+            document.getElementById('post-market-change-percent').innerText = `Post-Market Change Percent: ${(data?.postMarketChangePercent?.toFixed(2) || '--')}%`;
+            document.getElementById('post-market-price').innerText = `Post-Market Price: $${data?.postMarketPrice?.toFixed(2) || '--'}`;
+            document.getElementById('post-market-time').innerText = `Post-Market Time: ${formatTimestamp(data?.postMarketTime)}`;
+       
+    }
+            
+       
+        function addChartWithInnerHTML(containerId, chartId, symbol, height = 400, theme = "light") {
+            const container = document.getElementById(containerId);
+            if (!container) {
+                console.error(`Container with ID "${containerId}" not found.`);
+                return;
+            }
+
+            // Inject HTML dynamically
+            const widgetHTML = `
+                <div id="${chartId}" class="tradingview-widget-container" style="height: ${height}px;">
+                </div>
+            `;
+            container.innerHTML = widgetHTML;
+
+            // Initialize TradingView Widget
+            new TradingView.widget({
+                "width": "100%", // Responsive width
+                "height": height,
+                "symbol": symbol,
+                "interval": "D", // Daily interval
+                "timezone": "Etc/UTC",
+                "theme": theme,
+                "style": "1", // 1 for candles, 2 for bars, etc.
+                "locale": "en",
+                "toolbar_bg": "#f1f3f6",
+                "enable_publishing": false,
+                "allow_symbol_change": true,
+                "container_id": chartId
+            });
+        }
+
+      
+   
+        // Initialize Dashboard
     async function initializeDashboard() {
         const stockDatas = await fetchStockData(stockSymbol);
 
         if (stockDatas?.stock) {
-            renderCompanySummary(stockDatas?.stock);
+                      // Example Usage:
+            addChartWithInnerHTML(
+                "dynamic-container",       // Parent container ID
+                "tv-widget-line-chart-1",  // Unique chart ID
+                        stockSymbol,             // Symbol
+                400,                       // Height
+                "light"                    // Theme
+            );
+                renderCompanySummary(stockDatas?.stock);
             renderChart(stockDatas?.stock.chartData);
             renderNews(stockDatas?.stock.news);
             renderDetails(stockDatas?.stock);
@@ -756,7 +929,8 @@ function updatePortfolioCard(data) {
             renderTechnicalSignals(stockDatas?.stock.technicalSignals);
             renderAnalystSignals(stockDatas?.stock.analystRatings);
             renderChartPortfolio(stockDatas?.stock.dataCardForSymbol);
-            updatePortfolioCard(stockDatas?.stock.dataCardForSymbol);
+                updatePortfolioCard(stockDatas?.stock.dataCardForSymbol,stockDatas?.stock);
+                        renderPostMarketCard(stockDatas?.stock)
             document.getElementById("loadingSkeleton").style.display = "none";
             document.getElementById("mainContent").style.display = "block";
         } else {

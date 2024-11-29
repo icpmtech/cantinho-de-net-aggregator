@@ -8,6 +8,14 @@ namespace MarketAnalyticHub.Models
 {
   public class StockViewModel
   {
+
+    public double? TrailingAnnualDividendYield { get; set; }
+
+    public string MarketState { get;  set; }
+    public double? PostMarketChange { get; set; }
+    public double? PostMarketChangePercent { get; set; }
+    public double? PostMarketPrice { get; set; }
+    public long? PostMarketTime { get; set; }
     public string Symbol { get; set; }
     public string CompanyName { get; set; }
     public double? Price { get; set; }
@@ -39,8 +47,8 @@ namespace MarketAnalyticHub.Models
     public long? DividendDate { get;  set; }
     public double? BookValue { get;  set; }
     public List<DividendScreenViewModel> Dividends { get; set; }
-    public double? TrailingAnnualDividendYield { get; set; }
     public PortfolioService.PortfolioCardDto? DataCardForSymbol { get; internal set; }
+  
   }
 
 
