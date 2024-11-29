@@ -115,11 +115,14 @@
             listItem.className = 'd-flex justify-content-between align-items-center mb-3';
             listItem.innerHTML = `
                         <div class="card card-body">
-                            <span><strong>${stat.symbol}</strong></span><br>
+                           <span><strong>${stat.symbol}</strong></span><br>
                             <small>Investment: €${stat.totalInvestment.toFixed(2)}</small><br>
                             <small>Current Value: €${stat.currentMarketValue.toFixed(2)}</small><br>
                             <small class="${textClass}">P/L: €${stat.plValue.toFixed(2)} (${stat.plPercentage.toFixed(2)}%) <i class="${icon} ${textClass}"></i></small>
-                        </div>`;
+                         <a class="btn btn-outline-primary mt-2" href="/PortfolioScrener/Details?stockSymbol=${stat.symbol}">
+                                            <i class='bx bx-bar-chart me-2'></i>View More...
+                                        </a>
+                            </div>`;
             statisticsList.appendChild(listItem);
         });
     }

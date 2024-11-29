@@ -1,5 +1,6 @@
 // File: Models/StockViewModel.cs
 using MarketAnalyticHub.Controllers.api;
+using MarketAnalyticHub.Services;
 using System;
 using System.Collections.Generic;
 
@@ -16,6 +17,12 @@ namespace MarketAnalyticHub.Models
     public string Industry { get; set; }
     public string Description { get; set; }
     public string CEO { get; set; }
+    public string Currency { get; set; }
+    public string Exchange { get; set; }
+    public double? FiftyTwoWeekHighChange { get; set; }
+    public double? FiftyTwoWeekHighChangePercent { get; set; }
+    public double? FiftyTwoWeekLowChange { get; set; }
+    public double? FiftyTwoWeekLowChangePercent { get; set; }
     public List<ChartDataPoint> ChartData { get; set; }
     public List<NewsItemScreener> News { get; set; }
     public double SentimentScore { get; set; }
@@ -27,9 +34,13 @@ namespace MarketAnalyticHub.Models
     public double? FiftyTwoWeekLow { get; set; }  // 52-Week Low
     public long?   Volume { get; set; }              // Trading Volume
     public double? DividendYield { get; set; }     // Dividend Yield (%)
-    public Dictionary<string, decimal> TechnicalSignals { get; internal set; }
-    public Dictionary<string, int> AnalystRatings { get; internal set; }
-    internal List<DividendScreenViewModel> Dividends { get; set; }
+    public Dictionary<string, decimal> TechnicalSignals { get; set; }
+    public Dictionary<string, int> AnalystRatings { get;  set; }
+    public long? DividendDate { get;  set; }
+    public double? BookValue { get;  set; }
+    public List<DividendScreenViewModel> Dividends { get; set; }
+    public double? TrailingAnnualDividendYield { get; set; }
+    public PortfolioService.PortfolioCardDto? DataCardForSymbol { get; internal set; }
   }
 
 

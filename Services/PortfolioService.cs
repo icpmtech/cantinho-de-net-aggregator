@@ -1044,6 +1044,101 @@ namespace MarketAnalyticHub.Services
       // Outros cálculos baseados em StockEvents, etc., podem ser adicionados aqui
     }
 
+ 
+    /// <summary>
+    /// Calculates the portfolio metrics for a specific stock symbol.
+    /// </summary>
+    /// <param name="userId">The user ID to filter portfolios.</param>
+    /// <param name="symbol">The stock symbol to calculate metrics for.</param>
+    /// <returns>A DTO containing the calculated portfolio metrics.</returns>
+    public async Task<PortfolioCardDto> GetPortfolioBySymbolAsync(string userId, string symbol)
+    {
+      if (string.IsNullOrEmpty(symbol))
+        throw new ArgumentException("Symbol cannot be null or empty", nameof(symbol));
+
+      // Fetch portfolios and include related data
+      var portfolios = await _context.Portfolios
+          .Include(p => p.Items)
+          .Where(p => p.UserId == userId)
+          .ToListAsync();
+
+      if (portfolios == null || !portfolios.Any())
+        throw new Exception("No portfolios found for the user.");
+
+      // Filter portfolio items for the specific symbol
+      var portfolioItems = portfolios.SelectMany(p => p.Items)
+                                     .Where(item => item.Symbol == symbol)
+                                     .ToList();
+
+      if (!portfolioItems.Any())
+        throw new Exception($"No portfolio items found for the symbol: {symbol}");
+
+      // Calculate the total portfolio value
+      var totalPortfolioValue = await GetTotalPortfolioOverall(userId);
+
+      // Ensure total market value is not zero
+      if (totalPortfolioValue.TotalMarketValue == 0)
+        throw new InvalidOperationException("Total portfolio market value cannot be zero.");
+
+      // Calculate the total value for the specified symbol
+      var currentPrices = await Task.WhenAll(portfolioItems.Select(async item =>
+      {
+        var currentPrice = await GetCurrentPriceAsync(item.Symbol);
+        return new
+        {
+          item.Quantity,
+          CurrentPrice = currentPrice.CurrentPrice,
+          PreviousDayPrice = currentPrice.OpenPrice,
+          AveragePurchasePrice = item.PurchasePrice // Assuming this exists in your model
+        };
+      }));
+
+      // Calculate total value for symbol
+      var totalValueForSymbol = currentPrices.Sum(p => p.CurrentPrice * p.Quantity);
+
+      // Calculate total shares
+      var totalSharesForSymbol = portfolioItems.Sum(item => item.Quantity);
+
+      // Calculate total day gain
+      var totalDayGain = currentPrices.Sum(p => (p.CurrentPrice - p.PreviousDayPrice) * p.Quantity);
+
+      // Calculate total gain
+      var totalGain = currentPrices.Sum(p => (p.CurrentPrice - (double) p.AveragePurchasePrice) * p.Quantity);
+
+      // Calculate percentage
+      var percentage = (totalValueForSymbol / (double)totalPortfolioValue.TotalMarketValue) * 100;
+      var totalValueAtStartOfDay = currentPrices.Sum(p => p.PreviousDayPrice * p.Quantity);
+      var percentageDayGain = totalValueAtStartOfDay > 0
+          ? (totalDayGain / totalValueAtStartOfDay) * 100
+          : 0;
+      // Return the DTO with all calculated metrics
+      return new PortfolioCardDto
+      {
+        Symbol = symbol,
+        CurrentValue = (decimal)totalValueForSymbol,
+        Percentage = (decimal)Math.Round(percentage, 2),
+        Shares = totalSharesForSymbol,
+        DayGain = (decimal)Math.Round(totalDayGain, 2),
+        TotalGain = (decimal)Math.Round(totalGain, 2),
+        DayGainPercentage = (decimal) percentageDayGain
+      };
+    }
+    /// <summary>
+    /// DTO for portfolio card data.
+    /// </summary>
+    public class PortfolioCardDto
+    {
+      public string Symbol { get; set; }
+      public decimal CurrentValue { get; set; }
+      public decimal Percentage { get; set; }
+      public int Shares { get; set; }
+      public decimal DayGain { get; set; }
+      public decimal TotalGain { get; set; }
+      public decimal? DayGainPercentage { get; set; } 
+      public decimal? TotalGainPercentage { get; set; } 
+    }
+   
+
 
 
 

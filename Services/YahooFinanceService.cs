@@ -24,6 +24,8 @@ namespace MarketAnalyticHub.Services
 
 public  class YahooFinanceService : IYahooFinanceService
   {
+   
+
     public async Task<StockViewModel?> GetStockDataAsync(string symbol)
     {
       try
@@ -41,7 +43,17 @@ public  class YahooFinanceService : IYahooFinanceService
             Field.FiftyTwoWeekHigh,
             Field.FiftyTwoWeekLow,
             Field.RegularMarketVolume,
-            Field.RegularMarketChange
+            Field.RegularMarketChange,
+             Field.Currency,
+             Field.DividendDate,
+             Field.BookValue,
+             Field.Exchange,
+             Field.TrailingAnnualDividendYield,
+             Field.FiftyTwoWeekHighChange,
+             Field.FiftyTwoWeekHighChangePercent,
+             Field.FiftyTwoWeekLowChange,
+             Field.FiftyTwoWeekLowChangePercent
+          
         ).QueryAsync();
 
         if (!securities.ContainsKey(symbol))
@@ -61,7 +73,16 @@ public  class YahooFinanceService : IYahooFinanceService
           FiftyTwoWeekHigh = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekHigh ?? 0, 0),
           FiftyTwoWeekLow = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekLow ?? 0, 0),
           Volume = SafeValueUtil.GetValueOrDefault(() => security?.RegularMarketVolume ?? 0L, 0L),
-          Change = SafeValueUtil.GetValueOrDefault(() => security?.RegularMarketChange ?? 0, 0)
+          Change = SafeValueUtil.GetValueOrDefault(() => security?.RegularMarketChange ?? 0, 0),
+          Currency= Utility.GetValidString(SafeValueUtil.GetValueOrDefault(() => security?.Currency, "Unknown"), "Unknown"),
+          DividendDate = SafeValueUtil.GetValueOrDefault(() => security?.DividendDate , 0), // Substituir conforme necessário
+          BookValue = SafeValueUtil.GetValueOrDefault(() => security?.BookValue , 0), // Substituir conforme necessário
+          Exchange = Utility.GetValidString(security?.Exchange ?? "Unknown", "Unknown"), // Substituir conforme necessário
+          FiftyTwoWeekHighChange = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekHighChange, 0),
+          FiftyTwoWeekHighChangePercent = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekHighChangePercent , 0.0),
+          FiftyTwoWeekLowChange = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekLowChange,0),
+          FiftyTwoWeekLowChangePercent = SafeValueUtil.GetValueOrDefault(() => security?.FiftyTwoWeekLowChangePercent , 0.0),
+          TrailingAnnualDividendYield= SafeValueUtil.GetValueOrDefault(() => security?.TrailingAnnualDividendYield, 0.0)
         };
         return stockViewModel;
 

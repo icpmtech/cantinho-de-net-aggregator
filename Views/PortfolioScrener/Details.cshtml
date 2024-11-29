@@ -7,114 +7,251 @@
 }
 
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<style>
+    .portfolio-card {
+        border: 1px solid #e3e3e3;
+        border-radius: 10px;
+        padding: 15px;
+        background: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
 
-<div class="container my-4">
-    <h1 class="text-center mb-4">Stock Market Dashboard</h1>
+        .portfolio-card .percentage {
+            color: #007bff;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
 
-    <!-- Company Summary Card -->
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">
-                <i class="bi bi-building"></i> Company Summary
-            </h5>
-            <div id="companySummary">
-                <h6>Loading...</h6>
+        .portfolio-card .amount {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+
+        .portfolio-card .metric {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #6c757d;
+        }
+
+        .portfolio-card .gain {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .portfolio-card .loss {
+            color: red;
+        }
+
+    /* Skeleton Loader Styles */
+    .skeleton {
+        background-color: #e0e0e0;
+        border-radius: 4px;
+        height: 20px;
+        width: 100%;
+        margin-bottom: 10px;
+        animation: pulse 1.5s infinite;
+    }
+
+        .skeleton.large {
+            height: 40px;
+        }
+
+        .skeleton.medium {
+            height: 30px;
+        }
+
+        .skeleton.small {
+            height: 15px;
+        }
+
+    @@keyframes pulse {
+        0%
+
+    {
+        background-color: #e0e0e0;
+    }
+
+    50% {
+        background-color: #f0f0f0;
+    }
+
+    100% {
+        background-color: #e0e0e0;
+    }
+
+    }
+
+    .spinner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+        .spinner div {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #007bff;
+            border-top: 4px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+    @@keyframes spin {
+        to
+
+    {
+        transform: rotate(360deg);
+    }
+
+    }</style>
+
+<!-- Skeleton and Spinner -->
+<div id="loadingSkeleton">
+    <div class="skeleton large"></div>
+    <div class="skeleton medium"></div>
+    <div class="skeleton small"></div>
+    <div class="spinner">
+        <div></div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div id="mainContent" style="display: none;">
+    <div class="row">
+        <!-- First Column -->
+        <div class="col-md-8">
+            <div>
+                <div>
+                    <h6 id="companySummary" class="card-title">Loading...</h6>
+                </div>
+            </div>
+        </div>
+        <!-- Second Column -->
+        <div class="col-md-4">
+            <div class="portfolio-card">
+                <!-- Chart -->
+                <div id="portfolioChart" class="mb-3"></div>
+                <!-- Main Text -->
+             <p id="portfolioPercentage" class="percentage">0.6% of your portfolios</p>
+<p class="text-muted small">Only you can see this</p>
+<p id="portfolioAmount" class="amount">$57.40</p>
+<p id="portfolioShares" class="metric">10 shares</p>
+<!-- Gains/Losses -->
+<div class="gain">
+    <span>Day gain</span>
+    <span id="portfolioDayGain" class="loss">- $2.50 <span id="portfolioDayGainBadge" class="badge bg-light text-danger">-4.17%</span></span>
+</div>
+<div class="gain">
+    <span>Total gain</span>
+    <span id="portfolioTotalGain" class="loss">- $8.80 <span id="portfolioTotalGainBadge" class="badge bg-light text-danger">-13.29%</span></span>
+</div>
+
             </div>
         </div>
     </div>
-
     <!-- Main Stock Information -->
-    <div class="row">
+    <div class="row mt-2">
         <div class="col-12">
-            <div class="card">
+            <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">
-                        <i class="bi bi-bar-chart-line"></i> Stock Information
-                    </h5>
+                    <div class="card-title">
+                        <i class="bx bx-bar-chart"></i> More Information
+                    </div>
+                    <!-- Tabs -->
                     <ul class="nav nav-tabs" id="stockTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab">
-                                Chart
+                            <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab" aria-controls="chart" aria-selected="true">
+                                <i class="bx bx-line-chart"></i> Chart
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">
-                                News
+                            <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab" aria-controls="news" aria-selected="false">
+                                <i class="bx bx-news"></i> News
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">
-                                Details
+                            <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="false">
+                                <i class="bx bx-info-circle"></i> Details
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="fundamentals-tab" data-bs-toggle="tab" data-bs-target="#fundamentals" type="button" role="tab">
-                                Fundamentals
+                            <button class="nav-link" id="fundamentals-tab" data-bs-toggle="tab" data-bs-target="#fundamentals" type="button" role="tab" aria-controls="fundamentals" aria-selected="false">
+                                <i class="bx bx-trending-up"></i> Fundamentals
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="dividends-tab" data-bs-toggle="tab" data-bs-target="#dividends" type="button" role="tab">
-                                Dividends
+                            <button class="nav-link" id="dividends-tab" data-bs-toggle="tab" data-bs-target="#dividends" type="button" role="tab" aria-controls="dividends" aria-selected="false">
+                                <i class="bx bx-dollar-circle"></i> Dividends
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button" role="tab">
-                                Signals
+                            <button class="nav-link" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button" role="tab" aria-controls="signals" aria-selected="false">
+                                <i class="bx bx-pulse"></i> Signals
                             </button>
                         </li>
                     </ul>
+                    <!-- Tab Content -->
                     <div class="tab-content mt-3" id="stockTabContent">
                         <!-- Chart Tab -->
-                        <div class="tab-pane fade show active" id="chart" role="tabpanel">
+                        <div class="tab-pane fade show active" id="chart" role="tabpanel" aria-labelledby="chart-tab">
                             <div id="chartContainer"></div>
                         </div>
                         <!-- News Tab -->
-                        <div class="tab-pane fade" id="news" role="tabpanel">
+                        <div class="tab-pane fade" id="news" role="tabpanel" aria-labelledby="news-tab">
                             <ul id="newsList" class="list-group">
                                 <li class="list-group-item">No news available.</li>
                             </ul>
                         </div>
                         <!-- Details Tab -->
-                        <div class="tab-pane fade" id="details" role="tabpanel">
-                            <table class="table">
-                                <tbody id="detailsTable">
-                                    <tr><th>Symbol</th><td>N/A</td></tr>
-                                    <tr><th>Price</th><td>N/A</td></tr>
-                                    <tr><th>Change</th><td>N/A</td></tr>
-                                    <tr><th>Currency</th><td>N/A</td></tr>
-                                </tbody>
-                            </table>
+                        <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
+                            <div class="card">
+                                <h5 class="card-header">Details</h5>
+                                <table class="table">
+                                    <tbody id="detailsTable">
+                                        <tr><th>Symbol</th><td>N/A</td></tr>
+                                        <tr><th>Price</th><td>N/A</td></tr>
+                                        <tr><th>Change</th><td>N/A</td></tr>
+                                        <tr><th>Currency</th><td>N/A</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         <!-- Fundamentals Tab -->
-                        <div class="tab-pane fade" id="fundamentals" role="tabpanel">
-                            <table class="table">
-                                <tbody id="fundamentalsTable">
-                                    <tr><th>P/E Ratio</th><td>N/A</td></tr>
-                                    <tr><th>EPS</th><td>N/A</td></tr>
-                                    <tr><th>Dividend Yield</th><td>N/A</td></tr>
-                                    <tr><th>Market Cap</th><td>N/A</td></tr>
-                                </tbody>
-                            </table>
+                        <div class="tab-pane fade" id="fundamentals" role="tabpanel" aria-labelledby="fundamentals-tab">
+                            <div class="table-responsive text-nowrap">
+                                <table class="table">
+                                    <tbody id="fundamentalsTable">
+                                        <tr><th>P/E Ratio</th><td>N/A</td></tr>
+                                        <tr><th>EPS</th><td>N/A</td></tr>
+                                        <tr><th>Dividend Yield</th><td>N/A</td></tr>
+                                        <tr><th>Market Cap</th><td>N/A</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         <!-- Dividends Tab -->
-                        <div class="tab-pane fade" id="dividends" role="tabpanel">
-                            <table class="table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Ex-Dividend Date</th>
-                                        <th>Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="dividendsTable">
-                                    <tr>
-                                        <td colspan="3">No dividend data available.</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="tab-pane fade" id="dividends" role="tabpanel" aria-labelledby="dividends-tab">
+                            <div class="table-responsive text-nowrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Ex-Dividend Date</th>
+                                            <th>Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dividendsTable">
+                                        <tr>
+                                            <td colspan="3">No dividend data available.</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                         <!-- Signals Tab -->
-                        <div class="tab-pane fade" id="signals" role="tabpanel">
+                        <div class="tab-pane fade" id="signals" role="tabpanel" aria-labelledby="signals-tab">
                             <div id="technicalSignalsChart" style="height: 300px;"></div>
                             <div id="analystSignalsChart" style="height: 300px; margin-top: 20px;"></div>
                         </div>
@@ -124,6 +261,7 @@
         </div>
     </div>
 </div>
+
 <script>
 
     // Example stock symbol
@@ -147,17 +285,88 @@
         }
     }
 
-    // Function to display company summary
-    function renderCompanySummary(data) {
+        function renderCompanySummary(data) {
+        // Select the container for the company summary
         const summaryDiv = document.getElementById("companySummary");
+
+        // Check if data is provided
+        if (!data) {
+            summaryDiv.innerHTML = "<p>No data available</p>";
+            return;
+        }
+
+        // Handle missing data gracefully
+        const ceo = data.ceo || "N/A";
+        const companyName = data.companyName || "N/A";
+        const sector = data.sector || "N/A";
+        const industry = data.industry || "N/A";
+        const marketCap = data.marketCap
+            ? `$${Number(data.marketCap).toLocaleString()}`
+            : "N/A";
+        const employees = data.employees || "N/A";
+
+        // Render summary with Bootstrap components
         summaryDiv.innerHTML = `
-            <p><strong>CEO:</strong> ${data.ceo}</p>
-            <p><strong>Company:</strong> ${data.companyName}</p>
-            <p><strong>Sector:</strong> ${data.sector}</p>
-            <p><strong>Industry:</strong> ${data.industry}</p>
-            <p><strong>Market Cap:</strong> ${data.marketCap}</p>
+            <div class="card shadow-sm mb-4">
+                <div class="card-header">
+                    <div class="card-title mb-0">
+                        <i class="bx bx-bar-chart"></i> Company Summary
+                    </div>
+                </div>
+                <div class="card-body mt-3">
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">
+                            <svg aria-label="CEO Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                            </svg>
+                            <strong>CEO</strong>
+                        </div>
+                        <div class="col-8">${ceo}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">
+                            <i class="bx bx-building"></i> <strong>Name</strong>
+                        </div>
+                        <div class="col-8">${companyName}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">
+                            <i class="bx bx-diagram"></i> <strong>Sector</strong>
+                        </div>
+                        <div class="col-8">${sector}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">
+                            <i class="bx bx-gear"></i> <strong>Industry</strong>
+                        </div>
+                        <div class="col-8">${industry}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">
+                            <svg aria-label="Employees Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                                <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                            </svg>
+                            <strong>Employees</strong>
+                        </div>
+                        <div class="col-8">${employees}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-4 text-muted">
+                            <svg aria-label="Market Cap Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
+                                <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
+                            </svg>
+                            <strong>Market Cap</strong>
+                        </div>
+                        <div class="col-8">${marketCap}</div>
+                    </div>
+                </div>
+            </div>
         `;
     }
+
+
+    
+
 
         // Function to display chart
     function renderChart(data) {
@@ -238,6 +447,86 @@
         chart.render();
     }
 
+
+         // Function to display chart portfolio
+   function renderChartPortfolio(data) {
+    const options = {
+        chart: {
+            height: 120, // Slightly taller for better visibility
+            type: "radialBar",
+            toolbar: {
+                show: false, // Hide unnecessary toolbar
+            },
+        },
+        series: [data?.percentage || 0], // Default to 0 if data is unavailable
+        colors: ["#007bff"], // Modern blue color
+        plotOptions: {
+            radialBar: {
+                startAngle: -135,
+                endAngle: 135,
+                hollow: {
+                    size: "70%", // Larger hollow area for a cleaner design
+                    background: "transparent",
+                    image: undefined,
+                },
+                track: {
+                    background: "#e8eaf6", // Subtle background for track
+                    strokeWidth: "100%",
+                },
+                dataLabels: {
+                    name: {
+                        offsetY: -10,
+                        show: true,
+                        color: "#6c757d", // Subtle gray for the name
+                        fontSize: "14px",
+                        fontWeight: "bold",
+                        formatter: function () {
+                            return "Portfolio %";
+                        },
+                    },
+                    value: {
+                        offsetY: 5,
+                        fontSize: "20px",
+                        fontWeight: "bold",
+                        color: "#007bff", // Same as the chart color for consistency
+                        formatter: function (val) {
+                            return `${val.toFixed(1)}%`; // One decimal place
+                        },
+                    },
+                },
+            },
+        },
+        fill: {
+            type: "gradient",
+            gradient: {
+                shade: "light",
+                type: "horizontal",
+                gradientToColors: ["#80d4ff"], // Gradient for modern look
+                stops: [0, 100],
+            },
+        },
+        stroke: {
+            lineCap: "round", // Smooth edges for a modern design
+        },
+        labels: ["Portfolio Contribution"], // Additional descriptive label
+        responsive: [
+            {
+                breakpoint: 768,
+                options: {
+                    chart: {
+                        height: 100, // Adjust for smaller screens
+                    },
+                },
+            },
+        ],
+    };
+
+    const chart = new ApexCharts(document.querySelector("#portfolioChart"), options);
+    chart.render();
+}
+
+
+
     // Function to display news
     function renderNews(news) {
         const newsList = document.getElementById("newsList");
@@ -252,24 +541,31 @@
     }
 
     // Function to display details
-    function renderDetails(data) {
+      function renderDetails(data) {
         const detailsTable = document.getElementById("detailsTable");
         detailsTable.innerHTML = `
-            <tr><th>Symbol</th><td>${stockSymbol}</td></tr>
+            <tr><th>Symbol</th><td>${data.symbol}</td></tr>
             <tr><th>CEO</th><td>${data.ceo}</td></tr>
-             <tr><th>Name</th><td>${data.companyName}</td></tr>
-            <tr><th>Price</th><td>${data.regularMarketPrice} ${data.currency}</td></tr>
-            <tr><th>Change</th><td>${data.regularMarketChange} (${data.regularMarketChangePercent}%)</td></tr>
+            <tr><th>Name</th><td>${data.companyName}</td></tr>
+            <tr><th>Price</th><td>${data.price} ${data.currency}</td></tr>
+                <tr><th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
+      <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
+    </svg> Exchange</th><td>${data.exchange}</td></tr>
+            <tr><th>Dividend Date</th><td>${data.dividendDate}</td></tr>
+            <tr><th>52 Weeks High</th><td>${data.fiftyTwoWeekHigh} (${data.fiftyTwoWeekHighChange} %)</td></tr>
+            <tr><th>52 Weeks Low</th><td>${data.fiftyTwoWeekLow} (${data.fiftyTwoWeekLowChange} %)</td></tr>
         `;
     }
 
+
     // Function to display fundamentals
-    function renderFundamentals(data) {
+       function renderFundamentals(data) {
         const fundamentalsTable = document.getElementById("fundamentalsTable");
         fundamentalsTable.innerHTML = `
             <tr><th>P/E Ratio</th><td>${data.peRatio}</td></tr>
             <tr><th>EPS</th><td>${data.eps}</td></tr>
-            <tr><th>Dividend Yield</th><td>${data.dividendYield}</td></tr>
+            <tr><th>Dividend Yield</th><td>${data?.dividendYield} (${data.trailingAnnualDividendYield})</td></tr>
+            <tr><th>Book Value</th><td>${data.bookValue}</td></tr>
             <tr><th>Market Cap</th><td>${data.marketCap}</td></tr>
         `;
     }
@@ -336,6 +632,57 @@
         const chart = new ApexCharts(document.querySelector("#analystSignalsChart"), options);
         chart.render();
     }
+function updatePortfolioCard(data) {
+    // Helper function to check for valid data
+    const isValid = (value) => value !== null && value !== undefined;
+
+    // Update percentage of portfolio
+    const percentageElement = document.getElementById("portfolioPercentage");
+    percentageElement.textContent = isValid(data.percentage)
+        ? `${(data.percentage ?? 0).toFixed(2)}% of your portfolios`
+        : "N/A";
+
+    // Update amount (current value)
+    const amountElement = document.getElementById("portfolioAmount");
+    amountElement.textContent = isValid(data.currentValue)
+        ? `$${(data.currentValue ?? 0).toFixed(2)}`
+        : "N/A";
+
+    // Update shares
+    const sharesElement = document.getElementById("portfolioShares");
+    sharesElement.textContent = isValid(data.shares)
+        ? `${data.shares} shares`
+        : "N/A";
+
+    // Update day gain
+    const dayGainElement = document.getElementById("portfolioDayGain");
+    const dayGainBadge = document.getElementById("portfolioDayGainBadge");
+    if (isValid(data.dayGain) && isValid(data.dayGainPercentage)) {
+        const dayGainClass = data.dayGain >= 0 ? "text-success" : "text-danger";
+        dayGainElement.textContent = `${data.dayGain >= 0 ? '+' : '-'} $${Math.abs((data.dayGain ?? 0).toFixed(2))}`;
+        dayGainBadge.textContent = `${(data.dayGainPercentage ?? 0).toFixed(2)}%`;
+        dayGainBadge.className = `badge bg-light ${dayGainClass}`;
+    } else {
+        dayGainElement.textContent = "N/A";
+        dayGainBadge.textContent = "N/A";
+        dayGainBadge.className = "badge bg-light text-muted";
+    }
+
+    // Update total gain
+    const totalGainElement = document.getElementById("portfolioTotalGain");
+    const totalGainBadge = document.getElementById("portfolioTotalGainBadge");
+    if (isValid(data.totalGain) && isValid(data.totalGainPercentage)) {
+        const totalGainClass = data.totalGain >= 0 ? "text-success" : "text-danger";
+        totalGainElement.textContent = `${data.totalGain >= 0 ? '+' : '-'} $${Math.abs((data.totalGain ?? 0).toFixed(2))}`;
+        totalGainBadge.textContent = `${(data.totalGainPercentage ?? 0).toFixed(2)}%`;
+        totalGainBadge.className = `badge bg-light ${totalGainClass}`;
+    } else {
+        totalGainElement.textContent = "N/A";
+        totalGainBadge.textContent = "N/A";
+        totalGainBadge.className = "badge bg-light text-muted";
+    }
+}
+
 
     // Initialize Dashboard
     async function initializeDashboard() {
@@ -350,6 +697,10 @@
             renderDividends(stockDatas?.stock);
             renderTechnicalSignals(stockDatas?.stock.technicalSignals);
             renderAnalystSignals(stockDatas?.stock.analystRatings);
+            renderChartPortfolio(stockDatas?.stock.dataCardForSymbol);
+            updatePortfolioCard(stockDatas?.stock.dataCardForSymbol);
+            document.getElementById("loadingSkeleton").style.display = "none";
+            document.getElementById("mainContent").style.display = "block";
         } else {
             console.error("Failed to fetch stock data. Please check the API or fallback to mock data.");
         }
@@ -357,5 +708,5 @@
         document.addEventListener('DOMContentLoaded', function () {
        initializeDashboard();
     });
-   
+
 </script>

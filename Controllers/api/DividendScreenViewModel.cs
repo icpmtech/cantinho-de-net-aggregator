@@ -1,6 +1,6 @@
 namespace MarketAnalyticHub.Controllers.api
 {
-  internal class DividendScreenViewModel
+  public class DividendScreenViewModel
   {
     public string Date { get; set; }
     public string ExDate { get; set; }

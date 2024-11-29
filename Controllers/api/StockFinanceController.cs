@@ -5,6 +5,8 @@ using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using static MarketAnalyticHub.Services.PortfolioService;
 
 namespace MarketAnalyticHub.Controllers.api
 {
@@ -77,6 +79,11 @@ namespace MarketAnalyticHub.Controllers.api
     [HttpGet("search-finance")]
     public async Task<ActionResult> Details(string symbol)
     {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
       // Validate input
       if (string.IsNullOrWhiteSpace(symbol))
       {
@@ -95,6 +102,17 @@ namespace MarketAnalyticHub.Controllers.api
         if (viewModel.HasQuery)
         {
           // Fetch stock data
+          PortfolioCardDto? portfolioCardDto =null;
+          try
+          {
+            portfolioCardDto  = await _portfolioService.GetPortfolioBySymbolAsync(userId,  symbol);
+          }
+          catch (Exception ex )
+          {
+            _logger.LogError(ex, "An error occurred while fetching GetPortfolioBySymbolAsync details for symbol: {Symbol}", symbol);
+
+          }
+        
           var stock = await _yahooFinanceService.GetStockDataAsync(symbol);
           var summary = await _yahooFinanceService.GetSummaryBySymbolAsync(symbol);
 
@@ -105,7 +123,7 @@ namespace MarketAnalyticHub.Controllers.api
             stock.CEO = summary.CEO;
             stock.Sector = summary.Sector;
             stock.Description = summary.Description;
-
+            stock.DataCardForSymbol = portfolioCardDto;
             // Fetch historical chart data
             stock.ChartData = await _yahooFinanceService.GetHistoricalDataAsync(
                 symbol,

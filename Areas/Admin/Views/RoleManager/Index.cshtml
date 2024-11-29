@@ -42,7 +42,7 @@
         $('#addRoleBtn').click(function () {
             var roleName = $('#roleName').val();
             if (!roleName) {
-                alert('Role name cannot be empty');
+                console.error('Role name cannot be empty');
                 return;
             }
 
