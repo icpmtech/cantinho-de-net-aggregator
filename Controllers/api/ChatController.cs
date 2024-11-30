@@ -43,7 +43,79 @@ public class ChatController : BaseController
     _configuration = configuration;
     _openAiApi = new OpenAIAPI(_configuration["OpenAI:ApiKey"]);
   }
+  [HttpPost("upload-file-chart")]
+  public async Task<IActionResult> UploadFileChart([FromForm] FileUploadRequest model)
+  {
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (userId == null)
+    {
+      return Unauthorized();
+    }
+    if (!await DeductCreditsAsync(userId, 100))
+    {
+      return BadRequest(new { success = false, message = "Buy credits no credits " });
+    }
+    if (model.File == null || model.File.Length == 0)
+    {
+      return BadRequest(new { success = false, message = "Please upload a valid file." });
+    }
 
+    var filePath = Path.Combine(Path.GetTempPath(), model.File.FileName);
+
+    try
+    {
+      // Save the uploaded file to a temporary path
+      using (var stream = new FileStream(filePath, FileMode.Create))
+      {
+        await model.File.CopyToAsync(stream);
+      }
+
+      // Encode the file to base64
+      var base64File = EncodeFileToBase64(filePath);
+
+      string fileType = model.File.ContentType.Split('/')[0];
+
+      // Prepare the payload for OpenAI API
+      var payload = new
+      {
+        model = "gpt-4o",
+        messages = new[]
+          {
+                    new
+                    {
+                        role = "user",
+                        content = new object[]
+                        {
+                            new { type = "text", text = "What’s in this file?And analisys the chart in detail.And add a short 10 lines maximum forecast." },
+                            new { type = "image_url", image_url  = new { url = $"data:{model.File.ContentType};base64,{base64File}" } }
+                        }
+                    }
+                },
+        max_tokens = 1500
+      };
+
+      var jsonPayload = JsonSerializer.Serialize(payload);
+      var client = _clientFactory.CreateClient();
+      client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _configuration["OpenAI:ApiKey"]);
+      var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", new StringContent(jsonPayload, Encoding.UTF8, "application/json"));
+
+      if (!response.IsSuccessStatusCode)
+      {
+        var errorContent = await response.Content.ReadAsStringAsync();
+        return BadRequest(new { success = false, message = "Error analyzing file with OpenAI", errorContent });
+      }
+
+      var resultContent = await response.Content.ReadAsStringAsync();
+      var analysis = JsonDocument.Parse(resultContent).RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString().Trim();
+
+      return Ok(new { success = true, analysis });
+    }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Error uploading or analyzing file.");
+      return StatusCode(500, new { success = false, message = "Internal server error." });
+    }
+  }
 
   [HttpPost("UploadFile")]
   public async Task<IActionResult> UploadFile([FromForm] FileUploadRequest model)

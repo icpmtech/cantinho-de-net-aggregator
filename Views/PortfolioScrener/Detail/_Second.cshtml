@@ -1,0 +1,93 @@
+<div class="col-md-6 col-lg-6 order-1 mb-6">
+    <div class="card h-100 portfolio-card">
+        <!-- Card Header -->
+        <div class="card-header nav-align-top">
+            <ul class="nav nav-pills" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#portfolioOverview" aria-controls="portfolioOverview" aria-selected="true">
+                        Overview
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#portfolioDetails" aria-controls="portfolioDetails" aria-selected="false" tabindex="-1">
+                        Details
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+            <div class="tab-content p-0">
+                <!-- Overview Tab -->
+                <div class="tab-pane fade show active" id="portfolioOverview" role="tabpanel" style="position: relative;">
+                    <!-- Chart Section -->
+                    <div id="portfolioChart" class="mb-4" style="min-height: 200px;"></div>
+
+                    <!-- Main Metrics -->
+                    <div class="d-flex mb-4">
+                        <div class="avatar flex-shrink-0 me-3">
+                            <img src="/img/icons/unicons/wallet.png" alt="Portfolio Icon">
+                        </div>
+                        <div>
+                            <p class="mb-0">Portfolio Value</p>
+                            <div class="d-flex align-items-center">
+                                <div id="portfolioAmount" class="mb-0 me-1">$N/A</div>
+                                <small id="portfolioPercentage" class="text-success fw-medium">N/A% of your portfolios</small>
+                            </div>
+                        </div>
+
+                    </div>
+
+
+                    <!-- Gains/Losses -->
+                    <div class="d-flex justify-content-between align-items-center my-3">
+                        <div class="text-center">
+                            <p class="mb-0 text-muted">Day Gain</p>
+                            <h6>
+                                <span id="portfolioDayGain" class="text-danger">N/A</span>
+                                <span id="portfolioDayGainBadge" class="badge bg-light text-danger">N/A%</span>
+                            </h6>
+                        </div>
+                        <div class="text-center">
+                            <p class="mb-0 text-muted">Total Gain</p>
+                            <h6>
+                                <span id="portfolioTotalGain" class="text-success">N/A</span>
+                                <span id="portfolioTotalGainBadge" class="badge bg-light text-success">N/A%</span>
+                            </h6>
+                        </div>
+                    </div>
+                    <hr class="m-0">
+                    <div class="card-footer">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-body">
+                                Manage your portfolio efficiently.<br>
+                                Check your portfolio for more details.
+                            </small>
+                            <div>
+                                <a class="btn btn-sm btn-outline-primary" href="/Portfolio">
+                                    <i class="bx bx-bar-chart me-2"></i>View Details...
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Details Tab -->
+                <div class="tab-pane fade" id="portfolioDetails" role="tabpanel">
+                    <h6 class="mb-4">Portfolio Details</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li>
+                            <p class="text-muted mb-1">Total Shares</p>
+                            <h6 id="portfolioShares" class="mb-0">N/A shares</h6>
+                        </li>
+                        <li class="mt-3">
+                            <p class="text-muted mb-1">Last Updated</p>
+                            <h6 class="mb-0">N/A</h6>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

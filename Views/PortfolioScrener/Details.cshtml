@@ -66,20 +66,17 @@
         }
 
     @@keyframes pulse {
-        0%
+        0% {
+            background-color: #e0e0e0;
+        }
 
-    {
-        background-color: #e0e0e0;
-    }
+        50% {
+            background-color: #f0f0f0;
+        }
 
-    50% {
-        background-color: #f0f0f0;
-    }
-
-    100% {
-        background-color: #e0e0e0;
-    }
-
+        100% {
+            background-color: #e0e0e0;
+        }
     }
 
     .spinner {
@@ -99,846 +96,611 @@
         }
 
     @@keyframes spin {
-        to
-
-    {
-        transform: rotate(360deg);
-    }
-
+        to {
+            transform: rotate(360deg);
+        }
     }</style>
 
 <!-- Skeleton and Spinner -->
 <div id="loadingSkeleton">
-    <div class="skeleton large"></div>
-    <div class="skeleton medium"></div>
-    <div class="skeleton small"></div>
     <div class="spinner">
         <div></div>
     </div>
+    <div class="skeleton large"></div>
+    <div class="skeleton medium"></div>
+    <div class="skeleton small"></div>
+
 </div>
 
 <!-- Main Content -->
 <div id="mainContent" style="display: none;">
     <div class="row">
         <!-- First Column -->
-        <div class="col-md-6 col-lg-6">
-            <div>
-                <div>
-                    <h6 id="companySummary" class="card-title">Loading...</h6>
-                </div>
-            </div>
-        </div>
+        @await Html.PartialAsync("Detail/_First")
         <!-- Second Column -->
-            <div class="col-md-6 col-lg-6 order-1 mb-6">
-                <div class="card h-100 portfolio-card">
-                    <!-- Card Header -->
-                    <div class="card-header nav-align-top">
-                        <ul class="nav nav-pills" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#portfolioOverview" aria-controls="portfolioOverview" aria-selected="true">
-                                    Overview
-                                </button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#portfolioDetails" aria-controls="portfolioDetails" aria-selected="false" tabindex="-1">
-                                    Details
-                                </button>
-                            </li>
-                        </ul>
-                    </div>
-
-                    <!-- Card Body -->
-                    <div class="card-body">
-                        <div class="tab-content p-0">
-                            <!-- Overview Tab -->
-                            <div class="tab-pane fade show active" id="portfolioOverview" role="tabpanel" style="position: relative;">
-                                <!-- Chart Section -->
-                                <div id="portfolioChart" class="mb-4" style="min-height: 200px;"></div>
-
-                                <!-- Main Metrics -->
-                                <div class="d-flex mb-4">
-                                    <div class="avatar flex-shrink-0 me-3">
-                                        <img src="/img/icons/unicons/wallet.png" alt="Portfolio Icon">
-                                    </div>
-                                    <div>
-                                        <p class="mb-0">Portfolio Value</p>
-                                        <div class="d-flex align-items-center">
-                                            <div id="portfolioAmount" class="mb-0 me-1">$N/A</div>
-                                            <small id="portfolioPercentage" class="text-success fw-medium">N/A% of your portfolios</small>
-                                        </div>
-                                    </div>
-                                
-                                </div>
-                            <hr class="m-0">
-                            <div id="finance-card" d-flex mb-4>
-                                <div id="market-state">Market State: Loading...</div>
-                                <p id="post-market-change">Post-Market Change: --</p>
-                                <p id="post-market-change-percent">Post-Market Change Percent: --</p>
-                                <p id="post-market-price">Post-Market Price: --</p>
-                                <p id="post-market-time">Post-Market Time: --</p>
-                            </div>
-                            <hr class="m-0">
-                                <!-- Gains/Losses -->
-                                <div class="d-flex justify-content-between align-items-center my-3">
-                                    <div class="text-center">
-                                        <p class="mb-0 text-muted">Day Gain</p>
-                                        <h6>
-                                            <span id="portfolioDayGain" class="text-danger">N/A</span>
-                                            <span id="portfolioDayGainBadge" class="badge bg-light text-danger">N/A%</span>
-                                        </h6>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="mb-0 text-muted">Total Gain</p>
-                                        <h6>
-                                            <span id="portfolioTotalGain" class="text-success">N/A</span>
-                                            <span id="portfolioTotalGainBadge" class="badge bg-light text-success">N/A%</span>
-                                        </h6>
-                                    </div>
-                                </div>
-                            <div class="card-footer">
-                                <div class="d-flex justify-content-between">
-                                    <small class="text-body">
-                                        Manage your portfolio efficiently.<br>
-                                        Check your portfolio for more details.
-                                    </small>
-                                    <div>
-                                        <a class="btn btn-outline-primary mt-2" href="/Portfolio">
-                                            <i class="bx bx-bar-chart me-2"></i>View Details...
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            </div>
-                        
-                            <!-- Details Tab -->
-                            <div class="tab-pane fade" id="portfolioDetails" role="tabpanel">
-                                <h6 class="mb-4">Portfolio Details</h6>
-                                <ul class="list-unstyled mb-0">
-                                    <li>
-                                        <p class="text-muted mb-1">Total Shares</p>
-                                        <h6 id="portfolioShares" class="mb-0">N/A shares</h6>
-                                    </li>
-                                    <li class="mt-3">
-                                        <p class="text-muted mb-1">Last Updated</p>
-                                        <h6 class="mb-0">N/A</h6>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        </div>
+        @await Html.PartialAsync("Detail/_Second")
     </div>
     <!-- Main Stock Information -->
-    <div class="row mt-2">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="card-title">
-                        <i class="bx bx-bar-chart"></i> More Information
-                    </div>
-                    <!-- Tabs -->
-                    <ul class="nav nav-pills" id="stockTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="chart-tab" data-bs-toggle="tab" data-bs-target="#chart" type="button" role="tab" aria-controls="chart" aria-selected="true">
-                                <i class="bx bx-line-chart"></i> Chart
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab" aria-controls="news" aria-selected="false">
-                                <i class="bx bx-news"></i> News
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab" aria-controls="details" aria-selected="false">
-                                <i class="bx bx-info-circle"></i> Details
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="fundamentals-tab" data-bs-toggle="tab" data-bs-target="#fundamentals" type="button" role="tab" aria-controls="fundamentals" aria-selected="false">
-                                <i class="bx bx-trending-up"></i> Fundamentals
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="dividends-tab" data-bs-toggle="tab" data-bs-target="#dividends" type="button" role="tab" aria-controls="dividends" aria-selected="false">
-                                <i class="bx bx-dollar-circle"></i> Dividends
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="signals-tab" data-bs-toggle="tab" data-bs-target="#signals" type="button" role="tab" aria-controls="signals" aria-selected="false">
-                                <i class="bx bx-pulse"></i> Signals
-                            </button>
-                        </li>
-                    </ul>
-                    <!-- Tab Content -->
-                    <div class="tab-content mt-3" id="stockTabContent">
-                        <!-- Chart Tab -->
-                        <div class="tab-pane fade show active" id="chart" role="tabpanel" aria-labelledby="chart-tab">
-                           
-                            <button type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
-                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
-                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
-                                </svg>
-                            </button>
-                            <div id="chartContainer"></div>
-                            <div id="dynamic-container"></div>
-
-                        </div>
-                        <!-- News Tab -->
-                        <div class="tab-pane fade" id="news" role="tabpanel" aria-labelledby="news-tab">
-                            <ul id="newsList" class="list-group">
-                                <li class="list-group-item">No news available.</li>
-                            </ul>
-                        </div>
-                        <!-- Details Tab -->
-                        <div class="tab-pane fade" id="details" role="tabpanel" aria-labelledby="details-tab">
-                            <div class="card">
-                                <h5 class="card-header">Details</h5>
-                                <table class="table">
-                                    <tbody id="detailsTable">
-                                        <tr><th>Symbol</th><td>N/A</td></tr>
-                                        <tr><th>Price</th><td>N/A</td></tr>
-                                        <tr><th>Change</th><td>N/A</td></tr>
-                                        <tr><th>Currency</th><td>N/A</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <!-- Fundamentals Tab -->
-                        <div class="tab-pane fade" id="fundamentals" role="tabpanel" aria-labelledby="fundamentals-tab">
-                            <button type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
-                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
-                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
-                                </svg>
-                            </button>
-                            <div class="table-responsive text-nowrap">
-                                <table class="table">
-                                    <tbody id="fundamentalsTable">
-                                        <tr><th>P/E Ratio</th><td>N/A</td></tr>
-                                        <tr><th>EPS</th><td>N/A</td></tr>
-                                        <tr><th>Dividend Yield</th><td>N/A</td></tr>
-                                        <tr><th>Market Cap</th><td>N/A</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <!-- Dividends Tab -->
-                        <div class="tab-pane fade" id="dividends" role="tabpanel" aria-labelledby="dividends-tab">
-                            <button type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
-                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
-                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
-                                </svg>
-                            </button>
-                            <div class="table-responsive text-nowrap">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Date</th>
-                                            <th>Ex-Dividend Date</th>
-                                            <th>Amount</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="dividendsTable">
-                                        <tr>
-                                            <td colspan="3">No dividend data available.</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <!-- Signals Tab -->
-                        <div class="tab-pane fade" id="signals" role="tabpanel" aria-labelledby="signals-tab">
-                            <button type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
-                                    <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
-                                    <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
-                                </svg>
-                            </button>
-                            <div id="technicalSignalsChart" style="height: 300px;"></div>
-                            <div id="analystSignalsChart" style="height: 300px; margin-top: 20px;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    @await Html.PartialAsync("Detail/_MainStockInformation")
 </div>
 <!-- Include TradingView Widget Library -->
-<script src="https://s3.tradingview.com/tv.js"></script>
 
-<script>
+  @section PageScripts {
+    <script src="https://s3.tradingview.com/tv.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="~/js/pages/core/ai/pilot-chart.js"></script>
+    <script>
 
-    // Example stock symbol
-    const urlParams = new URLSearchParams(window.location.search);
-    const stockSymbol = urlParams.get('stockSymbol');
+            // Example stock symbol
+            const urlParams = new URLSearchParams(window.location.search);
+            const stockSymbol = urlParams.get('stockSymbol');
 
-    // Base API endpoint
-    const apiEndpoint = "/api/stockfinance/search-finance";
+            // Base API endpoint
+            const apiEndpoint = "/api/stockfinance/search-finance";
 
-    // Fetch data from API
-    async function fetchStockData(symbol) {
-        try {
-            const response = await fetch(`${apiEndpoint}?symbol=${symbol}`);
-            if (!response.ok) {
-                throw new Error(`API call failed with status: ${response.status}`);
+            // Fetch data from API
+            async function fetchStockData(symbol) {
+                try {
+                    const response = await fetch(`${apiEndpoint}?symbol=${symbol}`);
+                    if (!response.ok) {
+                        throw new Error(`API call failed with status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (error) {
+                    console.error("Error fetching stock data:", error);
+                    return null; // Fallback to handle errors
+                }
             }
-            return await response.json();
-        } catch (error) {
-            console.error("Error fetching stock data:", error);
-            return null; // Fallback to handle errors
-        }
-    }
 
-        function renderCompanySummary(data) {
-        // Select the container for the company summary
-        const summaryDiv = document.getElementById("companySummary");
+                function renderCompanySummary(data) {
+                // Select the container for the company summary
+                const summaryDiv = document.getElementById("companySummary");
 
-        // Check if data is provided
-        if (!data) {
-            summaryDiv.innerHTML = "<p>No data available</p>";
-            return;
-        }
+                // Check if data is provided
+                if (!data) {
+                    summaryDiv.innerHTML = "<p>No data available</p>";
+                    return;
+                }
 
-        // Handle missing data gracefully
-        const ceo = data.ceo || "N/A";
-        const companyName = data.companyName || "N/A";
-        const sector = data.sector || "N/A";
-        const industry = data.industry || "N/A";
-        const marketCap = data.marketCap
-            ? `$${Number(data.marketCap).toLocaleString()}`
-            : "N/A";
-        const employees = data.employees || "N/A";
+                // Handle missing data gracefully
+                const ceo = data.ceo || "N/A";
+                const companyName = data.companyName || "N/A";
+                const sector = data.sector || "N/A";
+                const industry = data.industry || "N/A";
+                const marketCap = data.marketCap
+                    ? `$${Number(data.marketCap).toLocaleString()}`
+                    : "N/A";
+                const employees = data.employees || "N/A";
 
-        // Render summary with Bootstrap components
-        summaryDiv.innerHTML = `
-            <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <div class="card-title mb-0">
-                        <i class="bx bx-bar-chart"></i> Company Summary
-                    </div>
-                </div>
-                <div class="card-body mt-3">
-                    <div class="row mb-3">
-                        <div class="col-4 text-muted">
-                            <svg aria-label="CEO Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
-                                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
-                            </svg>
-                            <strong>CEO</strong>
+                // Render summary with Bootstrap components
+                summaryDiv.innerHTML = `
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header">
+                            <div class="card-title mb-0">
+                                <i class="bx bx-bar-chart"></i> Company Summary
+                            </div>
                         </div>
-                        <div class="col-8">${ceo}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-4 text-muted">
-                            <i class="bx bx-building"></i> <strong>Name</strong>
+                        <div class="card-body mt-3">
+                            <div class="row mb-3">
+                                <div class="col-4 text-muted">
+                                    <svg aria-label="CEO Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+                                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6m2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0m4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4m-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10s-3.516.68-4.168 1.332c-.678.678-.83 1.418-.832 1.664z"/>
+                                    </svg>
+                                    <strong>CEO</strong>
+                                </div>
+                                <div class="col-8">${ceo}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 text-muted">
+                                    <i class="bx bx-building"></i> <strong>Name</strong>
+                                </div>
+                                <div class="col-8">${companyName}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 text-muted">
+                                    <i class="bx bx-diagram"></i> <strong>Sector</strong>
+                                </div>
+                                <div class="col-8">${sector}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 text-muted">
+                                    <i class="bx bx-gear"></i> <strong>Industry</strong>
+                                </div>
+                                <div class="col-8">${industry}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 text-muted">
+                                    <svg aria-label="Employees Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
+                                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
+                                    </svg>
+                                    <strong>Employees</strong>
+                                </div>
+                                <div class="col-8">${employees}</div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-4 text-muted">
+                                    <svg aria-label="Market Cap Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
+                                        <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
+                                    </svg>
+                                    <strong>Market Cap</strong>
+                                </div>
+                                <div class="col-8">${marketCap}</div>
+                            </div>
                         </div>
-                        <div class="col-8">${companyName}</div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-4 text-muted">
-                            <i class="bx bx-diagram"></i> <strong>Sector</strong>
-                        </div>
-                        <div class="col-8">${sector}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-4 text-muted">
-                            <i class="bx bx-gear"></i> <strong>Industry</strong>
-                        </div>
-                        <div class="col-8">${industry}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-4 text-muted">
-                            <svg aria-label="Employees Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-people-fill" viewBox="0 0 16 16">
-                                <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6m-5.784 6A2.24 2.24 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.3 6.3 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5"/>
-                            </svg>
-                            <strong>Employees</strong>
-                        </div>
-                        <div class="col-8">${employees}</div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-4 text-muted">
-                            <svg aria-label="Market Cap Icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
-                                <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
-                            </svg>
-                            <strong>Market Cap</strong>
-                        </div>
-                        <div class="col-8">${marketCap}</div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+                `;
+            }
 
 
-    
 
 
-  function renderChart(data) {
-    // Extract series data and categories from the data array
-    const seriesData = data.map(point => ({
-        x: new Date(point.date).toLocaleDateString("en-US"),
-        y: point.close,
-    }));
 
-    // Set chart options
-    const options = {
-        chart: {
-            type: 'line',
-            height: 200,
-            zoom: {
-                enabled: true, // Enable zoom functionality
-                type: 'x', // Allow zooming along the x-axis
-                autoScaleYaxis: true, // Adjust y-axis when zooming
-            },
-            toolbar: {
-                show: true, // Display the toolbar
-                tools: {
-                    download: true, // Enable download button
-                    selection: true, // Enable selection tool
-                    zoom: true, // Enable zoom tool
-                    zoomin: true, // Enable zoom-in tool
-                    zoomout: true, // Enable zoom-out tool
-                    pan: true, // Enable panning
-                    reset: true, // Enable reset zoom button
-                },
-            },
-        },
-        series: [{
-            name: 'Price',
-            data: seriesData,
-        }],
-        xaxis: {
-            type: 'category', // Use category for x-axis
-            title: {
-                text: 'Date',
-            },
-            labels: {
-                rotate: -45,
-                style: {
-                    fontSize: '12px',
-                },
-            },
-        },
-        yaxis: {
-            title: {
-                text: 'Price (USD)',
-            },
-            labels: {
-                formatter: function (val) {
-                    return `$${val.toFixed(2)}`;
-                },
-            },
-        },
-        tooltip: {
-            y: {
-                formatter: function (val) {
-                    return `$${val.toFixed(2)}`;
-                },
-            },
-        },
-        stroke: {
-            curve: 'smooth', // Smooth line curve
-        },
-        markers: {
-            size: 4, // Slightly larger markers for better visibility
-        },
-        grid: {
-            borderColor: '#f1f1f1', // Subtle grid color
-        },
-        colors: ['#0d6efd'], // Primary blue for line color
-        responsive: [
-            {
-                breakpoint: 768,
-                options: {
-                    chart: {
-                        height: 150, // Adjust height for smaller screens
+          function renderChart(data) {
+            // Extract series data and categories from the data array
+            const seriesData = data.map(point => ({
+                x: new Date(point.date).toLocaleDateString("en-US"),
+                y: point.close,
+            }));
+
+            // Set chart options
+            const options = {
+                chart: {
+                    type: 'line',
+                    height: 200,
+                    zoom: {
+                        enabled: true, // Enable zoom functionality
+                        type: 'x', // Allow zooming along the x-axis
+                        autoScaleYaxis: true, // Adjust y-axis when zooming
                     },
-                    xaxis: {
-                        labels: {
-                            rotate: -90, // Rotate labels for better fit
+                    toolbar: {
+                        show: true, // Display the toolbar
+                        tools: {
+                            download: true, // Enable download button
+                            selection: true, // Enable selection tool
+                            zoom: true, // Enable zoom tool
+                            zoomin: true, // Enable zoom-in tool
+                            zoomout: true, // Enable zoom-out tool
+                            pan: true, // Enable panning
+                            reset: true, // Enable reset zoom button
                         },
                     },
                 },
-            },
-            {
-                breakpoint: 480,
-                options: {
-                    chart: {
-                        height: 120, // Further adjust height for very small screens
+                series: [{
+                    name: 'Price',
+                    data: seriesData,
+                }],
+                xaxis: {
+                    type: 'category', // Use category for x-axis
+                    title: {
+                        text: 'Date',
                     },
-                    xaxis: {
-                        labels: {
-                            show: false, // Hide x-axis labels on very small screens
+                    labels: {
+                        rotate: -45,
+                        style: {
+                            fontSize: '12px',
                         },
                     },
                 },
-            },
-        ],
-    };
-
-    // Render the chart
-    const chart = new ApexCharts(document.querySelector("#chartContainer"), options);
-    chart.render();
-}
-
-
-
-         // Function to display chart portfolio
-      function renderChartPortfolio(data) {
-        const options = {
-            chart: {
-                height: 240, // Optimal height for visibility
-                type: "radialBar",
-                toolbar: {
-                    show: false, // Hide the toolbar for a cleaner look
-                },
-            },
-            series: [data?.percentage || 0], // Default to 0 if no data is provided
-            labels: ["Portfolio Contribution"], // Descriptive label
-            colors: ["#007bff"], // Modern blue color
-            plotOptions: {
-                radialBar: {
-                    size: 150,
-                    offsetY: 10,
-                    startAngle: -150,
-                    endAngle: 150,
-                    hollow: {
-                        size: "55%", // Hollow size for a clean design
-                        background: "transparent",
+                yaxis: {
+                    title: {
+                        text: 'Price (USD)',
                     },
-                    track: {
-                        background: "#e8eaf6", // Subtle background color
-                        strokeWidth: "100%",
+                    labels: {
+                        formatter: function (val) {
+                            return `$${val.toFixed(2)}`;
+                        },
+                    },
+                },
+                tooltip: {
+                    y: {
+                        formatter: function (val) {
+                            return `$${val.toFixed(2)}`;
+                        },
+                    },
+                },
+                stroke: {
+                    curve: 'smooth', // Smooth line curve
+                },
+                markers: {
+                    size: 4, // Slightly larger markers for better visibility
+                },
+                grid: {
+                    borderColor: '#f1f1f1', // Subtle grid color
+                },
+                colors: ['#0d6efd'], // Primary blue for line color
+                responsive: [
+                    {
+                        breakpoint: 768,
+                        options: {
+                            chart: {
+                                height: 150, // Adjust height for smaller screens
+                            },
+                            xaxis: {
+                                labels: {
+                                    rotate: -90, // Rotate labels for better fit
+                                },
+                            },
+                        },
+                    },
+                    {
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                height: 120, // Further adjust height for very small screens
+                            },
+                            xaxis: {
+                                labels: {
+                                    show: false, // Hide x-axis labels on very small screens
+                                },
+                            },
+                        },
+                    },
+                ],
+            };
+
+            // Render the chart
+            const chart = new ApexCharts(document.querySelector("#chartContainer"), options);
+            chart.render();
+        }
+
+
+
+                 // Function to display chart portfolio
+              function renderChartPortfolio(data) {
+                const options = {
+                    chart: {
+                        height: 240, // Optimal height for visibility
+                        type: "radialBar",
+                        toolbar: {
+                            show: false, // Hide the toolbar for a cleaner look
+                        },
+                    },
+                    series: [data?.percentage || 0], // Default to 0 if no data is provided
+                    labels: ["Portfolio Contribution"], // Descriptive label
+                    colors: ["#007bff"], // Modern blue color
+                    plotOptions: {
+                        radialBar: {
+                            size: 150,
+                            offsetY: 10,
+                            startAngle: -150,
+                            endAngle: 150,
+                            hollow: {
+                                size: "55%", // Hollow size for a clean design
+                                background: "transparent",
+                            },
+                            track: {
+                                background: "#e8eaf6", // Subtle background color
+                                strokeWidth: "100%",
+                            },
+                            stroke: {
+                                dashArray: 5, // Dashed stroke for modern design
+                            },
+                            dataLabels: {
+                                name: {
+                                    offsetY: 15,
+                                    color: "#6c757d", // Subtle gray for label text
+                                    fontSize: "15px",
+                                    fontWeight: "500",
+                                    fontFamily: "Public Sans",
+                                    formatter: function () {
+                                        return "Portfolio %";
+                                    },
+                                },
+                                value: {
+                                    offsetY: -25,
+                                    color: "#007bff", // Match the main chart color
+                                    fontSize: "22px",
+                                    fontWeight: "500",
+                                    fontFamily: "Public Sans",
+                                    formatter: function (val) {
+                                        return `${val.toFixed(1)}%`; // Display one decimal place
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    fill: {
+                        type: "gradient",
+                        gradient: {
+                            shade: "dark",
+                            shadeIntensity: 0.5,
+                            gradientToColors: ["#80d4ff"], // Gradient for a modern look
+                            inverseColors: true,
+                            opacityFrom: 1,
+                            opacityTo: 0.6,
+                            stops: [30, 70, 100],
+                        },
                     },
                     stroke: {
-                        dashArray: 5, // Dashed stroke for modern design
+                        lineCap: "round", // Rounded ends for a polished look
                     },
-                    dataLabels: {
-                        name: {
-                            offsetY: 15,
-                            color: "#6c757d", // Subtle gray for label text
-                            fontSize: "15px",
-                            fontWeight: "500",
-                            fontFamily: "Public Sans",
-                            formatter: function () {
-                                return "Portfolio %";
+                    grid: {
+                        padding: {
+                            top: -35,
+                            bottom: -10,
+                        },
+                    },
+                    states: {
+                        hover: {
+                            filter: {
+                                type: "none",
                             },
                         },
-                        value: {
-                            offsetY: -25,
-                            color: "#007bff", // Match the main chart color
-                            fontSize: "22px",
-                            fontWeight: "500",
-                            fontFamily: "Public Sans",
-                            formatter: function (val) {
-                                return `${val.toFixed(1)}%`; // Display one decimal place
+                        active: {
+                            filter: {
+                                type: "none",
                             },
                         },
                     },
-                },
-            },
-            fill: {
-                type: "gradient",
-                gradient: {
-                    shade: "dark",
-                    shadeIntensity: 0.5,
-                    gradientToColors: ["#80d4ff"], // Gradient for a modern look
-                    inverseColors: true,
-                    opacityFrom: 1,
-                    opacityTo: 0.6,
-                    stops: [30, 70, 100],
-                },
-            },
-            stroke: {
-                lineCap: "round", // Rounded ends for a polished look
-            },
-            grid: {
-                padding: {
-                    top: -35,
-                    bottom: -10,
-                },
-            },
-            states: {
-                hover: {
-                    filter: {
-                        type: "none",
-                    },
-                },
-                active: {
-                    filter: {
-                        type: "none",
-                    },
-                },
-            },
-            responsive: [
-                {
-                    breakpoint: 768,
-                    options: {
-                        chart: {
-                            height: 180, // Adjust height for smaller screens
+                    responsive: [
+                        {
+                            breakpoint: 768,
+                            options: {
+                                chart: {
+                                    height: 180, // Adjust height for smaller screens
+                                },
+                            },
                         },
-                    },
-                },
-            ],
-        };
+                    ],
+                };
 
-        const chart = new ApexCharts(document.querySelector("#portfolioChart"), options);
-        chart.render();
+                const chart = new ApexCharts(document.querySelector("#portfolioChart"), options);
+                chart.render();
 
 
 
 
 
-    }
-
-
-
-
-        // Function to display news
-    function renderNews(news) {
-        const newsList = document.getElementById("newsList");
-        newsList.innerHTML = ""; // Clear existing items
-
-        news.forEach(item => {
-            const listItem = document.createElement("li");
-            listItem.classList.add("list-group-item");
-            listItem.innerHTML = `<a href="${item.url}" target="_blank">${item.title}</a>`;
-            newsList.appendChild(listItem);
-        });
-    }
-
-    // Function to display details
-      function renderDetails(data) {
-        const detailsTable = document.getElementById("detailsTable");
-        detailsTable.innerHTML = `
-            <tr><th>Symbol</th><td>${data.symbol}</td></tr>
-            <tr><th>CEO</th><td>${data.ceo}</td></tr>
-            <tr><th>Name</th><td>${data.companyName}</td></tr>
-            <tr><th>Price</th><td>${data.price} ${data.currency}</td></tr>
-                <tr><th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
-      <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
-    </svg> Exchange</th><td>${data.exchange}</td></tr>
-            <tr><th>Dividend Date</th><td>${data.dividendDate}</td></tr>
-            <tr><th>52 Weeks High</th><td>${data.fiftyTwoWeekHigh} (${data.fiftyTwoWeekHighChange} %)</td></tr>
-            <tr><th>52 Weeks Low</th><td>${data.fiftyTwoWeekLow} (${data.fiftyTwoWeekLowChange} %)</td></tr>
-        `;
-    }
-
-
-    // Function to display fundamentals
-       function renderFundamentals(data) {
-        const fundamentalsTable = document.getElementById("fundamentalsTable");
-        fundamentalsTable.innerHTML = `
-            <tr><th>P/E Ratio</th><td>${data.peRatio}</td></tr>
-            <tr><th>EPS</th><td>${data.eps}</td></tr>
-            <tr><th>Dividend Yield</th><td>${data?.dividendYield} (${data.trailingAnnualDividendYield})</td></tr>
-            <tr><th>Book Value</th><td>${data.bookValue}</td></tr>
-            <tr><th>Market Cap</th><td>${data.marketCap}</td></tr>
-        `;
-    }
-
-    // Function to display dividends
-    function renderDividends(data) {
-        const dividendsTable = document.getElementById("dividendsTable");
-        dividendsTable.innerHTML = ""; // Clear existing data
-
-        if (data.dividends && data.dividends.length > 0) {
-            data.dividends.forEach(dividend => {
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td>${dividend.date}</td>
-                    <td>${dividend.exDate}</td>
-                    <td>${dividend.amount}</td>
-                `;
-                dividendsTable.appendChild(row);
-            });
-        } else {
-            const noDataRow = document.createElement("tr");
-            noDataRow.innerHTML = `<td colspan="3">No dividend data available.</td>`;
-            dividendsTable.appendChild(noDataRow);
-        }
-    }
-
-    // Render technical signals
-    function renderTechnicalSignals(data) {
-        const options = {
-            series: [{
-                name: "Score",
-                data: Object.values(data),
-            }],
-            chart: {
-                type: "bar",
-                height: 300,
-            },
-            xaxis: {
-                categories: Object.keys(data),
-            },
-            title: {
-                text: "Technical Signals",
-            },
-        };
-
-        const chart = new ApexCharts(document.querySelector("#technicalSignalsChart"), options);
-        chart.render();
-    }
-
-    // Render analyst ratings
-    function renderAnalystSignals(data) {
-        const options = {
-            series: Object.values(data),
-            labels: Object.keys(data),
-            chart: {
-                type: "pie",
-                height: 300,
-            },
-            title: {
-                text: "Analyst Ratings",
-            },
-        };
-
-        const chart = new ApexCharts(document.querySelector("#analystSignalsChart"), options);
-        chart.render();
-    }
-    function updatePortfolioCard(data,stock) {
-        // Helper function to check for valid data
-    const isValid = (value) => value !== null && value !== undefined;
-
-    // Update percentage of portfolio
-    const percentageElement = document.getElementById("portfolioPercentage");
-    percentageElement.textContent = isValid(data?.percentage)
-        ? `${(data.percentage ?? 0).toFixed(2)}% of your portfolios`
-        : "N/A";
-
-    // Update amount (current value)
-    const amountElement = document.getElementById("portfolioAmount");
-    amountElement.textContent = isValid(data?.currentValue)
-                ? `${stock?.currency} ${(data.currentValue ?? 0).toFixed(2)}`
-            : "N/A";
-
-    // Update shares
-    const sharesElement = document.getElementById("portfolioShares");
-    sharesElement.textContent = isValid(data?.shares)
-        ? `${data.shares} shares`
-        : "N/A";
-
-    // Update day gain
-    const dayGainElement = document.getElementById("portfolioDayGain");
-    const dayGainBadge = document.getElementById("portfolioDayGainBadge");
-    if (isValid(data?.dayGain) && isValid(data?.dayGainPercentage)) {
-        const dayGainClass = data.dayGain >= 0 ? "gain text-success" : "lose text-danger";
-                dayGainElement.textContent = ` ${stock?.currency} ${data.dayGain >= 0 ? '+' : '-'} ${Math.abs((data.dayGain ?? 0).toFixed(2))}`;
-        dayGainElement.className = `badge bg-light ${dayGainClass}`;
-        dayGainBadge.textContent = `${(data.dayGainPercentage ?? 0).toFixed(2)}%`;
-        dayGainBadge.className = `badge bg-light ${dayGainClass}`;
-    } else {
-        dayGainElement.textContent = "N/A";
-        dayGainBadge.textContent = "N/A";
-        dayGainBadge.className = "badge bg-light text-muted";
-    }
-
-    // Update total gain
-    const totalGainElement = document.getElementById("portfolioTotalGain");
-    const totalGainBadge = document.getElementById("portfolioTotalGainBadge");
-    if (isValid(data?.totalGain) && isValid(data?.totalGainPercentage)) {
-        const totalGainClass = data.totalGain >= 0 ? "gain text-success" : "lose text-danger";
-            totalGainElement.textContent = ` ${stock?.currency} ${data.totalGain >= 0 ? '+' : '-'} ${Math.abs((data.totalGain ?? 0).toFixed(2))}`;
-            totalGainBadge.textContent = `${(data?.totalGainPercentage ?? 0).toFixed(2)}%`;
-        totalGainBadge.className = `badge bg-light ${totalGainClass}`;
-        totalGainElement.className = `badge bg-light ${totalGainClass}`;
-    } else {
-        totalGainElement.textContent = "N/A";
-        totalGainBadge.textContent = "N/A";
-        totalGainBadge.className = "badge bg-light text-muted";
-    }
-}
-    // Function to format UNIX timestamp to human-readable date
-    function formatTimestamp(timestamp) {
-        if (!timestamp) return "--";
-        const date = new Date(timestamp * 1000); // Convert to milliseconds
-        return date.toLocaleString();
-    }
-
-    // Function render the post market data
-         function renderPostMarketCard(data) {
-           
-
-            // Update the card with the fetched data
-            document.getElementById('market-state').innerText = `Market State: ${data?.marketState || '--'}`;
-            document.getElementById('post-market-change').innerText = `Post-Market Change: ${data?.postMarketChange?.toFixed(2) || '--'}`;
-            document.getElementById('post-market-change-percent').innerText = `Post-Market Change Percent: ${(data?.postMarketChangePercent?.toFixed(2) || '--')}%`;
-            document.getElementById('post-market-price').innerText = `Post-Market Price: $${data?.postMarketPrice?.toFixed(2) || '--'}`;
-            document.getElementById('post-market-time').innerText = `Post-Market Time: ${formatTimestamp(data?.postMarketTime)}`;
-       
-    }
-            
-       
-        function addChartWithInnerHTML(containerId, chartId, symbol, height = 400, theme = "light") {
-            const container = document.getElementById(containerId);
-            if (!container) {
-                console.error(`Container with ID "${containerId}" not found.`);
-                return;
             }
 
-            // Inject HTML dynamically
-            const widgetHTML = `
-                <div id="${chartId}" class="tradingview-widget-container" style="height: ${height}px;">
-                </div>
-            `;
-            container.innerHTML = widgetHTML;
 
-            // Initialize TradingView Widget
-            new TradingView.widget({
-                "width": "100%", // Responsive width
-                "height": height,
-                "symbol": symbol,
-                "interval": "D", // Daily interval
-                "timezone": "Etc/UTC",
-                "theme": theme,
-                "style": "1", // 1 for candles, 2 for bars, etc.
-                "locale": "en",
-                "toolbar_bg": "#f1f3f6",
-                "enable_publishing": false,
-                "allow_symbol_change": true,
-                "container_id": chartId
+
+
+                // Function to display news
+            function renderNews(news) {
+                const newsList = document.getElementById("newsList");
+                newsList.innerHTML = ""; // Clear existing items
+
+                news.forEach(item => {
+                    const listItem = document.createElement("li");
+                    listItem.classList.add("list-group-item");
+                    listItem.innerHTML = `<a href="${item.url}" target="_blank">${item.title}</a>`;
+                    newsList.appendChild(listItem);
+                });
+            }
+
+            // Function to display details
+              function renderDetails(data) {
+                const detailsTable = document.getElementById("detailsTable");
+                detailsTable.innerHTML = `
+                    <tr><th>Symbol</th><td>${data.symbol}</td></tr>
+                    <tr><th>CEO</th><td>${data.ceo}</td></tr>
+                    <tr><th>Name</th><td>${data.companyName}</td></tr>
+                    <tr><th>Price</th><td>${data.price} ${data.currency}</td></tr>
+                        <tr><th><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bank" viewBox="0 0 16 16">
+              <path d="m8 0 6.61 3h.89a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-.5.5H15v7a.5.5 0 0 1 .485.38l.5 2a.498.498 0 0 1-.485.62H.5a.498.498 0 0 1-.485-.62l.5-2A.5.5 0 0 1 1 13V6H.5a.5.5 0 0 1-.5-.5v-2A.5.5 0 0 1 .5 3h.89zM3.777 3h8.447L8 1zM2 6v7h1V6zm2 0v7h2.5V6zm3.5 0v7h1V6zm2 0v7H12V6zM13 6v7h1V6zm2-1V4H1v1zm-.39 9H1.39l-.25 1h13.72z"/>
+            </svg> Exchange</th><td>${data.exchange}</td></tr>
+                    <tr><th>Dividend Date</th><td>${data.dividendDate}</td></tr>
+                    <tr><th>52 Weeks High</th><td>${data.fiftyTwoWeekHigh} (${data.fiftyTwoWeekHighChange} %)</td></tr>
+                    <tr><th>52 Weeks Low</th><td>${data.fiftyTwoWeekLow} (${data.fiftyTwoWeekLowChange} %)</td></tr>
+                `;
+            }
+
+
+            // Function to display fundamentals
+               function renderFundamentals(data) {
+                const fundamentalsTable = document.getElementById("fundamentalsTable");
+                fundamentalsTable.innerHTML = `
+                    <tr><th>P/E Ratio</th><td>${data.peRatio}</td></tr>
+                    <tr><th>EPS</th><td>${data.eps}</td></tr>
+                    <tr><th>Dividend Yield</th><td>${data?.dividendYield} (${data.trailingAnnualDividendYield})</td></tr>
+                    <tr><th>Book Value</th><td>${data.bookValue}</td></tr>
+                    <tr><th>Market Cap</th><td>${data.marketCap}</td></tr>
+                `;
+            }
+
+            // Function to display dividends
+            function renderDividends(data) {
+                const dividendsTable = document.getElementById("dividendsTable");
+                dividendsTable.innerHTML = ""; // Clear existing data
+
+                if (data.dividends && data.dividends.length > 0) {
+                    data.dividends.forEach(dividend => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td>${dividend.date}</td>
+                            <td>${dividend.exDate}</td>
+                            <td>${dividend.amount}</td>
+                        `;
+                        dividendsTable.appendChild(row);
+                    });
+                } else {
+                    const noDataRow = document.createElement("tr");
+                    noDataRow.innerHTML = `<td colspan="3">No dividend data available.</td>`;
+                    dividendsTable.appendChild(noDataRow);
+                }
+            }
+
+            // Render technical signals
+            function renderTechnicalSignals(data) {
+                const options = {
+                    series: [{
+                        name: "Score",
+                        data: Object.values(data),
+                    }],
+                    chart: {
+                        type: "bar",
+                        height: 300,
+                    },
+                    xaxis: {
+                        categories: Object.keys(data),
+                    },
+                    title: {
+                        text: "Technical Signals",
+                    },
+                };
+
+                const chart = new ApexCharts(document.querySelector("#technicalSignalsChart"), options);
+                chart.render();
+            }
+
+            // Render analyst ratings
+            function renderAnalystSignals(data) {
+                const options = {
+                    series: Object.values(data),
+                    labels: Object.keys(data),
+                    chart: {
+                        type: "pie",
+                        height: 300,
+                    },
+                    title: {
+                        text: "Analyst Ratings",
+                    },
+                };
+
+                const chart = new ApexCharts(document.querySelector("#analystSignalsChart"), options);
+                chart.render();
+            }
+            function updatePortfolioCard(data,stock) {
+                // Helper function to check for valid data
+            const isValid = (value) => value !== null && value !== undefined;
+
+            // Update percentage of portfolio
+            const percentageElement = document.getElementById("portfolioPercentage");
+            percentageElement.textContent = isValid(data?.percentage)
+                ? `${(data.percentage ?? 0).toFixed(2)}% of your portfolios`
+                : "N/A";
+
+            // Update amount (current value)
+            const amountElement = document.getElementById("portfolioAmount");
+            amountElement.textContent = isValid(data?.currentValue)
+                        ? `${stock?.currency} ${(data.currentValue ?? 0).toFixed(2)}`
+                    : "N/A";
+
+            // Update shares
+            const sharesElement = document.getElementById("portfolioShares");
+            sharesElement.textContent = isValid(data?.shares)
+                ? `${data.shares} shares`
+                : "N/A";
+
+            // Update day gain
+            const dayGainElement = document.getElementById("portfolioDayGain");
+            const dayGainBadge = document.getElementById("portfolioDayGainBadge");
+            if (isValid(data?.dayGain) && isValid(data?.dayGainPercentage)) {
+                const dayGainClass = data.dayGain >= 0 ? "gain text-success" : "lose text-danger";
+                        dayGainElement.textContent = ` ${stock?.currency} ${data.dayGain >= 0 ? '+' : '-'} ${Math.abs((data.dayGain ?? 0).toFixed(2))}`;
+                dayGainElement.className = `badge bg-light ${dayGainClass}`;
+                dayGainBadge.textContent = `${(data.dayGainPercentage ?? 0).toFixed(2)}%`;
+                dayGainBadge.className = `badge bg-light ${dayGainClass}`;
+            } else {
+                dayGainElement.textContent = "N/A";
+                dayGainBadge.textContent = "N/A";
+                dayGainBadge.className = "badge bg-light text-muted";
+            }
+
+            // Update total gain
+            const totalGainElement = document.getElementById("portfolioTotalGain");
+            const totalGainBadge = document.getElementById("portfolioTotalGainBadge");
+            if (isValid(data?.totalGain) && isValid(data?.totalGainPercentage)) {
+                const totalGainClass = data.totalGain >= 0 ? "gain text-success" : "lose text-danger";
+                    totalGainElement.textContent = ` ${stock?.currency} ${data.totalGain >= 0 ? '+' : '-'} ${Math.abs((data.totalGain ?? 0).toFixed(2))}`;
+                    totalGainBadge.textContent = `${(data?.totalGainPercentage ?? 0).toFixed(2)}%`;
+                totalGainBadge.className = `badge bg-light ${totalGainClass}`;
+                totalGainElement.className = `badge bg-light ${totalGainClass}`;
+            } else {
+                totalGainElement.textContent = "N/A";
+                totalGainBadge.textContent = "N/A";
+                totalGainBadge.className = "badge bg-light text-muted";
+            }
+        }
+            // Function to format UNIX timestamp to human-readable date
+            function formatTimestamp(timestamp) {
+                if (!timestamp) return "--";
+                const date = new Date(timestamp * 1000); // Convert to milliseconds
+                return date.toLocaleString();
+            }
+
+            // Function render the post market data
+                 function renderPostMarketCard(data) {
+
+
+                    // Update the card with the fetched data
+                    document.getElementById('market-state').innerText = `Market State: ${data?.marketState || '--'}`;
+                    document.getElementById('post-market-change').innerText = `Post-Market Change: ${data?.postMarketChange?.toFixed(2) || '--'}`;
+                    document.getElementById('post-market-change-percent').innerText = `Post-Market Change Percent: ${(data?.postMarketChangePercent?.toFixed(2) || '--')}%`;
+                    document.getElementById('post-market-price').innerText = `Post-Market Price: $${data?.postMarketPrice?.toFixed(2) || '--'}`;
+                    document.getElementById('post-market-time').innerText = `Post-Market Time: ${formatTimestamp(data?.postMarketTime)}`;
+
+            }
+
+
+                function addChartWithInnerHTML(containerId, chartId, symbol, height = 400, theme = "light") {
+                    const container = document.getElementById(containerId);
+                    if (!container) {
+                        console.error(`Container with ID "${containerId}" not found.`);
+                        return;
+                    }
+
+                    // Inject HTML dynamically
+                    const widgetHTML = `
+                        <div id="${chartId}" class="tradingview-widget-container" style="height: ${height}px;">
+                        </div>
+                    `;
+                    container.innerHTML = widgetHTML;
+
+                    // Initialize TradingView Widget
+                    new TradingView.widget({
+                        "width": "100%", // Responsive width
+                        "height": height,
+                        "symbol": symbol,
+                        "interval": "D", // Daily interval
+                        "timezone": "Etc/UTC",
+                        "theme": theme,
+                        "style": "1", // 1 for candles, 2 for bars, etc.
+                        "locale": "en",
+                        "toolbar_bg": "#f1f3f6",
+                        "enable_publishing": false,
+                        "allow_symbol_change": true,
+                        "container_id": chartId
+                    });
+                }
+
+
+
+                // Initialize Dashboard
+            async function initializeDashboard() {
+                const stockDatas = await fetchStockData(stockSymbol);
+
+                if (stockDatas?.stock) {
+                              // Example Usage:
+                    addChartWithInnerHTML(
+                        "dynamic-container",       // Parent container ID
+                        "tv-widget-line-chart-1",  // Unique chart ID
+                                stockSymbol,             // Symbol
+                        400,                       // Height
+                        "light"                    // Theme
+                    );
+                        renderCompanySummary(stockDatas?.stock);
+                    renderChart(stockDatas?.stock.chartData);
+                    renderNews(stockDatas?.stock.news);
+                    renderDetails(stockDatas?.stock);
+                    renderFundamentals(stockDatas?.stock);
+                    renderDividends(stockDatas?.stock);
+                    renderTechnicalSignals(stockDatas?.stock.technicalSignals);
+                    renderAnalystSignals(stockDatas?.stock.analystRatings);
+                    renderChartPortfolio(stockDatas?.stock.dataCardForSymbol);
+                        updatePortfolioCard(stockDatas?.stock.dataCardForSymbol,stockDatas?.stock);
+                                renderPostMarketCard(stockDatas?.stock)
+                    document.getElementById("loadingSkeleton").style.display = "none";
+                    document.getElementById("mainContent").style.display = "block";
+                } else {
+                    console.error("Failed to fetch stock data. Please check the API or fallback to mock data.");
+                }
+            }
+                document.addEventListener('DOMContentLoaded', function () {
+               initializeDashboard();
             });
-        }
 
-      
-   
-        // Initialize Dashboard
-    async function initializeDashboard() {
-        const stockDatas = await fetchStockData(stockSymbol);
+    </script>
 
-        if (stockDatas?.stock) {
-                      // Example Usage:
-            addChartWithInnerHTML(
-                "dynamic-container",       // Parent container ID
-                "tv-widget-line-chart-1",  // Unique chart ID
-                        stockSymbol,             // Symbol
-                400,                       // Height
-                "light"                    // Theme
-            );
-                renderCompanySummary(stockDatas?.stock);
-            renderChart(stockDatas?.stock.chartData);
-            renderNews(stockDatas?.stock.news);
-            renderDetails(stockDatas?.stock);
-            renderFundamentals(stockDatas?.stock);
-            renderDividends(stockDatas?.stock);
-            renderTechnicalSignals(stockDatas?.stock.technicalSignals);
-            renderAnalystSignals(stockDatas?.stock.analystRatings);
-            renderChartPortfolio(stockDatas?.stock.dataCardForSymbol);
-                updatePortfolioCard(stockDatas?.stock.dataCardForSymbol,stockDatas?.stock);
-                        renderPostMarketCard(stockDatas?.stock)
-            document.getElementById("loadingSkeleton").style.display = "none";
-            document.getElementById("mainContent").style.display = "block";
-        } else {
-            console.error("Failed to fetch stock data. Please check the API or fallback to mock data.");
-        }
     }
-        document.addEventListener('DOMContentLoaded', function () {
-       initializeDashboard();
-    });
-
-</script>
