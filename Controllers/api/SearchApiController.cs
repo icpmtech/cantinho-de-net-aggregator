@@ -40,7 +40,7 @@ public class SearchController : ControllerBase
     {
       // Executar a busca no Elasticsearch com paginação
       var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
-          .Index("web_scraped_data")  // Substituir pelo nome real do índice, se diferente
+          .Index("search-news")  // Substituir pelo nome real do índice, se diferente
           .From(from)                // Paginação: ponto inicial
           .Size(pageSize)            // Paginação: itens por página
           .Query(q => q
