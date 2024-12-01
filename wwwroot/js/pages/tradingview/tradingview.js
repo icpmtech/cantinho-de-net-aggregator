@@ -185,7 +185,7 @@ function applyPatterns(patterns, chart, series) {
     existingSeries.forEach(s => s.dispose());
 
     const highlightSeries = chart.series.push(
-      am5xy.LineSeries.new(chart.root, {
+      am5xy.LineSeries.new(chart.root, { // Use chart.root instead of root
         name: pattern,
         xAxis: chart.xAxes.getIndex(0),
         yAxis: chart.yAxes.getIndex(0),
@@ -201,7 +201,8 @@ function applyPatterns(patterns, chart, series) {
 
     const highlights = [];
 
-    series.values.forEach((item, index) => {
+   
+    series.dataItems.forEach((item, index) => {
       const curr = item.dataContext;
       const prev = series.dataItems[index - 1]?.dataContext || {};
       const prev2 = series.dataItems[index - 2]?.dataContext || {};
@@ -280,8 +281,8 @@ function applyPatterns(patterns, chart, series) {
       highlightSeries.data.setAll(highlights);
       highlightSeries.strokes.template.set("stroke", patternColors[pattern]);
       highlightSeries.bullets.push(() => {
-        return am5.Bullet.new(root, {
-          sprite: am5.Circle.new(root, {
+        return am5.Bullet.new(chart.root, { // Use chart.root instead of root
+          sprite: am5.Circle.new(chart.root, { // Use chart.root instead of root
             radius: 5,
             fill: patternColors[pattern]
           })
@@ -309,7 +310,12 @@ function applyIndicators(indicators, chartInstance) {
 
     switch (indicator) {
       case "bollingerBands":
-        const bollingerData = calculateBollingerBands(candlestickSeries.dataItems.map(item => item.dataContext.close), 20, 2, candlestickSeries.dataItems.map(item => item.dataContext.date));
+        const bollingerData = calculateBollingerBands(
+          candlestickSeries.dataItems.map(item => item.dataContext.close),
+          20,
+          2,
+          candlestickSeries.dataItems.map(item => item.dataContext.date)
+        );
 
         // Upper Band
         const upperBand = mainChart.series.push(
@@ -350,7 +356,12 @@ function applyIndicators(indicators, chartInstance) {
 
       case "accelerationBands":
         // Placeholder: Using Bollinger Bands calculation for Acceleration Bands
-        const accelerationData = calculateBollingerBands(candlestickSeries.dataItems.map(item => item.close), 20, 2, candlestickSeries.dataItems.map(item => item.date));
+        const accelerationData = calculateBollingerBands(
+          candlestickSeries.dataItems.map(item => item.close),
+          20,
+          2,
+          candlestickSeries.dataItems.map(item => item.date)
+        );
 
         // Upper Band
         const accelUpper = mainChart.series.push(
@@ -390,7 +401,11 @@ function applyIndicators(indicators, chartInstance) {
         break;
 
       case "rsi":
-        const rsiData = calculateRSI(candlestickSeries.dataItems.map(item => item.close), 14, candlestickSeries.dataItems.map(item => item.date));
+        const rsiData = calculateRSI(
+          candlestickSeries.dataItems.map(item => item.close),
+          14,
+          candlestickSeries.dataItems.map(item => item.date)
+        );
 
         // Create a separate panel for RSI
         const rsiPanel = root.container.children.push(
@@ -455,7 +470,13 @@ function applyIndicators(indicators, chartInstance) {
         break;
 
       case "macd":
-        const macdData = calculateMACD(candlestickSeries.dataItems.map(item => item.close), 12, 26, 9, candlestickSeries.dataItems.map(item => item.date));
+        const macdData = calculateMACD(
+          candlestickSeries.dataItems.map(item => item.close),
+          12,
+          26,
+          9,
+          candlestickSeries.dataItems.map(item => item.date)
+        );
 
         // Create a separate panel for MACD
         const macdPanel = root.container.children.push(
@@ -667,15 +688,7 @@ function calculateMACD(closePrices, shortPeriod, longPeriod, signalPeriod, dates
     }
   }
 
-  // Combine MACD and Signal Line
-  const combinedMACD = macdLine.map((item, index) => ({
-    date: item.date,
-    macd: item.value,
-    signal: signalLine[index]?.value || null,
-    histogram: histogram[index]?.value || null
-  }));
-
-  return { macdLine: combinedMACD, signalLine: combinedMACD, histogram: combinedMACD };
+  return { macdLine, signalLine, histogram };
 }
 
 // Helper function to calculate Exponential Moving Average (EMA)
