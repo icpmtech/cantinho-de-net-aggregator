@@ -183,6 +183,9 @@
     <Content Update="wwwroot\js\pages\portfolio\performance\showError.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Update="wwwroot\js\pages\tradingview\tradingview.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>
