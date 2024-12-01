@@ -21,83 +21,96 @@ public class SearchController : ControllerBase
   [HttpGet("search")]
   public async Task<IActionResult> Search(string query, int page = 1, int pageSize = 10)
   {
-    // Ensure the page is at least 1 to avoid issues with negative or zero pages
+    // Garantir que a página seja pelo menos 1 para evitar problemas com páginas negativas ou zero
     if (page < 1) page = 1;
 
-    // Calculate the starting point for pagination
+    // Calcular o ponto inicial para paginação
     var from = (page - 1) * pageSize;
 
-    // Define fields to search and boost
+    // Campos a serem buscados e suas ponderações (boost)
     var fieldsToSearch = new[]
     {
-        "title^3",             // Boost title field
-        "body_content^2",       // Boost body field
-        "meta_keywords",        // Normal weight for tags
-        "url"                   // Less weight for URL
+        "text^3",               // Maior peso para o texto extraído
+        "href^1",               // Peso menor para URLs
+        "title^2",              // Peso médio para títulos (se disponíveis)
+        "source"                // Peso neutro para origem (URL base)
     };
 
-    // Execute the search query with pagination
-    var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
-        .Index("search-news")
-        .From(from)        // Pagination: starting point
-        .Size(pageSize)    // Pagination: number of items per page
-        .Query(q => q
-            .Bool(b => b
-                .Must(m => m
-                    .MultiMatch(mm => mm
-                        .Query(query)
-                        .Fields(fieldsToSearch)
-                        .Type(TextQueryType.MostFields)
-                        .Fuzziness(Fuzziness.Auto) // Allows for typo correction
-                        .Operator(Operator.And)    // Makes sure all words in the query are included
-                    )
-                )
-            )
-        )
-        .Suggest(su => su
-            .Phrase("did_you_mean", ph => ph
-                .Text(query)
-                .Field("title")
-                .Size(1)
-                .DirectGenerator(dg => dg
-                    .Field("title")
-                    .SuggestMode(SuggestMode.Always)
-                )
-            )
-        )
-        .Highlight(h => h
-            .PreTags("<em>")
-            .PostTags("</em>")
-            .Fields(
-                f => f.Field("title"),
-                f => f.Field("body_content"),
-                f => f.Field("meta_keywords")
-            )
-        )
-    );
-
-    // Extract the suggestion if any
-    var suggestion = searchResponse.Suggest["did_you_mean"]
-        .FirstOrDefault()?.Options?.FirstOrDefault()?.Text;
-
-    // Prepare the result with pagination details
-    var result = new
+    try
     {
-      Total = searchResponse.Total,        // Total number of documents that match the query
-      Page = page,                         // Current page
-      PageSize = pageSize,                 // Number of items per page
-      TotalPages = (int)Math.Ceiling((double)searchResponse.Total / pageSize), // Total number of pages
-      Results = searchResponse.Documents,  // The documents for the current page
-      Suggestions = suggestion != null && suggestion.ToLower() != query.ToLower() ? suggestion : null,
-      Highlights = searchResponse.Hits.Select(hit => new
-      {
-        Id = hit.Id,
-        Source = hit.Source,
-        Highlights = hit.Highlight
-      })
-    };
+      // Executar a busca no Elasticsearch com paginação
+      var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
+          .Index("web_scraped_data")  // Substituir pelo nome real do índice, se diferente
+          .From(from)                // Paginação: ponto inicial
+          .Size(pageSize)            // Paginação: itens por página
+          .Query(q => q
+              .Bool(b => b
+                  .Must(m => m
+                      .MultiMatch(mm => mm
+                          .Query(query)
+                          .Fields(fieldsToSearch)
+                          .Type(TextQueryType.MostFields) // Busca em múltiplos campos
+                          .Fuzziness(Fuzziness.Auto)      // Correção de erros de digitação
+                          .Operator(Operator.And)         // Garante que todas as palavras sejam incluídas
+                      )
+                  )
+              )
+          )
+          .Suggest(su => su
+              .Phrase("did_you_mean", ph => ph
+                  .Text(query)
+                  .Field("text")     // Sugestões baseadas no campo principal
+                  .Size(1)
+                  .DirectGenerator(dg => dg
+                      .Field("text")
+                      .SuggestMode(SuggestMode.Always) // Sempre sugere correções
+                  )
+              )
+          )
+          .Highlight(h => h
+              .PreTags("<em>")     // Tag de abertura para destaque
+              .PostTags("</em>")   // Tag de fechamento para destaque
+              .Fields(
+                  f => f.Field("text"),
+                  f => f.Field("href"),
+                  f => f.Field("title"),
+                  f => f.Field("source")
+              )
+          )
+      );
 
-    return Ok(result);
+      // Extrair sugestões, se houver
+      var suggestion = searchResponse.Suggest["did_you_mean"]
+          .FirstOrDefault()?.Options?.FirstOrDefault()?.Text;
+
+      // Preparar os resultados com detalhes de paginação
+      var result = new
+      {
+        Total = searchResponse.Total,        // Total de documentos que correspondem à consulta
+        Page = page,                         // Página atual
+        PageSize = pageSize,                 // Itens por página
+        TotalPages = (int)Math.Ceiling((double)searchResponse.Total / pageSize), // Total de páginas
+        Results = searchResponse.Documents,  // Documentos da página atual
+        Suggestions = suggestion != null && suggestion.ToLower() != query.ToLower() ? suggestion : null,
+        Highlights = searchResponse.Hits.Select(hit => new
+        {
+          Id = hit.Id,
+          Source = hit.Source,
+          Highlights = hit.Highlight
+        })
+      };
+
+      return Ok(result);
+    }
+    catch (Exception ex)
+    {
+      // Retornar erro com detalhes
+      return StatusCode(500, new
+      {
+        Error = "Erro ao processar a busca",
+        Details = ex.Message
+      });
+    }
   }
 
   // Search with OpenAI query enhancement

@@ -1,0 +1,39 @@
+@{
+    TempData.Keep();
+    string? currentPage = ViewContext.HttpContext.Request.Path;
+}
+<li class='menu-item@(currentPage.StartsWith("/TradingView") ? " active open" : "")'>
+    <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx-archive"></i>
+        <div>Trading View</div>
+    </a>
+
+    <ul class="menu-sub">
+        <li class='menu-item@(currentPage == "/TradingView" ? " active" : "")'>
+            <a asp-controller="TradingView" asp-action="Index" class="menu-link">
+                <div>Dashboard</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/TradingView/TradingView" ? " active" : "")'>
+            <a asp-controller="TradingView" asp-action="ChartTools" class="menu-link">
+                <div>Chart Tools</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/TradingView/PatternsIndicators" ? " active" : "")'>
+            <a asp-controller="TradingView" asp-action="PatternsIndicators" class="menu-link">
+                <div>Patterns & Indicators</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/TradingView/SymbolData" ? " active" : "")'>
+            <a asp-controller="TradingView" asp-action="SymbolData" class="menu-link">
+                <div>Symbol & Data</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/TradingView/Settings" ? " active" : "")'>
+            <a asp-controller="TradingView" asp-action="Settings" class="menu-link">
+                <div>Settings</div>
+            </a>
+        </li>
+    </ul>
+</li>
+

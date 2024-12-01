@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Real-Time Candlestick Chart</title>
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <style>
+        #chartdiv {
+            width: 100%;
+            height: 500px;
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .pattern-description {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <!-- Input Section -->
+        <div class="row mb-4">
+            <div class="col-md-4 mb-3">
+                <label for="symbol" class="form-label"><i class="bx bx-line-chart"></i> Stock Symbol:</label>
+                <input type="text" id="symbol" class="form-control" placeholder="AAPL" value="AAPL">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="start-date" class="form-label"><i class="bx bx-calendar"></i> Start Date:</label>
+                <input type="date" id="start-date" class="form-control" value="2022-02-01">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="end-date" class="form-label"><i class="bx bx-calendar"></i> End Date:</label>
+                <input type="date" id="end-date" class="form-control" value="2023-03-09">
+            </div>
+            <div class="col-12 text-center">
+                <button id="fetch-data" class="btn btn-primary btn-icon w-100"><i class="bx bx-refresh"></i> Fetch Data</button>
+            </div>
+        </div>
+
+        <!-- Menu Section -->
+        <div class="row mb-4">
+            <div class="col-md-8 mb-3">
+                <label for="menu-select" class="form-label"><i class="bx bx-cog"></i> Select Patterns:</label>
+                <select id="menu-select" class="form-select" multiple>
+                    <option value="highlightBullish">Highlight Bullish Engulfing</option>
+                    <option value="highlightBearish">Highlight Bearish Engulfing</option>
+                    <option value="highlightDoji">Highlight Doji</option>
+                </select>
+            </div>
+            <div class="col-md-4 mb-3">
+                <button id="apply-action" class="btn btn-secondary btn-icon w-100 mt-md-4"><i class="bx bx-magic"></i> Apply Selected Patterns</button>
+            </div>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="alert alert-info" id="pattern-notes">
+                    <strong><i class="bx bx-info-circle"></i> Pattern Information:</strong>
+                    <span>Select patterns to highlight. The explanations will appear here.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="row">
+            <div class="col-12">
+                <div id="chartdiv"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = '60c4b7c12emshfe21a6a1ec58d8bp1a396cjsn6bc88b0f02f5';
+        const apiHost = 'seeking-alpha.p.rapidapi.com';
+
+        let chartInstance;
+
+        async function fetchData(symbol, startDate, endDate) {
+            const url = `https://${apiHost}/symbols/get-historical-prices?symbol=${symbol}&show_by=week&start=${startDate}&end=${endDate}&sort=as_of_date`;
+            const options = {
+                method: 'GET',
+                headers: {
+                    'x-rapidapi-key': apiKey,
+                    'x-rapidapi-host': apiHost,
+                },
+            };
+
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                return data.data.map((item) => ({
+                    date: new Date(item.attributes.as_of_date).getTime(),
+                    open: item.attributes.open,
+                    close: item.attributes.close,
+                    high: item.attributes.high,
+                    low: item.attributes.low,
+                    volume: item.attributes.volume,
+                }));
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Failed to fetch data. Please try again.');
+                return [];
+            }
+        }
+
+        function createChart(chartData) {
+            const root = am5.Root.new("chartdiv");
+            root.setThemes([am5themes_Animated.new(root)]);
+
+            const chart = root.container.children.push(
+                am5xy.XYChart.new(root, {
+                    panX: true,
+                    wheelX: "panX",
+                    wheelY: "zoomX",
+                    layout: root.verticalLayout,
+                })
+            );
+
+            const dateAxis = chart.xAxes.push(
+                am5xy.DateAxis.new(root, {
+                    groupData: true,
+                    baseInterval: { timeUnit: "day", count: 1 },
+                    renderer: am5xy.AxisRendererX.new(root, {}),
+                })
+            );
+
+            const valueAxis = chart.yAxes.push(
+                am5xy.ValueAxis.new(root, {
+                    renderer: am5xy.AxisRendererY.new(root, {}),
+                    height: am5.percent(70),
+                })
+            );
+
+            const valueSeries = chart.series.push(
+                am5xy.CandlestickSeries.new(root, {
+                    xAxis: dateAxis,
+                    yAxis: valueAxis,
+                    valueYField: "close",
+                    openValueYField: "open",
+                    lowValueYField: "low",
+                    highValueYField: "high",
+                    valueXField: "date",
+                    tooltip: am5.Tooltip.new(root, {
+                        labelText: "Open: {open}\nHigh: {high}\nLow: {low}\nClose: {close}",
+                    }),
+                })
+            );
+
+            chart.set("legend", am5.Legend.new(root, {}));
+
+            return { root, chart, valueSeries };
+        }
+
+        function updateNotes(patterns) {
+            const notes = {
+                highlightBullish: "Bullish Engulfing: A pattern where a smaller bearish candle is followed by a larger bullish candle.",
+                highlightBearish: "Bearish Engulfing: A pattern where a smaller bullish candle is followed by a larger bearish candle.",
+                highlightDoji: "Doji: A candlestick pattern where the open and close prices are nearly equal, indicating indecision.",
+            };
+
+            const selectedNotes = patterns.map((pattern) => notes[pattern]).filter(Boolean);
+            document.getElementById("pattern-notes").querySelector("span").textContent = selectedNotes.join(" | ") || "No pattern selected.";
+        }
+
+        function applyPatterns(patterns, chart, valueSeries) {
+            const patternColors = {
+                highlightBullish: am5.color(0x00ff00),
+                highlightBearish: am5.color(0xff0000),
+                highlightDoji: am5.color(0x0000ff),
+            };
+
+            patterns.forEach((pattern) => {
+                const highlightSeries = chart.series.push(
+                    am5xy.LineSeries.new(chart.root, {
+                        xAxis: chart.xAxes.getIndex(0),
+                        yAxis: chart.yAxes.getIndex(0),
+                        valueYField: "close",
+                        valueXField: "date",
+                        strokeWidth: 2,
+                        stroke: patternColors[pattern],
+                        name: pattern,
+                    })
+                );
+
+                const highlights = valueSeries.dataItems
+                    .map((item, idx, arr) => {
+                        const curr = item.dataContext;
+                        const prev = arr[idx - 1]?.dataContext || {};
+
+                        if (pattern === "highlightBullish") {
+                            return prev.close < prev.open && curr.close > curr.open && curr.open < prev.close && curr.close > prev.open ? curr : null;
+                        } else if (pattern === "highlightBearish") {
+                            return prev.close > prev.open && curr.close < curr.open && curr.open > prev.close && curr.close < prev.open ? curr : null;
+                        } else if (pattern === "highlightDoji") {
+                            return Math.abs(curr.close - curr.open) < 0.1 ? curr : null;
+                        }
+                        return null;
+                    })
+                    .filter(Boolean);
+
+                highlightSeries.data.setAll(highlights);
+            });
+        }
+
+        async function initializeChart() {
+            const symbol = document.getElementById("symbol").value;
+            const startDate = document.getElementById("start-date").value;
+            const endDate = document.getElementById("end-date").value;
+
+            const chartData = await fetchData(symbol, startDate, endDate);
+
+            if (!chartData.length) return;
+
+            if (chartInstance) {
+                chartInstance.root.dispose();
+            }
+
+            chartInstance = createChart(chartData);
+            chartInstance.valueSeries.data.setAll(chartData);
+        }
+
+        document.getElementById("fetch-data").addEventListener("click", initializeChart);
+
+        document.getElementById("apply-action").addEventListener("click", function () {
+            if (!chartInstance) {
+                alert("Please fetch data first!");
+                return;
+            }
+
+            const { chart, valueSeries } = chartInstance;
+            const patterns = Array.from(document.getElementById("menu-select").selectedOptions).map((opt) => opt.value);
+
+            updateNotes(patterns);
+            applyPatterns(patterns, chart, valueSeries);
+        });
+
+        initializeChart();
+    </script>
+</body>
+</html>
