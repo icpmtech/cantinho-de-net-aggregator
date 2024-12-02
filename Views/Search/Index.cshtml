@@ -370,23 +370,28 @@
 
                     const title = document.createElement('h3');
                     title.innerHTML = result.title;
-
-                    const bodyContent = result.highlights?.meta_description?.[0] || result.meta_description;
+                  // Obter o conteúdo do corpo com destaque se disponível
+                    const bodyContent = result.highlights?.body_content?.[0] || result.body_content || '';
                     const truncatedBody = truncateText(bodyContent, 200);
 
                     const body = document.createElement('p');
                     body.innerHTML = truncatedBody;
+                    card.appendChild(body);
+
+                    // Formatar as meta_keywords, assumindo que seja uma string separada por vírgulas
+                    const metaKeywords = Array.isArray(result.meta_keywords)
+                        ? result.meta_keywords.join(', ')
+                        : result.meta_keywords || 'Sem Tags';
 
                     const tags = document.createElement('p');
-                    tags.innerHTML = `<strong>Tags:</strong> ${result.meta_keywords}`;
-
-                    const link = document.createElement('a');
-                    link.href = result.url;
-                    link.innerText = 'Read more';
-
-                    card.appendChild(title);
-                    card.appendChild(body);
+                    tags.innerHTML = `<strong>Tags:</strong> ${metaKeywords}`;
                     card.appendChild(tags);
+
+                    // Criar e adicionar o link
+                    const link = document.createElement('a');
+                    link.href = result.link || '#';
+                    link.innerText = 'Read more';
+                    link.target = '_blank'; // Abre em uma nova aba
                     card.appendChild(link);
 
                     resultList.appendChild(card);

@@ -24,94 +24,84 @@ public class SearchController : ControllerBase
     // Garantir que a página seja pelo menos 1 para evitar problemas com páginas negativas ou zero
     if (page < 1) page = 1;
 
-    // Calcular o ponto inicial para paginação
+    // Calcular o ponto inicial para a paginação
     var from = (page - 1) * pageSize;
 
-    // Campos a serem buscados e suas ponderações (boost)
+    // Definir os campos para buscar e suas ponderações (boost)
     var fieldsToSearch = new[]
     {
-        "text^3",               // Maior peso para o texto extraído
-        "href^1",               // Peso menor para URLs
-        "title^2",              // Peso médio para títulos (se disponíveis)
-        "source"                // Peso neutro para origem (URL base)
+        "title^3",             // Peso maior para o campo título
+        "body_content^2",      // Peso médio para o conteúdo do corpo
+        "meta_keywords",       // Peso normal para meta palavras-chave
+        "source^0.5",          // Peso menor para a fonte (URL original)
+        "link^1"               // Peso normal para o link do item
     };
 
-    try
+    // Executar a consulta de busca com paginação
+    var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
+        .Index("search-news")
+        .From(from)        // Paginação: ponto inicial
+        .Size(pageSize)    // Paginação: número de itens por página
+        .Query(q => q
+            .Bool(b => b
+                .Must(m => m
+                    .MultiMatch(mm => mm
+                        .Query(query)
+                        .Fields(fieldsToSearch)
+                        .Type(TextQueryType.MostFields)
+                        .Fuzziness(Fuzziness.Auto) // Permite correção de erros de digitação
+                        .Operator(Operator.And)    // Garante que todas as palavras da consulta estejam incluídas
+                    )
+                )
+            )
+        )
+        .Suggest(su => su
+            .Phrase("did_you_mean", ph => ph
+                .Text(query)
+                .Field("title")
+                .Size(1)
+                .DirectGenerator(dg => dg
+                    .Field("title")
+                    .SuggestMode(SuggestMode.Always)
+                )
+            )
+        )
+        .Highlight(h => h
+            .PreTags("<em>")
+            .PostTags("</em>")
+            .MaxAnalyzedOffset(900000) // Define um valor menor que o limite do índice
+            .Fields(
+                f => f.Field("title"),
+                f => f.Field("body_content"),
+                f => f.Field("meta_keywords")
+            )
+        )
+    );
+
+    // Extrair a sugestão, se houver
+    var suggestion = searchResponse.Suggest["did_you_mean"]
+        .FirstOrDefault()?.Options?.FirstOrDefault()?.Text;
+
+    // Preparar o resultado com detalhes de paginação
+    var result = new
     {
-      // Executar a busca no Elasticsearch com paginação
-      var searchResponse = await _elasticClient.SearchAsync<dynamic>(s => s
-          .Index("search-news")  // Substituir pelo nome real do índice, se diferente
-          .From(from)                // Paginação: ponto inicial
-          .Size(pageSize)            // Paginação: itens por página
-          .Query(q => q
-              .Bool(b => b
-                  .Must(m => m
-                      .MultiMatch(mm => mm
-                          .Query(query)
-                          .Fields(fieldsToSearch)
-                          .Type(TextQueryType.MostFields) // Busca em múltiplos campos
-                          .Fuzziness(Fuzziness.Auto)      // Correção de erros de digitação
-                          .Operator(Operator.And)         // Garante que todas as palavras sejam incluídas
-                      )
-                  )
-              )
-          )
-          .Suggest(su => su
-              .Phrase("did_you_mean", ph => ph
-                  .Text(query)
-                  .Field("text")     // Sugestões baseadas no campo principal
-                  .Size(1)
-                  .DirectGenerator(dg => dg
-                      .Field("text")
-                      .SuggestMode(SuggestMode.Always) // Sempre sugere correções
-                  )
-              )
-          )
-          .Highlight(h => h
-              .PreTags("<em>")     // Tag de abertura para destaque
-              .PostTags("</em>")   // Tag de fechamento para destaque
-              .Fields(
-                  f => f.Field("text"),
-                  f => f.Field("href"),
-                  f => f.Field("title"),
-                  f => f.Field("source")
-              )
-          )
-      );
-
-      // Extrair sugestões, se houver
-      var suggestion = searchResponse.Suggest["did_you_mean"]
-          .FirstOrDefault()?.Options?.FirstOrDefault()?.Text;
-
-      // Preparar os resultados com detalhes de paginação
-      var result = new
+      Total = searchResponse.Total,        // Número total de documentos que correspondem à consulta
+      Page = page,                         // Página atual
+      PageSize = pageSize,                 // Número de itens por página
+      TotalPages = (int)Math.Ceiling((double)searchResponse.Total / pageSize), // Número total de páginas
+      Results = searchResponse.Documents,  // Os documentos para a página atual
+      Suggestions = suggestion != null && suggestion.ToLower() != query.ToLower() ? suggestion : null,
+      Highlights = searchResponse.Hits.Select(hit => new
       {
-        Total = searchResponse.Total,        // Total de documentos que correspondem à consulta
-        Page = page,                         // Página atual
-        PageSize = pageSize,                 // Itens por página
-        TotalPages = (int)Math.Ceiling((double)searchResponse.Total / pageSize), // Total de páginas
-        Results = searchResponse.Documents,  // Documentos da página atual
-        Suggestions = suggestion != null && suggestion.ToLower() != query.ToLower() ? suggestion : null,
-        Highlights = searchResponse.Hits.Select(hit => new
-        {
-          Id = hit.Id,
-          Source = hit.Source,
-          Highlights = hit.Highlight
-        })
-      };
+        Id = hit.Id,
+        Url = hit.Source,
+        Highlights = hit.Highlight
+      })
+    };
 
-      return Ok(result);
-    }
-    catch (Exception ex)
-    {
-      // Retornar erro com detalhes
-      return StatusCode(500, new
-      {
-        Error = "Erro ao processar a busca",
-        Details = ex.Message
-      });
-    }
+    return Ok(result);
   }
+
 
   // Search with OpenAI query enhancement
   [HttpGet("search-enhanced")]
