@@ -1,16 +1,16 @@
 <!-- Styles -->
 <style>
-#chartcontrols {
-  height: auto;
-  padding: 5px 5px 0 16px;
-  max-width: 100%;
-}
+    #chartcontrols {
+        height: auto;
+        padding: 5px 5px 0 16px;
+        max-width: 100%;
+    }
 
-#chartdiv {
-  width: 100%;
-  height: 600px;
-  max-width: 100%;
-}
+    #chartdiv {
+        width: 100%;
+        height: 600px;
+        max-width: 100%;
+    }
 
     /* Styles for the search suggestions */
     .suggestions-box {
@@ -53,348 +53,437 @@
 
 <!-- Chart code -->
 <script>
-am5.ready(async function() {
+    am5.ready(async function() {
+      // Create root element
+      var root = am5.Root.new("chartdiv");
 
-  // Create root element
-  // -------------------------------------------------------------------------------
-  var root = am5.Root.new("chartdiv");
+      const myTheme = am5.Theme.new(root);
+      myTheme.rule("Grid", ["scrollbar", "minor"]).setAll({
+        visible: false
+      });
 
-  const myTheme = am5.Theme.new(root);
+      root.setThemes([
+        am5themes_Animated.new(root),
+        myTheme
+      ]);
 
-  myTheme.rule("Grid", ["scrollbar", "minor"]).setAll({
-    visible: false
-  });
-
-  root.setThemes([
-    am5themes_Animated.new(root),
-    myTheme
-  ]);
-
-  // Create a stock chart
-  // -------------------------------------------------------------------------------
-  var stockChart = root.container.children.push(am5stock.StockChart.new(root, {
-    paddingRight: 0
-  }));
-
-  // Set global number format
-  // -------------------------------------------------------------------------------
-  root.numberFormatter.set("numberFormat", "#,###.00");
-
-  // Create a main stock panel (chart)
-  // -------------------------------------------------------------------------------
-  var mainPanel = stockChart.panels.push(am5stock.StockPanel.new(root, {
-    wheelY: "zoomX",
-    panX: true,
-    panY: true
-  }));
-
-  // Create value axis
-  // -------------------------------------------------------------------------------
-  var valueAxis = mainPanel.yAxes.push(am5xy.ValueAxis.new(root, {
-    renderer: am5xy.AxisRendererY.new(root, {
-      pan: "zoom"
-    }),
-    extraMin: 0.1, // adds some space for main series
-    tooltip: am5.Tooltip.new(root, {}),
-    numberFormat: "#,###.00",
-    extraTooltipPrecision: 2
-  }));
-
-  var dateAxis = mainPanel.xAxes.push(am5xy.GaplessDateAxis.new(root, {
-    baseInterval: {
-      timeUnit: "day",
-      count: 1
-    },
-    renderer: am5xy.AxisRendererX.new(root, {
-      minorGridEnabled: true
-    }),
-    tooltip: am5.Tooltip.new(root, {})
-  }));
-
-  // Add series
-  // -------------------------------------------------------------------------------
-  var valueSeries = mainPanel.series.push(am5xy.CandlestickSeries.new(root, {
-    name: "Stock Data",
-    clustered: false,
-    valueXField: "Date",
-    valueYField: "Close",
-    highValueYField: "High",
-    lowValueYField: "Low",
-    openValueYField: "Open",
-    calculateAggregates: true,
-    xAxis: dateAxis,
-    yAxis: valueAxis,
-    legendValueText: "Open: [bold]{openValueY}[/] High: [bold]{highValueY}[/] Low: [bold]{lowValueY}[/] Close: [bold]{valueY}[/]",
-    legendRangeValueText: ""
-  }));
-
-  // Set main value series
-  // -------------------------------------------------------------------------------
-  stockChart.set("stockSeries", valueSeries);
-
-  // Add a stock legend
-  // -------------------------------------------------------------------------------
-  var valueLegend = mainPanel.plotContainer.children.push(am5stock.StockLegend.new(root, {
-    stockChart: stockChart
-  }));
-
-  // Create volume axis
-  // -------------------------------------------------------------------------------
-  var volumeAxisRenderer = am5xy.AxisRendererY.new(root, {
-    inside: true,
-    pan: "zoom"
-  });
-
-  volumeAxisRenderer.labels.template.set("forceHidden", true);
-  volumeAxisRenderer.grid.template.set("forceHidden", true);
-
-  var volumeValueAxis = mainPanel.yAxes.push(am5xy.ValueAxis.new(root, {
-    numberFormat: "#.#a",
-    height: am5.percent(20),
-    y: am5.percent(100),
-    centerY: am5.percent(100),
-    renderer: volumeAxisRenderer
-  }));
-
-  // Add volume series
-  // -------------------------------------------------------------------------------
-  var volumeSeries = mainPanel.series.push(am5xy.ColumnSeries.new(root, {
-    name: "Volume",
-    clustered: false,
-    valueXField: "Date",
-    valueYField: "Volume",
-    xAxis: dateAxis,
-    yAxis: volumeValueAxis,
-    legendValueText: "[bold]{valueY.formatNumber('#,###.0a')}[/]"
-  }));
-
-  volumeSeries.columns.template.setAll({
-    strokeOpacity: 0,
-    fillOpacity: 0.5
-  });
-
-  // Color columns by stock rules
-  volumeSeries.columns.template.adapters.add("fill", function(fill, target) {
-    var dataItem = target.dataItem;
-    if (dataItem) {
-      return stockChart.getVolumeColor(dataItem);
-    }
-    return fill;
-  });
-
-  // Set main volume series
-  // -------------------------------------------------------------------------------
-  stockChart.set("volumeSeries", volumeSeries);
-  valueLegend.data.setAll([valueSeries, volumeSeries]);
-
-  // Add cursor(s)
-  // -------------------------------------------------------------------------------
-  mainPanel.set("cursor", am5xy.XYCursor.new(root, {
-    yAxis: valueAxis,
-    xAxis: dateAxis,
-    snapToSeries: [valueSeries],
-    snapToSeriesBy: "y!"
-  }));
-
-  // Add scrollbar
-  // -------------------------------------------------------------------------------
-  var scrollbar = mainPanel.set("scrollbarX", am5xy.XYChartScrollbar.new(root, {
-    orientation: "horizontal",
-    height: 50
-  }));
-  stockChart.toolsContainer.children.push(scrollbar);
-
-  var sbDateAxis = scrollbar.chart.xAxes.push(am5xy.GaplessDateAxis.new(root, {
-    baseInterval: {
-      timeUnit: "day",
-      count: 1
-    },
-    renderer: am5xy.AxisRendererX.new(root, {
-      minorGridEnabled: true
-    })
-  }));
-
-  var sbValueAxis = scrollbar.chart.yAxes.push(am5xy.ValueAxis.new(root, {
-    renderer: am5xy.AxisRendererY.new(root, {})
-  }));
-
-  var sbSeries = scrollbar.chart.series.push(am5xy.LineSeries.new(root, {
-    valueYField: "Close",
-    valueXField: "Date",
-    xAxis: sbDateAxis,
-    yAxis: sbValueAxis
-  }));
-
-  sbSeries.fills.template.setAll({
-    visible: true,
-    fillOpacity: 0.3
-  });
-
-  // Set up series type switcher
-  // -------------------------------------------------------------------------------
-  var seriesSwitcher = am5stock.SeriesTypeControl.new(root, {
-    stockChart: stockChart
-  });
-
-  seriesSwitcher.events.on("selected", function(ev) {
-    setSeriesType(ev.item.id);
-  });
-
-  function getNewSettings(series) {
-    var newSettings = {};
-    am5.array.each(["name", "valueYField", "highValueYField", "lowValueYField", "openValueYField", "calculateAggregates", "valueXField", "xAxis", "yAxis", "legendValueText", "legendRangeValueText", "stroke", "fill"], function(setting) {
-      newSettings[setting] = series.get(setting);
-    });
-    return newSettings;
-  }
-
-  function setSeriesType(seriesType) {
-    // Get current series and its settings
-    var currentSeries = stockChart.get("stockSeries");
-    var newSettings = getNewSettings(currentSeries);
-
-    // Remove previous series
-    var data = currentSeries.data.values;
-    mainPanel.series.removeValue(currentSeries);
-
-    // Create new series
-    var series;
-    switch (seriesType) {
-      case "line":
-        series = mainPanel.series.push(am5xy.LineSeries.new(root, newSettings));
-        break;
-      case "candlestick":
-      case "procandlestick":
-        newSettings.clustered = false;
-        series = mainPanel.series.push(am5xy.CandlestickSeries.new(root, newSettings));
-        if (seriesType == "procandlestick") {
-          series.columns.template.get("themeTags").push("pro");
-        }
-        break;
-      case "ohlc":
-        newSettings.clustered = false;
-        series = mainPanel.series.push(am5xy.OHLCSeries.new(root, newSettings));
-        break;
-    }
-
-    // Set new series as stockSeries
-    if (series) {
-      valueLegend.data.removeValue(currentSeries);
-      series.data.setAll(data);
-      stockChart.set("stockSeries", series);
-      var cursor = mainPanel.get("cursor");
-      if (cursor) {
-        cursor.set("snapToSeries", [series]);
-      }
-      valueLegend.data.insertIndex(0, series);
-    }
-  }
-
-  // Stock toolbar
-  // -------------------------------------------------------------------------------
-  var toolbar = am5stock.StockToolbar.new(root, {
-    container: document.getElementById("chartcontrols"),
-    stockChart: stockChart,
-    controls: [
-      am5stock.IndicatorControl.new(root, {
-        stockChart: stockChart,
-        legend: valueLegend
-      }),
-      am5stock.DateRangeSelector.new(root, {
-        stockChart: stockChart
-      }),
-      am5stock.PeriodSelector.new(root, {
-        stockChart: stockChart
-      }),
-      seriesSwitcher,
-      am5stock.DrawingControl.new(root, {
-        stockChart: stockChart
-      }),
-      am5stock.DataSaveControl.new(root, {
-        stockChart: stockChart
-      }),
-      am5stock.ResetControl.new(root, {
-        stockChart: stockChart
-      }),
-      am5stock.SettingsControl.new(root, {
-        stockChart: stockChart
-      })
-    ]
-  });
-
-  // Tooltip for events (optional)
-  // -------------------------------------------------------------------------------
-  var tooltip = am5.Tooltip.new(root, {
-    getStrokeFromSprite: false,
-    getFillFromSprite: false
-  });
-
-  tooltip.get("background").setAll({
-    strokeOpacity: 1,
-    stroke: am5.color(0x000000),
-    fillOpacity: 1,
-    fill: am5.color(0xffffff)
-  });
-
-  // Fetch and process data from API
-  // -------------------------------------------------------------------------------
-     async function fetchData(symbol) {
-    try {
-          // Get startDate and endDate from input fields
-        let startDateInput = document.getElementById('startDateInput').value;
-        let endDateInput = document.getElementById('endDateInput').value;
-
-        // If inputs are empty, initialize to default values
-        if (!startDateInput) {
-          let fiveDaysAgo = new Date();
-          fiveDaysAgo.setDate(fiveDaysAgo.getDate() - 365);
-          startDateInput = fiveDaysAgo.toISOString().split('T')[0]; // Format to 'YYYY-MM-DD'
-        }
-        if (!endDateInput) {
-          let today = new Date();
-          endDateInput = today.toISOString().split('T')[0];
-        }
-
-        const startDate = startDateInput; // Format: YYYY-MM-DD
-        const endDate = endDateInput;     // Format: YYYY-MM-DD
-        const interval = '1d'; // '1d', '1wk', '1mo', etc.
-
-      const apiUrl = `/api/YahooFinance/chart-symbol/${encodeURIComponent(symbol)}?startDate=${startDate}&endDate=${endDate}&interval=${encodeURIComponent(interval)}`;
-
-      // Fetch data from the API
-      const response = await fetch(apiUrl);
-
-      if (!response.ok) {
-        throw new Error(`Error fetching data: ${response.status} ${response.statusText}`);
-      }
-
-      const rawData = await response.json();
-      console.log("Raw Data:", rawData); // Debugging
-
-      if (!Array.isArray(rawData)) {
-        throw new Error("Invalid data format received from API.");
-      }
-
-      // Process the data to match amCharts format
-      const processedData = rawData.map(item => ({
-            Date:new Date(item.timestamp).getTime(), // Assuming timestamp is in seconds
-        Open: parseFloat(item.open),
-        Close: parseFloat(item.close),
-        High: parseFloat(item.high),
-        Low: parseFloat(item.low),
-        Volume: parseInt(item.volume, 10)
+      // Create a stock chart
+      var stockChart = root.container.children.push(am5stock.StockChart.new(root, {
+        paddingRight: 0
       }));
 
-      // Set data to series
-      valueSeries.data.setAll(processedData);
-      volumeSeries.data.setAll(processedData);
-      sbSeries.data.setAll(processedData);
+      // Set global number format
+      root.numberFormatter.set("numberFormat", "#,###.00");
 
-    } catch (error) {
-      console.error("Error fetching or processing data:", error);
-    }
-  }
-       // Add the search and selectSuggestion functions
+      // Create a main stock panel (chart)
+      var mainPanel = stockChart.panels.push(am5stock.StockPanel.new(root, {
+        wheelY: "zoomX",
+        panX: true,
+        panY: true
+      }));
+
+      // Create value axis
+      var valueAxis = mainPanel.yAxes.push(am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {
+          pan: "zoom"
+        }),
+        extraMin: 0.1, // adds some space for main series
+        tooltip: am5.Tooltip.new(root, {}),
+        numberFormat: "#,###.00",
+        extraTooltipPrecision: 2
+      }));
+
+      var dateAxis = mainPanel.xAxes.push(am5xy.GaplessDateAxis.new(root, {
+        baseInterval: {
+          timeUnit: "minute",
+          count: 1
+        },
+        renderer: am5xy.AxisRendererX.new(root, {
+          minorGridEnabled: true
+        }),
+        tooltip: am5.Tooltip.new(root, {})
+      }));
+
+      // Add series
+      var valueSeries = mainPanel.series.push(am5xy.CandlestickSeries.new(root, {
+        name: "Stock Data",
+        clustered: false,
+        valueXField: "Date",
+        valueYField: "Close",
+        highValueYField: "High",
+        lowValueYField: "Low",
+        openValueYField: "Open",
+        calculateAggregates: true,
+        xAxis: dateAxis,
+        yAxis: valueAxis,
+        legendValueText: "Open: [bold]{openValueY}[/] High: [bold]{highValueY}[/] Low: [bold]{lowValueY}[/] Close: [bold]{valueY}[/]",
+        legendRangeValueText: ""
+      }));
+
+      // Set main value series
+      stockChart.set("stockSeries", valueSeries);
+
+      // Add a stock legend
+      var valueLegend = mainPanel.plotContainer.children.push(am5stock.StockLegend.new(root, {
+        stockChart: stockChart
+      }));
+
+      // Create volume axis
+      var volumeAxisRenderer = am5xy.AxisRendererY.new(root, {
+        inside: true,
+        pan: "zoom"
+      });
+
+      volumeAxisRenderer.labels.template.set("forceHidden", true);
+      volumeAxisRenderer.grid.template.set("forceHidden", true);
+
+      var volumeValueAxis = mainPanel.yAxes.push(am5xy.ValueAxis.new(root, {
+        numberFormat: "#.#a",
+        height: am5.percent(20),
+        y: am5.percent(100),
+        centerY: am5.percent(100),
+        renderer: volumeAxisRenderer
+      }));
+
+      // Add volume series
+      var volumeSeries = mainPanel.series.push(am5xy.ColumnSeries.new(root, {
+        name: "Volume",
+        clustered: false,
+        valueXField: "Date",
+        valueYField: "Volume",
+        xAxis: dateAxis,
+        yAxis: volumeValueAxis,
+        legendValueText: "[bold]{valueY.formatNumber('#,###.0a')}[/]"
+      }));
+
+      volumeSeries.columns.template.setAll({
+        strokeOpacity: 0,
+        fillOpacity: 0.5
+      });
+
+      // Color columns by stock rules
+      volumeSeries.columns.template.adapters.add("fill", function(fill, target) {
+        var dataItem = target.dataItem;
+        if (dataItem) {
+          return stockChart.getVolumeColor(dataItem);
+        }
+        return fill;
+      });
+
+      // Set main volume series
+      stockChart.set("volumeSeries", volumeSeries);
+      valueLegend.data.setAll([valueSeries, volumeSeries]);
+
+      // Add cursor(s)
+      mainPanel.set("cursor", am5xy.XYCursor.new(root, {
+        yAxis: valueAxis,
+        xAxis: dateAxis,
+        snapToSeries: [valueSeries],
+        snapToSeriesBy: "y!"
+      }));
+
+      // Add scrollbar
+      var scrollbar = mainPanel.set("scrollbarX", am5xy.XYChartScrollbar.new(root, {
+        orientation: "horizontal",
+        height: 50
+      }));
+      stockChart.toolsContainer.children.push(scrollbar);
+
+      var sbDateAxis = scrollbar.chart.xAxes.push(am5xy.GaplessDateAxis.new(root, {
+        baseInterval: {
+          timeUnit: "minute",
+          count: 1
+        },
+        renderer: am5xy.AxisRendererX.new(root, {
+          minorGridEnabled: true
+        })
+      }));
+
+      var sbValueAxis = scrollbar.chart.yAxes.push(am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {})
+      }));
+
+      var sbSeries = scrollbar.chart.series.push(am5xy.LineSeries.new(root, {
+        valueYField: "Close",
+        valueXField: "Date",
+        xAxis: sbDateAxis,
+        yAxis: sbValueAxis
+      }));
+
+      sbSeries.fills.template.setAll({
+        visible: true,
+        fillOpacity: 0.3
+      });
+
+      // Set up series type switcher
+      var seriesSwitcher = am5stock.SeriesTypeControl.new(root, {
+        stockChart: stockChart
+      });
+
+      seriesSwitcher.events.on("selected", function(ev) {
+        setSeriesType(ev.item.id);
+      });
+
+      function getNewSettings(series) {
+        var newSettings = {};
+        am5.array.each(["name", "valueYField", "highValueYField", "lowValueYField", "openValueYField", "calculateAggregates", "valueXField", "xAxis", "yAxis", "legendValueText", "legendRangeValueText", "stroke", "fill"], function(setting) {
+          newSettings[setting] = series.get(setting);
+        });
+        return newSettings;
+      }
+
+      function setSeriesType(seriesType) {
+        // Get current series and its settings
+        var currentSeries = stockChart.get("stockSeries");
+        var newSettings = getNewSettings(currentSeries);
+
+        // Remove previous series
+        var data = currentSeries.data.values;
+        mainPanel.series.removeValue(currentSeries);
+
+        // Create new series
+        var series;
+        switch (seriesType) {
+          case "line":
+            series = mainPanel.series.push(am5xy.LineSeries.new(root, newSettings));
+            break;
+          case "candlestick":
+          case "procandlestick":
+            newSettings.clustered = false;
+            series = mainPanel.series.push(am5xy.CandlestickSeries.new(root, newSettings));
+            if (seriesType == "procandlestick") {
+              series.columns.template.get("themeTags").push("pro");
+            }
+            break;
+          case "ohlc":
+            newSettings.clustered = false;
+            series = mainPanel.series.push(am5xy.OHLCSeries.new(root, newSettings));
+            break;
+        }
+
+        // Set new series as stockSeries
+        if (series) {
+          valueLegend.data.removeValue(currentSeries);
+          series.data.setAll(data);
+          stockChart.set("stockSeries", series);
+          var cursor = mainPanel.get("cursor");
+          if (cursor) {
+            cursor.set("snapToSeries", [series]);
+          }
+          valueLegend.data.insertIndex(0, series);
+        }
+      }
+
+      // Stock toolbar
+      var toolbar = am5stock.StockToolbar.new(root, {
+        container: document.getElementById("chartcontrols"),
+        stockChart: stockChart,
+        controls: [
+          am5stock.IndicatorControl.new(root, {
+            stockChart: stockChart,
+            legend: valueLegend
+          }),
+          am5stock.DateRangeSelector.new(root, {
+            stockChart: stockChart
+          }),
+          am5stock.PeriodSelector.new(root, {
+            stockChart: stockChart
+          }),
+          seriesSwitcher,
+          am5stock.DrawingControl.new(root, {
+            stockChart: stockChart
+          }),
+          am5stock.DataSaveControl.new(root, {
+            stockChart: stockChart
+          }),
+          am5stock.ResetControl.new(root, {
+            stockChart: stockChart
+          }),
+          am5stock.SettingsControl.new(root, {
+            stockChart: stockChart
+          })
+        ]
+      });
+
+      // Tooltip for events (optional)
+      var tooltip = am5.Tooltip.new(root, {
+        getStrokeFromSprite: false,
+        getFillFromSprite: false
+      });
+
+      tooltip.get("background").setAll({
+        strokeOpacity: 1,
+        stroke: am5.color(0x000000),
+        fillOpacity: 1,
+        fill: am5.color(0xffffff)
+      });
+
+      // Variables for real-time updates
+      let lastTimestamp = null;
+      let updateIntervalId = null;
+      let symbol = document.getElementById('symbolInput').value.trim().toUpperCase();
+
+      // Function to start the auto-update with the specified interval
+      function startAutoUpdate() {
+        // Clear any existing interval
+        if (updateIntervalId) {
+          clearInterval(updateIntervalId);
+        }
+        // Get the interval from input
+        let intervalSec = parseInt(document.getElementById('updateIntervalInput').value);
+        if (isNaN(intervalSec) || intervalSec < 1) {
+          intervalSec = 60; // Default to 60 seconds if invalid
+        }
+        let intervalMs = intervalSec * 1000;
+
+        // Set up interval to update data every intervalMs milliseconds
+        updateIntervalId = setInterval(async () => {
+          await fetchData(symbol, true);
+        }, intervalMs);
+      }
+
+      // Fetch and process data from API
+      async function fetchData(symbol, isUpdate = false) {
+        try {
+          // Get startDate and endDate from input fields
+          let startDateInput = document.getElementById('startDateInput').value;
+          let endDateInput = document.getElementById('endDateInput').value;
+
+          // If inputs are empty, initialize to default values
+          if (!startDateInput) {
+            let oneYearAgo = new Date();
+            oneYearAgo.setDate(oneYearAgo.getDate() - 365);
+            startDateInput = oneYearAgo.toISOString().split('T')[0];
+          }
+          if (!endDateInput) {
+            let today = new Date();
+            endDateInput = today.toISOString().split('T')[0];
+          }
+
+          const startDate = startDateInput; // Format: YYYY-MM-DD
+          const endDate = endDateInput;     // Format: YYYY-MM-DD
+
+          // Get the selected interval
+          const interval = document.getElementById('dataIntervalSelect').value;
+
+          // Adjust the baseInterval of date axes according to the selected interval
+          adjustBaseInterval(interval);
+
+          // If it's an update, adjust the startDate to be the last timestamp
+          if (isUpdate && lastTimestamp) {
+            const startDateObj = new Date(lastTimestamp);
+            // Add one unit of the interval to avoid duplicate data
+            incrementDate(startDateObj, interval);
+            startDateInput = startDateObj.toISOString().split('T')[0];
+          }
+
+          const apiUrl = `/api/YahooFinance/chart-symbol/${encodeURIComponent(symbol)}?startDate=${startDateInput}&endDate=${endDateInput}&interval=${encodeURIComponent(interval)}`;
+
+          // Fetch data from the API
+          const response = await fetch(apiUrl);
+
+          if (!response.ok) {
+            throw new Error(`Error fetching data: ${response.status} ${response.statusText}`);
+          }
+
+          const rawData = await response.json();
+
+          if (!Array.isArray(rawData)) {
+            throw new Error("Invalid data format received from API.");
+          }
+
+          // Process the data
+          const processedData = rawData.map(item => ({
+            Date: new Date(item.timestamp).getTime(), // Convert to milliseconds
+            Open: parseFloat(item.open),
+            Close: parseFloat(item.close),
+            High: parseFloat(item.high),
+            Low: parseFloat(item.low),
+            Volume: parseInt(item.volume, 10)
+          }));
+
+          if (processedData.length > 0) {
+            // Update lastTimestamp
+            lastTimestamp = processedData[processedData.length - 1].Date;
+
+            if (isUpdate) {
+              // Append new data to existing series
+              valueSeries.data.pushAll(processedData);
+              volumeSeries.data.pushAll(processedData);
+              sbSeries.data.pushAll(processedData);
+            } else {
+              // Set data to series for the first time
+              valueSeries.data.setAll(processedData);
+              volumeSeries.data.setAll(processedData);
+              sbSeries.data.setAll(processedData);
+            }
+          }
+
+        } catch (error) {
+          console.error("Error fetching or processing data:", error);
+        }
+      }
+
+      // Function to adjust baseInterval based on selected data interval
+      function adjustBaseInterval(interval) {
+        let timeUnit = 'minute';
+        let count = 1;
+
+        if (interval.endsWith('m')) {
+          timeUnit = 'minute';
+          count = parseInt(interval.replace('m', ''));
+        } else if (interval.endsWith('h')) {
+          timeUnit = 'hour';
+          count = parseInt(interval.replace('h', ''));
+        } else if (interval.endsWith('d')) {
+          timeUnit = 'day';
+          count = parseInt(interval.replace('d', ''));
+        } else if (interval.endsWith('wk')) {
+          timeUnit = 'week';
+          count = parseInt(interval.replace('wk', ''));
+        } else if (interval.endsWith('mo')) {
+          timeUnit = 'month';
+          count = parseInt(interval.replace('mo', ''));
+        } else {
+          // Default to day if unrecognized
+          timeUnit = 'day';
+          count = 1;
+        }
+
+        dateAxis.set("baseInterval", {
+          timeUnit: timeUnit,
+          count: count
+        });
+
+        sbDateAxis.set("baseInterval", {
+          timeUnit: timeUnit,
+          count: count
+        });
+      }
+
+      // Function to increment date based on interval
+      function incrementDate(dateObj, interval) {
+        let count = parseInt(interval);
+        if (interval.endsWith('m')) {
+          dateObj.setMinutes(dateObj.getMinutes() + count);
+        } else if (interval.endsWith('h')) {
+          dateObj.setHours(dateObj.getHours() + count);
+        } else if (interval.endsWith('d')) {
+          dateObj.setDate(dateObj.getDate() + count);
+        } else if (interval.endsWith('wk')) {
+          dateObj.setDate(dateObj.getDate() + count * 7);
+        } else if (interval.endsWith('mo')) {
+          dateObj.setMonth(dateObj.getMonth() + count);
+        } else {
+          dateObj.setDate(dateObj.getDate() + 1);
+        }
+      }
+
+      // Initial data load and start auto-update
+      await fetchData(symbol);
+      startAutoUpdate();
+
+      // Search and suggestion functions
       async function search() {
         const query = document.getElementById('symbolInput').value.trim();
         const suggestionsBox = document.getElementById('suggestions');
@@ -445,25 +534,35 @@ am5.ready(async function() {
         document.getElementById('suggestions').style.display = 'none';
 
         // Update the chart with the selected symbol
-        await fetchData(result.symbol);
+        symbol = result.symbol;
+        lastTimestamp = null; // Reset lastTimestamp when symbol changes
+        await fetchData(symbol);
+        startAutoUpdate(); // Restart auto-update with new symbol
       }
-  // Call the fetchData function
-       // Modify the symbolInput event listener
+
+      // Event listeners
       const symbolInput = document.getElementById('symbolInput');
       symbolInput.addEventListener('input', search);
 
-      // Ensure the Update Chart button also works
       document.getElementById('updateButton').addEventListener('click', async function() {
-        var symbol = symbolInput.value.trim().toUpperCase();
+        symbol = symbolInput.value.trim().toUpperCase();
         if (symbol) {
+          lastTimestamp = null; // Reset lastTimestamp when symbol changes
           await fetchData(symbol);
+          startAutoUpdate(); // Restart auto-update with new symbol
         }
       });
 
-      // Initial data load
-      await fetchData(symbolInput.value.trim().toUpperCase());
+      document.getElementById('updateIntervalInput').addEventListener('change', function() {
+        startAutoUpdate();
+      });
 
-}); // end am5.ready()
+      document.getElementById('dataIntervalSelect').addEventListener('change', async function() {
+        lastTimestamp = null; // Reset lastTimestamp when interval changes
+        await fetchData(symbol);
+      });
+
+    }); // end am5.ready()
 </script>
 
 <!-- HTML -->
@@ -472,6 +571,7 @@ am5.ready(async function() {
     <div class="card mb-4">
         <div class="card-body">
             <div class="row g-3 align-items-center">
+                <!-- Symbol Input -->
                 <div class="col-md-3 position-relative">
                     <label for="symbolInput" class="form-label">Symbol</label>
                     <div class="input-group">
@@ -481,20 +581,48 @@ am5.ready(async function() {
                     <!-- Suggestions box -->
                     <div id="suggestions" class="suggestions-box"></div>
                 </div>
-                <div class="col-md-3">
+                <!-- Start Date Input -->
+                <div class="col-md-2">
                     <label for="startDateInput" class="form-label">Start Date</label>
                     <input type="date" id="startDateInput" class="form-control">
                 </div>
-                <div class="col-md-3">
+                <!-- End Date Input -->
+                <div class="col-md-2">
                     <label for="endDateInput" class="form-label">End Date</label>
                     <input type="date" id="endDateInput" class="form-control">
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
+                <!-- Data Interval Select -->
+                <div class="col-md-2">
+                    <label for="dataIntervalSelect" class="form-label">Data Interval</label>
+                    <select id="dataIntervalSelect" class="form-select">
+                        <option value="1m">1 Minute</option>
+                        <option value="2m">2 Minutes</option>
+                        <option value="5m">5 Minutes</option>
+                        <option value="15m">15 Minutes</option>
+                        <option value="30m">30 Minutes</option>
+                        <option value="60m">60 Minutes</option>
+                        <option value="90m">90 Minutes</option>
+                        <option value="1h">1 Hour</option>
+                        <option value="1d" selected>1 Day</option>
+                        <option value="5d">5 Days</option>
+                        <option value="1wk">1 Week</option>
+                        <option value="1mo">1 Month</option>
+                        <option value="3mo">3 Months</option>
+                    </select>
+                </div>
+                <!-- Update Interval Input -->
+                <div class="col-md-1">
+                    <label for="updateIntervalInput" class="form-label">Update (sec)</label>
+                    <input type="number" id="updateIntervalInput" class="form-control" value="60" min="1">
+                </div>
+                <!-- Update Button -->
+                <div class="col-md-2 d-flex align-items-end">
                     <button id="updateButton" type="button" class="btn btn-primary w-100"><i class='bx bx-refresh'></i> Update Chart</button>
                 </div>
             </div>
         </div>
     </div>
+    <!-- Chart Controls -->
     <div id="chartcontrols"></div>
     <!-- Card for Chart -->
     <div class="card">
