@@ -308,7 +308,7 @@ namespace MarketAnalyticHub.Controllers.api
 
     // GET: api/yahoofinance/chart/{symbol}
     [HttpGet("chart-symbol/{symbol}")]
-    public async Task<IActionResult> GetSymbolsChart(string symbol, DateTime? startDate = null, DateTime? endDate = null)
+    public async Task<IActionResult> GetSymbolsChartSearch(string symbol, DateTime? startDate = null, DateTime? endDate = null, string interval = "5m")
     {
       try
       {
@@ -317,7 +317,7 @@ namespace MarketAnalyticHub.Controllers.api
         var finalStartDate = startDate ?? finalEndDate.AddYears(-1);
 
         // Call the service to get historical data
-        var quotes = await YahooService.GetHistoricalDataAsync(symbol, finalStartDate, finalEndDate);
+        var quotes = await YahooService.GetHistoricalDataAsync(symbol, finalStartDate, finalEndDate, interval);
 
         var result = quotes.Select(q => new HistoricalQuoteViewModel
         {
@@ -326,6 +326,7 @@ namespace MarketAnalyticHub.Controllers.api
           Close = TryConvertToDecimal(q.Close),
           High = TryConvertToDecimal(q.High),
           Low = TryConvertToDecimal(q.Low),
+          Volume = TryConvertToLong(q.Volume),
         }).ToList();
 
         return Ok(result);
@@ -336,6 +337,27 @@ namespace MarketAnalyticHub.Controllers.api
       {
         // Return a 400 Bad Request with the error message
         return BadRequest(new { Message = ex.Message });
+      }
+    }
+
+    private long TryConvertToLong(dynamic value)
+    {
+      if (value == null) return 0;
+
+      try
+      {
+        // Convert to string and then parse to decimal
+        return long.Parse(value.ToString(), System.Globalization.NumberStyles.Any);
+      }
+      catch (FormatException)
+      {
+        // Log conversion error if needed
+        return 0; // Default value on conversion error
+      }
+      catch (InvalidCastException)
+      {
+        // Log casting error if needed
+        return 0; // Default value on casting error
       }
     }
 

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingView-MarketAnalyticsHub</title>
+
+    <!-- Boxicons CSS -->
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+    <style>
+        #chartdiv {
+            width: 100%;
+            height: 500px;
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .pattern-description {
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        #loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        /* Overlay to disable interactions while loading */
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            display: none;
+            z-index: 9;
+        }
+
+        /* Additional styling for messages and responsiveness */
+        .container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        #messages div {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        #loading-message {
+            background-color: #cce5ff;
+            color: #004085;
+        }
+
+        #error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        #success-message {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        #empty-message {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 768px) { /* Corrected the typo from */
+          #chartdiv
+
+        {
+            height: 400px;
+        }
+
+        #controls {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #indicators {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #messages div {
+            width: 90%;
+        }
+
+        }
+
+        /* Additional styling for color pickers */
+        .color-picker-group {
+            margin-top: 15px;
+        }
+
+            .color-picker-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: 500;
+            }
+
+            .color-picker-group input[type="color"] {
+                width: 100%;
+                padding: 5px;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+            }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+  
+
+        <!-- Loading Spinner and Overlay -->
+        <div id="overlay"></div>
+        <div id="loading-spinner" class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+        <!-- Input Section -->
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <label for="symbol" class="form-label"><i class="bx bx-line-chart"></i> Stock Symbol:</label>
+                <input type="text" id="symbol" class="form-control" placeholder="AAPL" value="AAPL">
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="start-date" class="form-label"><i class="bx bx-calendar"></i> Start Date:</label>
+                <input type="datetime-local" id="start-date" class="form-control" >
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="end-date" class="form-label"><i class="bx bx-calendar"></i> End Date:</label>
+                <input type="datetime-local" id="end-date" class="form-control" >
+            </div>
+            <div class="col-md-3 mb-3">
+                <label for="interval-select" class="form-label"><i class="bx bx-timer"></i> Time Interval:</label>
+                <select id="interval-select" class="form-select">
+                    <option value="1m">1 Minute</option>
+                    <option value="5m">5 Minutes</option>
+                    <option value="15m">15 Minutes</option>
+                    <option value="30m">30 Minutes</option>
+                    <option value="1h">1 Hour</option>
+                    <option value="1d" >1 Day</option>
+                    <option value="1w">1 Week</option>
+                </select>
+            </div>
+            <div class="col-12 text-center">
+                <button id="fetch-data" type="button" class="btn btn-primary btn-icon w-100"><i class="bx bx-refresh"></i> Fetch Data</button>
+            </div>
+        </div>
+
+        <!-- Menu Section -->
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <label for="menu-select" class="form-label"><i class="bx bx-cog"></i> Select Patterns:</label>
+                <select id="menu-select" class="form-select" multiple>
+                    <option value="highlightBullish">Bullish Engulfing</option>
+                    <option value="highlightBearish">Bearish Engulfing</option>
+                    <option value="highlightDoji">Doji</option>
+                    <option value="highlightHammer">Hammer</option>
+                    <option value="highlightShootingStar">Shooting Star</option>
+                    <option value="highlightMorningStar">Morning Star</option>
+                </select>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="indicator-select" class="form-label"><i class="bx bx-chart"></i> Select Indicators:</label>
+                <select id="indicator-select" class="form-select" multiple>
+                    <option value="accelerationBands">Acceleration Bands</option>
+                    <option value="bollingerBands">Bollinger Bands</option>
+                    <option value="rsi">Relative Strength Index (RSI)</option>
+                    <option value="macd">MACD</option>
+                    <option value="volume">Volume</option>
+                </select>
+
+                <!-- Color Pickers for Indicators -->
+                <div class="color-picker-group" id="color-pickers">
+                    <!-- Color pickers will be dynamically shown based on selected indicators -->
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6 mb-3">
+                <button id="apply-patterns" class="btn btn-secondary btn-icon w-100"><i class="bx bx-magic"></i> Apply Patterns</button>
+            </div>
+            <div class="col-md-6 mb-3">
+                <button id="apply-indicators" class="btn btn-secondary btn-icon w-100"><i class="bx bx-line-chart"></i> Apply Indicators</button>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="row">
+            <div class="col-12">
+                <div id="messages" class="my-4">
+                    <div id="loading-message" class="alert alert-info">Loading data, please wait...</div>
+                    <div id="empty-message" class="alert alert-warning">No data available for the selected parameters.</div>
+                    <div id="error-message" class="alert alert-danger">An error occurred. Please try again.</div>
+                    <div id="success-message" class="alert alert-success">Data loaded successfully!</div>
+                </div>
+                <div id="zoom-level" style="margin-top: 10px;">Zoom Level: Full View</div>
+                <div id="chartdiv"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PageScripts Section -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="~/js/pages/tradingview/addAccelerationBands.js"></script>
+    <script src="~/js/pages/tradingview/addBollingerBands.js"></script>
+    <script src="~/js/pages/tradingview/addMACD.js"></script>
+    <script src="~/js/pages/tradingview/addRSI.js"></script>
+    <script src="~/js/pages/tradingview/addVolume.js"></script>
+    <script src="~/js/pages/tradingview/calculateBollingerBands.js"></script>
+    <script src="~/js/pages/tradingview/calculateEMA.js"></script>
+    <script src="~/js/pages/tradingview/calculateMACD.js"></script>
+    <script src="~/js/pages/tradingview/calculateRSI.js"></script>
+    <script src="~/js/pages/tradingview/tradingview.js"></script>
+
+   </body>
+</html>

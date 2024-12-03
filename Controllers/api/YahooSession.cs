@@ -454,14 +454,13 @@ namespace MarketAnalyticHub.Controllers.api
         // Combining timestamps with quotes into a historical data list
         var historicalData = new List<dynamic>();
 
-        for (int i = 0; i < timestamps.Count; i++)
+        for (int i = 0; i < timestamps?.Count; i++)
         {
           long time = Convert.ToInt64(timestamps[i]);
-          var Open = quotes.open[i];
           historicalData.Add(new
           {
             Timestamp = DateTimeOffset.FromUnixTimeSeconds(time).DateTime,
-            Open = Open,
+            Open = quotes.open[i],
             Close = quotes.close[i],
             High = quotes.high[i],
             Low = quotes.low[i],
