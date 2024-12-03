@@ -189,6 +189,7 @@
         }
 
         async function fetchSparklineData(symbol) {
+
             try {
                 const url = `/api/yahoofinance/chart-symbol/${symbol}`;
                 const response = await fetch(url);

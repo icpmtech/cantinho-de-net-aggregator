@@ -604,6 +604,33 @@ namespace MarketAnalyticHub.Controllers.api
         throw;
       }
     }
+    public static async Task<ChartResponse> GetRealTimeHistoricalJsonDataAsync(string symbol, DateTime period1, DateTime period2,string interval="1m", CancellationToken token = default)
+    {
+      await InitAsync(token);
+
+      var startTimestamp = ((DateTimeOffset)period1).ToUnixTimeSeconds();
+      var endTimestamp = ((DateTimeOffset)period2).ToUnixTimeSeconds();
+      var url = $"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?period1={startTimestamp}&period2={endTimestamp}&interval={interval}";
+
+      try
+      {
+        // Sending the request to Yahoo Finance API and receiving the JSON response
+        var response = await url
+            .SetQueryParam("crumb", Crumb) // Assuming 'Crumb' is a predefined string variable
+            .WithCookie(_cookie.Name, _cookie.Value) // Assuming '_cookie' is a predefined object
+            .WithHeader(UserAgentKey, UserAgentValue) // Assuming 'UserAgentKey' and 'UserAgentValue' are predefined
+            .GetStringAsync(token);
+
+        var chartResponse = JsonConvert.DeserializeObject<ChartResponse>(response);
+
+        return chartResponse;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error during GetHistoricalDataAsync: {ex.Message}");
+        throw;
+      }
+    }
     public static async Task<ChartResponse> GetHistoricalJsonDataAsync(string symbol, DateTime period1, DateTime period2, CancellationToken token = default)
     {
       await InitAsync(token);

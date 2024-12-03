@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using HtmlAgilityPack;
 using Azure;
+using MarketAnalyticHub.Services.ApiDataApp.Services;
 namespace MarketAnalyticHub.Controllers.api
 {
   [ApiController]
@@ -304,11 +305,43 @@ namespace MarketAnalyticHub.Controllers.api
       public decimal Low { get; set; }
       public long Volume { get; set; }
     }
+    // GET: api/yahoofinance/chart-real-time-symbol/{symbol}/{interval}
+    [HttpGet("chart-real-time-symbol/{symbol}/{interval}")]
+    public async Task<IActionResult> GetSymbolsChartRealTimeSearch(string symbol, string interval = "1m")
+    {
+      try
+      {
+        // Use the provided startDate and endDate, or default to one year range ending today
+        var finalEndDate = DateTime.Now;
+        var finalStartDate =  finalEndDate.AddMinutes(-1);
+
+        // Call the service to get historical data
+        var quotes = await YahooService.GetRealTimeHistoricalJsonDataAsync(symbol, finalStartDate, finalEndDate, interval);
+
+      var valueData=  new HistoricalQuoteViewModel
+        {
+          Close = quotes.Chart.Result[0].Meta.ChartPreviousClose,
+          Open = quotes.Chart.Result[0].Meta.RegularMarketPrice,
+          Volume = quotes.Chart.Result[0].Meta.RegularMarketVolume,
+          Timestamp = DateTime.Now,
+          Low = quotes.Chart.Result[0].Meta.RegularMarketDayLow,
+          High = quotes.Chart.Result[0].Meta.RegularMarketDayHigh,
+        };
+        return Ok(valueData);
+
+
+      }
+      catch (Exception ex)
+      {
+        // Return a 400 Bad Request with the error message
+        return BadRequest(new { Message = ex.Message });
+      }
+    }
 
 
     // GET: api/yahoofinance/chart/{symbol}
     [HttpGet("chart-symbol/{symbol}")]
-    public async Task<IActionResult> GetSymbolsChartSearch(string symbol, DateTime? startDate = null, DateTime? endDate = null, string interval = "5m")
+    public async Task<IActionResult> GetSymbolsChartSearch(string symbol, DateTime? startDate = null, DateTime? endDate = null, string interval = "1d")
     {
       try
       {
