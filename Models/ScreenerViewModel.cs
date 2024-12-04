@@ -1,4 +1,5 @@
 // File: Models/ScreenerViewModel.cs
+using MarketAnalyticHub.Services;
 using System.Collections.Generic;
 
 namespace MarketAnalyticHub.Models
@@ -12,6 +13,13 @@ namespace MarketAnalyticHub.Models
   {
     public StockViewModel Stock { get; set; }
     public bool HasQuery { get; set; }
+  }
+
+  public class DetailStockFinancialsViewModel
+  {
+    public StockFinantialsViewModel Stock { get; set; }
+    public bool HasQuery { get; set; }
+    public StockViewModel StockBase { get; internal set; }
   }
 
 }

@@ -4,6 +4,9 @@ namespace MarketAnalyticHub.Services
   using MarketAnalyticHub.Models;
   using MarketAnalyticHub.Services.ApiDataApp.Services;
   using MarketAnalyticHub.YaooServive.Models;
+  using Microsoft.Graph;
+  using Newtonsoft.Json;
+  using Newtonsoft.Json.Linq;
   using System;
   using System.Collections.Generic;
   using System.Threading.Tasks;
@@ -20,6 +23,7 @@ namespace MarketAnalyticHub.Services
     Task<List<ChartDataPoint>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate);
     Task<List<NewsItemScreener>> GetMockNews(string stockSymbol);
     Task<StockViewModel?> GetSummaryBySymbolAsync(string stockSymbol);
+    Task<StockFinantialsViewModel?> GetFinancialsBySymbolAsync(string stockSymbol);
   }
 
 
@@ -47,6 +51,7 @@ public  class YahooFinanceService : IYahooFinanceService
             Field.RegularMarketChange,
              Field.Currency,
              Field.DividendDate,
+             Field.TrailingAnnualDividendRate,
              Field.BookValue,
              Field.Exchange,
              Field.TrailingAnnualDividendYield,
@@ -107,8 +112,87 @@ public  class YahooFinanceService : IYahooFinanceService
         return null;
       }
     }
+    public async Task<StockFinantialsViewModel?> GetFinancialsBySymbolAsync(string symbol)
+    {
+      try
+      {
+        var client = new HttpClient();
+        var apiKey = "60c4b7c12emshfe21a6a1ec58d8bp1a396cjsn6bc88b0f02f5"; // Securely retrieve your API key
+        var request = new HttpRequestMessage
+        {
+          Method = HttpMethod.Get,
+          RequestUri = new Uri($"https://yahoo-finance166.p.rapidapi.com/api/stock/get-financial-data?region=US&symbol={symbol}"),
+          Headers =
+            {
+                { "x-rapidapi-key", apiKey },
+                { "x-rapidapi-host", "yahoo-finance166.p.rapidapi.com" },
+            },
+        };
 
-    
+        using (var response = await client.SendAsync(request))
+        {
+          response.EnsureSuccessStatusCode();
+          var body = await response.Content.ReadAsStringAsync();
+
+          // Deserialize the JSON response
+          var root = JsonConvert.DeserializeObject<dynamic>(body);
+
+          if (root?.quoteSummary?.result == null || root?.quoteSummary.result.Count == 0)
+          {
+            Console.WriteLine("Financial data not found.");
+            return null;
+          }
+
+          var financialData = root?.quoteSummary.result[0].financialData;
+
+          var stockViewModel = new StockFinantialsViewModel
+          {
+            Symbol = symbol.ToUpper(),
+            CurrentPrice = financialData.currentPrice?.raw,
+            TargetHighPrice = financialData.targetHighPrice?.raw,
+            TargetLowPrice = financialData.targetLowPrice?.raw,
+            TargetMeanPrice = financialData.targetMeanPrice?.raw,
+            TargetMedianPrice = financialData.targetMedianPrice?.raw,
+            RecommendationMean = financialData.recommendationMean?.raw,
+            RecommendationKey = financialData.recommendationKey,
+            NumberOfAnalystOpinions = (int?)financialData.numberOfAnalystOpinions?.raw,
+            TotalCash = financialData.totalCash?.raw,
+            TotalCashPerShare = financialData.totalCashPerShare?.raw,
+            Ebitda = financialData.ebitda?.raw,
+            TotalDebt = financialData.totalDebt?.raw,
+            QuickRatio = financialData.quickRatio?.raw,
+            CurrentRatio = financialData.currentRatio?.raw,
+            TotalRevenue = financialData.totalRevenue?.raw,
+            DebtToEquity = financialData.debtToEquity?.raw,
+            RevenuePerShare = financialData.revenuePerShare?.raw,
+            ReturnOnAssets = financialData.returnOnAssets?.raw,
+            ReturnOnEquity = financialData.returnOnEquity?.raw,
+            FreeCashflow = financialData.freeCashflow?.raw,
+            OperatingCashflow = financialData.operatingCashflow?.raw,
+            EarningsGrowth = financialData.earningsGrowth?.raw,
+            RevenueGrowth = financialData.revenueGrowth?.raw,
+            GrossMargins = financialData.grossMargins?.raw,
+            EbitdaMargins = financialData.ebitdaMargins?.raw,
+            OperatingMargins = financialData.operatingMargins?.raw,
+            ProfitMargins = financialData.profitMargins?.raw,
+            FinancialCurrency = financialData.financialCurrency,
+            
+
+          };
+
+          return stockViewModel;
+        }
+      }
+      catch (Exception ex)
+      {
+        Console.WriteLine($"Error fetching data for {symbol}: {ex.Message}");
+        return null;
+      }
+    }
+
+
+
+
     public async Task<List<ChartDataPoint>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate)
     {
       try
@@ -303,7 +387,7 @@ public  class YahooFinanceService : IYahooFinanceService
           return 
         new StockViewModel
         {
-          CEO= ceo.Name ?? "N/A",
+          CEO= ceo?.Name ?? "N/A",
           Sector = data.Sector,
           Industry = data.Industry,
           Description=data.LongBusinessSummary

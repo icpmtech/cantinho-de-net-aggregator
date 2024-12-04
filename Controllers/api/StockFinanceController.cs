@@ -156,7 +156,111 @@ namespace MarketAnalyticHub.Controllers.api
         return StatusCode(500, "An error occurred while processing your request. Please try again later.");
       }
     }
- 
+
+
+    [HttpGet("search-finance-data-symbol/{symbol}")]
+    public async Task<ActionResult> DataSymbol(string symbol)
+    {
+     
+      // Validate input
+      if (string.IsNullOrWhiteSpace(symbol))
+      {
+        return BadRequest("The stock symbol must be provided.");
+      }
+
+      // Initialize the ViewModel
+      var viewModel = new DetailScreenerViewModel
+      {
+        HasQuery = !string.IsNullOrWhiteSpace(symbol),
+        Stock = new StockViewModel()
+      };
+
+      try
+      {
+          var stock = await _yahooFinanceService.GetStockDataAsync(symbol);
+          var summary = await _yahooFinanceService.GetSummaryBySymbolAsync(symbol);
+
+          if (stock != null && summary != null)
+          {
+            // Map summary data to the stock model
+            stock.Industry = summary.Industry;
+            stock.CEO = summary.CEO;
+            stock.Sector = summary.Sector;
+            stock.Description = summary.Description;
+            // Fetch historical chart data
+            stock.ChartData = await _yahooFinanceService.GetHistoricalDataAsync(
+                symbol,
+                DateTime.Today.AddMonths(-1),
+                DateTime.Today
+            );
+
+            // Fetch additional data
+            stock.TechnicalSignals = GetTechnicalSignals(symbol); // Method for calculating technical signals
+            stock.AnalystRatings = GetAnalystRatings(symbol); // Method for fetching analyst ratings
+            stock.DividendYield = summary.DividendYield; // Assuming this is part of the summary
+            stock.Dividends = GetDividends(symbol); // Fetch or mock dividend data
+            stock.News = await _yahooFinanceService.GetMockNews(symbol); // Replace with actual implementation
+            stock.SentimentScore = GetMockSentiment(symbol); // Replace with actual sentiment calculation
+
+            // Populate the ViewModel
+            viewModel.Stock = stock;
+          }
+
+        // Return the ViewModel
+        return Ok(viewModel);
+      }
+      catch (Exception ex)
+      {
+        // Log the error for debugging
+        _logger.LogError(ex, "An error occurred while fetching stock details for symbol: {Symbol}", symbol);
+
+        // Return a server error response
+        return StatusCode(500, "An error occurred while processing your request. Please try again later.");
+      }
+    }
+
+    [HttpGet("search-finance-finantials-symbol/{symbol}")]
+    public async Task<ActionResult> DataFinancialsSymbol(string symbol)
+    {
+
+      // Validate input
+      if (string.IsNullOrWhiteSpace(symbol))
+      {
+        return BadRequest("The stock symbol must be provided.");
+      }
+
+      // Initialize the ViewModel
+      var viewModel = new DetailStockFinancialsViewModel
+      {
+        HasQuery = !string.IsNullOrWhiteSpace(symbol),
+        Stock = new StockFinantialsViewModel(),
+        StockBase = new StockViewModel()
+      };
+
+      try
+      {
+        var stockData = await _yahooFinanceService.GetStockDataAsync(symbol);
+        var stock = await _yahooFinanceService.GetFinancialsBySymbolAsync(symbol);
+
+        if (stock != null && stockData!=null)
+        {
+          viewModel.Stock = stock;
+          viewModel.StockBase = stockData;
+        }
+
+        // Return the ViewModel
+        return Ok(viewModel);
+      }
+      catch (Exception ex)
+      {
+        // Log the error for debugging
+        _logger.LogError(ex, "An error occurred while fetching stock details for symbol: {Symbol}", symbol);
+
+        // Return a server error response
+        return StatusCode(500, "An error occurred while processing your request. Please try again later.");
+      }
+    }
+
 
     private List<DividendScreenViewModel> GetDividends(string symbol)
     {

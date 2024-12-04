@@ -1,5 +1,349 @@
-﻿@*
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
 }
+<div class="container">
+    <div class="text-center mb-4">
+        <h1><i class='bx bx-line-chart icon'></i>SymbolData</h1>
+    </div>
+    <div class="row">
+        <!-- Stock Symbol Search -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h4><i class='bx bx-select-multiple icon'></i>Select Stock Symbol</h4>
+            </div>
+            <div class="card-body">
+                <div class="form-group position-relative">
+                    <input type="text" class="form-control" id="symbolInput" placeholder="Search stock symbol" autocomplete="off">
+                    <div id="suggestions" class="suggestions" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Analyze Button -->
+        <div class="text-center mb-4">
+            <button type="button" class="btn btn-primary btn-lg" onclick="analyzeStock()">
+                <i class='bx bx-analyse icon'></i>Analyze Stock
+            </button>
+        </div>
+    </div>
+    <div class="row">
+        <!-- Financial Inputs -->
+        <div class="col-lg-6 mb-4">
+            <div class="card form-section">
+                <div class="card-header">
+                    <h4><i class='bx bx-money icon'></i>Financial Inputs</h4>
+                </div>
+                <div class="card-body">
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="marketPrice"><i class='bx bx-dollar-circle icon'></i>Market Price per Share</label>
+                            <input type="number" class="form-control" id="marketPrice" placeholder="Enter market price" step="0.01">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="eps"><i class='bx bx-line-chart-up icon'></i>Earnings per Share (EPS)</label>
+                            <input type="number" class="form-control" id="eps" placeholder="Enter EPS" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="bookValue"><i class='bx bx-book icon'></i>Book Value per Share</label>
+                            <input type="number" class="form-control" id="bookValue" placeholder="Enter book value" step="0.01">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="dividends"><i class='bx bx-gift icon'></i>Annual Dividends per Share</label>
+                            <input type="number" class="form-control" id="dividends" placeholder="Enter annual dividends" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="growthRate"><i class='bx bx-trending-up icon'></i>Earnings Growth Rate (%)</label>
+                            <input type="number" class="form-control" id="growthRate" placeholder="Enter growth rate" step="0.01">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="freeCashFlow"><i class='bx bx-cash icon'></i>Free Cash Flow</label>
+                            <input type="number" class="form-control" id="freeCashFlow" placeholder="Enter free cash flow" step="0.01">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Financial Ratios -->
+        <div class="col-lg-6 mb-4">
+            <div class="card form-section">
+                <div class="card-header">
+                    <h4><i class='bx bx-calculator icon'></i>Financial Ratios</h4>
+                </div>
+                <div class="card-body">
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="netIncome"><i class='bx bx-wallet icon'></i>Net Income</label>
+                            <input type="number" class="form-control" id="netIncome" placeholder="Enter net income" step="0.01">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="equity"><i class='bx bx-building icon'></i>Shareholder's Equity</label>
+                            <input type="number" class="form-control" id="equity" placeholder="Enter shareholder's equity" step="0.01">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="debt"><i class='bx bx-money icon'></i>Total Debt</label>
+                        <input type="number" class="form-control" id="debt" placeholder="Enter total debt" step="0.01">
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row card">
+    <div class="result" id="result">
+    <h1>Common Formulas for Stock Evaluation</h1>
+    <p>There isn't a single universal formula for determining whether a stock is a <strong>"buy," "hold,"</strong> or <strong>"sell."</strong> Analysts use various financial metrics, ratios, and models to evaluate a stock's value and future potential. However, these are some common formulas and methods employed:</p>
+    <h2>1. Price-to-Earnings Ratio (P/E Ratio)</h2>
+    <div class="formula">
+        <strong>P/E</strong> = Market Price per Share ÷ Earnings per Share (EPS)
+    </div>
+    <p>
+        A low P/E compared to industry peers might indicate the stock is undervalued (potential "buy").<br>
+        A high P/E could suggest overvaluation (potential "sell") or strong growth prospects.
+    </p>
+    <h2>2. Discounted Cash Flow (DCF)</h2>
+    <div class="formula">
+        <strong>DCF</strong> = Σ [Cash Flow ÷ (1 + r)<sup>t</sup>]
+    </div>
+    <p>
+        Where:<br>
+        <span class="sub-formula"><strong>r</strong>: Discount rate (cost of capital)</span><br>
+        <span class="sub-formula"><strong>t</strong>: Time period</span>
+    </p>
+    <p>
+        Compares the intrinsic value of the stock to its current market price. If the calculated DCF is higher than the current price, it may be a "buy."
+    </p>
+
+    <h2>3. Price-to-Book Ratio (P/B Ratio)</h2>
+    <div class="formula">
+        <strong>P/B</strong> = Market Price per Share ÷ Book Value per Share
+    </div>
+    <p>
+        A P/B less than 1 might indicate an undervalued stock.
+    </p>
+
+    <h2>4. Dividend Yield</h2>
+    <div class="formula">
+        <strong>Dividend Yield</strong> = Annual Dividends per Share ÷ Market Price per Share
+    </div>
+    <p>
+        Stocks with high dividend yields might be attractive to income-focused investors but could also signal risk.
+    </p>
+
+    <h2>5. Return on Equity (ROE)</h2>
+    <div class="formula">
+        <strong>ROE</strong> = Net Income ÷ Shareholder’s Equity
+    </div>
+    <p>
+        Higher ROE compared to peers can indicate efficient management and a potential "buy."
+    </p>
+
+    <h2>6. Earnings Growth (PEG Ratio)</h2>
+    <div class="formula">
+        <strong>PEG</strong> = P/E Ratio ÷ Earnings Growth Rate
+    </div>
+    <p>
+        A PEG ratio below 1 is often considered a "buy."
+    </p>
+
+    <h2>7. Technical Analysis Indicators</h2>
+    <ul>
+        <li><strong>Moving Averages:</strong> Compare current price to moving averages (e.g., 50-day or 200-day) to assess trends.</li>
+        <li>
+            <strong>Relative Strength Index (RSI):</strong>
+            <div class="formula">
+                <strong>RSI</strong> = 100 − [100 ÷ (1 + (Average Gain ÷ Average Loss))]
+            </div>
+            <p>
+                RSI above 70 may suggest the stock is overbought (potential "sell"), while below 30 indicates oversold conditions (potential "buy").
+            </p>
+        </li>
+    </ul>
+
+    <h2>Combining Metrics</h2>
+    <p>
+        Professional analysts use combinations of these formulas along with qualitative factors (like management quality, market conditions, and industry trends) to make recommendations.
+    </p>
+    </div>
+
+</div>
+
+
+<script>
+        // Global variable to store selected symbol
+        let selectedSymbol = '';
+
+
+
+        // Search and suggestion functions
+        async function search() {
+            const query = document.getElementById('symbolInput').value.trim();
+            const suggestionsBox = document.getElementById('suggestions');
+            suggestionsBox.innerHTML = ''; // Clear previous suggestions
+
+            if (query.length >= 1) { // Start searching after 1 character
+                try {
+                    const url = `/api/yahoofinance/search/${encodeURIComponent(query)}`; // Replace with a real API endpoint
+                    const response = await fetch(url);
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.length > 0) {
+                            suggestionsBox.style.display = 'block';
+                            data.forEach(result => {
+                                const suggestionItem = document.createElement('div');
+                                suggestionItem.classList.add('suggestion-item');
+
+                                // Set placeholder image or use real image if available
+                                const imageUrl = result.img ? result.img : 'https://via.placeholder.com/40';
+
+                                suggestionItem.innerHTML = `
+                                    <img src="${imageUrl}" alt="${result.symbol}">
+                                    <p>${result.symbol} - ${result.shortname}</p>
+                                `;
+
+                                suggestionItem.onclick = () => selectSuggestion(result);
+                                suggestionsBox.appendChild(suggestionItem);
+                            });
+                        } else {
+                            suggestionsBox.style.display = 'none';
+                        }
+                    } else {
+                        console.error('Error fetching symbols:', response.statusText);
+                        suggestionsBox.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('Error fetching symbols:', error);
+                    suggestionsBox.style.display = 'none';
+                }
+            } else {
+                suggestionsBox.style.display = 'none';
+            }
+        }
+
+        async function selectSuggestion(result) {
+            document.getElementById('symbolInput').value = result.symbol;
+            document.getElementById('suggestions').style.display = 'none';
+
+            // Store the selected symbol
+            selectedSymbol = result.symbol;
+
+            // Optionally, fetch and populate financial data based on the selected symbol
+            await fetchFinancialData(selectedSymbol);
+        }
+
+        // Event listeners
+        const symbolInput = document.getElementById('symbolInput');
+        symbolInput.addEventListener('input', search);
+
+        function populateData(data) {
+            document.getElementById('marketPrice').value = data.stock?.currentPrice || '';
+            document.getElementById('eps').value = data.stockBase?.eps || '';
+            document.getElementById('bookValue').value = data.stockBase?.bookValue || '';
+            document.getElementById('dividends').value = data.stock?.dividends || '';
+            document.getElementById('growthRate').value = data.stock?.growthRate || '';
+            document.getElementById('netIncome').value = data.stock?.netIncome || '';
+            document.getElementById('equity').value = data.stock?.equity || '';
+            document.getElementById('debt').value = data.stock?.totalDebt || '';
+            document.getElementById('freeCashFlow').value = data.stock?.freeCashFlow || '';
+        }
+
+        // Function to fetch and populate financial data (optional)
+        async function fetchFinancialData(symbol) {
+            try {
+
+
+        const url = `/api/stockfinance/search-finance-finantials-symbol/${encodeURIComponent(symbol)}`; // Replace with a real API endpoint
+                const response = await fetch(url);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    populateData(data);
+                } else {
+                    console.error('Error fetching financial data:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching financial data:', error);
+            }
+        }
+
+        // Function to analyze stock
+        function analyzeStock() {
+            let marketPrice = parseFloat(document.getElementById('marketPrice').value);
+            let eps = parseFloat(document.getElementById('eps').value);
+            let bookValue = parseFloat(document.getElementById('bookValue').value);
+            let dividends = parseFloat(document.getElementById('dividends').value);
+            let growthRate = parseFloat(document.getElementById('growthRate').value);
+            let netIncome = parseFloat(document.getElementById('netIncome').value);
+            let equity = parseFloat(document.getElementById('equity').value);
+            let debt = parseFloat(document.getElementById('debt').value);
+            let freeCashFlow = parseFloat(document.getElementById('freeCashFlow').value);
+
+            if (isNaN(marketPrice) || isNaN(eps) || isNaN(bookValue) || isNaN(dividends) || isNaN(growthRate) || isNaN(netIncome) || isNaN(equity) || isNaN(debt) || isNaN(freeCashFlow)) {
+                document.getElementById('result').innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        Please fill in all fields with valid numbers.
+                    </div>
+                `;
+                return;
+            }
+
+            // Perform calculations
+            let peRatio = (marketPrice / eps).toFixed(2);
+            let pbRatio = (marketPrice / bookValue).toFixed(2);
+            let dividendYield = ((dividends / marketPrice) * 100).toFixed(2);
+            let roe = ((netIncome / equity) * 100).toFixed(2);
+            let debtToEquity = (debt / equity).toFixed(2);
+            let freeCashFlowYield = ((freeCashFlow / marketPrice) * 100).toFixed(2);
+            let pegRatio = (peRatio / growthRate).toFixed(2);
+
+            // Simple recommendation logic
+            let recommendation = '';
+            if (peRatio < 15 && pbRatio < 1.5 && debtToEquity < 1 && roe > 15 && pegRatio < 1) {
+                recommendation = '<span class="text-success"><i class="bx bx-like"></i> Recommendation: Buy</span>';
+            } else if (peRatio > 25 || debtToEquity > 2 || roe < 10 || pegRatio > 2) {
+                recommendation = '<span class="text-danger"><i class="bx bx-dislike"></i> Recommendation: Sell</span>';
+            } else {
+                recommendation = '<span class="text-warning"><i class="bx bx-hand-stop"></i> Recommendation: Hold</span>';
+            }
+
+            // Display results
+            let resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h4><i class='bx bx-bar-chart-alt-2 icon'></i>Analysis Results</h4>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            <li class="list-group-item"><strong>P/E Ratio:</strong> ${peRatio}</li>
+                            <li class="list-group-item"><strong>P/B Ratio:</strong> ${pbRatio}</li>
+                            <li class="list-group-item"><strong>Dividend Yield:</strong> ${dividendYield}%</li>
+                            <li class="list-group-item"><strong>Return on Equity (ROE):</strong> ${roe}%</li>
+                            <li class="list-group-item"><strong>Debt-to-Equity Ratio:</strong> ${debtToEquity}</li>
+                            <li class="list-group-item"><strong>Free Cash Flow Yield:</strong> ${freeCashFlowYield}%</li>
+                            <li class="list-group-item"><strong>PEG Ratio:</strong> ${pegRatio}</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer text-center">
+                        <h5 id="recommendation">${recommendation}</h5>
+                    </div>
+                </div>
+            `;
+        }
+</script>
