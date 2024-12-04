@@ -11,6 +11,7 @@
 }
 @section VendorScripts {
     <script src="~/vendor/libs/apex-charts/apexcharts.js"></script>
+
 }
 @if (Model == null)
 {
@@ -139,7 +140,7 @@ else
             </div>
         </div>
         <!-- Total Revenue -->
-        @Html.Partial("_TotalRevenue", Model)
+        @await Html.PartialAsync("_TotalRevenue", Model)
         <!--/ Total Revenue -->
         <div class="col-12 col-md-8 col-lg-4 order-3 order-md-2">
             <div class="row">
@@ -216,13 +217,13 @@ else
     </div>
     <div class="row">
         <!-- Portfolios Statistics -->
-        @Html.Partial("_PortfoliosStatistics", Model)
+        @await Html.PartialAsync("_PortfoliosStatistics", Model)
         <!--/ Portfolios Statistics -->
         <!-- Expense Overview -->
-        @Html.Partial("_ExpenseOverview", Model)
+        @await Html.PartialAsync("_ExpenseOverview", Model)
         <!--/ Expense Overview -->
         <!-- Transactions -->
-        @Html.Partial("_Transactions", Model)
+        @await Html.PartialAsync("_Transactions", Model)
         <!--/ Transactions -->
     </div>
 

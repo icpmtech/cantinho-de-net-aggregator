@@ -113,7 +113,7 @@ function generatePortfolioHTML(portfolio) {
                         </div>
                     </div>
                     <div class="row mt-4">
-                        <div class="col-12">
+                        <div class="col-lg-12">
                             <div class="d-flex align-items-center justify-content-between">
                                 <div class="d-flex align-items-center">
                                     <div class="avatar flex-shrink-0">
@@ -127,7 +127,7 @@ function generatePortfolioHTML(portfolio) {
                             </div>
                             <canvas id="chart-${portfolio.id}" style="display: none; width: 100%; height: 200px;" class="mt-3"></canvas>
                         </div>
-                        <div class="col-12 mt-4">
+                        <div class="col-lg-12 mt-4">
                             <div class="d-flex align-items-center">
                                 <div class="avatar flex-shrink-0">
                                     <img src="/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded" style="width: 40px; height: 40px;">
@@ -153,7 +153,7 @@ function generateGroupedItemsHTML(group, portfolioId) {
   const { roi, currentMarketValue, totalInvestment } = calculateROIandValue(group.items);
 
   return `
-    <div class="card mt-3 shadow-sm rounded border-1">
+    <div class=" mt-3 shadow-sm  border-1">
         <!-- Card Header -->
         <div
             data-bs-toggle="collapse"
@@ -166,12 +166,12 @@ function generateGroupedItemsHTML(group, portfolioId) {
             <div class="container-fluid">
                 <div class="row w-100">
                     <!-- Left Section: Symbol and Operations -->
-                    <div class="col-12 col-md-6 d-flex flex-column flex-md-row align-items-center">
+                    <div class="col-lg-6 col-md-6 d-flex flex-column flex-md-row align-items-center">
                         <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">${group.symbol}</span>
                         <span class="badge bg-white text-primary me-3 mb-2 mb-md-0 fs-6">Op. ${group.items.length}</span>
                     </div>
                     <!-- Right Section: Today's Change and ROI -->
-                    <div class="col-12 col-md-6 d-flex flex-column flex-md-row align-items-start align-items-md-center mt-3 mt-md-0">
+                    <div class="col-lg-6 col-md-6 d-flex flex-column flex-md-row align-items-start align-items-md-center mt-3 mt-md-0">
                         <button class="btn btn-link text-start w-100" type="button">
                             <span class="badge bg-white text-primary w-100 p-2">
                                 <div class="mb-1">
@@ -247,6 +247,7 @@ function generateGroupedItemsHTML(group, portfolioId) {
                 </a>.
             </p>
         </div>
+     
         <!-- Second Column: Portfolio Screener -->
         <div class="col-md-6 mb-3">
             <p>
@@ -266,10 +267,11 @@ function generateGroupedItemsHTML(group, portfolioId) {
 
                 <!-- Candlestick Chart Container -->
                 <div id="candlestick-chart-${sanitizedSymbol}" class="img-fluid mb-4"></div>
+                <hr class=" me-6">
                 <!-- Portfolio Items List -->
-                <ul class="list-group list-group-flush">
+                <div class="row">
                     ${group.items.map(item => generatePortfolioItemHTML(item)).join('')}
-                </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -283,15 +285,24 @@ function generatePortfolioItemHTML(item) {
   const roiPercentage = (((item.currentPrice - item.purchasePrice) * item.quantity - item.commission) / totalValue) * 100;
 
   return `
-            <li style="background-color:#ff4560;" class="list-group-item text-white d-flex justify-content-between align-items-center rounded mb-2">
+            <div  class="col-6  d-flex justify-content-between align-items-center rounded mb-2">
                 <div>
                     <p class="mb-1"><strong>Commission:</strong> ${item.commission}</p>
                     <p class="mb-1"><strong>Quantity:</strong> ${item.quantity}</p>
                     <p class="mb-1"><strong>Total Op.:</strong> €${totalValue.toFixed(2)}</p>
                     <p class="mb-1"><strong>Purchase Date:</strong> ${formatDate(item.purchaseDate)}</p>
                     <p class="mb-1"><strong>Purchase Price:</strong> €${item.purchasePrice.toFixed(2)}</p>
-                    <p class="mb-1"><strong>ROI (Value):</strong> €${roiValue.toFixed(2)}</p>
-                    <p class="mb-1"><strong>ROI (Percentage):</strong> ${roiPercentage.toFixed(2)}%</p>
+                    <p class="mb-1">
+                      <strong>ROI (Value):</strong>
+                      €${roiValue.toFixed(2)} 
+                      <i class="${roiValue >= 0 ? 'fas fa-arrow-up text-success' : 'fas fa-arrow-down text-danger'}"></i>
+                    </p>
+                    <p class="mb-1">
+                      <strong>ROI (Percentage):</strong> 
+                      ${roiPercentage.toFixed(2)}% 
+                      <i class="${roiPercentage >= 0 ? 'fas fa-arrow-up text-success' : 'fas fa-arrow-down text-danger'}"></i>
+                    </p>
+
                 </div>
                 <div class="d-flex flex-column align-items-end">
                     <a href="/PortfolioItems/Edit/${item.id}" class="btn shadow rounded-pill btn-icon btn-primary">
@@ -304,7 +315,7 @@ function generatePortfolioItemHTML(item) {
                         <span class="tf-icons bx bx-eraser"></span>
                     </button>
                 </div>
-            </li>
+            </div>
         `;
 }
 
