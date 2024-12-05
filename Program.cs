@@ -38,6 +38,7 @@ using MarketAnalyticHub.Services.Elastic;
 using MarketAnalyticHub.Controllers.RealTime;
 using MarketAnalyticHub.Services.Jobs.Processors;
 using MarketAnalyticHub.Repositories;
+using DividendApi.Services;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -136,6 +137,7 @@ builder.Services.AddScoped<IStockPriceService, StockPriceService>();
 builder.Services.AddScoped<IDataRepository, DataRepository>();
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
+builder.Services.AddHttpClient<IDividendScraper, DividendScraper>();
 builder.Services.AddHangfire(configuration => configuration
     .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
     .UseSimpleAssemblyNameTypeSerializer()

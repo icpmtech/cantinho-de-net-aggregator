@@ -85,7 +85,7 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
           // Mock News and Sentiment (optional)
           stock.News = await _yahooFinanceService.GetMockNews(stockSymbol); // Replace with actual implementation if needed
           stock.SentimentScore = GetMockSentiment(stockSymbol); // Replace with actual implementation if needed
-
+          stock.Dividends = await _yahooFinanceService.GetDividendsAsync(stockSymbol,DateTime.Now.AddYears(-15),DateTime.Now);
           viewModel.Stock=stock;
         }
       }

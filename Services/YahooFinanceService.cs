@@ -18,7 +18,7 @@ namespace MarketAnalyticHub.Services
     Task<List<HistoricalData>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate, Period period);
     Task<List<HistoricalData>> GetDailyHistoricalDataAsync(string symbol, DateTime startDate, DateTime now);
     Task<List<HistoricalData>> GetDailyHistoricalDataAsync(string symbol, DateTime dateTime);
-    Task<IEnumerable<Dividend>> GetDividendsAsync(string symbol);
+    Task<IEnumerable<DividendScreenViewModel>> GetDividendsAsync(string symbol, DateTime startDate, DateTime endDate);
     Task<StockViewModel?> GetStockDataAsync(string symbol);
     Task<List<ChartDataPoint>> GetHistoricalDataAsync(string symbol, DateTime startDate, DateTime endDate);
     Task<List<NewsItemScreener>> GetMockNews(string stockSymbol);
@@ -212,16 +212,16 @@ public  class YahooFinanceService : IYahooFinanceService
         return new List<ChartDataPoint>();
       }
     }
-    public async Task<IEnumerable<Dividend>> GetDividendsAsync(string symbol)
+    public async Task<IEnumerable<DividendScreenViewModel>> GetDividendsAsync(string symbol, DateTime startDate, DateTime endDate)
     {
-      List<Dividend> dividends = new List<Dividend>();
+      List<DividendScreenViewModel> dividends = new List<DividendScreenViewModel>();
       try
       {
-        var _dividends = await Yahoo.GetDividendsAsync("AAPL", new DateTime(2016, 1, 1), new DateTime(2016, 7, 1));
+        var _dividends = await YahooService.GetDividendsAsync(symbol, startDate, endDate);
 
         foreach (var candle in _dividends)
         {
-          dividends.Append(new Dividend { Amount = candle.Dividend, ExDate = candle.DateTime });
+          dividends.Append(new DividendScreenViewModel {  Amount = candle.Dividend.ToString(), ExDate = candle.DateTime.ToString() });
         }
 
 

@@ -1,5 +1,6 @@
 <!-- Styles -->
 <link href="~/js/pages/tradingview/style-page.css" rel="stylesheet" />
+@section PageScripts {
 <!-- Resources -->
 <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
 <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
@@ -8,7 +9,7 @@
 
 <!-- Chart code -->
 <script src="~/js/pages/tradingview/chartRealtime.js"></script>
-
+}
 <!-- HTML -->
 <div class="container my-4">
     <!-- Card for Inputs -->
@@ -20,7 +21,7 @@
                     <label for="symbolInput" class="form-label">Symbol</label>
                     <div class="input-group">
                         <span class="input-group-text"><i class='bx bx-search'></i></span>
-                        <input type="text" id="symbolInput" class="form-control" value="AAPL" autocomplete="off" placeholder="Enter symbol">
+                        <input type="text" id="symbolInput" class="form-control" value="GALP.LS" autocomplete="off" placeholder="Enter symbol">
                     </div>
                     <!-- Suggestions box -->
                     <div id="suggestions" class="suggestions-box"></div>
@@ -57,7 +58,7 @@
                 <!-- Update Interval Input -->
                 <div class="col-md-1">
                     <label for="updateIntervalInput" class="form-label">Update (sec)</label>
-                    <input type="number" id="updateIntervalInput" class="form-control" value="60" min="1">
+                    <input type="number" id="updateIntervalInput" class="form-control" value="1" min="1">
                 </div>
                 <!-- Update Button -->
                 <div class="col-md-2 d-flex align-items-end">

@@ -320,8 +320,8 @@ namespace MarketAnalyticHub.Controllers.api
 
       var valueData=  new HistoricalQuoteViewModel
         {
-          Close = quotes.Chart.Result[0].Meta.ChartPreviousClose,
-          Open = quotes.Chart.Result[0].Meta.RegularMarketPrice,
+          Close = quotes.Chart.Result[0].Meta.RegularMarketPrice ,
+          Open = quotes.Chart.Result[0].Meta.ChartPreviousClose,
           Volume = quotes.Chart.Result[0].Meta.RegularMarketVolume,
           Timestamp = DateTime.Now,
           Low = quotes.Chart.Result[0].Meta.RegularMarketDayLow,

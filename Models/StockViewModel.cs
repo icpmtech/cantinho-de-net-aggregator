@@ -46,7 +46,7 @@ namespace MarketAnalyticHub.Models
     public Dictionary<string, int> AnalystRatings { get;  set; }
     public long? DividendDate { get;  set; }
     public double? BookValue { get;  set; }
-    public List<DividendScreenViewModel> Dividends { get; set; }
+    public IEnumerable<DividendScreenViewModel> Dividends { get; set; }
     public PortfolioService.PortfolioCardDto? DataCardForSymbol { get; internal set; }
   
   }

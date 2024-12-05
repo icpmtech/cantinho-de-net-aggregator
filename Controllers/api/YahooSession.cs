@@ -735,6 +735,39 @@ namespace MarketAnalyticHub.Controllers.api
         throw;
       }
     }
+    public static async Task<IEnumerable<dynamic>> GetDividendsAsync(string symbol, DateTime startDate, DateTime endDate,  CancellationToken token = default)
+    {
+      await InitAsync(token);
+
+      var startTimestamp = ((DateTimeOffset)startDate).ToUnixTimeSeconds();
+      var endTimestamp = ((DateTimeOffset)endDate).ToUnixTimeSeconds();
+      var url = $"https://finance.yahoo.com/quote/{symbol}?period1=from&period2=to&interval=div%7Csplit&filter=div&frequency=1d&includeAdjustedClose=true";
+
+      try
+      {
+        // Sending the request to Yahoo Finance API and receiving the JSON response
+        var response = await url
+            .SetQueryParam("crumb", Crumb) // Assuming 'Crumb' is a predefined string variable
+            .WithCookie(_cookie.Name, _cookie.Value) // Assuming '_cookie' is a predefined object
+            .WithHeader(UserAgentKey, UserAgentValue) // Assuming 'UserAgentKey' and 'UserAgentValue' are predefined
+            .GetAsync(token);
+
+        // Extracting quotes and timestamps from the response
+        var quotes = response.ResponseMessage.Content.ReadAsStringAsync();
+
+        // Combining timestamps with quotes into a historical data list
+        var historicalData = new List<dynamic>();
+        return historicalData;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error during GetHistoricalDataAsync: {ex.Message}");
+        throw;
+      }
+  }
+
+
+
 
     public static async Task<IEnumerable<dynamic>> GetHistoricalAsync(string symbol, DateTime startDate, DateTime endDate, Period daily, CancellationToken token = default)
     {
