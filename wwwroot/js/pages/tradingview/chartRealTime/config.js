@@ -1,4 +1,4 @@
-const config = {
+const configChart = {
   chartContainerId: "chartdiv",
   controlsContainerId: "chartcontrols",
   symbolInputId: "symbolInput",
@@ -15,9 +15,9 @@ const config = {
       `/api/yahoofinance/search/${encodeURIComponent(query)}`
   },
   defaultSettings: {
-    updateIntervalSec: 60,
-    defaultSymbol: "AAPL",
-    defaultInterval: "1d",
+    updateIntervalSec: 10,
+    defaultSymbol: "GALP.LS",
+    defaultInterval: "5m",
     dateRange: {
       startDate: () => {
         const date = new Date();
@@ -28,3 +28,4 @@ const config = {
     }
   }
 };
+export default configChart;

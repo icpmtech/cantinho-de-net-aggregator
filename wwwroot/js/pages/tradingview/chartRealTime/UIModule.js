@@ -1,3 +1,4 @@
+import DataModule from './datamodule.js'; // Adjust the path as necessary
 const UIModule = (() => {
   function setupSymbolSearch(config, onSelect) {
     const symbolInput = document.getElementById(config.symbolInputId);
@@ -7,7 +8,7 @@ const UIModule = (() => {
       const query = symbolInput.value.trim();
       if (query.length >= 1) {
         try {
-          const data = await DataModule.fetchSymbolSuggestions(config.apiEndpoints.search(query));
+          const data = await DataModule.searchSymbols(config.apiEndpoints.search(query));
           if (data.length > 0) {
             suggestionsBox.innerHTML = '';
             data.forEach(result => {
@@ -62,3 +63,4 @@ const UIModule = (() => {
     setupDataIntervalSelect
   };
 })();
+export default UIModule;

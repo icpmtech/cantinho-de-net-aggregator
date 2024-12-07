@@ -45,3 +45,4 @@ const DataModule = (() => {
     searchSymbols
   };
 })();
+export default DataModule;

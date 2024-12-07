@@ -1,243 +1,87 @@
 <!-- Styles -->
-<style>
-    #chartdiv {
-      width: 100%;
-      height: 600px;
-      max-width: 100%;
-    }
-</style>
+<link href="~/js/pages/tradingview/style-page.css" rel="stylesheet" />
+@section PageScripts {
+    <!-- Resources -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/stock.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
 
-<!-- Resources -->
-<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
-<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
-<script src="https://cdn.amcharts.com/lib/5/stock.js"></script>
-<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
-
-<!-- Chart code -->
-<script>
-    am5.ready(async function() {
-
-      // Function to fetch data from the API
-      async function fetchChartData() {
-        try {
-          const response = await fetch('/api/yahoofinance/chart-real-time-symbol/AAPL/1m'); // Replace with your API URL
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-          const chartData = await response.json();
-          return chartData;
-        } catch (error) {
-          console.error('Error fetching chart data:', error);
-          return [];
-        }
-      }
-
-      // Create root element
-      var root = am5.Root.new("chartdiv");
-
-      const myTheme = am5.Theme.new(root);
-
-      myTheme.rule("Grid", ["scrollbar", "minor"]).setAll({
-        visible:false
-      });
-
-      root.setThemes([
-        am5themes_Animated.new(root),
-        myTheme
-      ]);
-
-      // Create a stock chart
-      var stockChart = root.container.children.push(
-        am5stock.StockChart.new(root, {
-          paddingRight: 0
-        })
-      );
-
-      // Set global number format
-      root.numberFormatter.set("numberFormat", "#,###.00");
-
-      // Create a main stock panel (chart)
-      var mainPanel = stockChart.panels.push(
-        am5stock.StockPanel.new(root, {
-          wheelY: "zoomX",
-          panX: true,
-          panY: true
-        })
-      );
-
-      // Create value axis
-      var valueAxis = mainPanel.yAxes.push(
-        am5xy.ValueAxis.new(root, {
-          renderer: am5xy.AxisRendererY.new(root, {
-            pan: "zoom"
-          }),
-          extraMin: 0.1,
-          tooltip: am5.Tooltip.new(root, {}),
-          numberFormat: "#,###.00",
-          extraTooltipPrecision: 2
-        })
-      );
-
-      var dateAxis = mainPanel.xAxes.push(
-        am5xy.GaplessDateAxis.new(root, {
-          extraMax:0.1,
-          baseInterval: {
-            timeUnit: "minute",
-            count: 1
-          },
-          renderer: am5xy.AxisRendererX.new(root, {
-            pan: "zoom",
-            minorGridEnabled: true
-          }),
-          tooltip: am5.Tooltip.new(root, {})
-        })
-      );
-
-      // Add range which will show current value
-      var currentValueDataItem = valueAxis.createAxisRange(valueAxis.makeDataItem({ value: 0 }));
-      var currentLabel = currentValueDataItem.get("label");
-      if (currentLabel) {
-        currentLabel.setAll({
-          fill: am5.color(0xffffff),
-          background: am5.Rectangle.new(root, { fill: am5.color(0x000000) })
-        })
-      }
-
-      var currentGrid = currentValueDataItem.get("grid");
-      if (currentGrid) {
-        currentGrid.setAll({ strokeOpacity: 0.5, strokeDasharray: [2, 5] });
-      }
-
-      // Add series
-      var valueSeries = mainPanel.series.push(
-        am5xy.CandlestickSeries.new(root, {
-          name: "AMCH",
-          clustered: false,
-          valueXField: "Date",
-          valueYField: "Close",
-          highValueYField: "High",
-          lowValueYField: "Low",
-          openValueYField: "Open",
-          calculateAggregates: true,
-          xAxis: dateAxis,
-          yAxis: valueAxis,
-          legendValueText:
-            "open: [bold]{openValueY}[/] high: [bold]{highValueY}[/] low: [bold]{lowValueY}[/] close: [bold]{valueY}[/]",
-          legendRangeValueText: ""
-        })
-      );
-
-      // Set main value series
-      stockChart.set("stockSeries", valueSeries);
-
-      // Add a stock legend
-      var valueLegend = mainPanel.plotContainer.children.push(
-        am5stock.StockLegend.new(root, {
-          stockChart: stockChart
-        })
-      );
-
-      // Set main series
-      valueLegend.data.setAll([valueSeries]);
-
-      // Add cursor(s)
-      mainPanel.set(
-        "cursor",
-        am5xy.XYCursor.new(root, {
-          yAxis: valueAxis,
-          xAxis: dateAxis,
-          snapToSeries: [valueSeries],
-          snapToSeriesBy: "y!"
-        })
-      );
-
-      // Add scrollbar
-      var scrollbar = mainPanel.set(
-        "scrollbarX",
-        am5xy.XYChartScrollbar.new(root, {
-          orientation: "horizontal",
-          height: 50
-        })
-      );
-      stockChart.toolsContainer.children.push(scrollbar);
-
-      var sbDateAxis = scrollbar.chart.xAxes.push(
-        am5xy.GaplessDateAxis.new(root, {
-          extraMax:0.1,
-          baseInterval: {
-            timeUnit: "minute",
-            count: 1
-          },
-          renderer: am5xy.AxisRendererX.new(root, {
-            minorGridEnabled: true
-          })
-        })
-      );
-
-      var sbValueAxis = scrollbar.chart.yAxes.push(
-        am5xy.ValueAxis.new(root, {
-          renderer: am5xy.AxisRendererY.new(root, {})
-        })
-      );
-
-      var sbSeries = scrollbar.chart.series.push(
-        am5xy.LineSeries.new(root, {
-          valueYField: "Close",
-          valueXField: "Date",
-          xAxis: sbDateAxis,
-          yAxis: sbValueAxis
-        })
-      );
-
-      sbSeries.fills.template.setAll({
-        visible: true,
-        fillOpacity: 0.3
-      });
-
-      // Fetch data from the API
-      const rawData = await fetchChartData();
-       const data = rawData.map(item => ({
-          Date: new Date(item.timestamp).getTime(), // Convert to milliseconds
-          Open: parseFloat(item.open),
-          Close: parseFloat(item.close),
-          High: parseFloat(item.high),
-          Low: parseFloat(item.low),
-          Volume: parseInt(item.volume, 10)
-        }));
-      // Set data to all series
-      valueSeries.data.setAll(data);
-      sbSeries.data.setAll(data);
-
-      // (Optional) Implement real-time updates here
-      // Example: Poll the API every minute
-      setInterval(async function () {
-        const newData = await fetchChartData();
-
-        if (newData.length > 0) {
-          // Update the chart data
-          valueSeries.data.setAll(newData);
-          sbSeries.data.setAll(newData);
-
-          // Update current value display
-          const latestData = newData[newData.length - 1];
-          if (currentLabel) {
-            currentValueDataItem.animate({ key: "value", to: latestData.close, duration: 500, easing: am5.ease.out(am5.ease.cubic) });
-            currentLabel.set("text", stockChart.getNumberFormatter().format(latestData.close));
-            var bg = currentLabel.get("background");
-            if (bg) {
-              if (latestData.close < latestData.open) {
-                bg.set("fill", root.interfaceColors.get("negative"));
-              }
-              else {
-                bg.set("fill", root.interfaceColors.get("positive"));
-              }
-            }
-          }
-        }
-      }, 10); // Poll every 60 seconds
-
-    });
-</script>
-
+    <!-- Chart code -->
+    <script src="~/js/pages/tradingview/chartRealtime.js"></script>
+}
 <!-- HTML -->
-<div id="chartdiv"></div>
+<div class="container my-4">
+    <!-- Card for Inputs -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <!-- Symbol Input -->
+                <div class="col-md-3 position-relative">
+                    <label for="symbolInput" class="form-label">Symbol</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class='bx bx-search'></i></span>
+                        <input type="text" id="symbolInput" class="form-control" value="GALP.LS" autocomplete="off" placeholder="Enter symbol">
+                    </div>
+                    <!-- Suggestions box -->
+                    <div id="suggestions" class="suggestions-box"></div>
+                </div>
+                <!-- Start Date Input -->
+                <div class="col-md-2">
+                    <label for="startDateInput" class="form-label">Start Date</label>
+                    <input type="date" id="startDateInput" class="form-control">
+                </div>
+                <!-- End Date Input -->
+                <div class="col-md-2">
+                    <label for="endDateInput" class="form-label">End Date</label>
+                    <input type="date" id="endDateInput" class="form-control">
+                </div>
+                <!-- Data Interval Select -->
+                <div class="col-md-2">
+                    <label for="dataIntervalSelect" class="form-label">Data Interval</label>
+                    <select id="dataIntervalSelect" class="form-select">
+                        <option value="1m">1 Minute</option>
+                        <option value="2m">2 Minutes</option>
+                        <option value="5m">5 Minutes</option>
+                        <option value="15m">15 Minutes</option>
+                        <option value="30m">30 Minutes</option>
+                        <option value="60m">60 Minutes</option>
+                        <option value="90m">90 Minutes</option>
+                        <option value="1h">1 Hour</option>
+                        <option value="1d" selected>1 Day</option>
+                        <option value="5d">5 Days</option>
+                        <option value="1wk">1 Week</option>
+                        <option value="1mo">1 Month</option>
+                        <option value="3mo">3 Months</option>
+                    </select>
+                </div>
+                <!-- Update Interval Input -->
+                <div class="col-md-1">
+                    <label for="updateIntervalInput" class="form-label">Update (sec)</label>
+                    <input type="number" id="updateIntervalInput" class="form-control" value="1" min="1">
+                </div>
+                <!-- Update Button -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <button id="updateButton" type="button" class="btn btn-primary w-100"><i class='bx bx-refresh'></i> Update Chart</button>
+                </div>
+                <button id="chart-ai-chartdiv" onclick="captureChartAndSend('chartdiv', '/api/Chat/upload-file-chart','analisys')" type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
+                        <path d="M6 12.5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5M3 8.062C3 6.76 4.235 5.765 5.53 5.886a26.6 26.6 0 0 0 4.94 0C11.765 5.765 13 6.76 13 8.062v1.157a.93.93 0 0 1-.765.935c-.845.147-2.34.346-4.235.346s-3.39-.2-4.235-.346A.93.93 0 0 1 3 9.219zm4.542-.827a.25.25 0 0 0-.217.068l-.92.9a25 25 0 0 1-1.871-.183.25.25 0 0 0-.068.495c.55.076 1.232.149 2.02.193a.25.25 0 0 0 .189-.071l.754-.736.847 1.71a.25.25 0 0 0 .404.062l.932-.97a25 25 0 0 0 1.922-.188.25.25 0 0 0-.068-.495c-.538.074-1.207.145-1.98.189a.25.25 0 0 0-.166.076l-.754.785-.842-1.7a.25.25 0 0 0-.182-.135" />
+                        <path d="M8.5 1.866a1 1 0 1 0-1 0V3h-2A4.5 4.5 0 0 0 1 7.5V8a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1v1a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1a1 1 0 0 0 1-1V9a1 1 0 0 0-1-1v-.5A4.5 4.5 0 0 0 10.5 3h-2zM14 7.5V13a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V7.5A3.5 3.5 0 0 1 5.5 4h5A3.5 3.5 0 0 1 14 7.5" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="analisys"></div>
+    <!-- Chart Controls -->
+    <div id="chartcontrols"></div>
+    <!-- Card for Chart -->
+    <div class="card">
+        <div class="card-body">
+            <div id="chartdiv"></div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="~/js/pages/core/ai/pilot-chart.js"></script>

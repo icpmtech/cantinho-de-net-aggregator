@@ -233,8 +233,7 @@ function generateGroupedItemsHTML(group, portfolioId) {
                 <!-- Dividends History Link -->
                <div class="container mt-4">
     <div class="row">
-        <!-- First Column: Dividend History -->
-        <div class="col-md-6 mb-3">
+        <div class="col-md-4 mb-3">
             <p>
                 For more information about ${group.symbol}'s dividends, visit the 
                 <a 
@@ -247,11 +246,9 @@ function generateGroupedItemsHTML(group, portfolioId) {
                 </a>.
             </p>
         </div>
-     
-        <!-- Second Column: Portfolio Screener -->
-        <div class="col-md-6 mb-3">
+        <div class="col-md-4 mb-3">
             <p>
-                For additional details about ${group.symbol}, check the 
+                In research screener ${group.symbol}, check the 
                 <a 
                     href="/PortfolioScrener/Details?stockSymbol=${encodeURIComponent(sanitizedSymbol)}" 
                     target="_blank" 
@@ -259,6 +256,20 @@ function generateGroupedItemsHTML(group, portfolioId) {
                     class="btn btn-primary btn-sm"
                 >
                     View More...
+                </a>.
+            </p>
+        </div>
+       
+        <div class="col-md-4 mb-3">
+            <p>
+                Today details ${group.symbol}, check the 
+                <a 
+                    href="/PortfolioDetail/Index?stockSymbol=${encodeURIComponent(sanitizedSymbol)}" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="btn btn-primary btn-sm"
+                >
+                    View today...
                 </a>.
             </p>
         </div>
