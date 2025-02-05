@@ -129,6 +129,7 @@
     <script src="https://s3.tradingview.com/tv.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="~/js/pages/core/ai/pilot-chart.js"></script>
+    <script src="~/js/Components/DividendComponent.js"></script>
     <script>
 
             // Example stock symbol
@@ -508,7 +509,6 @@
                     data.dividends.forEach(dividend => {
                         const row = document.createElement("tr");
                         row.innerHTML = `
-                            <td>${dividend.date}</td>
                             <td>${dividend.exDate}</td>
                             <td>${dividend.amount}</td>
                         `;
@@ -670,7 +670,7 @@
                 // Initialize Dashboard
             async function initializeDashboard() {
                 const stockDatas = await fetchStockData(stockSymbol);
-
+              
                 if (stockDatas?.stock) {
                               // Example Usage:
                     addChartWithInnerHTML(

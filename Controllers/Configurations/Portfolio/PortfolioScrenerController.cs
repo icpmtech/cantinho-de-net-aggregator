@@ -13,16 +13,17 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     private readonly NewsService _newsService;
     private readonly ILogger<PortfolioScrenerController> _logger;
     private readonly ApplicationDbContext _context;
-
+    private readonly DividendService _dividendService;
     private readonly IYahooFinanceService _yahooFinanceService;
 
-    public PortfolioScrenerController(IYahooFinanceService yahooFinanceService, ApplicationDbContext context, PortfolioService portfolioService, NewsService newsService, ILogger<PortfolioScrenerController> logger)
+    public PortfolioScrenerController(IYahooFinanceService yahooFinanceService, DividendService dividendService, ApplicationDbContext context, PortfolioService portfolioService, NewsService newsService, ILogger<PortfolioScrenerController> logger)
     {
       _newsService = newsService;
       _portfolioService = portfolioService;
       _logger = logger;
       _context = context;
       _yahooFinanceService = yahooFinanceService;
+      _dividendService = dividendService;
     }
 
 
@@ -85,7 +86,7 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
           // Mock News and Sentiment (optional)
           stock.News = await _yahooFinanceService.GetMockNews(stockSymbol); // Replace with actual implementation if needed
           stock.SentimentScore = GetMockSentiment(stockSymbol); // Replace with actual implementation if needed
-          stock.Dividends = await _yahooFinanceService.GetDividendsAsync(stockSymbol,DateTime.Now.AddYears(-15),DateTime.Now);
+          stock.Dividends = await _dividendService.GetDividendsAsync(stockSymbol,DateTime.Now.AddYears(-15),DateTime.Now);
           viewModel.Stock=stock;
         }
       }

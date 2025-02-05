@@ -19,16 +19,17 @@ namespace MarketAnalyticHub.Controllers.api
     private readonly NewsService _newsService;
     private readonly ILogger<PortfolioScrenerController> _logger;
     private readonly ApplicationDbContext _context;
-
+     DividendService _dividendService;
     private readonly IYahooFinanceService _yahooFinanceService;
 
-    public StockFinanceController(IYahooFinanceService yahooFinanceService, ApplicationDbContext context, PortfolioService portfolioService, NewsService newsService, ILogger<PortfolioScrenerController> logger)
+    public StockFinanceController(IYahooFinanceService yahooFinanceService, DividendService dividendService, ApplicationDbContext context, PortfolioService portfolioService, NewsService newsService, ILogger<PortfolioScrenerController> logger)
     {
       _newsService = newsService;
       _portfolioService = portfolioService;
       _logger = logger;
       _context = context;
       _yahooFinanceService = yahooFinanceService;
+      _dividendService = dividendService;
     }
     /// <summary>
     /// Obtém dados históricos de uma ação em um intervalo de datas específico.
@@ -135,7 +136,7 @@ namespace MarketAnalyticHub.Controllers.api
             stock.TechnicalSignals = GetTechnicalSignals(symbol); // Method for calculating technical signals
             stock.AnalystRatings = GetAnalystRatings(symbol); // Method for fetching analyst ratings
             stock.DividendYield = summary.DividendYield; // Assuming this is part of the summary
-            stock.Dividends = GetDividends(symbol); // Fetch or mock dividend data
+            stock.Dividends = await _dividendService.GetDividendsAsync(symbol, DateTime.Now.AddYears(-15), DateTime.Now);
             stock.News = await _yahooFinanceService.GetMockNews(symbol); // Replace with actual implementation
             stock.SentimentScore = GetMockSentiment(symbol); // Replace with actual sentiment calculation
 
@@ -198,8 +199,8 @@ namespace MarketAnalyticHub.Controllers.api
             stock.TechnicalSignals = GetTechnicalSignals(symbol); // Method for calculating technical signals
             stock.AnalystRatings = GetAnalystRatings(symbol); // Method for fetching analyst ratings
             stock.DividendYield = summary.DividendYield; // Assuming this is part of the summary
-            stock.Dividends = GetDividends(symbol); // Fetch or mock dividend data
-            stock.News = await _yahooFinanceService.GetMockNews(symbol); // Replace with actual implementation
+          stock.Dividends = await _dividendService.GetDividendsAsync(symbol, DateTime.Now.AddYears(-15), DateTime.Now);
+          stock.News = await _yahooFinanceService.GetMockNews(symbol); // Replace with actual implementation
             stock.SentimentScore = GetMockSentiment(symbol); // Replace with actual sentiment calculation
 
             // Populate the ViewModel

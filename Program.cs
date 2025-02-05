@@ -124,6 +124,7 @@ builder.Services.AddScoped<IYahooFinanceService, YahooFinanceService>();
 builder.Services.AddSingleton<OpenAIService>();
 builder.Services.AddSingleton<SocialSentimentService>();
 builder.Services.AddScoped<PortfolioIndexingService>();
+builder.Services.AddScoped<DividendService>();
 builder.Services.AddScoped<LlmService>();
 builder.Services.AddScoped<DataIndexingService>();
 builder.Services.AddScoped<PortfolioLossRuleService>();
