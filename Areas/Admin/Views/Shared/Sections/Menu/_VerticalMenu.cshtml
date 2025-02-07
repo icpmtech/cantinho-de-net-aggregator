@@ -228,6 +228,11 @@
                         <div>Portfolio</div>
                     </a>
                 </li>
+                <li class='menu-item@(currentPage == "/Portfolio/Summary" ? " active" : "")'>
+                    <a asp-controller="Portfolio" asp-action="Index" class="menu-link">
+                        <div>Summary</div>
+                    </a>
+                </li>
                 <li class='menu-item@(currentPage == "/Portfolio/Fundamentals" ? " active" : "")'>
                     <a asp-controller="Portfolio" asp-action="Fundamentals" class="menu-link">
                         <div>Fundamentals</div>

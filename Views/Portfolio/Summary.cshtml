@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Portfolio Investment Managing Dashboard</title>
+  
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        />
+    <!-- amCharts 5 libraries -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <style>
+        /* Basic Reset & Body Styling */
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f9f9f9;
+        }
+        /* Header Styling */
+        header {
+            background-color: #007bff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+
+            header h1 {
+                font-size: 1.5em;
+                margin: 0;
+            }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+        }
+
+            .header-buttons button {
+                background: none;
+                border: none;
+                color: #fff;
+                font-size: 1.5em;
+                cursor: pointer;
+                margin-left: 10px;
+            }
+
+                .header-buttons button:hover {
+                    color: #ffc107;
+                }
+        /* Timer Display */
+        #timerDisplay {
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+        /* Custom Styles for Charts and Table */
+        #chartdiv1, #chartdiv2, #chartdiv3 {
+            width: 100%;
+            height: 500px;
+        }
+        /* Difference Cell Coloring */
+        .differenceCell.positive {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .differenceCell.negative {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .differenceCell.neutral {
+            background-color: #e2e3e5;
+            color: #383d41;
+        }
+        /* Settings Drawer Styling */
+        .drawer {
+            position: fixed;
+            top: 0;
+            right: -300px; /* Hidden by default */
+            width: 300px;
+            height: 100%;
+            background: #fff;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+            transition: right 0.3s ease;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+            .drawer.open {
+                right: 0;
+            }
+
+            .drawer h2 {
+                margin-top: 0;
+                font-size: 1.2em;
+                border-bottom: 1px solid #ddd;
+                padding-bottom: 10px;
+            }
+
+            .drawer label {
+                display: block;
+                margin: 15px 0 5px;
+            }
+
+            .drawer input[type="number"],
+            .drawer input[type="checkbox"] {
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 10px;
+                box-sizing: border-box;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+
+            .drawer button {
+                background-color: #007bff;
+                color: #fff;
+                border: none;
+                padding: 10px;
+                width: 100%;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+                .drawer button:hover {
+                    background-color: #0056b3;
+                }
+        /* Loading Indicator Styling */
+        #loadingIndicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            z-index: 2000;
+            font-size: 1.5em;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header with Title, Icon Buttons, and Timer Display -->
+    <header>
+        <h1><i class="fas fa-briefcase"></i> Portfolio Investment Managing Dashboard</h1>
+        <div class="header-buttons">
+            <button id="refreshBtn" title="Refresh Data"><i class="fas fa-sync-alt"></i></button>
+            <button id="settingsBtn" title="Settings"><i class="fas fa-cog"></i></button>
+            <span id="timerDisplay"></span>
+        </div>
+    </header>
+
+    <!-- Loading Indicator -->
+    <div id="loadingIndicator">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
+    </div>
+
+    <!-- Main Content -->
+    <div class="content container">
+        <!-- Bootstrap Cards for Summary Metrics -->
+        <div class="row row mt-4 mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-dollar-sign"></i> Total Revenue</h5>
+                        <p class="card-text" id="cardTotalRevenue">$0.00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-hand-holding-usd"></i> Total Investment</h5>
+                        <p class="card-text" id="cardTotalInvestment">$0.00</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title"><i class="fas fa-balance-scale"></i> Net Difference</h5>
+                        <p class="card-text" id="cardNetDifference">$0.00</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Series Chart Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-line"></i> Time Series Data</h2>
+            </div>
+            <div class="card-body">
+                <div id="chartdiv1" style="height:500px;"></div>
+            </div>
+        </div>
+
+        <!-- Aggregated Symbol Data Chart Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-bar"></i> Aggregated Symbol Data</h2>
+            </div>
+            <div class="card-body">
+                <div id="chartdiv2" style="height:500px;"></div>
+            </div>
+        </div>
+
+        <!-- Symbol Data Details Table Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2><i class="fas fa-table"></i> Symbol Data Details</h2>
+            </div>
+            <div class="card-body">
+                <div id="symbolTableContainer"></div>
+            </div>
+        </div>
+
+        <!-- Refresh Interval Differences Chart Card -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2><i class="fas fa-chart-area"></i> Refresh Interval Differences</h2>
+            </div>
+            <div class="card-body">
+                <div id="chartdiv3" style="height:500px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Drawer (Hide/Show Panel) -->
+    <div class="drawer" id="settingsDrawer">
+        <h2><i class="fas fa-sliders-h"></i> Settings</h2>
+        <label>
+            <input type="checkbox" id="autoRefreshCheckbox">
+            Enable Auto-Refresh
+        </label>
+        <label for="refreshInterval">Refresh Interval (seconds):</label>
+        <input type="number" id="refreshInterval" value="30" min="5">
+        <button id="saveSettingsBtn"><i class="fas fa-save"></i> Save Settings</button>
+    </div>
+
+   
+
+    <script>
+        /*************************************************
+         * Global Variables and Default Settings
+         *************************************************/
+        const apiUrl = "/api/Dashboards/all-time-data";
+        let autoRefresh = false;
+        let refreshIntervalSeconds = 30;
+        let refreshTimer = null;
+        let countdownTimer = null;
+        let countdown = refreshIntervalSeconds;
+        // Chart roots for disposal on refresh.
+        let chartRoot1 = null;
+        let chartRoot2 = null;
+        let chartRoot3 = null;
+
+        /*************************************************
+         * Function: updateTimerDisplay
+         * Updates the countdown timer display.
+         *************************************************/
+        function updateTimerDisplay() {
+          document.getElementById("timerDisplay").textContent = autoRefresh
+            ? `Next refresh in: ${countdown} s`
+            : "";
+        }
+
+        /*************************************************
+         * Function: updateCards
+         * Updates the summary cards with overall totals.
+         *************************************************/
+        function updateCards(aggregatedData) {
+          let totalRevenue = 0, totalInvestment = 0, totalDifference = 0;
+          aggregatedData.forEach(item => {
+            totalRevenue += item.revenue;
+            totalInvestment += item.investment;
+            totalDifference += item.difference;
+          });
+          document.getElementById("cardTotalRevenue").textContent = "$" + totalRevenue.toFixed(2);
+          document.getElementById("cardTotalInvestment").textContent = "$" + totalInvestment.toFixed(2);
+
+          const netDiffEl = document.getElementById("cardNetDifference");
+          netDiffEl.textContent = "$" + totalDifference.toFixed(2);
+          netDiffEl.className = "card-text"; // reset classes
+          if(totalDifference > 0) {
+            netDiffEl.classList.add("text-success");
+          } else if(totalDifference < 0) {
+            netDiffEl.classList.add("text-danger");
+          } else {
+            netDiffEl.classList.add("text-muted");
+          }
+        }
+
+        /*************************************************
+         * Function: renderSymbolTable
+         * Renders an HTML table with aggregated symbol data.
+         * Adds icons in the header and in the difference cell.
+         *************************************************/
+        function renderSymbolTable(data) {
+          let html = '<table class="table table-striped">';
+          html += '<thead><tr>' +
+                  '<th><i class="fas fa-tag"></i> Symbol</th>' +
+                  '<th><i class="fas fa-dollar-sign"></i> Total Revenue</th>' +
+                  '<th><i class="fas fa-hand-holding-usd"></i> Total Investment</th>' +
+                  '<th><i class="fas fa-exchange-alt"></i> Difference</th>' +
+                  '</tr></thead><tbody>';
+          data.forEach(item => {
+            let diffClass = "";
+            let diffIcon = "";
+            if (item.difference > 0) {
+              diffClass = "positive";
+              diffIcon = '<i class="fas fa-arrow-up"></i>';
+            } else if (item.difference < 0) {
+              diffClass = "negative";
+              diffIcon = '<i class="fas fa-arrow-down"></i>';
+            } else {
+              diffClass = "neutral";
+              diffIcon = '<i class="fas fa-arrows-alt-h"></i>';
+            }
+            html += `<tr>
+                       <td>${item.symbol}</td>
+                       <td>$${item.revenue.toFixed(2)}</td>
+                       <td>$${item.investment.toFixed(2)}</td>
+                       <td class="differenceCell ${diffClass}">${item.difference.toFixed(2)} ${diffIcon}</td>
+                     </tr>`;
+          });
+          html += '</tbody></table>';
+          document.getElementById("symbolTableContainer").innerHTML = html;
+        }
+
+        /*************************************************
+         * Function: saveSnapshot
+         * Saves a snapshot of aggregated totals in localStorage.
+         * Only snapshots from the last 24 hours are kept.
+         *************************************************/
+        function saveSnapshot(aggregatedData) {
+          let totalRevenue = 0, totalInvestment = 0, totalDifference = 0;
+          aggregatedData.forEach(item => {
+            totalRevenue += item.revenue;
+            totalInvestment += item.investment;
+            totalDifference += item.difference;
+          });
+          const snapshot = {
+            timestamp: Date.now(),
+            totalRevenue,
+            totalInvestment,
+            totalDifference
+          };
+          let snapshots = JSON.parse(localStorage.getItem("stockSnapshots")) || [];
+          snapshots.push(snapshot);
+          const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+          snapshots = snapshots.filter(snap => snap.timestamp >= oneDayAgo);
+          localStorage.setItem("stockSnapshots", JSON.stringify(snapshots));
+        }
+
+        /*************************************************
+         * Function: renderRefreshDiffChart
+         * Reads snapshots from localStorage, computes differences,
+         * and renders a new chart.
+         *************************************************/
+        function renderRefreshDiffChart() {
+          const snapshots = JSON.parse(localStorage.getItem("stockSnapshots")) || [];
+          if (snapshots.length < 2) {
+            document.getElementById("chartdiv3").innerHTML = "<p class='text-center text-muted'>Not enough data yet for the refresh difference chart.</p>";
+            return;
+          }
+          const diffData = [];
+          for (let i = 1; i < snapshots.length; i++) {
+            diffData.push({
+              time: new Date(snapshots[i].timestamp).toLocaleTimeString(),
+              revenueDiff: snapshots[i].totalRevenue - snapshots[i - 1].totalRevenue,
+              investmentDiff: snapshots[i].totalInvestment - snapshots[i - 1].totalInvestment,
+              differenceDiff: snapshots[i].totalDifference - snapshots[i - 1].totalDifference
+            });
+          }
+          if (chartRoot3) chartRoot3.dispose();
+          chartRoot3 = am5.Root.new("chartdiv3");
+          chartRoot3.setThemes([am5themes_Animated.new(chartRoot3)]);
+          let chart = chartRoot3.container.children.push(
+            am5xy.XYChart.new(chartRoot3, {
+              panX: true,
+              panY: true,
+              wheelX: "panX",
+              wheelY: "zoomX",
+              layout: chartRoot3.verticalLayout
+            })
+          );
+          let xAxis = chart.xAxes.push(
+            am5xy.CategoryAxis.new(chartRoot3, {
+              categoryField: "time",
+              renderer: am5xy.AxisRendererX.new(chartRoot3, { minGridDistance: 30 }),
+              tooltip: am5.Tooltip.new(chartRoot3, {})
+            })
+          );
+          xAxis.data.setAll(diffData);
+          let yAxis = chart.yAxes.push(
+            am5xy.ValueAxis.new(chartRoot3, {
+              renderer: am5xy.AxisRendererY.new(chartRoot3, {})
+            })
+          );
+          function createDiffSeries(field, name, color) {
+            let series = chart.series.push(
+              am5xy.LineSeries.new(chartRoot3, {
+                name: name,
+                xAxis: xAxis,
+                yAxis: yAxis,
+                valueYField: field,
+                categoryXField: "time",
+                tooltip: am5.Tooltip.new(chartRoot3, { labelText: "{name}: {valueY}" })
+              })
+            );
+            series.strokes.template.setAll({ strokeWidth: 2 });
+            series.data.setAll(diffData);
+            return series;
+          }
+          createDiffSeries("revenueDiff", "Revenue Change", am5.color(0x67b7dc));
+          createDiffSeries("investmentDiff", "Investment Change", am5.color(0x6794dc));
+          createDiffSeries("differenceDiff", "Difference Change", am5.color(0xfdd400));
+          let legend = chart.children.push(am5.Legend.new(chartRoot3, { centerX: am5.p50, x: am5.p50 }));
+          legend.data.setAll(chart.series.values);
+        }
+
+        /*************************************************
+         * Function: fetchAndRenderData
+         * Fetches JSON from the API, renders charts & table,
+         * saves a snapshot in localStorage, and updates the diff chart.
+         *************************************************/
+        function fetchAndRenderData() {
+          document.getElementById("loadingIndicator").style.display = "block";
+          fetch(apiUrl)
+            .then(response => {
+              if (!response.ok) throw new Error("Network response was not OK");
+              return response.json();
+            })
+            .then(dashboardData => {
+              const timeSeriesData = dashboardData.labels.map((label, index) => ({
+                label: label,
+                revenue: dashboardData.seriesRevenue[index],
+                investment: dashboardData.seriesInvestment[index],
+                difference: dashboardData.seriesDifference[index]
+              }));
+              const aggregatedSymbolData = dashboardData.symbolData.map(symbolObj => {
+                const totals = symbolObj.data.reduce((acc, cur) => {
+                  acc.revenue += cur.totalRevenue;
+                  acc.investment += cur.totalInvestment;
+                  acc.difference += cur.difference;
+                  return acc;
+                }, { revenue: 0, investment: 0, difference: 0 });
+                return {
+                  symbol: symbolObj.symbol,
+                  revenue: totals.revenue,
+                  investment: totals.investment,
+                  difference: totals.difference
+                };
+              });
+              updateCards(aggregatedSymbolData);
+              renderSymbolTable(aggregatedSymbolData);
+
+              // Render Time Series Chart
+              if (chartRoot1) chartRoot1.dispose();
+              chartRoot1 = am5.Root.new("chartdiv1");
+              chartRoot1.setThemes([ am5themes_Animated.new(chartRoot1) ]);
+              let chart1 = chartRoot1.container.children.push(
+                am5xy.XYChart.new(chartRoot1, {
+                  panX: true,
+                  panY: true,
+                  wheelX: "panX",
+                  wheelY: "zoomX",
+                  layout: chartRoot1.verticalLayout
+                })
+              );
+              let xAxis1 = chart1.xAxes.push(
+                am5xy.CategoryAxis.new(chartRoot1, {
+                  categoryField: "label",
+                  renderer: am5xy.AxisRendererX.new(chartRoot1, { minGridDistance: 30 }),
+                  tooltip: am5.Tooltip.new(chartRoot1, {})
+                })
+              );
+              xAxis1.data.setAll(timeSeriesData);
+              let yAxis1 = chart1.yAxes.push(
+                am5xy.ValueAxis.new(chartRoot1, {
+                  renderer: am5xy.AxisRendererY.new(chartRoot1, {})
+                })
+              );
+              let seriesRevenue = chart1.series.push(
+                am5xy.LineSeries.new(chartRoot1, {
+                  name: "Revenue",
+                  xAxis: xAxis1,
+                  yAxis: yAxis1,
+                  valueYField: "revenue",
+                  categoryXField: "label",
+                  tooltip: am5.Tooltip.new(chartRoot1, { labelText: "{name}: {valueY}" })
+                })
+              );
+              seriesRevenue.strokes.template.setAll({ strokeWidth: 2 });
+              seriesRevenue.data.setAll(timeSeriesData);
+              let seriesInvestment = chart1.series.push(
+                am5xy.LineSeries.new(chartRoot1, {
+                  name: "Investment",
+                  xAxis: xAxis1,
+                  yAxis: yAxis1,
+                  valueYField: "investment",
+                  categoryXField: "label",
+                  tooltip: am5.Tooltip.new(chartRoot1, { labelText: "{name}: {valueY}" })
+                })
+              );
+              seriesInvestment.strokes.template.setAll({ strokeWidth: 2 });
+              seriesInvestment.data.setAll(timeSeriesData);
+              let seriesDifference = chart1.series.push(
+                am5xy.LineSeries.new(chartRoot1, {
+                  name: "Difference",
+                  xAxis: xAxis1,
+                  yAxis: yAxis1,
+                  valueYField: "difference",
+                  categoryXField: "label",
+                  tooltip: am5.Tooltip.new(chartRoot1, { labelText: "{name}: {valueY}" })
+                })
+              );
+              seriesDifference.strokes.template.setAll({ strokeWidth: 2 });
+              seriesDifference.data.setAll(timeSeriesData);
+              let legend1 = chart1.children.push(am5.Legend.new(chartRoot1, { centerX: am5.p50, x: am5.p50 }));
+              legend1.data.setAll(chart1.series.values);
+
+              // Render Aggregated Symbol Data Chart
+              if (chartRoot2) chartRoot2.dispose();
+              chartRoot2 = am5.Root.new("chartdiv2");
+              chartRoot2.setThemes([ am5themes_Animated.new(chartRoot2) ]);
+              let chart2 = chartRoot2.container.children.push(
+                am5xy.XYChart.new(chartRoot2, {
+                  panX: true,
+                  panY: true,
+                  wheelX: "panX",
+                  wheelY: "zoomX",
+                  layout: chartRoot2.verticalLayout
+                })
+              );
+              let xAxis2 = chart2.xAxes.push(
+                am5xy.CategoryAxis.new(chartRoot2, {
+                  categoryField: "symbol",
+                  renderer: am5xy.AxisRendererX.new(chartRoot2, { minGridDistance: 30 }),
+                  tooltip: am5.Tooltip.new(chartRoot2, {})
+                })
+              );
+              xAxis2.data.setAll(aggregatedSymbolData);
+              let yAxis2 = chart2.yAxes.push(
+                am5xy.ValueAxis.new(chartRoot2, {
+                  renderer: am5xy.AxisRendererY.new(chartRoot2, {})
+                })
+              );
+              function createSeries(field, name, color) {
+                let series = chart2.series.push(
+                  am5xy.ColumnSeries.new(chartRoot2, {
+                    name: name,
+                    xAxis: xAxis2,
+                    yAxis: yAxis2,
+                    valueYField: field,
+                    categoryXField: "symbol",
+                    tooltip: am5.Tooltip.new(chartRoot2, { labelText: "{name}: {valueY}" })
+                  })
+                );
+                series.columns.template.setAll({ tooltipY: 0, strokeOpacity: 0, fill: color });
+                series.data.setAll(aggregatedSymbolData);
+                return series;
+              }
+              createSeries("revenue", "Revenue", am5.color(0x67b7dc));
+              createSeries("investment", "Investment", am5.color(0x6794dc));
+              createSeries("difference", "Difference", am5.color(0xfdd400));
+              let legend2 = chart2.children.push(am5.Legend.new(chartRoot2, { centerX: am5.p50, x: am5.p50 }));
+              legend2.data.setAll(chart2.series.values);
+
+              // Save snapshot and update refresh difference chart.
+              saveSnapshot(aggregatedSymbolData);
+              renderRefreshDiffChart();
+            })
+            .catch(error => {
+              console.error("Error fetching data:", error);
+              document.getElementById("chartdiv1").innerHTML = "<p class='text-center text-danger'>Failed to load time series chart data.</p>";
+              document.getElementById("chartdiv2").innerHTML = "<p class='text-center text-danger'>Failed to load aggregated symbol data.</p>";
+            })
+            .finally(() => {
+              document.getElementById("loadingIndicator").style.display = "none";
+            });
+        }
+
+        /*************************************************
+         * Auto-Refresh Functions & Countdown Timer
+         *************************************************/
+        function startAutoRefresh() {
+          if (refreshTimer) clearInterval(refreshTimer);
+          if (countdownTimer) clearInterval(countdownTimer);
+          countdown = refreshIntervalSeconds;
+          updateTimerDisplay();
+          countdownTimer = setInterval(() => {
+            countdown--;
+            if (countdown <= 0) {
+              countdown = refreshIntervalSeconds;
+            }
+            updateTimerDisplay();
+          }, 1000);
+          refreshTimer = setInterval(() => {
+            fetchAndRenderData();
+            countdown = refreshIntervalSeconds;
+          }, refreshIntervalSeconds * 1000);
+        }
+        function stopAutoRefresh() {
+          if (refreshTimer) {
+            clearInterval(refreshTimer);
+            refreshTimer = null;
+          }
+          if (countdownTimer) {
+            clearInterval(countdownTimer);
+            countdownTimer = null;
+          }
+          countdown = refreshIntervalSeconds;
+          updateTimerDisplay();
+        }
+
+        /*************************************************
+         * Event Listeners for UI Elements
+         *************************************************/
+        document.getElementById("refreshBtn").addEventListener("click", fetchAndRenderData);
+        document.getElementById("settingsBtn").addEventListener("click", () => {
+          document.getElementById("settingsDrawer").classList.toggle("open");
+        });
+        document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+          autoRefresh = document.getElementById("autoRefreshCheckbox").checked;
+          let intervalVal = parseInt(document.getElementById("refreshInterval").value, 10);
+          refreshIntervalSeconds = isNaN(intervalVal) || intervalVal < 5 ? 30 : intervalVal;
+          if (autoRefresh) {
+            startAutoRefresh();
+          } else {
+            stopAutoRefresh();
+          }
+          document.getElementById("settingsDrawer").classList.remove("open");
+        });
+
+        /*************************************************
+         * Initialize Dashboard on Page Load
+         *************************************************/
+        fetchAndRenderData();
+    </script>
+</body>
+</html>

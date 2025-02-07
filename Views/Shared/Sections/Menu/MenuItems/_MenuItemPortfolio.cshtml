@@ -9,7 +9,11 @@
     </a>
 
     <ul class="menu-sub">
-
+        <li class='menu-item@(currentPage == "/Portfolio/Summary" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Summary" class="menu-link">
+                <div>Summary</div>
+            </a>
+        </li>
         <li class='menu-item@(currentPage == "/Portfolio/Performance" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Performance" class="menu-link">
                 <div>Performance</div>

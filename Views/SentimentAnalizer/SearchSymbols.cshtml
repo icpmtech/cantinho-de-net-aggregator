@@ -2,10 +2,10 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Ai-Pilot Search Page</title>
-    <link href='https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <link href="https://cdn.jsdelivr.net/npm/boxicons@2.1.4/css/boxicons.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
     <style>
@@ -23,20 +23,20 @@
             align-items: center;
         }
 
-        .search-box input[type="text"] {
-            width: 100%;
-            padding: 10px 10px 10px 40px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 16px;
-        }
+            .search-box input[type="text"] {
+                width: 100%;
+                padding: 10px 10px 10px 40px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 16px;
+            }
 
-        .search-box i {
-            position: absolute;
-            left: 10px;
-            font-size: 20px;
-            color: #007bff;
-        }
+            .search-box i {
+                position: absolute;
+                left: 10px;
+                font-size: 20px;
+                color: #007bff;
+            }
 
         .suggestions {
             position: absolute;
@@ -49,34 +49,34 @@
             display: none;
         }
 
-        .suggestions .suggestion-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
-            cursor: pointer;
-        }
+            .suggestions .suggestion-item {
+                display: flex;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #ccc;
+                cursor: pointer;
+            }
 
-        .suggestions .suggestion-item img {
-            width: 40px;
-            height: 40px;
-            margin-right: 10px;
-            border-radius: 50%;
-        }
+                .suggestions .suggestion-item img {
+                    width: 40px;
+                    height: 40px;
+                    margin-right: 10px;
+                    border-radius: 50%;
+                }
 
-        .suggestions .suggestion-item p {
-            margin: 0;
-            flex: 1;
-        }
+                .suggestions .suggestion-item p {
+                    margin: 0;
+                    flex: 1;
+                }
 
-        .suggestions .suggestion-item i {
-            font-size: 20px;
-            color: #007bff;
-        }
+                .suggestions .suggestion-item i {
+                    font-size: 20px;
+                    color: #007bff;
+                }
 
-        .suggestions .suggestion-item:hover {
-            background-color: #f0f0f0;
-        }
+                .suggestions .suggestion-item:hover {
+                    background-color: #f0f0f0;
+                }
 
         .date-range {
             margin-bottom: 20px;
@@ -85,24 +85,24 @@
             gap: 10px;
         }
 
-        .date-range input[type="date"] {
-            padding: 5px;
-            font-size: 16px;
-        }
+            .date-range input[type="date"] {
+                padding: 5px;
+                font-size: 16px;
+            }
 
-        .date-range button {
-            padding: 6px 12px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+            .date-range button {
+                padding: 6px 12px;
+                font-size: 16px;
+                background-color: #007bff;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
 
-        .date-range button:hover {
-            background-color: #0056b3;
-        }
+                .date-range button:hover {
+                    background-color: #0056b3;
+                }
 
         .result-summary,
         .fundamental-analysis {
@@ -128,32 +128,32 @@
             padding: 20px;
         }
 
-        .finance-card h2 {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            color: #333;
-            text-align: center;
-        }
+            .finance-card h2 {
+                font-size: 1.5em;
+                margin-bottom: 20px;
+                color: #333;
+                text-align: center;
+            }
 
-        .finance-card ul {
-            list-style: none;
-            padding: 0;
-        }
+            .finance-card ul {
+                list-style: none;
+                padding: 0;
+            }
 
-        .finance-card ul li {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid #ddd;
-        }
+                .finance-card ul li {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 5px 0;
+                    border-bottom: 1px solid #ddd;
+                }
 
-        .finance-card ul li:last-child {
-            border-bottom: none;
-        }
+                    .finance-card ul li:last-child {
+                        border-bottom: none;
+                    }
 
-        .finance-card ul li span {
-            font-weight: bold;
-        }
+                    .finance-card ul li span {
+                        font-weight: bold;
+                    }
 
         /* Spinner */
         .spinner {
@@ -191,19 +191,79 @@
             margin-top: 20px;
         }
 
-        .ai-analysis-btn i {
-            font-size: 20px;
+            .ai-analysis-btn i {
+                font-size: 20px;
+            }
+
+            .ai-analysis-btn:hover {
+                background-color: #0056b3;
+            }
+
+        /* Wikipedia Details Styles */
+        .wikipedia-details {
+            border: 1px solid #ddd;
+            padding: 1rem;
+            border-radius: 8px;
+            background: #fff;
+            margin: 20px auto;
+            max-width: 800px;
+            display: none;
         }
 
-        .ai-analysis-btn:hover {
-            background-color: #0056b3;
-        }
+            .wikipedia-details .row {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+
+            .wikipedia-details .company-logo {
+                flex: 0 0 150px;
+                text-align: center;
+                margin-bottom: 1rem;
+            }
+
+                .wikipedia-details .company-logo img {
+                    max-width: 100%;
+                    height: auto;
+                    border-radius: 4px;
+                }
+
+            .wikipedia-details .placeholder-logo {
+                background: #ccc;
+                padding: 1rem;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                color: #333;
+            }
+
+            .wikipedia-details .company-info {
+                flex: 1;
+                padding-left: 1rem;
+            }
+
+            .wikipedia-details h2 {
+                margin-top: 0;
+                font-size: 1.75rem;
+                font-weight: bold;
+            }
+
+            .wikipedia-details p {
+                color: #555;
+                line-height: 1.5;
+            }
+
+            .wikipedia-details a {
+                color: #007bff;
+                text-decoration: none;
+            }
+
+                .wikipedia-details a:hover {
+                    text-decoration: underline;
+                }
     </style>
-
 </head>
 
 <body>
-
     <div class="text-center chat-assistant-logo">
         <img class="rounded-circle" src="~/icons/marketanalytic_hub_icon_72x72.png" alt="Assistant Logo">
         <h3> Ai-Pilot</h3>
@@ -230,14 +290,30 @@
                 <button onclick="updateChart()">Update Chart</button>
             </div>
         </div>
+
         <div class="result-summary">
             <div class="card">
                 <div class="card-header">
-                    <img id="result-img" src="" alt="Company Logo">
+                    <img id="result-img" src="" hidden alt="Company Logo">
                     <h3 id="result-title">Company Name</h3>
                 </div>
                 <div class="card-body" id="summary-content">
                     This is a summary of the search result...
+                </div>
+                <!-- Wikipedia Details Section -->
+                <div id="wikipedia-details" class="card">
+                    <div class="card-body">
+                        <div id="logo-container" class="company-logo">
+                            <!-- Company logo will be inserted here -->
+                        </div>
+                        <div id="info-container" class="company-info">
+                            <h2 id="company-name">Loading...</h2>
+                            <p id="description">Please wait while we fetch the company details.</p>
+                            <p>
+                                <a id="wikipedia-link" href="#" target="_blank">Read more on Wikipedia</a>
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 <button id="ai-pilot-chart-sparkline" onclick="captureChartAndSend('sparkline', '/api/Chat/upload-file-chart','analisys-sparkline-a')" type="button" class="btn btn-sm rounded-pill btn-icon btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-robot" viewBox="0 0 16 16">
@@ -249,218 +325,241 @@
                 <div id="sparkline" class="sparkline"></div>
             </div>
         </div>
+
+        <!-- ASP.NET Partials for Fundamental & Customer Analysis -->
         @await Html.PartialAsync("_FundamentalAnalysis")
         @await Html.PartialAsync("_AnalisysCustomer360")
-       
+
+     
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="~/js/pages/core/ai/pilot-chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
-       
-       
         async function search() {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const suggestionsBox = document.getElementById('suggestions');
-            suggestionsBox.innerHTML = ''; // Clear previous suggestions
+          const query = document.getElementById('search-input').value.toLowerCase();
+          const suggestionsBox = document.getElementById('suggestions');
+          suggestionsBox.innerHTML = ''; // Clear previous suggestions
 
-            if (query) {
-                try {
-                    const url = `/api/yahoofinance/search/${query}`;
-                    const response = await fetch(url);
+          if (query) {
+            try {
+              const url = `/api/yahoofinance/search/${query}`;
+              const response = await fetch(url);
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.length > 0) {
-                            suggestionsBox.style.display = 'block';
-                            data.forEach(result => {
-                                const suggestionItem = document.createElement('div');
-                                suggestionItem.classList.add('suggestion-item');
+              if (response.ok) {
+                const data = await response.json();
+                if (data.length > 0) {
+                  suggestionsBox.style.display = 'block';
+                  data.forEach(result => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.classList.add('suggestion-item');
 
-                                // Set placeholder image or use real image if available
-                                const imageUrl = result.img ? result.img : 'https://via.placeholder.com/40';
+                    // Set placeholder image or use real image if available
+                    const imageUrl = result.img ? result.img : 'https://via.placeholder.com/40';
 
-                                suggestionItem.innerHTML = `
-                          <img src="${imageUrl}" alt="${result.symbol}">
-                          <p>${result.symbol} - ${result.shortname}</p>
-                          <i class='bx bx-right-arrow-alt'></i>
-                        `;
+                    suggestionItem.innerHTML = `
+                              <img src="${imageUrl}" alt="${result.symbol}">
+                              <p>${result.symbol} - ${result.shortname}</p>
+                              <i class='bx bx-right-arrow-alt'></i>
+                            `;
 
-                                suggestionItem.onclick = () => selectSuggestion(result);
-                                suggestionsBox.appendChild(suggestionItem);
-                            });
-                        } else {
-                            suggestionsBox.style.display = 'none';
-                        }
-                    } else {
-                        console.error('Error fetching symbols:', response.statusText);
-                        suggestionsBox.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('Error fetching symbols:', error);
-                    suggestionsBox.style.display = 'none';
+                    suggestionItem.onclick = () => selectSuggestion(result);
+                    suggestionsBox.appendChild(suggestionItem);
+                  });
+                } else {
+                  suggestionsBox.style.display = 'none';
                 }
-            } else {
+              } else {
+                console.error('Error fetching symbols:', response.statusText);
                 suggestionsBox.style.display = 'none';
+              }
+            } catch (error) {
+              console.error('Error fetching symbols:', error);
+              suggestionsBox.style.display = 'none';
             }
+          } else {
+            suggestionsBox.style.display = 'none';
+          }
         }
 
         async function selectSuggestion(result) {
-            document.getElementById('search-input').value = result.symbol;
-            document.getElementById('suggestions').style.display = 'none';
+          document.getElementById('search-input').value = result.symbol;
+          document.getElementById('suggestions').style.display = 'none';
 
-            document.querySelector('.result-summary').style.display = 'block';
-            document.querySelector('.fundamental-analysis').style.display = 'block';
-            document.getElementById('date-range').style.display = 'flex';
+          document.querySelector('.result-summary').style.display = 'block';
+          document.querySelector('.fundamental-analysis').style.display = 'block';
+          document.getElementById('date-range').style.display = 'flex';
 
-            document.getElementById('result-img').src = result.img ? result.img : 'https://via.placeholder.com/40';
-            document.getElementById('result-title').innerText = result.shortname;
+          document.getElementById('result-img').src = result.img ? result.img : 'https://via.placeholder.com/40';
+          document.getElementById('result-title').innerText = result.shortname;
 
-            document.getElementById('analysis-img').src = result.img ? result.img : 'https://via.placeholder.com/40';
-            document.getElementById('analysis-title').innerText = 'Fundamental Analysis';
-           
-                // Display the customer analysis section
-                document.querySelector('.customer-analysis').style.display = 'block';
+          document.getElementById('analysis-img').src = result.img ? result.img : 'https://via.placeholder.com/40';
+          document.getElementById('analysis-title').innerText = 'Fundamental Analysis';
 
-                // Set image and title
-                document.getElementById('customer-analysis-img').src = result.img ? result.img : 'https://via.placeholder.com/40';
-                document.getElementById('customer-analysis-title').innerText = 'Customer Analysis';
+          // Display the customer analysis section
+          document.querySelector('.customer-analysis').style.display = 'block';
 
-              
-            
-            showSpinner(true); // Show spinner
+          // Set image and title for customer analysis
+          document.getElementById('customer-analysis-img').src = result.img ? result.img : 'https://via.placeholder.com/40';
+          document.getElementById('customer-analysis-title').innerText = 'Customer Analysis';
 
-            try {
-                const summary = await fetchCompanySummary(result.shortname);
-                const fundamentals = await fetchFundamentals(result.symbol);
-                const sparklineData = await fetchSparklineData(result.symbol);
+          showSpinner(true); // Show spinner
 
-                document.getElementById('summary-content').innerText = summary || 'Summary not available.';
-                document.getElementById('analysis-content').innerHTML = formatFundamentals(fundamentals);
+          try {
+            const summary = await fetchCompanySummary(result.shortname);
+            const fundamentals = await fetchFundamentals(result.symbol);
+            const sparklineData = await fetchSparklineData(result.symbol);
 
-                renderSparkline(sparklineData);
-            } catch (error) {
-                document.getElementById('summary-content').innerText = 'Error fetching summary.';
-                document.getElementById('analysis-content').innerText = 'Error fetching analysis.';
-            } finally {
-                showSpinner(false); // Hide spinner
-            }
+            document.getElementById('summary-content').innerText = summary || 'Summary not available.';
+            document.getElementById('analysis-content').innerHTML = formatFundamentals(fundamentals);
 
-            try {
-                customerData = await fetchCustomerData(result.symbol);
-              
-            } catch (error) {
-                document.getElementById('customer-analysis-content').innerText = 'Error fetching customer data.';
-            }
-            finally {
-                showSpinner(false); // Hide spinner
-            }
+            renderSparkline(sparklineData);
+          } catch (error) {
+            document.getElementById('summary-content').innerText = 'Error fetching summary.';
+            document.getElementById('analysis-content').innerText = 'Error fetching analysis.';
+          } finally {
+            showSpinner(false); // Hide spinner
+          }
+
+          try {
+            customerData = await fetchCustomerData(result.symbol);
+          } catch (error) {
+            document.getElementById('customer-analysis-content').innerText = 'Error fetching customer data.';
+          } finally {
+            showSpinner(false); // Hide spinner
+          }
+
+          // Fetch and display Wikipedia details
+          fetchWikipediaDetails(result.shortname);
+          document.getElementById("wikipedia-details").style.display = "block";
         }
 
         async function updateChart() {
-            const symbol = document.getElementById('search-input').value;
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
+          const symbol = document.getElementById('search-input').value;
+          const startDate = document.getElementById('start-date').value;
+          const endDate = document.getElementById('end-date').value;
 
-            if (symbol && startDate && endDate) {
-                showSpinner(true); // Show spinner
-                try {
-                    const sparklineData = await fetchSparklineData(symbol, startDate, endDate);
-                    renderSparkline(sparklineData);
-                } catch (error) {
-                    console.error('Error updating chart:', error);
-                } finally {
-                    showSpinner(false); // Hide spinner
-                }
-            } else {
-                alert("Please select a valid symbol and date range.");
+          if (symbol && startDate && endDate) {
+            showSpinner(true); // Show spinner
+            try {
+              const sparklineData = await fetchSparklineData(symbol, startDate, endDate);
+              renderSparkline(sparklineData);
+            } catch (error) {
+              console.error('Error updating chart:', error);
+            } finally {
+              showSpinner(false); // Hide spinner
             }
+          } else {
+            alert("Please select a valid symbol and date range.");
+          }
         }
 
         function showSpinner(show) {
-            const spinner = document.getElementById('spinner');
-            if (show) {
-                spinner.style.display = 'block';
-            } else {
-                spinner.style.display = 'none';
-            }
+          const spinner = document.getElementById('spinner');
+          spinner.style.display = show ? 'block' : 'none';
         }
 
-       
         async function fetchSparklineData(symbol, startDate = null, endDate = null) {
-            try {
-                let url = `/api/yahoofinance/chart-symbol/${symbol}`;
+          try {
+            let url = `/api/yahoofinance/chart-symbol/${symbol}`;
 
-                if (startDate && endDate) {
-                    url += `?startDate=${startDate}&endDate=${endDate}`;
-                }
-
-                const response = await fetch(url);
-
-                if (response.ok) {
-                    const data = await response.json();
-                    return data; // Adjust this based on what data is returned
-                } else {
-                    console.error('Error fetching sparkline data:', response.statusText);
-                    return [];
-                }
-            } catch (error) {
-                console.error('Error fetching sparkline data:', error);
-                return [];
+            if (startDate && endDate) {
+              url += `?startDate=${startDate}&endDate=${endDate}`;
             }
+
+            const response = await fetch(url);
+
+            if (response.ok) {
+              const data = await response.json();
+              return data; // Adjust this based on what data is returned
+            } else {
+              console.error('Error fetching sparkline data:', response.statusText);
+              return [];
+            }
+          } catch (error) {
+            console.error('Error fetching sparkline data:', error);
+            return [];
+          }
         }
 
-      
         function renderSparkline(data) {
-            const holcData = data.map(item => ({
-                x: new Date(item.timestamp),
-                y: [item.open, item.high, item.low, item.close]
-            }));
+          const holcData = data.map(item => ({
+            x: new Date(item.timestamp),
+            y: [item.open, item.high, item.low, item.close]
+          }));
 
-            const options = {
-                series: [{
-                    name: 'HOLC',
-                    data: holcData
-                }],
-                chart: {
-                    type: 'candlestick',
-                    height: 300,
-                    sparkline: {
-                        enabled: false
-                    }
-                },
-                xaxis: {
-                    type: 'datetime'
-                },
-                yaxis: {
-                    tooltip: {
-                        enabled: true
-                    }
-                },
-                colors: ['#007bff'],
-                tooltip: {
-                    enabled: true,
-                    theme: 'dark',
-                    x: {
-                        format: 'dd MMM yyyy HH:mm'
-                    }
-                },
-                plotOptions: {
-                    candlestick: {
-                        colors: {
-                            upward: '#00B746',
-                            downward: '#EF403C'
-                        }
-                    }
+          const options = {
+            series: [{
+              name: 'HOLC',
+              data: holcData
+            }],
+            chart: {
+              type: 'candlestick',
+              height: 300,
+              sparkline: {
+                enabled: false
+              }
+            },
+            xaxis: {
+              type: 'datetime'
+            },
+            yaxis: {
+              tooltip: {
+                enabled: true
+              }
+            },
+            colors: ['#007bff'],
+            tooltip: {
+              enabled: true,
+              theme: 'dark',
+              x: {
+                format: 'dd MMM yyyy HH:mm'
+              }
+            },
+            plotOptions: {
+              candlestick: {
+                colors: {
+                  upward: '#00B746',
+                  downward: '#EF403C'
                 }
-            };
+              }
+            }
+          };
 
-            const chart = new ApexCharts(document.querySelector("#sparkline"), options);
-            chart.render();
+          const chart = new ApexCharts(document.querySelector("#sparkline"), options);
+          chart.render();
         }
 
-    </script>
+        async function fetchWikipediaDetails(companyTitle) {
+          const title = companyTitle.replace(/\s+/g, '_');
+          const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
 
+          try {
+            const response = await fetch(url);
+            if (!response.ok) {
+              throw new Error(`Wikipedia API error: ${response.status}`);
+            }
+            const data = await response.json();
+
+            document.getElementById("company-name").textContent = data.title || companyTitle;
+            document.getElementById("description").textContent = data.extract || "No description available.";
+            document.getElementById("wikipedia-link").href = data.content_urls?.desktop?.page || "#";
+
+            const logoContainer = document.getElementById("logo-container");
+            if (data.thumbnail && data.thumbnail.source) {
+              logoContainer.innerHTML = `<img src="${data.thumbnail.source}" alt="${data.title} Logo">`;
+            } else {
+              logoContainer.innerHTML = `<div class="placeholder-logo">No Logo Available</div>`;
+            }
+          } catch (error) {
+            console.error("Error fetching Wikipedia details:", error);
+            document.getElementById("company-name").textContent = "Error loading details";
+            document.getElementById("description").textContent = "";
+            document.getElementById("wikipedia-link").style.display = "none";
+          }
+        }
+    </script>
 </body>
 
 </html>
