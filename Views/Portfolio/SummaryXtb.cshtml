@@ -1,0 +1,322 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    ViewData["Title"] = "Account settings - Connections";
+}
+
+<!-- Sneat 'Connections' UI ... omitted for brevity ... -->
+<!--
+==========================================
+XTB Trading Integration (Modal + Logic)
+==========================================
+-->
+<div class="my-4"></div> <!-- Some extra spacing -->
+<!-- Hidden fields for storing XTB credentials -->
+<input type="text" id="userId" style="display:none;" />
+<input type="password" id="password" style="display:none;" />
+
+<!-- XTB Account Summary & Trades (Optional Layout) -->
+<div class="card" style="background-color:#1e1e1e; padding:1.5rem; margin-top:1rem; border-radius:8px;">
+    <div id="loading" style="display:none; margin-bottom:1rem; color:#fff;">Loading...</div>
+
+    <div id="accountCard" style="display:none; margin-bottom:1rem;">
+        <h5 style="color:#ff4081;">XTB Account Summary</h5>
+        <p><strong>Balance:</strong> <span id="balance">-</span> USD</p>
+        <p><strong>Margin:</strong> <span id="margin">-</span></p>
+        <p><strong>Free Margin:</strong> <span id="margin_free">-</span></p>
+        <p><strong>Margin Level:</strong> <span id="margin_level">-</span>%</p>
+        <p><strong>Equity:</strong> <span id="equity">-</span></p>
+    </div>
+
+    <!-- Optional: fetch trades if you need them -->
+    <button id="fetchTradesBtn" style="display:none; width:100%; margin-bottom:1rem;" class="btn btn-primary" onclick="fetchTrades()">Get Trades</button>
+
+    <div id="tradesCard" style="display:none;">
+        <h5 style="color:#ff4081;">XTB Trades</h5>
+        <div id="tradesList"></div>
+    </div>
+</div>
+
+<!-- XTB Login Modal -->
+<div id="loginModal" class="modal" style="display:none;">
+    <div class="modal-content" style="background-color:#1e1e1e; margin:10% auto; padding:20px; border-radius:8px; max-width:400px; text-align:center;">
+        <span class="close" style="float:right; font-size:28px; cursor:pointer;" onclick="closeModal()">&times;</span>
+        <img src="~/img/icons/brands/xtb.png" alt="XTB Logo" style="width:120px; margin-bottom:20px;" />
+        <h4 style="margin-bottom:15px; color:#ff4081;">Connect to XTB</h4>
+        <input type="text" id="modalUserId" placeholder="User ID" style="width:100%; padding:0.75rem; margin-bottom:0.5rem; background:#2c2c2c; border:1px solid #333; color:#fff; border-radius:6px;" />
+        <input type="password" id="modalPassword" placeholder="Password" style="width:100%; padding:0.75rem; margin-bottom:0.5rem; background:#2c2c2c; border:1px solid #333; color:#fff; border-radius:6px;" />
+        <button style="margin-top:1rem; width:100%;" class="btn btn-primary" onclick="modalConnect()">Login &amp; Fetch Data</button>
+    </div>
+</div>
+
+<!-- Settings Drawer -->
+<div id="settingsDrawer" style="position:fixed; top:50%; right:-320px; transform:translateY(-50%); background-color:#1e1e1e; padding:1.5rem; border-radius:8px 0 0 8px; width:300px; box-shadow:-8px 0 16px rgba(0,0,0,0.4); transition:right 0.3s ease; z-index:100;">
+    <h5 style="color:#ff4081;">Settings</h5>
+
+    <label for="savedUserId" style="margin-top:0.5rem;">Saved User ID:</label>
+    <input type="text" id="savedUserId" readonly style="width:100%; background:#2c2c2c; border:1px solid #333; color:#fff; margin-bottom:0.5rem; border-radius:4px;" />
+
+    <label for="savedPassword" style="margin-top:0.5rem;">Saved Password:</label>
+    <input type="password" id="savedPassword" readonly style="width:100%; background:#2c2c2c; border:1px solid #333; color:#fff; margin-bottom:0.5rem; border-radius:4px;" />
+
+    <button style="width:100%; margin-bottom:1rem;" class="btn btn-secondary" onclick="clearCredentials()">Clear Saved Credentials</button>
+
+    <h5 style="color:#ff4081;">Log</h5>
+    <div id="logDrawer" style="background:#2c2c2c; color:#fff; padding:1rem; max-height:150px; overflow-y:auto; border-radius:4px; font-size:0.85rem;"></div>
+
+    <button style="width:100%; margin-top:1rem;" class="btn btn-secondary" onclick="toggleSettingsDrawer()">Close</button>
+</div>
+
+<!-- Settings Toggle Button -->
+<button id="settingsToggleBtn" style="position:fixed; bottom:20px; right:20px; background-color:#ff4081; border:none; border-radius:50%; width:50px; height:50px; color:#fff; font-size:1.2rem; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.3); transition:background-color 0.3s ease, transform 0.2s ease; z-index:101;" onclick="toggleSettingsDrawer()">&#9881;</button>
+
+@section PageScripts {
+    <script>
+        let socket;
+        const XTB_WS_URL = "wss://ws.xtb.com/demo"; // For real: "wss://ws.xtb.com/real"
+
+        // Log a message in the log drawer, with timestamp
+        function log(message) {
+            const logDiv = document.getElementById("logDrawer");
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Show/hide the loading indicator
+        function showLoading(show) {
+            document.getElementById("loading").style.display = show ? "block" : "none";
+        }
+
+        // Disable/enable the hidden credential fields
+        function disableForm(disable) {
+            document.getElementById("userId").disabled = disable;
+            document.getElementById("password").disabled = disable;
+        }
+
+        // Open the XTB login modal
+        function openModal() {
+            const modal = document.getElementById("loginModal");
+            modal.style.display = "block";
+            // Pre-fill from localStorage
+            document.getElementById("modalUserId").value = localStorage.getItem('xtbUserId') || "";
+            document.getElementById("modalPassword").value = localStorage.getItem('xtbPassword') || "";
+        }
+
+        // Close the XTB login modal
+        function closeModal() {
+            document.getElementById("loginModal").style.display = "none";
+        }
+
+        // Triggered by "Login & Fetch Data" in the modal
+        function modalConnect() {
+            const userId = document.getElementById("modalUserId").value;
+            const password = document.getElementById("modalPassword").value;
+
+            if (!userId || !password) {
+                alert("Please enter your User ID and Password.");
+                return;
+            }
+            // Copy credentials to hidden fields
+            document.getElementById("userId").value = userId;
+            document.getElementById("password").value = password;
+            closeModal();
+            connectToXTB();
+        }
+
+        // Main function to connect to XTB WebSocket
+        function connectToXTB() {
+            const userId = document.getElementById("userId").value;
+            const password = document.getElementById("password").value;
+            if (!userId || !password) {
+                alert("User ID and Password are required.");
+                return;
+            }
+
+            // Save credentials to localStorage
+            localStorage.setItem('xtbUserId', userId);
+            localStorage.setItem('xtbPassword', password);
+
+            log("Attempting to connect to XTB WebSocket...");
+            showLoading(true);
+            disableForm(true);
+
+            socket = new WebSocket(XTB_WS_URL);
+
+            socket.onopen = function() {
+                log("Connected to XTB WebSocket.");
+                loginToXTB(userId, password);
+            };
+
+            socket.onmessage = function(event) {
+                const response = JSON.parse(event.data);
+                log("Received: " + JSON.stringify(response));
+
+                // 1) If login confirmation (streamSessionId), fetch margin data
+                if (response.status && response.streamSessionId) {
+                    log("Login successful! Fetching account data...");
+                    fetchAccountSummary();
+                }
+                // 2) If we receive account summary data from "getMarginLevel"
+                else if (response.command === "getMarginLevel" && response.returnData) {
+                    updateAccountCard(response.returnData);
+                    showLoading(false);
+                    // Optionally show "Get Trades" button
+                    document.getElementById("fetchTradesBtn").style.display = "block";
+                }
+                // 3) If we receive trades data
+                else if (response.command === "getTrades" && response.returnData) {
+                    updateTrades(response.returnData);
+                    showLoading(false);
+                }
+                else {
+                    log("Unrecognized response: " + JSON.stringify(response));
+                    disableForm(false);
+                    showLoading(false);
+                }
+            };
+
+            socket.onerror = function(error) {
+                log("WebSocket error: " + error);
+                alert("WebSocket error. See console for details.");
+                disableForm(false);
+                showLoading(false);
+            };
+
+            socket.onclose = function() {
+                log("WebSocket connection closed.");
+                disableForm(false);
+                showLoading(false);
+            };
+        }
+
+        // Send "login" command
+        function loginToXTB(userId, password) {
+            const loginCommand = {
+                command: "login",
+                arguments: { userId, password }
+            };
+            log("Sending login request...");
+            socket.send(JSON.stringify(loginCommand));
+        }
+
+        // Request margin data after login success
+        function fetchAccountSummary() {
+            const marginCommand = { command: "getMarginLevel" };
+            log("Requesting account margin data...");
+            socket.send(JSON.stringify(marginCommand));
+        }
+
+        // Show margin data in the account card
+        function updateAccountCard(data) {
+            document.getElementById("accountCard").style.display = "block";
+            document.getElementById("balance").textContent      = data.balance       ? Number(data.balance).toFixed(2)       : "-";
+            document.getElementById("margin").textContent       = data.margin        ? Number(data.margin).toFixed(2)        : "-";
+            document.getElementById("margin_free").textContent  = data.margin_free   ? Number(data.margin_free).toFixed(2)   : "-";
+            document.getElementById("margin_level").textContent = data.margin_level  ? Number(data.margin_level).toFixed(2)  : "-";
+            document.getElementById("equity").textContent       = data.equity        ? Number(data.equity).toFixed(2)        : "-";
+        }
+
+        // Trades command
+        function fetchTrades() {
+            if (!socket) return;
+            const tradesCommand = { command: "getTrades" };
+            log("Requesting trades data...");
+            socket.send(JSON.stringify(tradesCommand));
+        }
+
+        // Show trades if you want
+        function updateTrades(trades) {
+            const tradesList = document.getElementById("tradesList");
+            tradesList.innerHTML = "";
+            if (!trades || trades.length === 0) {
+                tradesList.innerHTML = "<p>No trades found.</p>";
+                document.getElementById("tradesCard").style.display = "block";
+                return;
+            }
+            // Example table
+            const table = document.createElement("table");
+            const headerRow = document.createElement("tr");
+            const headers = ["ID", "Symbol", "Volume", "Price", "Profit"];
+            headers.forEach(header => {
+                const th = document.createElement("th");
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            trades.forEach(trade => {
+                const row = document.createElement("tr");
+                const idCell = document.createElement("td");
+                idCell.textContent = trade.tradeId || trade.id || "-";
+                const symbolCell = document.createElement("td");
+                symbolCell.textContent = trade.symbol || "-";
+                const volumeCell = document.createElement("td");
+                volumeCell.textContent = (parseFloat(trade.volume) || 0).toFixed(2);
+                const priceCell = document.createElement("td");
+                priceCell.textContent = (parseFloat(trade.price) || 0).toFixed(2);
+                const profitCell = document.createElement("td");
+                profitCell.textContent = (parseFloat(trade.profit) || 0).toFixed(2);
+                row.appendChild(idCell);
+                row.appendChild(symbolCell);
+                row.appendChild(volumeCell);
+                row.appendChild(priceCell);
+                row.appendChild(profitCell);
+                table.appendChild(row);
+            });
+
+            tradesList.appendChild(table);
+            document.getElementById("tradesCard").style.display = "block";
+        }
+
+        // Settings drawer toggle
+        function toggleSettingsDrawer() {
+            const drawer = document.getElementById("settingsDrawer");
+            if (!drawer) return;
+            if (drawer.style.right === "0px") {
+                drawer.style.right = "-320px";
+            } else {
+                drawer.style.right = "0px";
+                populateSettingsDrawer();
+            }
+        }
+
+        // Fill settings drawer fields
+        function populateSettingsDrawer() {
+            document.getElementById("savedUserId").value = localStorage.getItem('xtbUserId') || '';
+            document.getElementById("savedPassword").value = localStorage.getItem('xtbPassword') || '';
+        }
+
+        // Clear credentials
+        function clearCredentials() {
+            localStorage.removeItem('xtbUserId');
+            localStorage.removeItem('xtbPassword');
+            document.getElementById("savedUserId").value = '';
+            document.getElementById("savedPassword").value = '';
+            document.getElementById("userId").value = '';
+            document.getElementById("password").value = '';
+            alert("Credentials cleared.");
+        }
+
+        // Close modal if clicking outside the modal content
+        window.onclick = function(event) {
+            const modal = document.getElementById("loginModal");
+            if (event.target === modal) {
+                closeModal();
+            }
+        };
+
+        // On page load, restore credentials if any
+        window.onload = function() {
+            const savedUserId = localStorage.getItem('xtbUserId');
+            const savedPassword = localStorage.getItem('xtbPassword');
+            if (savedUserId) {
+                document.getElementById("userId").value = savedUserId;
+            }
+            if (savedPassword) {
+                document.getElementById("password").value = savedPassword;
+            }
+        };
+    </script>
+}

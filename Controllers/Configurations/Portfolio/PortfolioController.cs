@@ -26,7 +26,11 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     }
 
 
+    public IActionResult SummaryXtb()
+    {
 
+      return View();
+    }
     public IActionResult Summary()
     {
 

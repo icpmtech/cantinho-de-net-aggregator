@@ -12,6 +12,45 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script>
         $(document).ready(function () {
+
+
+           // Toggle Sell Fields (from previous implementation)
+        function toggleSellFields() {
+            if ($('#OperationType').val() === "Sell") {
+                $('#sellFields').show();
+            } else {
+                $('#sellFields').hide();
+            }
+        }
+
+        // Toggle read-only/disabled state when OperationType equals "Close"
+        function toggleReadonlyFields() {
+            if ($('#OperationType').val() === "Close") {
+                // Make all input and textarea fields read-only
+                $('form input, form textarea').prop('readonly', true);
+                // Disable all select elements
+                $('form select').prop('disabled', true);
+
+                // (Optional) Re-enable OperationType if you want the user to change it
+                $('#OperationType').prop('disabled', false);
+            } else {
+                // Remove read-only from inputs and textareas
+                $('form input, form textarea').prop('readonly', false);
+                // Enable all select elements
+                $('form select').prop('disabled', false);
+            }
+        }
+
+        // Call the toggle functions on page load (in case model has preset value)
+        toggleSellFields();
+        toggleReadonlyFields();
+
+        // Attach change event listener to the OperationType select element
+        $('#OperationType').on('change', function () {
+            toggleSellFields();
+            toggleReadonlyFields();
+        });
+
             $('#PortfolioId, #CompanyId, #OperationType, #Symbol').select2({
                 width: '100%'
             });
@@ -40,8 +79,11 @@
             }
 
             fetchSymbols();
-        });
 
+            
+
+        });
+        
         document.addEventListener('DOMContentLoaded', function () {
             let chartOptions = {
                 chart: {
@@ -361,8 +403,21 @@
                         <option value="" disabled selected>Select an operation</option>
                         <option value="Buy">Buy</option>
                         <option value="Sell">Sell</option>
+                        <option value="Close">Close</option>
                     </select>
                     <span asp-validation-for="OperationType" class="text-danger"></span>
+                </div>
+                <div id="sellFields" style="display:none;">
+                    <div class="form-group">
+                        <label asp-for="SalePrice" class="control-label">Sale Price</label>
+                        <input asp-for="SalePrice" class="form-control" />
+                        <span asp-validation-for="SalePrice" class="text-danger"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="SaleCommission" class="control-label">Sale Commission</label>
+                        <input asp-for="SaleCommission" class="form-control" />
+                        <span asp-validation-for="SaleCommission" class="text-danger"></span>
+                    </div>
                 </div>
                 <div class="form-group">
                     <input asp-for="UserId" hidden class="form-control" />
