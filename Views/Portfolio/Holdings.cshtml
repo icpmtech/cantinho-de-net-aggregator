@@ -232,7 +232,17 @@
     .modal-content .modal-actions {
       text-align: right;
     }
-
+    /* Simulation Inputs in Calculator Modal */
+    #simulationInputs {
+      border-top: 1px solid #dadce0;
+      padding-top: 10px;
+      margin-top: 10px;
+    }
+    #simulationInputs h4 {
+      margin: 10px 0 5px;
+      font-size: 1.1rem;
+      color: #202124;
+    }
     /* Status Message */
     #statusMessage {
       display: none;
@@ -335,8 +345,19 @@
       </div>
       <button class="btn" onclick="calculate()">Calcular</button>
       <p id="calcResult"></p>
-      <!-- Chart Canvas to display best prices -->
-      <div>
+      <!-- Simulation Inputs -->
+      <div id="simulationInputs">
+        <h4>Simulação</h4>
+        <label for="simMinPrice">Preço de Venda Mínimo (€)</label>
+        <input type="number" id="simMinPrice" min="0" step="0.01" />
+        <label for="simMaxPrice">Preço de Venda Máximo (€)</label>
+        <input type="number" id="simMaxPrice" min="0" step="0.01" />
+        <label for="simStep">Incremento (€)</label>
+        <input type="number" id="simStep" min="0" step="0.01" />
+        <button class="btn btn-secondary" onclick="simulate()">Simular</button>
+      </div>
+      <!-- Chart Canvas (will display best prices or simulation results) -->
+      <div style="margin-top:15px;">
         <canvas id="calcChart" width="400" height="200"></canvas>
       </div>
       <div class="modal-actions">
@@ -346,14 +367,13 @@
   </div>
 
   <script>
-    // Global variable to hold base data for the calculator (from row, group, or edit modal)
+    // Global variable to hold base data for the calculator (row, group, or edit modal)
     var currentCalcData = null;
     var calcChart = null;
 
-    // Auto-load API data on page load
+    // Auto-load API data on page load and update chart when selling price changes
     window.addEventListener("DOMContentLoaded", () => {
       loadFromAPI();
-      // Update chart automatically when selling price input changes.
       document.getElementById("calcSellingPrice").addEventListener("input", updateCalcChart);
     });
 
@@ -799,9 +819,9 @@
     }
 
     /*******************************************************
-     * FINANCIAL CALCULATOR MODAL FUNCTIONS & CHART
+     * FINANCIAL CALCULATOR MODAL FUNCTIONS & SIMULATION
      *******************************************************/
-    // Opens the calculator modal using currentCalcData and displays base data.
+    // Opens the calculator modal using currentCalcData and updates the base data display.
     function openCalcModal() {
       document.getElementById("calcModal").style.display = "block";
       updateCalcModalFields();
@@ -866,6 +886,10 @@
       document.getElementById("calcResult").textContent = "";
       document.getElementById("calcSellingPrice").value = "";
       document.getElementById("calcHoldingPeriod").value = "";
+      // Reset simulation inputs.
+      document.getElementById("simMinPrice").value = "";
+      document.getElementById("simMaxPrice").value = "";
+      document.getElementById("simStep").value = "";
       if(calcChart){ calcChart.destroy(); calcChart = null; }
       currentCalcData = null;
     }
@@ -890,16 +914,16 @@
       updateCalcChart();
     }
 
-    // Update the chart using Chart.js to display key price values.
+    // Update the chart to show the base data prices (or simulation results if applicable).
     function updateCalcChart() {
       let purchasePrice = currentCalcData ? currentCalcData.purchasePrice : 0;
       let quantity = currentCalcData ? currentCalcData.quantity : 0;
       let commission = currentCalcData ? currentCalcData.commission : 0;
       let breakEvenPrice = quantity > 0 ? ((purchasePrice * quantity) + commission) / quantity : 0;
-      let sellingContainer = document.getElementById("sellingPriceContainer");
       let labels = ["Preço de Compra", "Ponto de Equilíbrio"];
       let dataPoints = [purchasePrice, breakEvenPrice];
-      if(window.getComputedStyle(sellingContainer).display !== "none") {
+      // If the selling price input is visible and has a value, include it.
+      if(window.getComputedStyle(document.getElementById("sellingPriceContainer")).display !== "none") {
         let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
         labels.push("Preço de Venda");
         dataPoints.push(sellingPrice);
@@ -915,7 +939,7 @@
            data: {
              labels: labels,
              datasets: [{
-               label: 'Valores',
+               label: 'Valores (€)',
                data: dataPoints,
                backgroundColor: [
                  'rgba(26,115,232,0.7)',
@@ -931,6 +955,96 @@
            }
          });
       }
+    }
+
+    /*******************************************************
+     * SIMULATION FUNCTIONALITY
+     *******************************************************/
+    // simulate() reads simulation input values and computes the selected metric
+    // over a range of selling prices, then updates the chart with simulation data.
+    function simulate() {
+      let simMin = parseFloat(document.getElementById("simMinPrice").value);
+      let simMax = parseFloat(document.getElementById("simMaxPrice").value);
+      let simStep = parseFloat(document.getElementById("simStep").value);
+      if(isNaN(simMin) || isNaN(simMax) || isNaN(simStep) || simMin >= simMax || simStep <= 0) {
+        document.getElementById("calcResult").textContent = "Por favor, insira valores válidos para a simulação.";
+        return;
+      }
+      let calcType = document.getElementById("calcType").value;
+      let labels = [];
+      let simValues = [];
+      for(let sp = simMin; sp <= simMax; sp += simStep) {
+         labels.push(sp.toFixed(2));
+         simValues.push(computeMetric(sp, calcType));
+      }
+      // Update the chart to display simulation data.
+      if(calcChart){ calcChart.destroy(); calcChart = null; }
+      var ctx = document.getElementById("calcChart").getContext('2d');
+      calcChart = new Chart(ctx, {
+         type: 'line',
+         data: {
+           labels: labels,
+           datasets: [{
+             label: 'Simulação (' + calcType + ')',
+             data: simValues,
+             backgroundColor: 'rgba(26,115,232,0.5)',
+             borderColor: 'rgba(26,115,232,1)',
+             fill: true
+           }]
+         },
+         options: {
+           scales: {
+             y: { beginAtZero: true }
+           }
+         }
+      });
+    }
+
+    // computeMetric returns the computed metric value for a given selling price.
+    function computeMetric(sellingPrice, calcType) {
+      let purchasePrice, quantity, commission;
+      if(currentCalcData) {
+         purchasePrice = currentCalcData.purchasePrice;
+         quantity = currentCalcData.quantity;
+         commission = currentCalcData.commission;
+      } else {
+         purchasePrice = parseFloat(document.getElementById("editPurchasePrice").value) || 0;
+         quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
+         commission = parseFloat(document.getElementById("editCommission").value) || 0;
+      }
+      if(calcType === "roi") {
+         if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) return 0;
+         let totalCost = (purchasePrice * quantity) + commission;
+         let totalRevenue = sellingPrice * quantity;
+         let profit = totalRevenue - totalCost;
+         return (profit / totalCost) * 100;
+      } else if(calcType === "profit") {
+         if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) return 0;
+         let totalCost = (purchasePrice * quantity) + commission;
+         let totalRevenue = sellingPrice * quantity;
+         return totalRevenue - totalCost;
+      } else if(calcType === "annualizedROI") {
+         let holdingPeriod = parseFloat(document.getElementById("calcHoldingPeriod").value) || 1;
+         if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0 || holdingPeriod <= 0) return 0;
+         let totalCost = (purchasePrice * quantity) + commission;
+         let totalRevenue = sellingPrice * quantity;
+         let overallROI = (totalRevenue - totalCost) / totalCost;
+         return (Math.pow((1 + overallROI), (1 / holdingPeriod)) - 1) * 100;
+      } else if(calcType === "markup") {
+         if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) return 0;
+         let effectiveCost = purchasePrice + (commission / quantity);
+         return ((sellingPrice - effectiveCost) / effectiveCost) * 100;
+      } else if(calcType === "profitMargin") {
+         if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) return 0;
+         let totalCost = (purchasePrice * quantity) + commission;
+         let totalRevenue = sellingPrice * quantity;
+         let profit = totalRevenue - totalCost;
+         return (profit / totalRevenue) * 100;
+      } else if(calcType === "breakEven") {
+         if(purchasePrice <= 0 || quantity <= 0) return 0;
+         return ((purchasePrice * quantity) + commission) / quantity;
+      }
+      return 0;
     }
 
     function calculate() {
