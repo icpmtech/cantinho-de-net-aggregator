@@ -16,6 +16,8 @@
   <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@5.3.4/dist/css/tabulator.min.css" />
   <!-- Tabulator JS -->
   <script src="https://unpkg.com/tabulator-tables@5.3.4/dist/js/tabulator.min.js"></script>
+  <!-- Chart.js Library -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Roboto Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
@@ -310,7 +312,7 @@
   <div id="calcModal" class="modal">
     <div class="modal-content">
       <h3>Calculadora de Finanças</h3>
-      <!-- Display the base data (row, group or edit modal) -->
+      <!-- Display the base data (row, group, or edit modal) -->
       <p id="calcBaseData"></p>
       <label for="calcType">Tipo de Cálculo</label>
       <select id="calcType" onchange="updateCalcModalFields()">
@@ -333,6 +335,10 @@
       </div>
       <button class="btn" onclick="calculate()">Calcular</button>
       <p id="calcResult"></p>
+      <!-- Chart Canvas to display best prices -->
+      <div>
+        <canvas id="calcChart" width="400" height="200"></canvas>
+      </div>
       <div class="modal-actions">
         <button class="btn btn-danger" onclick="closeCalcModal()">Fechar</button>
       </div>
@@ -340,12 +346,15 @@
   </div>
 
   <script>
-    // Global variable to hold base data for the calculator (from row, group or edit modal)
+    // Global variable to hold base data for the calculator (from row, group, or edit modal)
     var currentCalcData = null;
+    var calcChart = null;
 
     // Auto-load API data on page load
     window.addEventListener("DOMContentLoaded", () => {
       loadFromAPI();
+      // Update chart automatically when selling price input changes.
+      document.getElementById("calcSellingPrice").addEventListener("input", updateCalcChart);
     });
 
     /*******************************************************
@@ -790,9 +799,9 @@
     }
 
     /*******************************************************
-     * FINANCIAL CALCULATOR MODAL FUNCTIONS
+     * FINANCIAL CALCULATOR MODAL FUNCTIONS & CHART
      *******************************************************/
-    // Opens the calculator modal using currentCalcData (if set) and displays base data.
+    // Opens the calculator modal using currentCalcData and displays base data.
     function openCalcModal() {
       document.getElementById("calcModal").style.display = "block";
       updateCalcModalFields();
@@ -804,9 +813,10 @@
       } else {
         document.getElementById("calcBaseData").textContent = "";
       }
+      updateCalcChart();
     }
 
-    // Opens the calculator modal from the Edit modal (using its current field values)
+    // Opens the calculator modal from the Edit modal.
     function openCalcFromEdit() {
       currentCalcData = {
         purchasePrice: parseFloat(document.getElementById("editPurchasePrice").value) || 0,
@@ -856,6 +866,7 @@
       document.getElementById("calcResult").textContent = "";
       document.getElementById("calcSellingPrice").value = "";
       document.getElementById("calcHoldingPeriod").value = "";
+      if(calcChart){ calcChart.destroy(); calcChart = null; }
       currentCalcData = null;
     }
 
@@ -876,6 +887,50 @@
       document.getElementById("calcResult").textContent = "";
       document.getElementById("calcSellingPrice").value = "";
       document.getElementById("calcHoldingPeriod").value = "";
+      updateCalcChart();
+    }
+
+    // Update the chart using Chart.js to display key price values.
+    function updateCalcChart() {
+      let purchasePrice = currentCalcData ? currentCalcData.purchasePrice : 0;
+      let quantity = currentCalcData ? currentCalcData.quantity : 0;
+      let commission = currentCalcData ? currentCalcData.commission : 0;
+      let breakEvenPrice = quantity > 0 ? ((purchasePrice * quantity) + commission) / quantity : 0;
+      let sellingContainer = document.getElementById("sellingPriceContainer");
+      let labels = ["Preço de Compra", "Ponto de Equilíbrio"];
+      let dataPoints = [purchasePrice, breakEvenPrice];
+      if(window.getComputedStyle(sellingContainer).display !== "none") {
+        let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+        labels.push("Preço de Venda");
+        dataPoints.push(sellingPrice);
+      }
+      if(calcChart) {
+         calcChart.data.labels = labels;
+         calcChart.data.datasets[0].data = dataPoints;
+         calcChart.update();
+      } else {
+         var ctx = document.getElementById("calcChart").getContext('2d');
+         calcChart = new Chart(ctx, {
+           type: 'bar',
+           data: {
+             labels: labels,
+             datasets: [{
+               label: 'Valores',
+               data: dataPoints,
+               backgroundColor: [
+                 'rgba(26,115,232,0.7)',
+                 'rgba(52,168,83,0.7)',
+                 'rgba(220,50,45,0.7)'
+               ]
+             }]
+           },
+           options: {
+             scales: {
+               y: { beginAtZero: true }
+             }
+           }
+         });
+      }
     }
 
     function calculate() {
@@ -893,6 +948,7 @@
       } else if(calcType === "profitMargin") {
         calculateProfitMargin();
       }
+      updateCalcChart();
     }
 
     function calculateROI() {
@@ -999,7 +1055,6 @@
         document.getElementById("calcResult").textContent = "Insira valores válidos para Preço de Compra, Quantidade e Preço de Venda.";
         return;
       }
-      // Effective cost per unit includes commission spread over quantity.
       var effectiveCost = purchasePrice + (commission / quantity);
       var markup = ((sellingPrice - effectiveCost) / effectiveCost) * 100;
       document.getElementById("calcResult").textContent = "Markup: " + markup.toFixed(2) + "%";
