@@ -243,6 +243,33 @@
       font-size: 1.1rem;
       color: #202124;
     }
+
+    /* Drawer Styles for Additional Simulations */
+    #simulationDrawer {
+      position: fixed;
+      top: 0;
+      right: -300px;
+      width: 300px;
+      height: 100%;
+      background: #fff;
+      box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+      transition: right 0.3s ease;
+      padding: 20px;
+      overflow-y: auto;
+      z-index: 1100;
+    }
+    #simulationDrawer.open {
+      right: 0;
+    }
+    #simulationDrawer h4 {
+      margin-top: 0;
+      font-size: 1.2rem;
+      color: #1a73e8;
+    }
+    #simulationDrawer button {
+      margin-top: 10px;
+    }
+
     /* Status Message */
     #statusMessage {
       display: none;
@@ -356,14 +383,25 @@
         <input type="number" id="simStep" min="0" step="0.01" />
         <button class="btn btn-secondary" onclick="simulate()">Simular</button>
       </div>
-      <!-- Chart Canvas (will display best prices or simulation results) -->
+      <!-- Chart Canvas (displays best prices or simulation results) -->
       <div style="margin-top:15px;">
         <canvas id="calcChart" width="400" height="200"></canvas>
       </div>
+      <!-- Button to toggle the Simulation Drawer -->
+      <button class="btn btn-secondary" style="margin-top:10px;" onclick="toggleDrawer()">Toggle Simulation Drawer</button>
       <div class="modal-actions">
         <button class="btn btn-danger" onclick="closeCalcModal()">Fechar</button>
       </div>
     </div>
+  </div>
+
+  <!-- Simulation Drawer (slide-out panel) -->
+  <div id="simulationDrawer">
+    <h4>Simulação Adicional</h4>
+    <!-- You can add more simulation inputs here -->
+    <p>Aqui você pode adicionar controles adicionais para simulação.</p>
+    <button class="btn btn-secondary" onclick="takeSnapshot()">Take Snapshot</button>
+    <button class="btn btn-danger" style="margin-top:10px;" onclick="toggleDrawer()">Fechar Drawer</button>
   </div>
 
   <script>
@@ -371,7 +409,7 @@
     var currentCalcData = null;
     var calcChart = null;
 
-    // Auto-load API data on page load and update chart when selling price changes
+    // Auto-load API data on page load and update chart when selling price changes.
     window.addEventListener("DOMContentLoaded", () => {
       loadFromAPI();
       document.getElementById("calcSellingPrice").addEventListener("input", updateCalcChart);
@@ -819,9 +857,9 @@
     }
 
     /*******************************************************
-     * FINANCIAL CALCULATOR MODAL FUNCTIONS & SIMULATION
+     * FINANCIAL CALCULATOR MODAL FUNCTIONS, CHART & SIMULATION
      *******************************************************/
-    // Opens the calculator modal using currentCalcData and updates the base data display.
+    // Opens the calculator modal using currentCalcData and updates base data.
     function openCalcModal() {
       document.getElementById("calcModal").style.display = "block";
       updateCalcModalFields();
@@ -857,7 +895,7 @@
       openCalcModal();
     }
 
-    // Opens the calculator modal for a group by aggregating the group's rows.
+    // Opens the calculator modal for a group by aggregating group rows.
     function openGroupCalcModal(groupKey) {
       let allData = table.getData();
       let groupRows = allData.filter(function(row) {
@@ -886,7 +924,6 @@
       document.getElementById("calcResult").textContent = "";
       document.getElementById("calcSellingPrice").value = "";
       document.getElementById("calcHoldingPeriod").value = "";
-      // Reset simulation inputs.
       document.getElementById("simMinPrice").value = "";
       document.getElementById("simMaxPrice").value = "";
       document.getElementById("simStep").value = "";
@@ -914,7 +951,7 @@
       updateCalcChart();
     }
 
-    // Update the chart to show the base data prices (or simulation results if applicable).
+    // Update the chart to display base prices (or simulation results if applicable).
     function updateCalcChart() {
       let purchasePrice = currentCalcData ? currentCalcData.purchasePrice : 0;
       let quantity = currentCalcData ? currentCalcData.quantity : 0;
@@ -922,7 +959,6 @@
       let breakEvenPrice = quantity > 0 ? ((purchasePrice * quantity) + commission) / quantity : 0;
       let labels = ["Preço de Compra", "Ponto de Equilíbrio"];
       let dataPoints = [purchasePrice, breakEvenPrice];
-      // If the selling price input is visible and has a value, include it.
       if(window.getComputedStyle(document.getElementById("sellingPriceContainer")).display !== "none") {
         let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
         labels.push("Preço de Venda");
@@ -949,9 +985,7 @@
              }]
            },
            options: {
-             scales: {
-               y: { beginAtZero: true }
-             }
+             scales: { y: { beginAtZero: true } }
            }
          });
       }
@@ -960,8 +994,6 @@
     /*******************************************************
      * SIMULATION FUNCTIONALITY
      *******************************************************/
-    // simulate() reads simulation input values and computes the selected metric
-    // over a range of selling prices, then updates the chart with simulation data.
     function simulate() {
       let simMin = parseFloat(document.getElementById("simMinPrice").value);
       let simMax = parseFloat(document.getElementById("simMaxPrice").value);
@@ -977,7 +1009,6 @@
          labels.push(sp.toFixed(2));
          simValues.push(computeMetric(sp, calcType));
       }
-      // Update the chart to display simulation data.
       if(calcChart){ calcChart.destroy(); calcChart = null; }
       var ctx = document.getElementById("calcChart").getContext('2d');
       calcChart = new Chart(ctx, {
@@ -993,14 +1024,11 @@
            }]
          },
          options: {
-           scales: {
-             y: { beginAtZero: true }
-           }
+           scales: { y: { beginAtZero: true } }
          }
       });
     }
 
-    // computeMetric returns the computed metric value for a given selling price.
     function computeMetric(sellingPrice, calcType) {
       let purchasePrice, quantity, commission;
       if(currentCalcData) {
@@ -1195,6 +1223,26 @@
       var profit = totalRevenue - totalCost;
       var profitMargin = (profit / totalRevenue) * 100;
       document.getElementById("calcResult").textContent = "Margem de Lucro: " + profitMargin.toFixed(2) + "%";
+    }
+
+    /*******************************************************
+     * DRAWER FUNCTIONALITY FOR ADDITIONAL SIMULATIONS
+     *******************************************************/
+    function toggleDrawer() {
+      const drawer = document.getElementById("simulationDrawer");
+      drawer.classList.toggle("open");
+    }
+
+    // Takes a snapshot of the simulation chart using Chart.js's built-in method.
+    function takeSnapshot() {
+      if(calcChart) {
+        const imageURL = calcChart.toBase64Image();
+        // Open snapshot in a new window
+        const newWindow = window.open();
+        newWindow.document.write('<img src="' + imageURL + '" alt="Simulation Snapshot"/>');
+      } else {
+        alert("Nenhum gráfico para capturar.");
+      }
     }
   </script>
 </body>
