@@ -2,130 +2,329 @@
 @inject IViewLocalizer Localizer
 
 @{
-    ViewData["Title"] = "Account settings - Connections";
+    ViewData["Title"] = "Account Settings - Connections";
 }
 
-<!-- Sneat 'Connections' UI ... omitted for brevity ... -->
+<!-- Bootstrap & TradingView (if not already in your layout) -->
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      integrity="sha384-ENjdO4Dr2bkBIFxQmdBemnW7rPzT9xz1D5HPWl2EtyaYmFf43KNT8W7imG16tS2p"
+      crossorigin="anonymous" />
+<script src="https://s3.tradingview.com/tv.js"></script>
+
+<!-- Minimal dark overrides / styling -->
+<style>
+    body {
+        background-color: #14181b;
+        color: #f2f2f2;
+    }
+
+    .card {
+        background-color: #1f2428;
+        border: none;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .card-header {
+        background-color: #2a2f33;
+        border-bottom: 1px solid #333;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+        color: #f2f2f2;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #2e3338;
+        color: #f2f2f2;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+    }
+
+    .btn-primary {
+        background-color: #ff4081;
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background-color: #e53775;
+        }
+
+    .btn-close.btn-close-white:focus {
+        box-shadow: none;
+    }
+
+    #logDrawer,
+    #logArea {
+        background-color: #2a2f33;
+        color: #fff;
+        padding: 1rem;
+        border-radius: 4px;
+        max-height: 180px;
+        overflow-y: auto;
+        font-size: 0.85rem;
+    }
+
+    #settingsDrawer {
+        background-color: #24292e;
+    }
+</style>
+
 <!--
-==========================================
-XTB Trading Integration (Modal + Logic)
-==========================================
+=======================================
+Connections: Google Finance + XTB
+=======================================
 -->
-<div class="my-4"></div> <!-- Some extra spacing -->
-<!-- Hidden fields for storing XTB credentials -->
+<div class="row">
+    <!-- Investment & Trading Integrations -->
+    <div class="col-lg-12">
+        <div class="card">
+            <h5 class="card-header">Investment &amp; Trading Integrations</h5>
+            <div class="card-body">
+                <p>Connect external brokerage or market data services for enhanced trading and analytics.</p>
+
+                <!-- Google Finance -->
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <img src="~/img/icons/brands/google.png" alt="Google Finance" class="me-3" height="30">
+                    </div>
+                    <div class="flex-grow-1 row">
+                        <div class="col-9 mb-sm-0 mb-2">
+                            <h6 class="mb-0">Google Finance</h6>
+                            <small class="text-muted">Comprehensive market data &amp; watchlist sync</small>
+                        </div>
+                        <div class="col-3 text-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input float-end" type="checkbox" role="switch" checked />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <!-- XTB Connection -->
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <img src="~/img/icons/brands/xtb.png" alt="XTB" class="me-3" height="30" />
+                    </div>
+                    <div class="flex-grow-1 row">
+                        <div class="col-9 mb-sm-0 mb-2">
+                            <h6 class="mb-0">XTB Brokerage</h6>
+                            <small class="text-muted">Live trading account &amp; margin management</small>
+                        </div>
+                        <div class="col-3 text-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input float-end" type="checkbox" role="switch"
+                                       onchange="if (this.checked) { openModal(); }" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optionally add more integrations in the other column -->
+</div>
+
+<!--
+=======================================
+XTB Brokerage Dashboard
+=======================================
+-->
+<div class="card mt-4">
+    <h5 class="card-header">XTB Brokerage Dashboard</h5>
+    <div class="card-body">
+        <!-- Loading Indicator -->
+        <div id="loading" class="mb-3" style="display:none;">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Connecting to XTB...</span>
+        </div>
+
+        <!-- Margin & Balance Summary -->
+        <div id="accountCard" style="display:none; margin-bottom:1rem;">
+            <h6 style="color:#ff4081;">Account Summary</h6>
+            <p><strong>Balance:</strong> <span id="balance">-</span> USD</p>
+            <p><strong>Margin:</strong> <span id="margin">-</span></p>
+            <p><strong>Free Margin:</strong> <span id="margin_free">-</span></p>
+            <p><strong>Margin Level:</strong> <span id="margin_level">-</span>%</p>
+            <p><strong>Equity:</strong> <span id="equity">-</span></p>
+        </div>
+
+        <!-- Trades -->
+        <button id="fetchTradesBtn" class="btn btn-primary w-100 mb-3" style="display:none;"
+                onclick="fetchTrades()">
+            Load Positions
+        </button>
+        <div id="tradesCard" style="display:none;">
+            <h6 style="color:#ff4081;">Open Positions</h6>
+            <div id="tradesList"></div>
+        </div>
+
+        <!-- Optional Log Area -->
+        <div id="logArea" style="display:none;" class="mt-3"></div>
+    </div>
+</div>
+
+<!--
+=======================================
+Market Chart (TradingView)
+=======================================
+-->
+<div class="card mt-4" id="tvCard" style="display:none;">
+    <h5 class="card-header" style="color:#ff4081;">Market Chart</h5>
+    <div class="card-body">
+        <div id="tradingViewChartContainer" style="width:100%; height:500px;"></div>
+    </div>
+</div>
+
+<!--
+=======================================
+XTB Login Modal
+=======================================
+-->
+<div class="modal" id="loginModal" tabindex="-1" style="background-color:rgba(0,0,0,0.7);">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="m-0">Connect to XTB</h5>
+                <button type="button" class="btn-close btn-close-white" aria-label="Close"
+                        onclick="closeModal()"></button>
+            </div>
+            <hr />
+            <div class="text-center">
+                <img src="~/img/icons/brands/xtb.png" alt="XTB Logo"
+                     style="width:80px; margin-bottom:15px;" />
+            </div>
+            <input type="text" id="modalUserId" placeholder="User ID" class="form-control mb-2" />
+            <input type="password" id="modalPassword" placeholder="Password" class="form-control mb-2" />
+            <button class="btn btn-primary w-100 mt-2" onclick="modalConnect()">
+                Login &amp; Fetch Data
+            </button>
+        </div>
+    </div>
+</div>
+
+<!--
+=======================================
+Settings Drawer
+=======================================
+-->
+<div id="settingsDrawer"
+     style="position:fixed;
+            top:50%;
+            right:-320px;
+            transform:translateY(-50%);
+            padding:1.5rem;
+            border-radius:8px 0 0 8px;
+            width:300px;
+            box-shadow:-8px 0 16px rgba(0,0,0,0.4);
+            transition:right 0.3s ease;
+            z-index:1050;">
+    <h5 style="color:#ff4081;">Settings</h5>
+    <label class="mt-2">Stored XTB User ID:</label>
+    <input type="text" id="savedUserId" class="form-control mb-2" readonly />
+
+    <label>Stored Password:</label>
+    <input type="password" id="savedPassword" class="form-control mb-2" readonly />
+
+    <button class="btn btn-secondary w-100 mb-3" onclick="clearCredentials()">
+        Clear Saved Credentials
+    </button>
+
+    <h6 style="color:#ff4081;">Log Output</h6>
+    <div id="logDrawer" style="max-height:180px; overflow-y:auto;"></div>
+
+    <button class="btn btn-secondary w-100 mt-2" onclick="toggleSettingsDrawer()">
+        Close
+    </button>
+</div>
+
+<button id="settingsToggleBtn" class="btn btn-danger "
+        style="position:fixed;bottom: 50%;right: -15px;width:50px;height:50px;z-index:1100;"
+        onclick="toggleSettingsDrawer()">
+    &#9881;
+</button>
+
+<!--
+=======================================
+Hidden fields for XTB credentials
+=======================================
+-->
 <input type="text" id="userId" style="display:none;" />
 <input type="password" id="password" style="display:none;" />
 
-<!-- XTB Account Summary & Trades (Optional Layout) -->
-<div class="card" style="background-color:#1e1e1e; padding:1.5rem; margin-top:1rem; border-radius:8px;">
-    <div id="loading" style="display:none; margin-bottom:1rem; color:#fff;">Loading...</div>
-
-    <div id="accountCard" style="display:none; margin-bottom:1rem;">
-        <h5 style="color:#ff4081;">XTB Account Summary</h5>
-        <p><strong>Balance:</strong> <span id="balance">-</span> USD</p>
-        <p><strong>Margin:</strong> <span id="margin">-</span></p>
-        <p><strong>Free Margin:</strong> <span id="margin_free">-</span></p>
-        <p><strong>Margin Level:</strong> <span id="margin_level">-</span>%</p>
-        <p><strong>Equity:</strong> <span id="equity">-</span></p>
-    </div>
-
-    <!-- Optional: fetch trades if you need them -->
-    <button id="fetchTradesBtn" style="display:none; width:100%; margin-bottom:1rem;" class="btn btn-primary" onclick="fetchTrades()">Get Trades</button>
-
-    <div id="tradesCard" style="display:none;">
-        <h5 style="color:#ff4081;">XTB Trades</h5>
-        <div id="tradesList"></div>
-    </div>
-</div>
-
-<!-- XTB Login Modal -->
-<div id="loginModal" class="modal" style="display:none;">
-    <div class="modal-content" style="background-color:#1e1e1e; margin:10% auto; padding:20px; border-radius:8px; max-width:400px; text-align:center;">
-        <span class="close" style="float:right; font-size:28px; cursor:pointer;" onclick="closeModal()">&times;</span>
-        <img src="~/img/icons/brands/xtb.png" alt="XTB Logo" style="width:120px; margin-bottom:20px;" />
-        <h4 style="margin-bottom:15px; color:#ff4081;">Connect to XTB</h4>
-        <input type="text" id="modalUserId" placeholder="User ID" style="width:100%; padding:0.75rem; margin-bottom:0.5rem; background:#2c2c2c; border:1px solid #333; color:#fff; border-radius:6px;" />
-        <input type="password" id="modalPassword" placeholder="Password" style="width:100%; padding:0.75rem; margin-bottom:0.5rem; background:#2c2c2c; border:1px solid #333; color:#fff; border-radius:6px;" />
-        <button style="margin-top:1rem; width:100%;" class="btn btn-primary" onclick="modalConnect()">Login &amp; Fetch Data</button>
-    </div>
-</div>
-
-<!-- Settings Drawer -->
-<div id="settingsDrawer" style="position:fixed; top:50%; right:-320px; transform:translateY(-50%); background-color:#1e1e1e; padding:1.5rem; border-radius:8px 0 0 8px; width:300px; box-shadow:-8px 0 16px rgba(0,0,0,0.4); transition:right 0.3s ease; z-index:100;">
-    <h5 style="color:#ff4081;">Settings</h5>
-
-    <label for="savedUserId" style="margin-top:0.5rem;">Saved User ID:</label>
-    <input type="text" id="savedUserId" readonly style="width:100%; background:#2c2c2c; border:1px solid #333; color:#fff; margin-bottom:0.5rem; border-radius:4px;" />
-
-    <label for="savedPassword" style="margin-top:0.5rem;">Saved Password:</label>
-    <input type="password" id="savedPassword" readonly style="width:100%; background:#2c2c2c; border:1px solid #333; color:#fff; margin-bottom:0.5rem; border-radius:4px;" />
-
-    <button style="width:100%; margin-bottom:1rem;" class="btn btn-secondary" onclick="clearCredentials()">Clear Saved Credentials</button>
-
-    <h5 style="color:#ff4081;">Log</h5>
-    <div id="logDrawer" style="background:#2c2c2c; color:#fff; padding:1rem; max-height:150px; overflow-y:auto; border-radius:4px; font-size:0.85rem;"></div>
-
-    <button style="width:100%; margin-top:1rem;" class="btn btn-secondary" onclick="toggleSettingsDrawer()">Close</button>
-</div>
-
-<!-- Settings Toggle Button -->
-<button id="settingsToggleBtn" style="position:fixed; bottom:20px; right:20px; background-color:#ff4081; border:none; border-radius:50%; width:50px; height:50px; color:#fff; font-size:1.2rem; cursor:pointer; box-shadow:0 4px 8px rgba(0,0,0,0.3); transition:background-color 0.3s ease, transform 0.2s ease; z-index:101;" onclick="toggleSettingsDrawer()">&#9881;</button>
-
 @section PageScripts {
+    <!-- Optionally: Bootstrap bundle for modal transitions, etc. -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ENjdO4Dr2bkBIFxQmdBemnW7rPzT9xz1D5HPWl2EtyaYmFf43KNT8W7imG16tS2p"
+            crossorigin="anonymous"></script>
+
     <script>
         let socket;
-        const XTB_WS_URL = "wss://ws.xtb.com/demo"; // For real: "wss://ws.xtb.com/real"
+        const XTB_WS_URL = "wss://ws.xtb.com/demo"; // For live accounts: "wss://ws.xtb.com/real"
 
-        // Log a message in the log drawer, with timestamp
-        function log(message) {
+        // Logging function
+        function log(msg) {
             const logDiv = document.getElementById("logDrawer");
+            const logArea = document.getElementById("logArea");
             const timestamp = new Date().toLocaleTimeString();
-            logDiv.innerHTML += `<div>[${timestamp}] ${message}</div>`;
+            const line = `[${timestamp}] ${msg}\n`;
+            // Drawer
+            logDiv.textContent += line;
             logDiv.scrollTop = logDiv.scrollHeight;
+            // On-page area
+            if (logArea) {
+                logArea.style.display = "block";
+                logArea.textContent += line;
+                logArea.scrollTop = logArea.scrollHeight;
+            }
         }
 
-        // Show/hide the loading indicator
+        // Show/hide spinner
         function showLoading(show) {
             document.getElementById("loading").style.display = show ? "block" : "none";
         }
 
-        // Disable/enable the hidden credential fields
+        // Disable the hidden fields
         function disableForm(disable) {
             document.getElementById("userId").disabled = disable;
             document.getElementById("password").disabled = disable;
         }
 
-        // Open the XTB login modal
+        // XTB modal open/close
         function openModal() {
             const modal = document.getElementById("loginModal");
             modal.style.display = "block";
-            // Pre-fill from localStorage
-            document.getElementById("modalUserId").value = localStorage.getItem('xtbUserId') || "";
-            document.getElementById("modalPassword").value = localStorage.getItem('xtbPassword') || "";
+            // Restore any saved credentials
+            document.getElementById("modalUserId").value = localStorage.getItem("xtbUserId") || "";
+            document.getElementById("modalPassword").value = localStorage.getItem("xtbPassword") || "";
         }
-
-        // Close the XTB login modal
         function closeModal() {
             document.getElementById("loginModal").style.display = "none";
         }
 
-        // Triggered by "Login & Fetch Data" in the modal
+        // "Login & Fetch Data"
         function modalConnect() {
             const userId = document.getElementById("modalUserId").value;
             const password = document.getElementById("modalPassword").value;
-
             if (!userId || !password) {
                 alert("Please enter your User ID and Password.");
                 return;
             }
-            // Copy credentials to hidden fields
+            // Move to hidden fields
             document.getElementById("userId").value = userId;
             document.getElementById("password").value = password;
             closeModal();
             connectToXTB();
         }
 
-        // Main function to connect to XTB WebSocket
+        // Connect & login to XTB
         function connectToXTB() {
             const userId = document.getElementById("userId").value;
             const password = document.getElementById("password").value;
@@ -133,39 +332,34 @@ XTB Trading Integration (Modal + Logic)
                 alert("User ID and Password are required.");
                 return;
             }
+            localStorage.setItem("xtbUserId", userId);
+            localStorage.setItem("xtbPassword", password);
 
-            // Save credentials to localStorage
-            localStorage.setItem('xtbUserId', userId);
-            localStorage.setItem('xtbPassword', password);
-
-            log("Attempting to connect to XTB WebSocket...");
+            log("Attempting XTB WebSocket connection...");
             showLoading(true);
             disableForm(true);
 
             socket = new WebSocket(XTB_WS_URL);
-
             socket.onopen = function() {
-                log("Connected to XTB WebSocket.");
+                log("XTB WebSocket connected.");
                 loginToXTB(userId, password);
             };
-
             socket.onmessage = function(event) {
                 const response = JSON.parse(event.data);
                 log("Received: " + JSON.stringify(response));
-
-                // 1) If login confirmation (streamSessionId), fetch margin data
+                // If login success => fetch margin data
                 if (response.status && response.streamSessionId) {
-                    log("Login successful! Fetching account data...");
+                    log("Login successful => retrieving margin...");
                     fetchAccountSummary();
+                    showTradingViewChart();
                 }
-                // 2) If we receive account summary data from "getMarginLevel"
+                // If margin data
                 else if (response.command === "getMarginLevel" && response.returnData) {
                     updateAccountCard(response.returnData);
                     showLoading(false);
-                    // Optionally show "Get Trades" button
                     document.getElementById("fetchTradesBtn").style.display = "block";
                 }
-                // 3) If we receive trades data
+                // If trades
                 else if (response.command === "getTrades" && response.returnData) {
                     updateTrades(response.returnData);
                     showLoading(false);
@@ -176,91 +370,89 @@ XTB Trading Integration (Modal + Logic)
                     showLoading(false);
                 }
             };
-
             socket.onerror = function(error) {
                 log("WebSocket error: " + error);
-                alert("WebSocket error. See console for details.");
+                alert("WebSocket error. See log for details.");
                 disableForm(false);
                 showLoading(false);
             };
-
             socket.onclose = function() {
-                log("WebSocket connection closed.");
+                log("XTB WebSocket closed.");
                 disableForm(false);
                 showLoading(false);
             };
         }
 
-        // Send "login" command
+        // Send login command
         function loginToXTB(userId, password) {
             const loginCommand = {
                 command: "login",
                 arguments: { userId, password }
             };
-            log("Sending login request...");
+            log("Sending login command...");
             socket.send(JSON.stringify(loginCommand));
         }
 
-        // Request margin data after login success
+        // Request margin
         function fetchAccountSummary() {
-            const marginCommand = { command: "getMarginLevel" };
-            log("Requesting account margin data...");
-            socket.send(JSON.stringify(marginCommand));
+            const marginCmd = { command: "getMarginLevel" };
+            log("Requesting margin/balance data...");
+            socket.send(JSON.stringify(marginCmd));
         }
 
-        // Show margin data in the account card
+        // Update margin card
         function updateAccountCard(data) {
             document.getElementById("accountCard").style.display = "block";
-            document.getElementById("balance").textContent      = data.balance       ? Number(data.balance).toFixed(2)       : "-";
-            document.getElementById("margin").textContent       = data.margin        ? Number(data.margin).toFixed(2)        : "-";
-            document.getElementById("margin_free").textContent  = data.margin_free   ? Number(data.margin_free).toFixed(2)   : "-";
-            document.getElementById("margin_level").textContent = data.margin_level  ? Number(data.margin_level).toFixed(2)  : "-";
-            document.getElementById("equity").textContent       = data.equity        ? Number(data.equity).toFixed(2)        : "-";
+            document.getElementById("balance").textContent      = data.balance       ? Number(data.balance).toFixed(2) : "-";
+            document.getElementById("margin").textContent       = data.margin        ? Number(data.margin).toFixed(2)  : "-";
+            document.getElementById("margin_free").textContent  = data.margin_free   ? Number(data.margin_free).toFixed(2) : "-";
+            document.getElementById("margin_level").textContent = data.margin_level  ? Number(data.margin_level).toFixed(2) : "-";
+            document.getElementById("equity").textContent       = data.equity        ? Number(data.equity).toFixed(2)  : "-";
         }
 
-        // Trades command
+        // Request trades
         function fetchTrades() {
             if (!socket) return;
-            const tradesCommand = { command: "getTrades" };
-            log("Requesting trades data...");
-            socket.send(JSON.stringify(tradesCommand));
+            log("Requesting open positions...");
+            socket.send(JSON.stringify({ command: "getTrades" }));
         }
 
-        // Show trades if you want
+        // Show trades
         function updateTrades(trades) {
             const tradesList = document.getElementById("tradesList");
             tradesList.innerHTML = "";
             if (!trades || trades.length === 0) {
-                tradesList.innerHTML = "<p>No trades found.</p>";
+                tradesList.innerHTML = "<p>No open positions found.</p>";
                 document.getElementById("tradesCard").style.display = "block";
                 return;
             }
-            // Example table
+            // Build table
             const table = document.createElement("table");
+            table.classList.add("table","table-dark","table-striped","table-bordered");
             const headerRow = document.createElement("tr");
-            const headers = ["ID", "Symbol", "Volume", "Price", "Profit"];
-            headers.forEach(header => {
+            ["ID","Symbol","Volume","Price","Profit"].forEach(h => {
                 const th = document.createElement("th");
-                th.textContent = header;
+                th.textContent = h;
                 headerRow.appendChild(th);
             });
             table.appendChild(headerRow);
 
-            trades.forEach(trade => {
+            trades.forEach(tr => {
                 const row = document.createElement("tr");
-                const idCell = document.createElement("td");
-                idCell.textContent = trade.tradeId || trade.id || "-";
+                const idCell     = document.createElement("td");
+                idCell.textContent = tr.tradeId || tr.id || "-";
                 const symbolCell = document.createElement("td");
-                symbolCell.textContent = trade.symbol || "-";
-                const volumeCell = document.createElement("td");
-                volumeCell.textContent = (parseFloat(trade.volume) || 0).toFixed(2);
-                const priceCell = document.createElement("td");
-                priceCell.textContent = (parseFloat(trade.price) || 0).toFixed(2);
+                symbolCell.textContent = tr.symbol || "-";
+                const volCell    = document.createElement("td");
+                volCell.textContent = (parseFloat(tr.volume)||0).toFixed(2);
+                const priceCell  = document.createElement("td");
+                priceCell.textContent = (parseFloat(tr.price)||0).toFixed(2);
                 const profitCell = document.createElement("td");
-                profitCell.textContent = (parseFloat(trade.profit) || 0).toFixed(2);
+                profitCell.textContent = (parseFloat(tr.profit)||0).toFixed(2);
+
                 row.appendChild(idCell);
                 row.appendChild(symbolCell);
-                row.appendChild(volumeCell);
+                row.appendChild(volCell);
                 row.appendChild(priceCell);
                 row.appendChild(profitCell);
                 table.appendChild(row);
@@ -270,10 +462,32 @@ XTB Trading Integration (Modal + Logic)
             document.getElementById("tradesCard").style.display = "block";
         }
 
-        // Settings drawer toggle
+        // TradingView chart
+        function showTradingViewChart() {
+            document.getElementById("tvCard").style.display = "block";
+            new TradingView.widget({
+                container_id: "tradingViewChartContainer",
+                width: "100%",
+                height: 500,
+                symbol: "FX:EURUSD",
+                interval: "D",
+                timezone: "Etc/UTC",
+                theme: "dark",
+                style: "1",
+                locale: "en",
+                hide_side_toolbar: false,
+                allow_symbol_change: true,
+                save_image: false,
+               studies: [],
+                details: false,
+                withdateranges: true
+            });
+        }
+
+        // Settings Drawer
         function toggleSettingsDrawer() {
             const drawer = document.getElementById("settingsDrawer");
-            if (!drawer) return;
+            if(!drawer) return;
             if (drawer.style.right === "0px") {
                 drawer.style.right = "-320px";
             } else {
@@ -282,41 +496,35 @@ XTB Trading Integration (Modal + Logic)
             }
         }
 
-        // Fill settings drawer fields
         function populateSettingsDrawer() {
-            document.getElementById("savedUserId").value = localStorage.getItem('xtbUserId') || '';
-            document.getElementById("savedPassword").value = localStorage.getItem('xtbPassword') || '';
+            document.getElementById("savedUserId").value = localStorage.getItem("xtbUserId") || "";
+            document.getElementById("savedPassword").value = localStorage.getItem("xtbPassword") || "";
         }
 
-        // Clear credentials
         function clearCredentials() {
-            localStorage.removeItem('xtbUserId');
-            localStorage.removeItem('xtbPassword');
-            document.getElementById("savedUserId").value = '';
-            document.getElementById("savedPassword").value = '';
-            document.getElementById("userId").value = '';
-            document.getElementById("password").value = '';
+            localStorage.removeItem("xtbUserId");
+            localStorage.removeItem("xtbPassword");
+            document.getElementById("savedUserId").value = "";
+            document.getElementById("savedPassword").value = "";
+            document.getElementById("userId").value = "";
+            document.getElementById("password").value = "";
             alert("Credentials cleared.");
         }
 
-        // Close modal if clicking outside the modal content
-        window.onclick = function(event) {
+        // Close modal if user clicks outside .modal-content
+        window.onclick = function(e) {
             const modal = document.getElementById("loginModal");
-            if (event.target === modal) {
+            if (e.target === modal) {
                 closeModal();
             }
         };
 
-        // On page load, restore credentials if any
+        // On load, restore credentials if exist
         window.onload = function() {
-            const savedUserId = localStorage.getItem('xtbUserId');
-            const savedPassword = localStorage.getItem('xtbPassword');
-            if (savedUserId) {
-                document.getElementById("userId").value = savedUserId;
-            }
-            if (savedPassword) {
-                document.getElementById("password").value = savedPassword;
-            }
+            const savedUserId = localStorage.getItem("xtbUserId");
+            const savedPassword = localStorage.getItem("xtbPassword");
+            if (savedUserId)  document.getElementById("userId").value = savedUserId;
+            if (savedPassword)document.getElementById("password").value = savedPassword;
         };
     </script>
 }

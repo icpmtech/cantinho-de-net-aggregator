@@ -1,0 +1,611 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    ViewData["Title"] = "Account settings - Connections";
+}
+
+<!--
+  Load Bootstrap & TradingView
+  (You can also place these in your _Layout.cshtml if you prefer)
+-->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-ENjdO4Dr2bkBIFxQmdBemnW7rPzT9xz1D5HPWl2EtyaYmFf43KNT8W7imG16tS2p" crossorigin="anonymous" />
+<script src="https://s3.tradingview.com/tv.js"></script>
+
+<style>
+    /* Dark theme overrides */
+    body {
+        background-color: #14181b; /* Dark background */
+        color: #f2f2f2;
+    }
+
+    .card {
+        background-color: #1f2428;
+        border: none;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .card-header {
+        background-color: #282d31;
+        border-bottom: 1px solid #333;
+        color: #f2f2f2;
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
+
+    .card-body {
+        color: #ddd;
+    }
+
+    .nav-pills .nav-link.active {
+        background-color: #2e3338;
+        color: #f2f2f2;
+    }
+
+    .form-check-input {
+        cursor: pointer;
+    }
+    /* XTB Modal */
+    .modal {
+        background-color: rgba(0,0,0,0.6);
+    }
+
+    .modal-content {
+        background-color: #1f2428;
+        border-radius: 8px;
+        border: none;
+        color: #fff;
+    }
+
+    .btn-primary {
+        background-color: #ff4081;
+        border: none;
+    }
+
+    .btn-outline-secondary {
+        border-color: #555;
+        color: #ccc;
+    }
+
+        .btn-outline-secondary:hover {
+            background-color: #444;
+        }
+    /* Log area */
+    #logDrawer, #logArea {
+        background-color: #2a2f33;
+        color: #fff;
+        padding: 1rem;
+        border-radius: 4px;
+        max-height: 180px;
+        overflow-y: auto;
+        font-size: 0.85rem;
+    }
+    /* TradingView chart container */
+    #tradingViewChartContainer {
+        width: 100%;
+        height: 500px;
+        margin-top: 1rem;
+    }
+
+    .tv-header {
+        color: #ff4081;
+    }
+    /* Settings Drawer */
+    #settingsDrawer {
+        background-color: #24292e;
+    }
+</style>
+
+<!--
+==============================
+Sneat "Connections" snippet
+==============================
+-->
+<h4 class="py-3 mb-4">
+    <span class="text-muted fw-light">Account Settings / </span> Connections
+</h4>
+
+<div class="row mb-3">
+    <div class="col-md-12">
+        <ul class="nav nav-pills flex-column flex-md-row mb-3">
+            <li class="nav-item">
+                <a class="nav-link" href="AccountSettings">
+                    <i class="bx bx-user me-1"></i> Account
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/UserProfiles">
+                    <i class="bx bx-detail me-1_5 bx-sm"></i> @Localizer["Billing &amp; Plans"]
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="AccountSettingsNotifications">
+                    <i class="bx bx-bell me-1"></i> Notifications
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" href="javascript:void(0);">
+                    <i class="bx bx-link-alt me-1"></i> Connections
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Connected Accounts -->
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">Connected Accounts</h5>
+            <div class="card-body">
+                <p>Display content from your connected accounts on your site</p>
+                <!-- Example: Google -->
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <img src="~/img/icons/brands/google.png" alt="google" class="me-3" height="30">
+                    </div>
+                    <div class="flex-grow-1 row">
+                        <div class="col-9 mb-sm-0 mb-2">
+                            <h6 class="mb-0">Google</h6>
+                            <small class="text-muted">Calendar and contacts</small>
+                        </div>
+                        <div class="col-3 text-end">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input float-end" type="checkbox" role="switch">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Slack, Github, Mailchimp, etc. ... -->
+                <!-- XTB -->
+                <hr />
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <img src="~/img/icons/brands/xtb.png" alt="xtb" class="me-3" height="30" />
+                    </div>
+                    <div class="flex-grow-1 row">
+                        <div class="col-9 mb-sm-0 mb-2">
+                            <h6 class="mb-0">XTB</h6>
+                            <small class="text-muted">Trading platform connection</small>
+                        </div>
+                        <div class="col-3 text-end">
+                            <div class="form-check form-switch">
+                                <!-- Toggle the XTB modal on check -->
+                                <input class="form-check-input float-end" type="checkbox" role="switch"
+                                       onchange="if(this.checked){ openModal(); }">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Social Accounts -->
+    <div class="col-md-6">
+        <div class="card">
+            <h5 class="card-header">Social Accounts</h5>
+            <div class="card-body">
+                <p>Display content from social accounts on your site</p>
+                <!-- Example: Facebook -->
+                <div class="d-flex mb-3">
+                    <div class="flex-shrink-0">
+                        <img src="~/img/icons/brands/facebook.png" alt="facebook" class="me-3" height="30" />
+                    </div>
+                    <div class="flex-grow-1 row">
+                        <div class="col-8 col-sm-7 mb-sm-0 mb-2">
+                            <h6 class="mb-0">Facebook</h6>
+                            <small class="text-muted">Not Connected</small>
+                        </div>
+                        <div class="col-4 col-sm-5 text-end">
+                            <button type="button" class="btn btn-icon btn-outline-secondary">
+                                <i class='bx bx-link-alt'></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Twitter, Instagram, etc. ... -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--
+==========================================
+XTB & TradingView Integration
+==========================================
+-->
+<!-- Hidden fields for XTB credentials -->
+<input type="text" id="userId" style="display:none;" />
+<input type="password" id="password" style="display:none;" />
+
+<!-- XTB Cards: Margin Summary & Trades -->
+<div class="card mt-4">
+    <h5 class="card-header">XTB Dashboard</h5>
+    <div class="card-body">
+        <div id="loading" class="mb-3" style="display:none;">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <span class="ms-2">Connecting...</span>
+        </div>
+
+        <!-- Margin Summary -->
+        <div id="accountCard" style="display:none; margin-bottom:1rem;">
+            <h6 style="color:#ff4081;">Account Summary</h6>
+            <p><strong>Balance:</strong> <span id="balance">-</span> USD</p>
+            <p><strong>Margin:</strong> <span id="margin">-</span></p>
+            <p><strong>Free Margin:</strong> <span id="margin_free">-</span></p>
+            <p><strong>Margin Level:</strong> <span id="margin_level">-</span>%</p>
+            <p><strong>Equity:</strong> <span id="equity">-</span></p>
+        </div>
+
+        <!-- Fetch Trades Button -->
+        <button id="fetchTradesBtn" class="btn btn-primary w-100 mb-3" style="display:none;" onclick="fetchTrades()">
+            Get Trades
+        </button>
+
+        <!-- Trades Card -->
+        <div id="tradesCard" style="display:none;">
+            <h6 style="color:#ff4081;">Trades</h6>
+            <div id="tradesList"></div>
+        </div>
+
+        <!-- Log area for debugging (optional) -->
+        <div id="logArea" class="mt-3" style="display:none;"></div>
+    </div>
+</div>
+
+<!-- TradingView Chart Card -->
+<div class="card mt-4" id="tvCard" style="display:none;">
+    <h5 class="card-header tv-header">TradingView Chart</h5>
+    <div class="card-body">
+        <div id="tradingViewChartContainer"></div>
+    </div>
+</div>
+
+<!-- XTB Login Modal -->
+<div class="modal" id="loginModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content p-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="m-0">Connect to XTB</h5>
+                <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="closeModal()"></button>
+            </div>
+            <hr />
+            <div class="text-center">
+                <img src="~/img/icons/brands/xtb.png" alt="XTB Logo" style="width:100px; margin-bottom:15px;" />
+            </div>
+            <input type="text" id="modalUserId" placeholder="User ID" class="form-control mb-2" />
+            <input type="password" id="modalPassword" placeholder="Password" class="form-control mb-2" />
+            <button class="btn btn-primary w-100 mt-2" onclick="modalConnect()">Login &amp; Fetch Data</button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Drawer -->
+<div id="settingsDrawer" style="
+     position:fixed;
+     top:50%;
+     right:-320px;
+     transform:translateY(-50%);
+     padding:1.5rem;
+     border-radius:8px 0 0 8px;
+     width:300px;
+     box-shadow:-8px 0 16px rgba(0,0,0,0.4);
+     transition:right 0.3s ease;
+     z-index:1050;">
+    <h5 style="color:#ff4081;">Settings</h5>
+    <label class="mt-2">Saved User ID:</label>
+    <input type="text" id="savedUserId" class="form-control mb-2" readonly />
+
+    <label>Saved Password:</label>
+    <input type="password" id="savedPassword" class="form-control mb-2" readonly />
+
+    <button class="btn btn-secondary w-100 mb-3" onclick="clearCredentials()">Clear Saved Credentials</button>
+
+    <h6 style="color:#ff4081;">Log</h6>
+    <div id="logDrawer"></div>
+
+    <button class="btn btn-secondary w-100 mt-2" onclick="toggleSettingsDrawer()">Close</button>
+</div>
+
+<!-- Settings Drawer Toggle Button -->
+<button id="settingsToggleBtn" class="btn btn-danger"
+        style="position:fixed;bottom: 50%;right: -15px;width:50px;height:50px;z-index:1100;"
+        onclick="toggleSettingsDrawer()">
+    &#9881;
+</button>
+
+@section PageScripts {
+    <script>
+        let socket;
+        // For real, use: "wss://ws.xtb.com/real"
+        const XTB_WS_URL = "wss://ws.xtb.com/demo";
+
+        // Logging helper
+        function log(message) {
+            const logDiv = document.getElementById("logDrawer");
+            const logArea = document.getElementById("logArea");
+            const timestamp = new Date().toLocaleTimeString();
+            const logLine = `[${timestamp}] ${message}\n`;
+
+            // Drawer log
+            logDiv.textContent += logLine;
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            // On-page log area if you want it visible
+            if (logArea) {
+              logArea.style.display = "block";
+              logArea.textContent += logLine;
+              logArea.scrollTop = logArea.scrollHeight;
+            }
+        }
+
+        // Show/hide spinner
+        function showLoading(show) {
+            document.getElementById("loading").style.display = show ? "block" : "none";
+        }
+
+        // Disable/enable the hidden credentials
+        function disableForm(disable) {
+            document.getElementById("userId").disabled = disable;
+            document.getElementById("password").disabled = disable;
+        }
+
+        // Open the login modal
+        function openModal() {
+            const modal = document.getElementById("loginModal");
+            modal.style.display = "block";
+            // Pre-fill from localStorage
+            document.getElementById("modalUserId").value = localStorage.getItem('xtbUserId') || "";
+            document.getElementById("modalPassword").value = localStorage.getItem('xtbPassword') || "";
+        }
+
+        // Close the login modal
+        function closeModal() {
+            document.getElementById("loginModal").style.display = "none";
+        }
+
+        // Called from "Login & Fetch Data" in the modal
+        function modalConnect() {
+            const userId = document.getElementById("modalUserId").value;
+            const password = document.getElementById("modalPassword").value;
+            if(!userId || !password) {
+                alert("Please enter your User ID and Password.");
+                return;
+            }
+            // Copy to hidden fields
+            document.getElementById("userId").value = userId;
+            document.getElementById("password").value = password;
+            closeModal();
+            connectToXTB();
+        }
+
+        // Connect to XTB
+        function connectToXTB() {
+            const userId = document.getElementById("userId").value;
+            const password = document.getElementById("password").value;
+            if(!userId || !password) {
+                alert("User ID and Password are required.");
+                return;
+            }
+
+            // Store credentials
+            localStorage.setItem('xtbUserId', userId);
+            localStorage.setItem('xtbPassword', password);
+
+            log("Attempting to connect to XTB...");
+            showLoading(true);
+            disableForm(true);
+
+            socket = new WebSocket(XTB_WS_URL);
+            socket.onopen = function() {
+                log("XTB WebSocket connected.");
+                loginToXTB(userId, password);
+            };
+
+            socket.onmessage = function(event) {
+                const response = JSON.parse(event.data);
+                log("Received: " + JSON.stringify(response));
+
+                // 1) If login success
+                if (response.status && response.streamSessionId) {
+                    log("Login successful. Fetching margin data...");
+                    fetchAccountSummary();
+                    // Also show TradingView chart after login
+                    showTradingViewChart();
+                }
+                // 2) Margin data
+                else if (response.command === "getMarginLevel" && response.returnData) {
+                    updateAccountCard(response.returnData);
+                    showLoading(false);
+                    // Optionally show the trades button
+                    document.getElementById("fetchTradesBtn").style.display = "block";
+                }
+                // 3) Trades data
+                else if (response.command === "getTrades" && response.returnData) {
+                    updateTrades(response.returnData);
+                    showLoading(false);
+                }
+                else {
+                    log("Unrecognized response: " + JSON.stringify(response));
+                    disableForm(false);
+                    showLoading(false);
+                }
+            };
+
+            socket.onerror = function(error) {
+                log("WebSocket error: " + error);
+                alert("WebSocket error. Check log for details.");
+                disableForm(false);
+                showLoading(false);
+            };
+
+            socket.onclose = function() {
+                log("WebSocket closed.");
+                disableForm(false);
+                showLoading(false);
+            };
+        }
+
+        // Send login command
+        function loginToXTB(userId, password) {
+            const loginCommand = {
+                command: "login",
+                arguments: { userId, password }
+            };
+            log("Sending login request...");
+            socket.send(JSON.stringify(loginCommand));
+        }
+
+        // Send "getMarginLevel"
+        function fetchAccountSummary() {
+            const marginCommand = { command: "getMarginLevel" };
+            log("Requesting margin data...");
+            socket.send(JSON.stringify(marginCommand));
+        }
+
+        // Update the account summary
+        function updateAccountCard(data) {
+            document.getElementById("accountCard").style.display = "block";
+            document.getElementById("balance").textContent      = data.balance       ? Number(data.balance).toFixed(2) : "-";
+            document.getElementById("margin").textContent       = data.margin        ? Number(data.margin).toFixed(2)  : "-";
+            document.getElementById("margin_free").textContent  = data.margin_free   ? Number(data.margin_free).toFixed(2) : "-";
+            document.getElementById("margin_level").textContent = data.margin_level  ? Number(data.margin_level).toFixed(2) : "-";
+            document.getElementById("equity").textContent       = data.equity        ? Number(data.equity).toFixed(2) : "-";
+        }
+
+        // Trades
+        function fetchTrades() {
+            if(!socket) return;
+            const tradesCommand = { command: "getTrades" };
+            log("Requesting trades data...");
+            socket.send(JSON.stringify(tradesCommand));
+        }
+
+        function updateTrades(trades) {
+            const tradesList = document.getElementById("tradesList");
+            tradesList.innerHTML = "";
+            if(!trades || trades.length===0) {
+                tradesList.innerHTML = "<p>No trades found.</p>";
+                document.getElementById("tradesCard").style.display = "block";
+                return;
+            }
+            // Create table
+            const table = document.createElement("table");
+            table.classList.add("table","table-dark","table-striped","table-bordered");
+            const headerRow = document.createElement("tr");
+            ["ID","Symbol","Volume","Price","Profit"].forEach(h => {
+                const th = document.createElement("th");
+                th.textContent = h;
+                headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            trades.forEach(trade => {
+                const row = document.createElement("tr");
+                const idCell = document.createElement("td");
+                idCell.textContent = trade.tradeId || trade.id || "-";
+                const symbolCell = document.createElement("td");
+                symbolCell.textContent = trade.symbol || "-";
+                const volumeCell = document.createElement("td");
+                volumeCell.textContent = (parseFloat(trade.volume) || 0).toFixed(2);
+                const priceCell = document.createElement("td");
+                priceCell.textContent = (parseFloat(trade.price) || 0).toFixed(2);
+                const profitCell = document.createElement("td");
+                profitCell.textContent = (parseFloat(trade.profit) || 0).toFixed(2);
+
+                row.appendChild(idCell);
+                row.appendChild(symbolCell);
+                row.appendChild(volumeCell);
+                row.appendChild(priceCell);
+                row.appendChild(profitCell);
+                table.appendChild(row);
+            });
+
+            tradesList.appendChild(table);
+            document.getElementById("tradesCard").style.display = "block";
+        }
+
+        // TradingView integration
+        function showTradingViewChart() {
+            // Show the card
+            document.getElementById("tvCard").style.display = "block";
+            // Create chart if not already created
+            new TradingView.widget({
+                // container ID
+                container_id: "tradingViewChartContainer",
+                // chart size
+                width: "100%",
+                height: 500,
+                symbol: "FX:EURUSD", // or e.g. "NASDAQ:AAPL"
+                interval: "D",
+                timezone: "Etc/UTC",
+                theme: "dark",
+                style: "1",
+                locale: "en",
+                toolbar_bg: "#f1f3f6",
+                hide_side_toolbar: false,
+                allow_symbol_change: true,
+                save_image: false,
+               studies: [],
+                details: false,
+                withdateranges: true
+            });
+        }
+
+        // Settings drawer
+        function toggleSettingsDrawer() {
+            const drawer = document.getElementById("settingsDrawer");
+            if(!drawer) return;
+            if(drawer.style.right==="0px") {
+                drawer.style.right="-320px";
+            } else {
+                drawer.style.right="0px";
+                populateSettingsDrawer();
+            }
+        }
+
+        function populateSettingsDrawer() {
+            document.getElementById("savedUserId").value = localStorage.getItem('xtbUserId') || '';
+            document.getElementById("savedPassword").value = localStorage.getItem('xtbPassword') || '';
+        }
+
+        function clearCredentials() {
+            localStorage.removeItem('xtbUserId');
+            localStorage.removeItem('xtbPassword');
+            document.getElementById("savedUserId").value = '';
+            document.getElementById("savedPassword").value = '';
+            document.getElementById("userId").value = '';
+            document.getElementById("password").value = '';
+            alert("Credentials cleared.");
+        }
+
+        // Close modal if click outside
+        window.onclick = function(e) {
+            const modal = document.getElementById("loginModal");
+            if(e.target === modal){
+                closeModal();
+            }
+        };
+
+        // On page load, restore creds
+        window.onload = function() {
+            const savedUserId = localStorage.getItem('xtbUserId');
+            const savedPassword = localStorage.getItem('xtbPassword');
+            if(savedUserId) {
+                document.getElementById("userId").value = savedUserId;
+            }
+            if(savedPassword) {
+                document.getElementById("password").value = savedPassword;
+            }
+        };
+    </script>
+
+    <!-- Optionally load Bootstrap bundle (for modal transitions, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-ENjdO4Dr2bkBIFxQmdBemnW7rPzT9xz1D5HPWl2EtyaYmFf43KNT8W7imG16tS2p"
+            crossorigin="anonymous"></script>
+}
