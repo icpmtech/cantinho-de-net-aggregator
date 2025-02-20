@@ -1,0 +1,581 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+
+@{
+    ViewData["Title"] = "Portfolio - Holdings";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- (Optional) Sneat Admin Template CSS -->
+    <!-- If you have integrated the Sneat template, include its CSS here.
+         For demonstration, omitted. If you do, watch out for conflicts in your styles. -->
+    <!-- Tabulator CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/tabulator-tables@5.3.4/dist/css/tabulator.min.css" />
+    <!-- Tabulator JS -->
+    <script src="https://unpkg.com/tabulator-tables@5.3.4/dist/js/tabulator.min.js"></script>
+
+    <style>
+        /*******************************************************
+                 * 1) THEME STYLES (Office 365 Inspired)
+                 ********************************************************/
+
+        /* Light Mode */
+        body.light-mode {
+            background-color: #f5f6f8; /* Slightly gray background */
+            color: #212529;
+        }
+
+        /* Dark Mode */
+        body.dark-mode {
+            background-color: #202020; /* A comfortable dark gray */
+            color: #fff;
+        }
+
+        /*******************************************************
+                 * 2) GENERAL PAGE & LAYOUT
+                 ********************************************************/
+        body {
+            margin: 20px;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: auto;
+        }
+
+        h2 {
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        /*******************************************************
+                 * 3) BUTTONS (Office-like)
+                 ********************************************************/
+        .btn {
+            display: inline-block;
+            padding: 10px 16px;
+            font-size: 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-right: 8px;
+            margin-top: 10px;
+            text-decoration: none;
+        }
+
+        /* Primary (Office Blue) */
+        .btn-primary {
+            background-color: #0078d4;
+        }
+
+            .btn-primary:hover {
+                background-color: #005f9e;
+                transform: translateY(-1px);
+            }
+
+        /* Secondary (Green) */
+        .btn-secondary {
+            background-color: #28a745;
+        }
+
+            .btn-secondary:hover {
+                background-color: #218838;
+                transform: translateY(-1px);
+            }
+
+        /* Danger (Red) */
+        .btn-danger {
+            background-color: #e81123; /* Office "Fluent" red */
+        }
+
+            .btn-danger:hover {
+                background-color: #c50f1f;
+                transform: translateY(-1px);
+            }
+
+        /*******************************************************
+                 * 4) SEARCH BOX
+                 ********************************************************/
+        #search {
+            width: 100%;
+            padding: 8px 12px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 15px;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            outline: none;
+        }
+
+            #search::placeholder {
+                color: #888;
+            }
+
+            #search:focus {
+                border-color: #0078d4; /* highlight in Office blue */
+            }
+
+        /*******************************************************
+                 * 5) TABLE ALWAYS WHITE
+                 ********************************************************/
+        .tabulator {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* subtle card-like shadow */
+            border-radius: 4px;
+            padding: 1px; /* some padding so corners look neat */
+        }
+
+        /* Table header with subtle gradient & borders */
+        .tabulator-header {
+            background: linear-gradient(to bottom, #f2f2f2, #e6e6e6) !important;
+            border-bottom: 1px solid #ccc !important;
+        }
+
+            .tabulator-header .tabulator-col {
+                border-right: 1px solid #ebebeb !important;
+                color: #444;
+            }
+
+                .tabulator-header .tabulator-col:last-of-type {
+                    border-right: none !important;
+                }
+
+        /* Table body rows */
+        .tabulator-row {
+            background-color: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+            .tabulator-row:hover {
+                background-color: #f5f5f5;
+            }
+
+            .tabulator-row .tabulator-cell {
+                border-right: 1px solid #eee;
+            }
+
+                .tabulator-row .tabulator-cell:last-of-type {
+                    border-right: none !important;
+                }
+
+                /* Editing cells */
+                .tabulator-row .tabulator-cell input {
+                    background-color: #fff;
+                    color: #000;
+                    border: 1px solid #ccc;
+                }
+
+                    .tabulator-row .tabulator-cell input:focus {
+                        border-color: #0078d4;
+                    }
+
+        #portfolioTable {
+            margin-top: 10px;
+        }
+
+        /*******************************************************
+                 * 6) LOADING SPINNER
+                 ********************************************************/
+        #loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0,0,0,0.2);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #0078d4; /* highlight spinner in Office blue */
+            animation: spin 1s linear infinite;
+            margin: auto;
+        }
+        @@keyframes spin {
+            to
+
+        {
+            transform: rotate(360deg);
+        }
+
+        }
+
+        /*******************************************************
+                 * 7) CARDS VIEW (Fluent-like)
+                 ********************************************************/
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .tiktok-card {
+            flex: 1 1 calc(33.33% - 10px);
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+            .tiktok-card:hover {
+                transform: translateY(-5px);
+            }
+
+            .tiktok-card h3 {
+                color: #0078d4; /* Use Office blue for heading accent */
+                margin-bottom: 10px;
+                font-size: 1.2rem;
+                font-weight: 600;
+            }
+
+            .tiktok-card p {
+                margin: 5px 0;
+            }
+
+        /* Light vs Dark for the card */
+        body.light-mode .tiktok-card {
+            background-color: #ffffff;
+            color: #212529;
+        }
+
+        body.dark-mode .tiktok-card {
+            background-color: #2a2a2a;
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <!-- Default to light-mode on page load -->
+    <div class="container">
+        <h2>Investment Portfolio</h2>
+
+        <!-- Theme Toggle Button -->
+        <button class="btn btn-primary" onclick="toggleTheme()">Toggle Theme</button>
+
+        <!-- Search box -->
+        <input type="text" id="search" placeholder="🔍 Search asset..." onkeyup="filterTable()" />
+
+        <!-- Tabulator Table View -->
+        <div id="portfolioTable"></div>
+
+        <!-- Cards View (hidden by default) -->
+        <div id="cardsView" class="card-container" style="display:none;"></div>
+
+        <!-- Loading spinner -->
+        <div id="loading">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Buttons row -->
+        <div style="margin-top:15px;">
+            <button class="btn btn-primary" onclick="addRow()">Add Transaction</button>
+            <button class="btn btn-primary" onclick="saveToJson()">Save JSON</button>
+            <button class="btn btn-primary" onclick="loadFromJson()">Load JSON from File</button>
+            <button class="btn btn-secondary" onclick="loadFromAPI()">Load from API</button>
+            <button class="btn btn-primary" id="toggleViewBtn" onclick="toggleView()">Switch to Cards View</button>
+        </div>
+    </div>
+
+    <script>
+        // Load data automatically when the page is fully loaded
+        window.addEventListener("DOMContentLoaded", () => {
+            loadFromAPI();
+        });
+
+        /*******************************************************
+         * 0) THEME TOGGLE
+         ********************************************************/
+        function toggleTheme() {
+            let body = document.body;
+            if (body.classList.contains("light-mode")) {
+                body.classList.remove("light-mode");
+                body.classList.add("dark-mode");
+            } else {
+                body.classList.remove("dark-mode");
+                body.classList.add("light-mode");
+            }
+        }
+
+        /*******************************************************
+         * 1) TABULATOR INIT
+         ********************************************************/
+        let table = new Tabulator("#portfolioTable", {
+            layout: "fitDataFill",
+            responsiveLayout: "collapse",
+            height: "auto",
+            columns: [
+                { title: "Asset", field: "symbol", editor: "input", headerFilter: "input" },
+                {
+                    title: "Type",
+                    field: "operationType",
+                    editor: "select",
+                    editorParams: { values: ["Buy", "Sell", "Close"] }
+                },
+                {
+                    title: "Quantity",
+                    field: "quantity",
+                    editor: "number",
+                    validator: "min:1",
+                    cellEdited: updateTotal
+                },
+                {
+                    title: "Price (€)",
+                    field: "purchasePrice",
+                    editor: "number",
+                    validator: "min:0",
+                    cellEdited: updateTotal
+                },
+                {
+                    title: "Commission (€)",
+                    field: "commission",
+                    editor: "number",
+                    validator: "min:0",
+                    cellEdited: updateTotal
+                },
+                { title: "Total Value (€)", field: "totalValue", formatter: "money", editor: false },
+                { title: "Average Value (€)", field: "averageValue", formatter: "money", editor: false },
+                {
+                    title: "Actions",
+                    formatter: "buttonCross",
+                    width: 50,
+                    align: "center",
+                    cellClick: function(e, cell) {
+                        cell.getRow().delete();
+                    }
+                }
+            ],
+            data: [] // starts with no data
+        });
+
+        /*******************************************************
+         * 2) ROW OPERATIONS
+         ********************************************************/
+        function addRow() {
+            table.addRow({
+                symbol: "",
+                operationType: "Buy",
+                quantity: 1,
+                purchasePrice: 0,
+                commission: 0,
+                totalValue: 0,
+                averageValue: 0
+            });
+        }
+
+        /**
+         * updateTotal():
+         * Calculates total transaction cost/proceeds and average value per unit.
+         * - Buy   => total = (quantity * price) + commission
+         * - Sell  => total = (quantity * price) - commission
+         * - Close => total = 0 (assuming fully closed position)
+         */
+        function updateTotal(cell) {
+            let rowData = cell.getRow().getData();
+
+            let quantity = parseFloat(rowData.quantity) || 0;
+            let price = parseFloat(rowData.purchasePrice) || 0;
+            let commission = parseFloat(rowData.commission) || 0;
+            let total = 0;
+
+            switch (rowData.operationType) {
+                case "Buy":
+                    total = (quantity * price) + commission;
+                    break;
+                case "Sell":
+                    total = (quantity * price) - commission;
+                    break;
+                case "Close":
+                    // Adjust here if you want different behavior for "Close"
+                    total = 0;
+                    break;
+                default:
+                    total = 0;
+                    break;
+            }
+
+            // Calculate average per unit
+            let average = quantity > 0 ? (total / quantity).toFixed(2) : "0.00";
+
+            cell.getRow().update({
+                totalValue: total.toFixed(2),
+                averageValue: average
+            });
+        }
+
+        /*******************************************************
+         * 3) SEARCH / FILTER
+         ********************************************************/
+        function filterTable() {
+            let value = document.getElementById("search").value.toLowerCase();
+            table.setFilter("symbol", "like", value);
+        }
+
+        /*******************************************************
+         * 4) FILE IMPORT/EXPORT
+         ********************************************************/
+        function saveToJson() {
+            let data = table.getData();
+            let jsonData = JSON.stringify(data, null, 4);
+            let blob = new Blob([jsonData], { type: "application/json" });
+            let a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "portfolio.json";
+            a.click();
+        }
+
+        function loadFromJson() {
+            let input = document.createElement("input");
+            input.type = "file";
+            input.accept = "application/json";
+            input.onchange = function (event) {
+                let file = event.target.files[0];
+                let reader = new FileReader();
+                reader.onload = function () {
+                    let data = JSON.parse(reader.result);
+                    table.setData(data);
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        /*******************************************************
+         * 5) LOAD FROM API
+         ********************************************************/
+              function loadFromAPI() {
+            document.getElementById("loading").style.display = "block";
+
+            fetch("/api/Portfolio", {
+                method: "GET",
+                headers: { "Accept": "*/*" }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Error loading API data: " + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                document.getElementById("loading").style.display = "none";
+
+                // Assume the first portfolio has "items"
+                if (data.length > 0 && data[0].items) {
+                    // 1) We'll map over each item to compute totalValue & averageValue
+                    let items = data[0].items.map(item => {
+                        return calculateRowValues(item);
+                    });
+
+                    // 2) Finally, set the table data with updated fields
+                    table.setData(items);
+                } else {
+                    alert("No portfolio found or no items.");
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                document.getElementById("loading").style.display = "none";
+                alert("Error loading API data.");
+            });
+        }
+
+        /**
+         * calculateRowValues(item):
+         * Replicates the same logic used in updateTotal().
+         * Returns a new item object with totalValue & averageValue set.
+         */
+        function calculateRowValues(item) {
+            let { quantity, purchasePrice, commission, operationType } = item;
+
+            let q = parseFloat(quantity) || 0;
+            let price = parseFloat(purchasePrice) || 0;
+            let comm = parseFloat(commission) || 0;
+
+            let total = 0;
+            switch (operationType) {
+                case "Buy":
+                    total = (q * price) + comm;
+                    break;
+                case "Sell":
+                    total = (q * price) - comm;
+                    break;
+                case "Close":
+                    // If "Close" sets total to 0:
+                    total = 0;
+                    break;
+                default:
+                    total = 0;
+                    break;
+            }
+
+            let average = q > 0 ? (total / q).toFixed(2) : "0.00";
+
+            // Return a new item object with updated fields
+            return {
+                ...item,
+                totalValue: total.toFixed(2),
+                averageValue: average
+            };
+        }
+
+
+        /*******************************************************
+         * 6) TOGGLE TABLE <-> CARDS VIEW
+         ********************************************************/
+        function toggleView() {
+            let tableDiv = document.getElementById("portfolioTable");
+            let cardsDiv = document.getElementById("cardsView");
+            let toggleBtn = document.getElementById("toggleViewBtn");
+
+            if (tableDiv.style.display !== "none") {
+                tableDiv.style.display = "none";
+                cardsDiv.style.display = "flex";
+                toggleBtn.textContent = "Switch to Table View";
+                renderCards();
+            } else {
+                tableDiv.style.display = "block";
+                cardsDiv.style.display = "none";
+                toggleBtn.textContent = "Switch to Cards View";
+            }
+        }
+
+        function renderCards() {
+            let cardsDiv = document.getElementById("cardsView");
+            cardsDiv.innerHTML = "";
+            let data = table.getData();
+
+            // Show loading spinner (simulate slight delay)
+            document.getElementById("loading").style.display = "block";
+            setTimeout(() => {
+                document.getElementById("loading").style.display = "none";
+                data.forEach(item => {
+                    let card = document.createElement("div");
+                    card.className = "tiktok-card";
+                    card.innerHTML = `
+                        <h3>${item.symbol || "Asset"}</h3>
+                        <p>Type: ${item.operationType}</p>
+                        <p>Quantity: ${item.quantity}</p>
+                        <p>Price (€): ${item.purchasePrice}</p>
+                        <p>Commission (€): ${item.commission}</p>
+                        <p>Total Value (€): ${item.totalValue}</p>
+                        <p>Average Value (€): ${item.averageValue}</p>
+                    `;
+                    cardsDiv.appendChild(card);
+                });
+            }, 500);
+        }
+    </script>
+
+</body>
+</html>
