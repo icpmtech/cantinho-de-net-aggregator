@@ -265,7 +265,6 @@
       font-size: 1.2rem;
       color: #1a73e8;
     }
-    /* Simulation Inputs Labels */
     #simulationInputs label {
       font-size: 0.95rem;
     }
@@ -336,7 +335,7 @@
       <input type="number" id="editPurchasePrice" min="0" step="0.01" />
       <label for="editCommission">Commission (€)</label>
       <input type="number" id="editCommission" min="0" step="0.01" />
-      <!-- Button to open the Financial Calculator modal from the edit modal -->
+      <!-- Button to open the Financial Calculator modal -->
       <button class="btn btn-secondary" type="button" onclick="openCalcFromEdit()">Open Financial Calculator</button>
       <div class="modal-actions">
         <button class="btn" onclick="saveModal()">Save</button>
@@ -349,7 +348,7 @@
   <div id="calcModal" class="modal">
     <div class="modal-content">
       <h3>Financial Calculator</h3>
-      <!-- Display base data (row, group, or edit modal) -->
+      <!-- Display base data -->
       <p id="calcBaseData"></p>
       <label for="calcType">Calculation Type</label>
       <select id="calcType" onchange="updateCalcModalFields()">
@@ -372,7 +371,7 @@
       </div>
       <button class="btn" onclick="calculate()">Calculate</button>
       <p id="calcResult"></p>
-      <!-- Button to toggle the Simulation Drawer -->
+      <!-- Button to open the Simulation Drawer -->
       <button class="btn btn-secondary" style="margin-top:10px;" onclick="toggleDrawer()">Open Simulation Drawer</button>
       <div class="modal-actions">
         <button class="btn btn-danger" onclick="closeCalcModal()">Close</button>
@@ -380,7 +379,7 @@
     </div>
   </div>
 
-  <!-- Simulation Drawer with Full Simulation Calculator Features -->
+  <!-- Simulation Drawer (Advanced Simulation Calculator) -->
   <div id="simulationDrawer">
     <div id="drawerHeader">
       <h4>Advanced Simulation Options</h4>
@@ -398,7 +397,7 @@
       <label for="simStep">Increment (€)</label>
       <input type="number" id="simStep" min="0" step="0.01" />
       <button class="btn btn-secondary" onclick="simulate()">Simulate</button>
-      <!-- Simulation Chart in Drawer -->
+      <!-- Simulation Chart: compares constant buy price vs simulated selling prices and their difference -->
       <div style="margin-top:15px;">
         <canvas id="drawerChart" width="280" height="200"></canvas>
       </div>
@@ -407,12 +406,12 @@
   </div>
 
   <script>
-    // Global variables for base data and charts.
+    // Global variables for current calculator base data and charts.
     var currentCalcData = null;
     var calcChart = null;
     var drawerChart = null;
 
-    // Auto-load API data on page load and update chart when selling price changes.
+    // Load API data on page load and update chart when selling price changes.
     window.addEventListener("DOMContentLoaded", () => {
       loadFromAPI();
       document.getElementById("calcSellingPrice").addEventListener("input", updateCalcChart);
@@ -454,14 +453,24 @@
     }
 
     /*******************************************************
-     * TABULATOR INIT WITH GROUP HEADER (including Calc Group button)
+     * TABULATOR INIT WITH GROUP HEADER (Including inline Break-Even calculation)
      *******************************************************/
     let table = new Tabulator("#portfolioTable", {
       layout: "fitDataFill",
       responsiveLayout: "collapse",
       height: "auto",
       groupHeader: function(value, count, data, group){
-        return `<span>${value} (${count} items)</span>
+        // Aggregate break-even for the group:
+        let totalQty = 0, totalCost = 0;
+        data.forEach(row => {
+          let q = parseFloat(row.quantity) || 0;
+          let p = parseFloat(row.purchasePrice) || 0;
+          let comm = parseFloat(row.commission) || 0;
+          totalQty += q;
+          totalCost += (p * q) + comm;
+        });
+        let groupBreakEven = totalQty > 0 ? (totalCost / totalQty).toFixed(2) : "N/A";
+        return `<span>${value} (${count} items) - Break-Even: €${groupBreakEven}</span>
                 <button class="btn btn-sm" onclick="openGroupCalcModal('${value}')">Calc Group</button>`;
       },
       columns: [
@@ -511,6 +520,29 @@
           editor: false
         },
         {
+          title: "Break-Even (€)",
+          formatter: function(cell, formatterParams) {
+            let data = cell.getRow().getData();
+            let q = parseFloat(data.quantity) || 0;
+            let p = parseFloat(data.purchasePrice) || 0;
+            let comm = parseFloat(data.commission) || 0;
+            let be = q > 0 ? ((p * q) + comm) / q : 0;
+            return be.toFixed(2);
+          },
+          bottomCalc: function(values, data, calcParams) {
+            let totalQty = 0, totalCost = 0;
+            data.forEach(row => {
+              let q = parseFloat(row.quantity) || 0;
+              let p = parseFloat(row.purchasePrice) || 0;
+              let comm = parseFloat(row.commission) || 0;
+              totalQty += q;
+              totalCost += (p * q) + comm;
+            });
+            return totalQty > 0 ? (totalCost / totalQty).toFixed(2) : "N/A";
+          },
+          bottomCalcFormatter: "plaintext"
+        },
+        {
           title: "Actions",
           formatter: function(cell, formatterParams) {
             return `<button class="btn btn-sm" data-action="edit">Edit</button>
@@ -551,8 +583,7 @@
             }
           }
         }
-      ],
-      data: []
+      ]
     });
 
     /*******************************************************
@@ -572,29 +603,28 @@
     }
 
     function recalcRow(row) {
-      let rowData = row.getData();
-      let quantity = parseFloat(rowData.quantity) || 0;
-      let price = parseFloat(rowData.purchasePrice) || 0;
-      let commission = parseFloat(rowData.commission) || 0;
+      let data = row.getData();
+      let q = parseFloat(data.quantity) || 0;
+      let p = parseFloat(data.purchasePrice) || 0;
+      let comm = parseFloat(data.commission) || 0;
       let total = 0;
-      switch (rowData.operationType) {
+      switch(data.operationType) {
         case "Buy":
-          total = (quantity * price) + commission;
+          total = (p * q) + comm;
           break;
         case "Sell":
-          total = (quantity * price) - commission;
+          total = (p * q) - comm;
           break;
         case "Close":
           total = 0;
           break;
         default:
           total = 0;
-          break;
       }
-      let average = quantity > 0 ? (total / quantity).toFixed(2) : "0.00";
+      let avg = q > 0 ? (total / q).toFixed(2) : "0.00";
       row.update({
         totalValue: total.toFixed(2),
-        averageValue: average
+        averageValue: avg
       });
     }
 
@@ -605,16 +635,16 @@
     }
 
     function saveRow(row) {
-      let rowData = row.getData();
+      let data = row.getData();
       showStatus("Saving...", "pending");
-      if (rowData.id) {
-        fetch("/api/PortfolioItem/" + rowData.id, {
+      if(data.id) {
+        fetch("/api/PortfolioItem/" + data.id, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(rowData)
+          body: JSON.stringify(data)
         })
         .then(response => {
-          if (response.ok) {
+          if(response.ok) {
             showStatus("Save successful", "success");
           } else {
             showStatus("Failed to update row: " + response.statusText, "error");
@@ -629,11 +659,11 @@
         fetch("/api/PortfolioItem", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(rowData)
+          body: JSON.stringify(data)
         })
         .then(response => response.json())
-        .then(data => {
-          row.update({ id: data.id });
+        .then(result => {
+          row.update({ id: result.id });
           showStatus("Save successful", "success");
         })
         .catch(error => {
@@ -668,10 +698,10 @@
       let input = document.createElement("input");
       input.type = "file";
       input.accept = "application/json";
-      input.onchange = function (event) {
+      input.onchange = function(event) {
         let file = event.target.files[0];
         let reader = new FileReader();
-        reader.onload = function () {
+        reader.onload = function() {
           let data = JSON.parse(reader.result);
           table.setData(data);
         };
@@ -685,30 +715,25 @@
      *******************************************************/
     function loadFromAPI() {
       document.getElementById("loading").style.display = "block";
-      fetch("/api/Portfolio", {
-        method: "GET",
-        headers: { "Accept": "*/*" }
-      })
+      fetch("/api/Portfolio", { method: "GET", headers: { "Accept": "*/*" } })
       .then(response => {
-        if (!response.ok) {
-          throw new Error("Error loading API data: " + response.statusText);
-        }
+        if(!response.ok) throw new Error("Error loading API data: " + response.statusText);
         return response.json();
       })
       .then(data => {
         document.getElementById("loading").style.display = "none";
-        if (data && data.length > 0) {
+        if(data && data.length > 0) {
           let items = [];
           data.forEach(portfolio => {
             let portfolioName = portfolio.name || ("Portfolio " + portfolio.id);
-            if (portfolio.items) {
+            if(portfolio.items) {
               portfolio.items.forEach(item => {
                 item.portfolioName = portfolioName;
                 items.push(calculateRowValues(item));
               });
             }
           });
-          if (items.length > 0) {
+          if(items.length > 0) {
             table.setGroupBy("portfolioName");
             table.setData(items);
           } else {
@@ -728,43 +753,38 @@
     function calculateRowValues(item) {
       let { quantity, purchasePrice, commission, operationType } = item;
       let q = parseFloat(quantity) || 0;
-      let price = parseFloat(purchasePrice) || 0;
+      let p = parseFloat(purchasePrice) || 0;
       let comm = parseFloat(commission) || 0;
       let total = 0;
-      switch (operationType) {
+      switch(operationType) {
         case "Buy":
-          total = (q * price) + comm;
+          total = (p * q) + comm;
           break;
         case "Sell":
-          total = (q * price) - comm;
+          total = (p * q) - comm;
           break;
         case "Close":
           total = 0;
           break;
         default:
           total = 0;
-          break;
       }
-      let average = q > 0 ? (total / q).toFixed(2) : "0.00";
-      return {
-        ...item,
-        totalValue: total.toFixed(2),
-        averageValue: average
-      };
+      let avg = q > 0 ? (total / q).toFixed(2) : "0.00";
+      return { ...item, totalValue: total.toFixed(2), averageValue: avg };
     }
 
     /*******************************************************
-     * MODAL FOR EDITING (Create/Edit)
+     * MODAL FOR EDITING
      *******************************************************/
     let currentEditRow = null;
     function openEditModal(row) {
       currentEditRow = row;
-      let rowData = row.getData();
-      document.getElementById("editSymbol").value = rowData.symbol || "";
-      document.getElementById("editOperationType").value = rowData.operationType || "Buy";
-      document.getElementById("editQuantity").value = rowData.quantity || 1;
-      document.getElementById("editPurchasePrice").value = rowData.purchasePrice || 0;
-      document.getElementById("editCommission").value = rowData.commission || 0;
+      let data = row.getData();
+      document.getElementById("editSymbol").value = data.symbol || "";
+      document.getElementById("editOperationType").value = data.operationType || "Buy";
+      document.getElementById("editQuantity").value = data.quantity || 1;
+      document.getElementById("editPurchasePrice").value = data.purchasePrice || 0;
+      document.getElementById("editCommission").value = data.commission || 0;
       document.getElementById("editModal").style.display = "block";
     }
 
@@ -774,7 +794,7 @@
     }
 
     function saveModal() {
-      if (!currentEditRow) return;
+      if(!currentEditRow) return;
       let newData = {
         symbol: document.getElementById("editSymbol").value,
         operationType: document.getElementById("editOperationType").value,
@@ -789,7 +809,7 @@
     }
 
     /*******************************************************
-     * GROUPING / UNGROUPING FEATURES
+     * GROUPING / UNGROUPING
      *******************************************************/
     function groupByPortfolio() {
       table.setGroupBy("portfolioName");
@@ -797,28 +817,34 @@
     function groupBySymbol() {
       table.setGroupBy("symbol");
     }
-   function clearGrouping() {
-  table.setGroupBy(false);
-}
+    function clearGrouping() {
+      table.setGroupBy(false);
+    }
 
     /*******************************************************
      * EXPAND / COLLAPSE GROUPS
      *******************************************************/
     function expandAllGroups() {
       let groups = table.getGroups();
-      groups.forEach(group => group.expand());
+      groups.forEach(group => {
+        let el = group.getElement();
+        if(!el.classList.contains("tabulator-group-expanded")) {
+          el.click();
+        }
+      });
       showStatus("All groups expanded", "info");
     }
-
-   function collapseAllGroups() {
-  let groups = table.getGroups();
-  groups.forEach(group => {
-    if (typeof group.collapse === "function") {
-      group.collapse();
+    function collapseAllGroups() {
+      let groups = table.getGroups();
+      groups.forEach(group => {
+        let el = group.getElement();
+        if(el.classList.contains("tabulator-group-expanded")) {
+          el.click();
+        }
+      });
+      showStatus("All groups collapsed", "info");
     }
-  });
-  showStatus("All groups collapsed", "info");
-}
+
     /*******************************************************
      * TOGGLE TABLE <-> CARDS VIEW
      *******************************************************/
@@ -826,7 +852,7 @@
       let tableDiv = document.getElementById("portfolioTable");
       let cardsDiv = document.getElementById("cardsView");
       let toggleBtn = document.getElementById("toggleViewBtn");
-      if (tableDiv.style.display !== "none") {
+      if(tableDiv.style.display !== "none") {
         tableDiv.style.display = "none";
         cardsDiv.style.display = "flex";
         toggleBtn.textContent = "Switch to Table View";
@@ -857,6 +883,7 @@
             <p>Commission (€): ${item.commission}</p>
             <p>Total Value (€): ${item.totalValue}</p>
             <p>Average Value (€): ${item.averageValue}</p>
+            <p>Break-Even (€): ${ (item.quantity > 0 ? (((item.purchasePrice * item.quantity) + item.commission) / item.quantity).toFixed(2) : "N/A") }</p>
           `;
           cardsDiv.appendChild(card);
         });
@@ -866,11 +893,10 @@
     /*******************************************************
      * FINANCIAL CALCULATOR MODAL FUNCTIONS & CHART
      *******************************************************/
-    // Open the calculator modal and update base data.
     function openCalcModal() {
       document.getElementById("calcModal").style.display = "block";
       updateCalcModalFields();
-      if (currentCalcData) {
+      if(currentCalcData) {
         document.getElementById("calcBaseData").textContent =
           "Data: Purchase Price: €" + currentCalcData.purchasePrice.toFixed(2) +
           ", Quantity: " + currentCalcData.quantity +
@@ -881,7 +907,6 @@
       updateCalcChart();
     }
 
-    // Open the calculator modal from the edit modal.
     function openCalcFromEdit() {
       currentCalcData = {
         purchasePrice: parseFloat(document.getElementById("editPurchasePrice").value) || 0,
@@ -891,37 +916,35 @@
       openCalcModal();
     }
 
-    // Open the calculator modal for a specific row.
     function openRowCalcModal(row) {
-      let rowData = row.getData();
+      let data = row.getData();
       currentCalcData = {
-        purchasePrice: parseFloat(rowData.purchasePrice) || 0,
-        quantity: parseFloat(rowData.quantity) || 0,
-        commission: parseFloat(rowData.commission) || 0
+        purchasePrice: parseFloat(data.purchasePrice) || 0,
+        quantity: parseFloat(data.quantity) || 0,
+        commission: parseFloat(data.commission) || 0
       };
       openCalcModal();
     }
 
-    // Open the calculator modal for a group (aggregates group rows).
     function openGroupCalcModal(groupKey) {
       let allData = table.getData();
       let groupRows = allData.filter(function(row) {
          return row.portfolioName === groupKey || row.symbol === groupKey;
       });
-      let totalQuantity = 0, totalPurchaseCost = 0, totalCommission = 0;
+      let totalQty = 0, totalCost = 0, totalComm = 0;
       groupRows.forEach(function(row) {
-          let qty = parseFloat(row.quantity) || 0;
-          let price = parseFloat(row.purchasePrice) || 0;
+          let q = parseFloat(row.quantity) || 0;
+          let p = parseFloat(row.purchasePrice) || 0;
           let comm = parseFloat(row.commission) || 0;
-          totalQuantity += qty;
-          totalPurchaseCost += (price * qty);
-          totalCommission += comm;
+          totalQty += q;
+          totalCost += (p * q);
+          totalComm += comm;
       });
-      let aggregatedPurchasePrice = totalQuantity > 0 ? totalPurchaseCost / totalQuantity : 0;
+      let aggPurchase = totalQty > 0 ? totalCost / totalQty : 0;
       currentCalcData = {
-         purchasePrice: aggregatedPurchasePrice,
-         quantity: totalQuantity,
-         commission: totalCommission
+         purchasePrice: aggPurchase,
+         quantity: totalQty,
+         commission: totalComm
       };
       openCalcModal();
     }
@@ -936,13 +959,13 @@
     }
 
     function updateCalcModalFields() {
-      var calcType = document.getElementById("calcType").value;
-      var sellingContainer = document.getElementById("sellingPriceContainer");
-      var holdingContainer = document.getElementById("holdingPeriodContainer");
-      if (calcType === "breakEven") {
+      let calcType = document.getElementById("calcType").value;
+      let sellingContainer = document.getElementById("sellingPriceContainer");
+      let holdingContainer = document.getElementById("holdingPeriodContainer");
+      if(calcType === "breakEven") {
         sellingContainer.style.display = "none";
         holdingContainer.style.display = "none";
-      } else if (calcType === "annualizedROI") {
+      } else if(calcType === "annualizedROI") {
         sellingContainer.style.display = "block";
         holdingContainer.style.display = "block";
       } else {
@@ -955,14 +978,13 @@
       updateCalcChart();
     }
 
-    // Update the modal chart to display base price data.
     function updateCalcChart() {
       let purchasePrice = currentCalcData ? currentCalcData.purchasePrice : 0;
-      let quantity = currentCalcData ? currentCalcData.quantity : 0;
+      let qty = currentCalcData ? currentCalcData.quantity : 0;
       let commission = currentCalcData ? currentCalcData.commission : 0;
-      let breakEvenPrice = quantity > 0 ? ((purchasePrice * quantity) + commission) / quantity : 0;
+      let breakEven = qty > 0 ? ((purchasePrice * qty) + commission) / qty : 0;
       let labels = ["Purchase Price", "Break-Even"];
-      let dataPoints = [purchasePrice, breakEvenPrice];
+      let dataPoints = [purchasePrice, breakEven];
       if(window.getComputedStyle(document.getElementById("sellingPriceContainer")).display !== "none") {
         let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
         labels.push("Selling Price");
@@ -973,7 +995,7 @@
          calcChart.data.datasets[0].data = dataPoints;
          calcChart.update();
       } else {
-         var ctx = document.getElementById("calcChart").getContext('2d');
+         let ctx = document.getElementById("calcChart").getContext('2d');
          calcChart = new Chart(ctx, {
            type: 'bar',
            data: {
@@ -994,10 +1016,9 @@
     }
 
     /*******************************************************
-     * SIMULATION FUNCTIONALITY IN DRAWER
+     * SIMULATION FUNCTIONALITY IN THE DRAWER
      *******************************************************/
-    // In the drawer, simulate() now creates a chart comparing the buy price (constant),
-    // simulated selling prices (variable), and their difference.
+    // This simulation compares the constant buy price versus a range of simulated sales prices and shows the difference.
     function simulate() {
       let simMin = parseFloat(document.getElementById("simMinPrice").value);
       let simMax = parseFloat(document.getElementById("simMaxPrice").value);
@@ -1018,7 +1039,7 @@
          differences.push(sp - purchasePrice);
       }
       if(drawerChart){ drawerChart.destroy(); drawerChart = null; }
-      var ctx = document.getElementById("drawerChart").getContext('2d');
+      let ctx = document.getElementById("drawerChart").getContext('2d');
       drawerChart = new Chart(ctx, {
          type: 'line',
          data: {
@@ -1101,7 +1122,7 @@
     }
 
     function calculate() {
-      var calcType = document.getElementById("calcType").value;
+      let calcType = document.getElementById("calcType").value;
       if(calcType === "roi") { 
         calculateROI(); 
       } else if(calcType === "profit") { 
@@ -1119,7 +1140,7 @@
     }
 
     function calculateROI() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1129,20 +1150,20 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, and Selling Price.";
         return;
       }
-      var totalCost = (purchasePrice * quantity) + commission;
-      var totalRevenue = sellingPrice * quantity;
-      var profit = totalRevenue - totalCost;
-      var roi = (profit / totalCost) * 100;
+      let totalCost = (purchasePrice * quantity) + commission;
+      let totalRevenue = sellingPrice * quantity;
+      let profit = totalRevenue - totalCost;
+      let roi = (profit / totalCost) * 100;
       document.getElementById("calcResult").textContent = "ROI: " + roi.toFixed(2) + "%";
     }
 
     function calculateProfit() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1152,19 +1173,19 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, and Selling Price.";
         return;
       }
-      var totalCost = (purchasePrice * quantity) + commission;
-      var totalRevenue = sellingPrice * quantity;
-      var profit = totalRevenue - totalCost;
+      let totalCost = (purchasePrice * quantity) + commission;
+      let totalRevenue = sellingPrice * quantity;
+      let profit = totalRevenue - totalCost;
       document.getElementById("calcResult").textContent = "Profit: €" + profit.toFixed(2);
     }
 
     function calculateBreakEven() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1174,16 +1195,16 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      if (purchasePrice <= 0 || quantity <= 0) {
+      if(purchasePrice <= 0 || quantity <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price and Quantity.";
         return;
       }
-      var breakEvenPrice = ((purchasePrice * quantity) + commission) / quantity;
-      document.getElementById("calcResult").textContent = "Break-Even: €" + breakEvenPrice.toFixed(2);
+      let breakEven = ((purchasePrice * quantity) + commission) / quantity;
+      document.getElementById("calcResult").textContent = "Break-Even: €" + breakEven.toFixed(2);
     }
 
     function calculateAnnualizedROI() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1193,21 +1214,21 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      var holdingPeriod = parseFloat(document.getElementById("calcHoldingPeriod").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0 || holdingPeriod <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      let holdingPeriod = parseFloat(document.getElementById("calcHoldingPeriod").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0 || holdingPeriod <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, Selling Price, and Holding Period.";
         return;
       }
-      var totalCost = (purchasePrice * quantity) + commission;
-      var totalRevenue = sellingPrice * quantity;
-      var overallROI = (totalRevenue - totalCost) / totalCost;
-      var annualizedROI = (Math.pow((1 + overallROI), (1 / holdingPeriod)) - 1) * 100;
+      let totalCost = (purchasePrice * quantity) + commission;
+      let totalRevenue = sellingPrice * quantity;
+      let overallROI = (totalRevenue - totalCost) / totalCost;
+      let annualizedROI = (Math.pow((1 + overallROI), (1 / holdingPeriod)) - 1) * 100;
       document.getElementById("calcResult").textContent = "Annualized ROI: " + annualizedROI.toFixed(2) + "%";
     }
 
     function calculateMarkup() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1217,18 +1238,18 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, and Selling Price.";
         return;
       }
-      var effectiveCost = purchasePrice + (commission / quantity);
-      var markup = ((sellingPrice - effectiveCost) / effectiveCost) * 100;
+      let effectiveCost = purchasePrice + (commission / quantity);
+      let markup = ((sellingPrice - effectiveCost) / effectiveCost) * 100;
       document.getElementById("calcResult").textContent = "Markup: " + markup.toFixed(2) + "%";
     }
 
     function calculateProfitMargin() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1238,15 +1259,15 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, and Selling Price.";
         return;
       }
-      var totalCost = (purchasePrice * quantity) + commission;
-      var totalRevenue = sellingPrice * quantity;
-      var profit = totalRevenue - totalCost;
-      var profitMargin = (profit / totalRevenue) * 100;
+      let totalCost = (purchasePrice * quantity) + commission;
+      let totalRevenue = sellingPrice * quantity;
+      let profit = totalRevenue - totalCost;
+      let profitMargin = (profit / totalRevenue) * 100;
       document.getElementById("calcResult").textContent = "Profit Margin: " + profitMargin.toFixed(2) + "%";
     }
 
@@ -1270,7 +1291,6 @@
       }
     }
 
-    // Takes a snapshot of the current simulation chart in the drawer.
     function takeSnapshot() {
       if(drawerChart) {
         const imageURL = drawerChart.toBase64Image();
@@ -1283,11 +1303,8 @@
 
     /*******************************************************
      * SIMULATION FUNCTIONALITY IN THE DRAWER
+     * (Chart compares constant Buy Price vs simulated Sales Price and Difference)
      *******************************************************/
-    // This simulate() now draws a chart that compares:
-    // - The constant Buy Price,
-    // - The simulated Sales Prices (x-axis values), and
-    // - The difference between Sales and Buy Price.
     function simulate() {
       let simMin = parseFloat(document.getElementById("simMinPrice").value);
       let simMax = parseFloat(document.getElementById("simMaxPrice").value);
@@ -1308,7 +1325,7 @@
          differences.push(sp - purchasePrice);
       }
       if(drawerChart){ drawerChart.destroy(); drawerChart = null; }
-      var ctx = document.getElementById("drawerChart").getContext('2d');
+      let ctx = document.getElementById("drawerChart").getContext('2d');
       drawerChart = new Chart(ctx, {
          type: 'line',
          data: {
@@ -1391,7 +1408,7 @@
     }
 
     function calculate() {
-      var calcType = document.getElementById("calcType").value;
+      let calcType = document.getElementById("calcType").value;
       if(calcType === "roi") { 
         calculateROI(); 
       } else if(calcType === "profit") { 
@@ -1409,7 +1426,7 @@
     }
 
     function calculateROI() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1419,20 +1436,20 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, and Selling Price.";
         return;
       }
-      var totalCost = (purchasePrice * quantity) + commission;
-      var totalRevenue = sellingPrice * quantity;
-      var profit = totalRevenue - totalCost;
-      var roi = (profit / totalCost) * 100;
+      let totalCost = (purchasePrice * quantity) + commission;
+      let totalRevenue = sellingPrice * quantity;
+      let profit = totalRevenue - totalCost;
+      let roi = (profit / totalCost) * 100;
       document.getElementById("calcResult").textContent = "ROI: " + roi.toFixed(2) + "%";
     }
 
     function calculateProfit() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1442,19 +1459,19 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, and Selling Price.";
         return;
       }
-      var totalCost = (purchasePrice * quantity) + commission;
-      var totalRevenue = sellingPrice * quantity;
-      var profit = totalRevenue - totalCost;
+      let totalCost = (purchasePrice * quantity) + commission;
+      let totalRevenue = sellingPrice * quantity;
+      let profit = totalRevenue - totalCost;
       document.getElementById("calcResult").textContent = "Profit: €" + profit.toFixed(2);
     }
 
     function calculateBreakEven() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1464,16 +1481,16 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      if (purchasePrice <= 0 || quantity <= 0) {
+      if(purchasePrice <= 0 || quantity <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price and Quantity.";
         return;
       }
-      var breakEvenPrice = ((purchasePrice * quantity) + commission) / quantity;
-      document.getElementById("calcResult").textContent = "Break-Even: €" + breakEvenPrice.toFixed(2);
+      let breakEven = ((purchasePrice * quantity) + commission) / quantity;
+      document.getElementById("calcResult").textContent = "Break-Even: €" + breakEven.toFixed(2);
     }
 
     function calculateAnnualizedROI() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1483,21 +1500,21 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      var holdingPeriod = parseFloat(document.getElementById("calcHoldingPeriod").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0 || holdingPeriod <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      let holdingPeriod = parseFloat(document.getElementById("calcHoldingPeriod").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0 || holdingPeriod <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, Selling Price, and Holding Period.";
         return;
       }
-      var totalCost = (purchasePrice * quantity) + commission;
-      var totalRevenue = sellingPrice * quantity;
-      var overallROI = (totalRevenue - totalCost) / totalCost;
-      var annualizedROI = (Math.pow((1 + overallROI), (1 / holdingPeriod)) - 1) * 100;
+      let totalCost = (purchasePrice * quantity) + commission;
+      let totalRevenue = sellingPrice * quantity;
+      let overallROI = (totalRevenue - totalCost) / totalCost;
+      let annualizedROI = (Math.pow((1 + overallROI), (1 / holdingPeriod)) - 1) * 100;
       document.getElementById("calcResult").textContent = "Annualized ROI: " + annualizedROI.toFixed(2) + "%";
     }
 
     function calculateMarkup() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1507,18 +1524,18 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, and Selling Price.";
         return;
       }
-      var effectiveCost = purchasePrice + (commission / quantity);
-      var markup = ((sellingPrice - effectiveCost) / effectiveCost) * 100;
+      let effectiveCost = purchasePrice + (commission / quantity);
+      let markup = ((sellingPrice - effectiveCost) / effectiveCost) * 100;
       document.getElementById("calcResult").textContent = "Markup: " + markup.toFixed(2) + "%";
     }
 
     function calculateProfitMargin() {
-      var purchasePrice, quantity, commission;
+      let purchasePrice, quantity, commission;
       if(currentCalcData) {
          purchasePrice = currentCalcData.purchasePrice;
          quantity = currentCalcData.quantity;
@@ -1528,15 +1545,15 @@
          quantity = parseFloat(document.getElementById("editQuantity").value) || 0;
          commission = parseFloat(document.getElementById("editCommission").value) || 0;
       }
-      var sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
-      if (purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
+      let sellingPrice = parseFloat(document.getElementById("calcSellingPrice").value) || 0;
+      if(purchasePrice <= 0 || quantity <= 0 || sellingPrice <= 0) {
         document.getElementById("calcResult").textContent = "Please enter valid values for Purchase Price, Quantity, and Selling Price.";
         return;
       }
-      var totalCost = (purchasePrice * quantity) + commission;
-      var totalRevenue = sellingPrice * quantity;
-      var profit = totalRevenue - totalCost;
-      var profitMargin = (profit / totalRevenue) * 100;
+      let totalCost = (purchasePrice * quantity) + commission;
+      let totalRevenue = sellingPrice * quantity;
+      let profit = totalRevenue - totalCost;
+      let profitMargin = (profit / totalRevenue) * 100;
       document.getElementById("calcResult").textContent = "Profit Margin: " + profitMargin.toFixed(2) + "%";
     }
 
@@ -1549,8 +1566,8 @@
     }
 
     function toggleDrawerSize() {
-      var drawer = document.getElementById("simulationDrawer");
-      var btn = document.getElementById("drawerSizeBtn");
+      let drawer = document.getElementById("simulationDrawer");
+      let btn = document.getElementById("drawerSizeBtn");
       if(drawer.classList.contains("maximized")) {
          drawer.classList.remove("maximized");
          btn.textContent = "Maximize";
@@ -1560,7 +1577,6 @@
       }
     }
 
-    // Takes a snapshot of the simulation chart in the drawer.
     function takeSnapshot() {
       if(drawerChart) {
         const imageURL = drawerChart.toBase64Image();
@@ -1572,7 +1588,8 @@
     }
 
     /*******************************************************
-     * SIMULATION FUNCTIONALITY IN THE DRAWER (COMPARE BUY vs SALES)
+     * SIMULATION FUNCTIONALITY IN THE DRAWER
+     * (Comparing Buy Price vs. Simulated Sales Prices and Difference)
      *******************************************************/
     function simulate() {
       let simMin = parseFloat(document.getElementById("simMinPrice").value);
@@ -1594,7 +1611,7 @@
          differences.push(sp - purchasePrice);
       }
       if(drawerChart){ drawerChart.destroy(); drawerChart = null; }
-      var ctx = document.getElementById("drawerChart").getContext('2d');
+      let ctx = document.getElementById("drawerChart").getContext('2d');
       drawerChart = new Chart(ctx, {
          type: 'line',
          data: {
@@ -1677,7 +1694,7 @@
     }
 
     function calculate() {
-      var calcType = document.getElementById("calcType").value;
+      let calcType = document.getElementById("calcType").value;
       if(calcType === "roi") { 
         calculateROI(); 
       } else if(calcType === "profit") { 
