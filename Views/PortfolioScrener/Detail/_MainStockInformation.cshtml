@@ -37,6 +37,11 @@
                             <i class="bx bx-pulse"></i> Signals
                         </button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="secFillings-tab" data-bs-toggle="tab" data-bs-target="#secFillings" type="button" role="tab" aria-controls="secFillings" aria-selected="false">
+                            <i class="bx bx-pulse"></i> SEC Fillings
+                        </button>
+                    </li>
                 </ul>
                 <!-- Tab Content -->
                 <div class="tab-content mt-3" id="stockTabContent">
@@ -130,6 +135,13 @@
                         <div id="technicalSignalsChart" style="height: 300px;"></div>
                         <div id="analystSignalsChart" style="height: 300px; margin-top: 20px;"></div>
                     </div>
+                    <div class="tab-pane fade" id="secFillings" role="tabpanel" aria-labelledby="secFillings-tab">
+                        @await Html.PartialAsync("Detail/_Sec")
+                      </div>
+                 
+
+
+
                 </div>
             </div>
         </div>

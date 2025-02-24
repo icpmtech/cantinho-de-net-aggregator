@@ -1,0 +1,217 @@
+<div class="container">
+    <!-- Main Card -->
+    <div class="card">
+        <div class="card-header">
+            <h1>SEC Filings Search</h1>
+        </div>
+        <div class="card-body">
+            <!-- Symbol Search Form -->
+            <form id="searchForm" class="mb-3">
+                <div class="input-group">
+                    <input type="text" id="symbolInput" class="form-control" placeholder="Enter symbol (e.g., INTC)">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </form>
+
+            <!-- Loading and Error Messages -->
+            <div id="loadingMessage" class="mb-3" style="display: none;">Loading...</div>
+            <div id="errorMessage" class="mb-3 text-danger"></div>
+
+            <!-- Filter Input for Recent Filings Table -->
+            <div id="filterSection" class="mb-3" style="display:none;">
+                <input type="text" id="filterInput" class="form-control" placeholder="Filter recent filings table...">
+            </div>
+
+            <!-- Results Section -->
+            <div id="result"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Function to filter the recent filings table.
+    function filterTable() {
+      const input = document.getElementById("filterInput");
+      const filter = input.value.toLowerCase();
+      const table = document.getElementById("recentFilingsTable");
+      if (!table) return;
+      const tr = table.getElementsByTagName("tr");
+
+      // Loop through all table rows (skip the header row).
+      for (let i = 1; i < tr.length; i++) {
+        let rowText = tr[i].textContent.toLowerCase();
+        if (rowText.indexOf(filter) > -1) {
+          tr[i].style.display = "";
+        } else {
+          tr[i].style.display = "none";
+        }
+      }
+    }
+
+    document.getElementById("searchForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const symbol = document.getElementById("symbolInput").value.trim();
+      const errorMessage = document.getElementById("errorMessage");
+      const resultDiv = document.getElementById("result");
+      const loadingMessage = document.getElementById("loadingMessage");
+      const filterSection = document.getElementById("filterSection");
+
+      // Clear previous messages and results.
+      errorMessage.textContent = "";
+      resultDiv.innerHTML = "";
+      filterSection.style.display = "none";
+
+      if (!symbol) {
+        errorMessage.textContent = "Please enter a symbol.";
+        return;
+      }
+
+      loadingMessage.style.display = "block";
+
+      // Adjust the URL if your API endpoint is hosted elsewhere.
+      fetch(`/api/sec/${encodeURIComponent(symbol)}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error("Error: " + response.statusText);
+          }
+          return response.json();
+        })
+        .then(data => {
+          loadingMessage.style.display = "none";
+          // Display recent filings.
+          const filings = data.filings && data.filings.recent;
+          if (!filings || !filings.accessionNumber) {
+            errorMessage.textContent = "No filings data found.";
+            return;
+          }
+
+          // Create a heading and filter input for the Recent Filings Table.
+          const recentHeading = document.createElement("h3");
+          recentHeading.textContent = "Recent Filings";
+          resultDiv.appendChild(recentHeading);
+          filterSection.style.display = "block";
+
+          // Create table for recent filings.
+          const tableRecent = document.createElement("table");
+          tableRecent.id = "recentFilingsTable";
+          tableRecent.className = "table table-striped";
+
+          const theadRecent = document.createElement("thead");
+          const headerRowRecent = document.createElement("tr");
+          const headersRecent = ["Accession Number", "Filing Date", "Report Date", "Form"];
+          headersRecent.forEach(text => {
+            const th = document.createElement("th");
+            th.scope = "col";
+            th.textContent = text;
+            headerRowRecent.appendChild(th);
+          });
+          theadRecent.appendChild(headerRowRecent);
+          tableRecent.appendChild(theadRecent);
+
+          const tbodyRecent = document.createElement("tbody");
+          const count = filings.accessionNumber.length;
+          for (let i = 0; i < count; i++) {
+            const row = document.createElement("tr");
+            const tdAcc = document.createElement("td");
+            tdAcc.textContent = filings.accessionNumber[i];
+            const tdFiling = document.createElement("td");
+            tdFiling.textContent = filings.filingDate[i];
+            const tdReport = document.createElement("td");
+            tdReport.textContent = filings.reportDate[i];
+            const tdForm = document.createElement("td");
+            tdForm.textContent = filings.form[i];
+
+            row.appendChild(tdAcc);
+            row.appendChild(tdFiling);
+            row.appendChild(tdReport);
+            row.appendChild(tdForm);
+            tbodyRecent.appendChild(row);
+          }
+          tableRecent.appendChild(tbodyRecent);
+          resultDiv.appendChild(tableRecent);
+
+          // Add event listener for filtering.
+          document.getElementById("filterInput").addEventListener("keyup", filterTable);
+
+          // Add the Files section if available.
+          if (data.filings.files && data.filings.files.length > 0) {
+            const filesHeading = document.createElement("h3");
+            filesHeading.className = "mt-4";
+            filesHeading.textContent = "Files";
+            resultDiv.appendChild(filesHeading);
+
+            const tableFiles = document.createElement("table");
+            tableFiles.className = "table table-striped";
+            const theadFiles = document.createElement("thead");
+            const headerRowFiles = document.createElement("tr");
+            const headersFiles = ["File Name", "Filing Count", "Filing From", "Filing To", "Download"];
+            headersFiles.forEach(text => {
+              const th = document.createElement("th");
+              th.scope = "col";
+              th.textContent = text;
+              headerRowFiles.appendChild(th);
+            });
+            theadFiles.appendChild(headerRowFiles);
+            tableFiles.appendChild(theadFiles);
+
+            const tbodyFiles = document.createElement("tbody");
+            data.filings.files.forEach(file => {
+              const row = document.createElement("tr");
+              const tdName = document.createElement("td");
+              tdName.textContent = file.name;
+              const tdCount = document.createElement("td");
+              tdCount.textContent = file.filingCount;
+              const tdFrom = document.createElement("td");
+              tdFrom.textContent = file.filingFrom;
+              const tdTo = document.createElement("td");
+              tdTo.textContent = file.filingTo;
+              const tdDownload = document.createElement("td");
+              const downloadBtn = document.createElement("button");
+              downloadBtn.className = "btn btn-sm btn-outline-primary";
+              downloadBtn.textContent = "Download";
+
+              // Construct the download URL.
+              const fileUrl = "https://data.sec.gov/submissions/" + file.name;
+              downloadBtn.addEventListener("click", function(e) {
+                e.preventDefault();
+                // Use fetch to download the file as a blob.
+                fetch(fileUrl)
+                  .then(resp => {
+                    if (!resp.ok) {
+                      throw new Error("Download failed: " + resp.statusText);
+                    }
+                    return resp.blob();
+                  })
+                  .then(blob => {
+                    const downloadUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.style.display = "none";
+                    a.href = downloadUrl;
+                    a.download = file.name;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(downloadUrl);
+                  })
+                  .catch(err => {
+                    alert("Error downloading file: " + err.message);
+                  });
+              });
+              tdDownload.appendChild(downloadBtn);
+
+              row.appendChild(tdName);
+              row.appendChild(tdCount);
+              row.appendChild(tdFrom);
+              row.appendChild(tdTo);
+              row.appendChild(tdDownload);
+              tbodyFiles.appendChild(row);
+            });
+            tableFiles.appendChild(tbodyFiles);
+            resultDiv.appendChild(tableFiles);
+          }
+        })
+        .catch(err => {
+          loadingMessage.style.display = "none";
+          errorMessage.textContent = err.message;
+        });
+    });
+</script>

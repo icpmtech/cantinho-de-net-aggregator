@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>SEC Filings Search</title>
+    <!-- Bootstrap CSS -->
+   
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1>SEC Filings Search</h1>
+            </div>
+            <div class="card-body">
+                <form id="searchForm" class="mb-3">
+                    <div class="input-group">
+                        <input type="text" id="symbolInput" class="form-control" placeholder="Enter symbol (e.g., INTC)">
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                </form>
+                <div id="loadingMessage" class="mb-3" style="display: none;">Loading...</div>
+                <div id="errorMessage" class="mb-3 text-danger"></div>
+                <div id="result"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("searchForm").addEventListener("submit", function(e) {
+          e.preventDefault();
+          const symbol = document.getElementById("symbolInput").value.trim();
+          const errorMessage = document.getElementById("errorMessage");
+          const resultDiv = document.getElementById("result");
+          const loadingMessage = document.getElementById("loadingMessage");
+
+          // Clear previous messages and results.
+          errorMessage.textContent = "";
+          resultDiv.innerHTML = "";
+
+          if (!symbol) {
+            errorMessage.textContent = "Please enter a symbol.";
+            return;
+          }
+
+          loadingMessage.style.display = "block";
+
+          // Adjust the URL if your API endpoint is hosted elsewhere.
+          fetch(`/api/sec/${encodeURIComponent(symbol)}`)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error("Error: " + response.statusText);
+              }
+              return response.json();
+            })
+            .then(data => {
+              loadingMessage.style.display = "none";
+              // Display recent filings.
+              const filings = data.filings && data.filings.recent;
+              if (!filings || !filings.accessionNumber) {
+                errorMessage.textContent = "No filings data found.";
+                return;
+              }
+
+              // Create a table for recent filings.
+              const tableRecent = document.createElement("table");
+              tableRecent.className = "table table-striped";
+              const theadRecent = document.createElement("thead");
+              const headerRowRecent = document.createElement("tr");
+              const headersRecent = ["Accession Number", "Filing Date", "Report Date", "Form"];
+              headersRecent.forEach(text => {
+                const th = document.createElement("th");
+                th.scope = "col";
+                th.textContent = text;
+                headerRowRecent.appendChild(th);
+              });
+              theadRecent.appendChild(headerRowRecent);
+              tableRecent.appendChild(theadRecent);
+
+              const tbodyRecent = document.createElement("tbody");
+              const count = filings.accessionNumber.length;
+              for (let i = 0; i < count; i++) {
+                const row = document.createElement("tr");
+                const tdAcc = document.createElement("td");
+                tdAcc.textContent = filings.accessionNumber[i];
+                const tdFiling = document.createElement("td");
+                tdFiling.textContent = filings.filingDate[i];
+                const tdReport = document.createElement("td");
+                tdReport.textContent = filings.reportDate[i];
+                const tdForm = document.createElement("td");
+                tdForm.textContent = filings.form[i];
+
+                row.appendChild(tdAcc);
+                row.appendChild(tdFiling);
+                row.appendChild(tdReport);
+                row.appendChild(tdForm);
+                tbodyRecent.appendChild(row);
+              }
+              tableRecent.appendChild(tbodyRecent);
+              resultDiv.appendChild(tableRecent);
+
+              // Add the Files section if available.
+              if (data.filings.files && data.filings.files.length > 0) {
+                const filesHeading = document.createElement("h3");
+                filesHeading.className = "mt-4";
+                filesHeading.textContent = "Files";
+                resultDiv.appendChild(filesHeading);
+
+                const tableFiles = document.createElement("table");
+                tableFiles.className = "table table-striped";
+                const theadFiles = document.createElement("thead");
+                const headerRowFiles = document.createElement("tr");
+                const headersFiles = ["File Name", "Filing Count", "Filing From", "Filing To", "Download"];
+                headersFiles.forEach(text => {
+                  const th = document.createElement("th");
+                  th.scope = "col";
+                  th.textContent = text;
+                  headerRowFiles.appendChild(th);
+                });
+                theadFiles.appendChild(headerRowFiles);
+                tableFiles.appendChild(theadFiles);
+
+                const tbodyFiles = document.createElement("tbody");
+                data.filings.files.forEach(file => {
+                  const row = document.createElement("tr");
+                  const tdName = document.createElement("td");
+                  tdName.textContent = file.name;
+                  const tdCount = document.createElement("td");
+                  tdCount.textContent = file.filingCount;
+                  const tdFrom = document.createElement("td");
+                  tdFrom.textContent = file.filingFrom;
+                  const tdTo = document.createElement("td");
+                  tdTo.textContent = file.filingTo;
+                  const tdDownload = document.createElement("td");
+                  const downloadLink = document.createElement("a");
+                  // Construct the download URL. Adjust the base URL if needed.
+                  downloadLink.href = "https://data.sec.gov/submissions/" + file.name;
+                  downloadLink.textContent = "Download";
+                  downloadLink.className = "btn btn-sm btn-outline-primary";
+                  downloadLink.target = "_blank";
+                  tdDownload.appendChild(downloadLink);
+
+                  row.appendChild(tdName);
+                  row.appendChild(tdCount);
+                  row.appendChild(tdFrom);
+                  row.appendChild(tdTo);
+                  row.appendChild(tdDownload);
+                  tbodyFiles.appendChild(row);
+                });
+                tableFiles.appendChild(tbodyFiles);
+                resultDiv.appendChild(tableFiles);
+              }
+            })
+            .catch(err => {
+              loadingMessage.style.display = "none";
+              errorMessage.textContent = err.message;
+            });
+        });
+    </script>
+</body>
+</html>

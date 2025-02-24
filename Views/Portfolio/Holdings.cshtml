@@ -22,6 +22,61 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
   <style>
+        /* Mobile Improvements */
+        @@media only screen and (max-width: 600px) {
+            /* Reduce overall padding/margins for a tighter layout */
+            .container
+
+        {
+            padding: 10px;
+            margin: 10px;
+        }
+
+        /* Adjust header and title sizes */
+        .app-title {
+            font-size: 1.5rem;
+        }
+
+        /* Increase button sizes and tap targets for easier touch interactions */
+        .btn {
+            padding: 10px 14px;
+            font-size: 14px;
+            margin: 5px 2px;
+        }
+
+        /* Make the finance cards take full width on mobile */
+        .finance-card {
+            flex: 1 1 100%;
+        }
+
+        /* Ensure modals and simulation drawers are sized appropriately */
+        .modal-content {
+            width: 95%;
+            max-width: 95%;
+        }
+
+        #simulationDrawer {
+            width: 90%;
+            right: -90%;
+        }
+
+            #simulationDrawer.open {
+                right: 0;
+            }
+
+        /* Allow horizontal scrolling on the Tabulator table if it overflows */
+        #portfolioTable {
+            overflow-x: auto;
+        }
+
+        /* Optional: Reduce font size on table cells for compact view */
+        .tabulator-cell {
+            font-size: 14px;
+            padding: 4px;
+        }
+
+        }
+
     /* Global Styles */
     body {
       margin: 0;
