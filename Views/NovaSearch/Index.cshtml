@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finance News FYP</title>
+    <style>
+        :root {
+            --tiktok-pink: #FF0050;
+            --tiktok-blue: #00F2EA;
+            --dark-bg: #000;
+            --card-bg: #1a1a1a;
+            --text-primary: #fff;
+            --text-secondary: #aaa;
+            --transition-speed: 0.3s;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Proxima Nova', Arial, sans-serif;
+            margin: 0;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Search Section */
+        .search-container {
+            position: fixed;
+            top: 100px;
+            width: 100%;
+            z-index: 100;
+            padding: 0 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        #searchForm {
+            display: flex;
+            gap: 10px;
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 30px;
+            padding: 5px 10px;
+            position: relative;
+            transition: transform var(--transition-speed);
+        }
+
+            #searchForm:hover {
+                transform: scale(1.02);
+            }
+
+        #symbolInput {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+            #symbolInput:focus {
+                outline: none;
+            }
+
+            #symbolInput::placeholder {
+                color: rgba(255, 255, 255, 0.7);
+            }
+
+        .clear-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 16px;
+            display: none;
+            transition: opacity var(--transition-speed);
+        }
+
+            .clear-btn.visible {
+                display: block;
+            }
+
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, var(--tiktok-pink), var(--tiktok-blue));
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            button:hover {
+                opacity: 0.9;
+                box-shadow: 0 0 15px rgba(255, 0, 80, 0.3);
+            }
+
+        /* Autocomplete */
+        #autocompleteSuggestions {
+            position: absolute;
+            top: 55px;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 10px 10px;
+            overflow: hidden;
+            z-index: 101;
+            opacity: 0;
+            transition: opacity var(--transition-speed);
+            pointer-events: none;
+        }
+
+            #autocompleteSuggestions.visible {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            #autocompleteSuggestions div {
+                padding: 10px;
+                cursor: pointer;
+                transition: background var(--transition-speed);
+            }
+
+                #autocompleteSuggestions div:hover {
+                    background: rgba(255, 255, 255, 0.1);
+                }
+
+        /* Card Container using Grid Layout */
+        .card-container {
+            padding: 100px 20px 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            transition: all var(--transition-speed);
+        }
+        @@media (min-width: 768px) {
+            .card-container
+
+        {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        }
+        @@media (min-width: 1024px) {
+            .card-container
+
+        {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform var(--transition-speed), box-shadow var(--transition-speed);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            }
+
+            .card img {
+                width: 100%;
+                height: 40vh;
+                object-fit: cover;
+                transition: transform var(--transition-speed);
+            }
+
+            .card:hover img {
+                transform: scale(1.02);
+            }
+
+        .card-content {
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-title {
+            font-size: 1.5em;
+            margin: 0 0 15px;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+            .card-actions button {
+                padding: 10px 20px;
+                border-radius: 20px;
+                background: rgba(255, 255, 255, 0.1);
+                backdrop-filter: blur(10px);
+                transition: all var(--transition-speed);
+                color: var(--text-primary);
+                flex: 1;
+                text-align: center;
+            }
+
+                .card-actions button:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: translateY(-2px);
+                }
+
+        /* Saved News Drawer */
+        .saved-news-drawer {
+            position: fixed;
+            top: 0;
+            right: -320px;
+            width: 320px;
+            height: 100%;
+            background: var(--card-bg);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            transition: right var(--transition-speed) ease;
+            padding: 20px;
+            z-index: 200;
+            overflow-y: auto;
+        }
+
+            .saved-news-drawer.open {
+                right: 0;
+            }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close-drawer {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .open-drawer {
+            position: fixed;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: linear-gradient(45deg, var(--tiktok-pink), var(--tiktok-blue));
+            border: none;
+            border-radius: 50%;
+            padding: 15px;
+            color: white;
+            cursor: pointer;
+            z-index: 150;
+            transition: transform var(--transition-speed);
+        }
+
+            .open-drawer:hover {
+                transform: translateY(-50%) scale(1.1);
+            }
+
+        .saved-news-item {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 15px;
+            transition: background var(--transition-speed);
+        }
+
+            .saved-news-item:hover {
+                background: rgba(255, 255, 255, 0.1);
+            }
+
+        /* Toast Notifications */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--card-bg);
+            padding: 15px 25px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            animation: slideUp var(--transition-speed) ease-out;
+            z-index: 300;
+            opacity: 0;
+            transition: opacity var(--transition-speed);
+        }
+
+            .toast.show {
+                opacity: 1;
+            }
+        @@keyframes slideUp {
+            from
+
+        {
+            bottom: -50px;
+            opacity: 0;
+        }
+
+        to {
+            bottom: 20px;
+            opacity: 1;
+        }
+
+        }
+
+        .progress-bar {
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            margin-top: 10px;
+            border-radius: 2px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--tiktok-pink), var(--tiktok-blue));
+            width: 100%;
+            animation: progress 3s linear forwards;
+        }
+        @@keyframes progress {
+            from
+
+        {
+            width: 100%;
+        }
+
+        to {
+            width: 0;
+        }
+
+        }
+
+        /* Tablet Adjustments */
+        @@media (max-width: 768px) {
+            #searchForm
+
+        {
+            max-width: 90%;
+            padding: 8px 10px;
+        }
+
+        #symbolInput {
+            padding: 10px 15px;
+            font-size: 15px;
+        }
+
+        .card-container {
+            padding: 90px 15px 20px;
+        }
+
+        .card {
+            min-height: 80vh;
+        }
+
+            .card img {
+                height: 50vh;
+            }
+
+        .card-title {
+            font-size: 1.4em;
+        }
+
+        .card-actions button {
+            padding: 9px 18px;
+            font-size: 0.9em;
+        }
+
+        .open-drawer {
+            top: 55%;
+        }
+
+        }
+
+        /* Mobile Adjustments */
+        @@media (max-width: 600px) {
+            #searchForm
+
+        {
+            max-width: 90%;
+            padding: 6px 8px;
+        }
+
+        #symbolInput {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        .card-container {
+            padding: 80px 10px 20px;
+            grid-template-columns: 1fr;
+        }
+
+        .card {
+            min-height: 70vh;
+        }
+
+            .card img {
+                height: 30vh;
+            }
+
+        .card-title {
+            font-size: 1.3em;
+        }
+
+        .card-actions button {
+            padding: 8px 15px;
+            font-size: 0.85em;
+        }
+
+        .open-drawer {
+            top: 90%;
+            right: 10px;
+            transform: translateY(-90%);
+        }
+
+        .saved-news-drawer {
+            width: 100%;
+            right: -100%;
+        }
+
+            .saved-news-drawer.open {
+                right: 0;
+            }
+
+        }
+    </style>
+</head>
+<body>
+    <!-- Search Section with Autocomplete -->
+    <div class="search-container">
+        <form id="searchForm">
+            <input type="text" id="symbolInput" placeholder="📈 Enter tickers (AAPL, TSLA, ...)" required />
+            <button type="submit">🚀 Go</button>
+            <button type="button" id="clearInput" class="clear-btn">✕</button>
+            <!-- Autocomplete suggestions -->
+            <div id="autocompleteSuggestions"></div>
+        </form>
+    </div>
+
+    <button id="openDrawer" class="open-drawer">📁</button>
+
+    <div id="savedNewsDrawer" class="saved-news-drawer">
+        <div class="drawer-header">
+            <h2>Saved News</h2>
+            <button id="closeDrawer" class="close-drawer">✕</button>
+        </div>
+        <div id="savedNewsContainer" class="saved-news-container"></div>
+    </div>
+
+    <div id="cardContainer" class="card-container"></div>
+    <div id="toastContainer"></div>
+
+    <script>
+        // API credentials and endpoints
+        const baseUrl = 'https://yahoo-finance166.p.rapidapi.com/api/news/list-by-symbol';
+        const autocompleteUrl = 'https://yahoo-finance166.p.rapidapi.com/api/autocomplete';
+        const region = 'US';
+        const snippetCount = 500;
+        const apiKey = '60c4b7c12emshfe21a6a1ec58d8bp1a396cjsn6bc88b0f02f5';
+        const apiHost = 'yahoo-finance166.p.rapidapi.com';
+
+        /*
+          Example cURL command for autocomplete:
+          curl --request GET \
+            --url 'https://yahoo-finance166.p.rapidapi.com/api/autocomplete?query=AA' \
+            --header 'x-rapidapi-host: yahoo-finance166.p.rapidapi.com' \
+            --header 'x-rapidapi-key: 60c4b7c12emshfe21a6a1ec58d8bp1a396cjsn6bc88b0f02f5'
+        */
+
+        // Debounce helper function
+        function debounce(func, delay) {
+          let timeout;
+          return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), delay);
+          };
+        }
+
+        async function fetchNews(symbols) {
+          const url = `${baseUrl}?s=${encodeURIComponent(symbols)}&region=${region}&snippetCount=${snippetCount}`;
+          try {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = Array(3).fill('<div class="card loading-card"></div>').join('');
+
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                'x-rapidapi-key': apiKey,
+                'x-rapidapi-host': apiHost
+              }
+            });
+            const data = await response.json();
+            renderCards(data);
+          } catch (error) {
+            showToast('⚠️ Error loading content', '⚠️');
+            console.error('Error:', error);
+          }
+        }
+
+        // Autocomplete: fetch suggestions based on query
+        async function fetchAutocomplete(query) {
+          const url = `${autocompleteUrl}?query=${encodeURIComponent(query)}`;
+          try {
+            const response = await fetch(url, {
+              method: 'GET',
+              headers: {
+                'x-rapidapi-key': apiKey,
+                'x-rapidapi-host': apiHost
+              }
+            });
+            return await response.json();
+          } catch (error) {
+            console.error('Autocomplete error:', error);
+            return {};
+          }
+        }
+
+        function renderAutocompleteSuggestions(data) {
+          const suggestionsContainer = document.getElementById('autocompleteSuggestions');
+          suggestionsContainer.innerHTML = '';
+          if (data.quotes && data.quotes.length > 0) {
+            data.quotes.forEach(quote => {
+              const suggestion = document.createElement('div');
+              suggestion.textContent = `${quote.symbol} - ${quote.shortname || quote.longname || ''}`;
+              suggestion.addEventListener('click', () => {
+                document.getElementById('symbolInput').value = quote.symbol;
+                suggestionsContainer.classList.remove('visible');
+              });
+              suggestionsContainer.appendChild(suggestion);
+            });
+            suggestionsContainer.classList.add('visible');
+          } else {
+            suggestionsContainer.classList.remove('visible');
+          }
+        }
+
+        // Listen to input events with debounce for autocomplete
+        document.getElementById('symbolInput').addEventListener('input', debounce(async function() {
+          const query = this.value.trim();
+          const clearBtn = document.getElementById('clearInput');
+          clearBtn.classList.toggle('visible', query.length > 0);
+          if (query.length >= 1) {
+            const data = await fetchAutocomplete(query);
+            renderAutocompleteSuggestions(data);
+          } else {
+            document.getElementById('autocompleteSuggestions').classList.remove('visible');
+          }
+        }, 300));
+
+        // Clear input button functionality
+        document.getElementById('clearInput').addEventListener('click', () => {
+          document.getElementById('symbolInput').value = '';
+          document.getElementById('autocompleteSuggestions').classList.remove('visible');
+          document.getElementById('clearInput').classList.remove('visible');
+        });
+
+        function renderCards(data) {
+          const container = document.getElementById('cardContainer');
+          container.innerHTML = '';
+          const newsItems = (data?.data?.main?.stream) || [];
+
+          if (newsItems.length === 0) {
+            container.innerHTML = '<div class="card"><div class="card-content"><h2>📰 No news found</h2></div></div>';
+            return;
+          }
+
+          newsItems.forEach(item => {
+            const title = item.content?.title || "No title available";
+            const pubDate = item.content?.pubDate ? new Date(item.content.pubDate).toLocaleString() : "Just now";
+            const link = item.content?.clickThroughUrl?.url || "#";
+            const thumb = item.content?.thumbnail?.resolutions?.[0]?.url || "";
+            const provider = item.content?.provider?.displayName || "Unknown Source";
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `
+              ${thumb ? `<img src="${thumb}" alt="News thumbnail" loading="lazy">` : ''}
+              <div class="card-content">
+                <h2 class="card-title">${title}</h2>
+                <div class="card-meta">
+                  <span>⏳ ${pubDate}</span>
+                  <span>📌 ${provider}</span>
+                </div>
+                <div class="card-actions"></div>
+              </div>
+            `;
+
+            const actionsDiv = card.querySelector('.card-actions');
+            actionsDiv.appendChild(createActionButton('💾 Save', () => saveNews({
+              title, pubDate, link, thumb, provider
+            })));
+            actionsDiv.appendChild(createActionButton('🔗 Share', () => handleShare(link, title)));
+            actionsDiv.appendChild(createActionButton('📖 Read', () => window.open(link, '_blank')));
+
+            container.appendChild(card);
+          });
+
+          initImageTransitions();
+        }
+
+        function createActionButton(text, onClick) {
+          const button = document.createElement('button');
+          button.textContent = text;
+          button.addEventListener('click', onClick);
+          return button;
+        }
+
+        function handleShare(link, title) {
+          if (navigator.share) {
+            navigator.share({ title, text: title, url: link })
+              .catch(err => showToast('Error sharing', '⚠️'));
+          } else {
+            navigator.clipboard.writeText(link)
+              .then(() => showToast('🔗 Link copied', '📋'))
+              .catch(() => showToast('Sharing not supported', '⚠️'));
+          }
+        }
+
+        function saveNews(newsData) {
+          const saved = JSON.parse(localStorage.getItem('savedNews')) || [];
+          if (!saved.some(item => item.link === newsData.link)) {
+            saved.push(newsData);
+            localStorage.setItem('savedNews', JSON.stringify(saved));
+            showToast('💾 News saved', '✅');
+            updateSavedNewsDrawer();
+          } else {
+            showToast('⚠️ Already saved', 'ℹ️');
+          }
+        }
+
+        function showToast(message, icon = 'ℹ️') {
+          const toast = document.createElement('div');
+          toast.className = 'toast';
+          toast.innerHTML = `
+            <span>${icon}</span>
+            ${message}
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+          `;
+          const toastContainer = document.getElementById('toastContainer');
+          toastContainer.appendChild(toast);
+          void toast.offsetWidth;
+          toast.classList.add('show');
+          setTimeout(() => toast.remove(), 3000);
+        }
+
+        function updateSavedNewsDrawer() {
+          const container = document.getElementById('savedNewsContainer');
+          const saved = JSON.parse(localStorage.getItem('savedNews')) || [];
+          container.innerHTML = saved.map((item, index) => `
+            <div class="saved-news-item">
+              <h3>${item.title}</h3>
+              <p><small>⏳ ${item.pubDate}</small></p>
+              <div class="card-actions">
+                <button onclick="window.open('${item.link}', '_blank')">📖 Read</button>
+                <button class="remove-saved" data-index="${index}">🗑️ Remove</button>
+              </div>
+            </div>
+          `).join('');
+          setupSavedNewsEvents();
+        }
+
+        function setupSavedNewsEvents() {
+          document.querySelectorAll('.remove-saved').forEach(button => {
+            button.addEventListener('click', (e) => {
+              const index = e.target.dataset.index;
+              const saved = JSON.parse(localStorage.getItem('savedNews'));
+              saved.splice(index, 1);
+              localStorage.setItem('savedNews', JSON.stringify(saved));
+              updateSavedNewsDrawer();
+              showToast('🗑️ News removed', '✅');
+            });
+          });
+        }
+
+        function initImageTransitions() {
+          document.querySelectorAll('img').forEach(img => {
+            img.style.opacity = '0';
+            img.addEventListener('load', () => {
+              img.style.transition = 'opacity 0.3s';
+              img.style.opacity = '1';
+            });
+          });
+        }
+
+        // Event Listeners for Drawer and Form
+        document.getElementById('openDrawer').addEventListener('click', () => {
+          document.getElementById('savedNewsDrawer').classList.add('open');
+          updateSavedNewsDrawer();
+        });
+        document.getElementById('closeDrawer').addEventListener('click', () => {
+          document.getElementById('savedNewsDrawer').classList.remove('open');
+        });
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            document.getElementById('savedNewsDrawer').classList.remove('open');
+          }
+        });
+        document.getElementById('searchForm').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const symbols = document.getElementById('symbolInput').value.trim();
+          if (symbols) fetchNews(symbols);
+        });
+
+        // Initial Load
+        fetchNews('AAPL,GOOGL,TSLA');
+    </script>
+</body>
+</html>

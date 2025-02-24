@@ -32,6 +32,12 @@
                 <div>News</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage == "/NovaSearch" ? " active" : "")'>
+            <a asp-controller="NovaSearch" asp-action="Index" class="menu-link">
+                <div>Nova|Fynance</div>
+            </a>
+        </li>
+        
         <li class='menu-item@(currentPage == "/NewsRSS/Index" ? " active" : "")'>
             <a asp-controller="NewsRSS" asp-action="Index" class="menu-link">
                 <div>Rss Search</div>
