@@ -1,0 +1,82 @@
+<html>
+<head>
+    <!-- WebDataRocks and its toolbar -->
+    <script src="https://cdn.webdatarocks.com/latest/webdatarocks.js"></script>
+    <script src="https://cdn.webdatarocks.com/latest/webdatarocks.toolbar.min.js"></script>
+    <link href="https://cdn.webdatarocks.com/latest/webdatarocks.min.css" rel="stylesheet" />
+
+    <!-- amCharts libraries -->
+    <script src="https://www.amcharts.com/lib/4/core.js"></script>
+    <script src="https://www.amcharts.com/lib/4/charts.js"></script>
+    <script src="https://www.amcharts.com/lib/4/themes/animated.js"></script>
+
+    <!-- Integration script for WebDataRocks and amCharts -->
+    <script src="https://cdn.webdatarocks.com/latest/webdatarocks.amcharts.js"></script>
+</head>
+
+<body>
+    <div id="pivotContainer"></div>
+    <div id="amchartsContainer"></div>
+    <script>
+        // Use animated theme for amCharts
+        am4core.useTheme(am4themes_animated);
+        am4core.options.autoDispose = true;
+
+        let chart;
+
+        // Initialize the pivot table
+        const pivot = new WebDataRocks({
+          container: "#pivotContainer",
+          toolbar: true,
+          report: {
+            dataSource: {
+              dataSourceType: "json", // Specify JSON data source
+              filename: "/PortfolioTransactions/PortfolioItemsList"
+            },
+            slice: {
+              rows: [
+                {
+                  uniqueName: "symbol"  // Must match your JSON property (lowercase "symbol")
+                },
+              ],
+              columns: [
+                {
+                  uniqueName: "Measures"
+                },
+              ],
+              measures: [
+                {
+                  uniqueName: "currentPrice", // Must match your JSON property (lowercase "currentPrice")
+                  aggregation: "sum"
+                },
+              ]
+            }
+          },
+          reportcomplete: function() {
+            pivot.off("reportcomplete");
+            createChart();
+          }
+        });
+
+        // Retrieve chart data from the pivot report
+        function createChart() {
+          pivot.amcharts.getData({}, drawChart, drawChart);
+        }
+
+        // Draw the chart using amCharts
+        function drawChart(chartConfig, rawData) {
+          chart = am4core.create("amchartsContainer", am4charts.XYChart);
+          chart.data = chartConfig.data;
+
+          let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+          categoryAxis.dataFields.category = pivot.amcharts.getCategoryName(rawData);
+
+          let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+
+          let series = chart.series.push(new am4charts.ColumnSeries());
+          series.dataFields.categoryX = pivot.amcharts.getCategoryName(rawData);
+          series.dataFields.valueY = pivot.amcharts.getMeasureNameByIndex(rawData, 0);
+        }
+    </script>
+</body>
+</html>
