@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Portfolio Transactions Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!-- AG Grid CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/styles/ag-grid.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/styles/ag-theme-material.css" />
+
+    <!-- amCharts 5 libraries -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <!-- amCharts 5 Hierarchy library (for Treemap) -->
+    <script src="https://cdn.amcharts.com/lib/5/hierarchy.js"></script>
+
+    <style>
+        :root,
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            box-sizing: border-box;
+            -webkit-overflow-scrolling: touch;
+            font-family: 'Roboto', -apple-system, system-ui, sans-serif;
+            background-color: #f4f6f8;
+        }
+
+        html {
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        body {
+            padding: 16px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 24px;
+            color: #333;
+        }
+        /* Modern Button styling with gradient */
+        .modern-button {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #FF004F, #FE2C55, #FF0050);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-size: 400% 400%;
+            animation: gradientFlow 3s ease infinite;
+            box-shadow: 0 4px 15px rgba(254, 44, 85, 0.3);
+            margin: 8px 4px;
+        }
+
+            .modern-button:hover {
+                transform: scale(1.05);
+                box-shadow: 0 6px 20px rgba(254, 44, 85, 0.4);
+            }
+
+            .modern-button:active {
+                transform: scale(0.95);
+            }
+        @@keyframes gradientFlow {
+            0%
+
+        {
+            background-position: 0% 50%;
+        }
+
+        50% {
+            background-position: 100% 50%;
+        }
+
+        100% {
+            background-position: 0% 50%;
+        }
+
+        }
+        /* AG Grid Container adjustments */
+        #myGrid {
+            width: 100%;
+            height: 500px;
+        }
+        /* Bar Chart container */
+        #chartdiv {
+            width: 100%;
+            height: 400px;
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        /* Treemap (heatmap) container */
+        #treemapdiv {
+            width: 100%;
+            height: 500px;
+            margin-top: 24px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        /* Pagination controls styling */
+        #pagination-controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+            #pagination-controls label {
+                font-size: 1em;
+                margin-right: 8px;
+            }
+
+        #pageNumberSelector,
+        #pageSizeSelector {
+            padding: 8px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        /* Action buttons styling within grid cells */
+        .action-button {
+            margin-right: 5px;
+            padding: 4px 8px;
+            font-size: 0.85em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .action-button.edit {
+                background-color: #4caf50;
+                color: #fff;
+            }
+
+            .action-button.delete {
+                background-color: #f44336;
+                color: #fff;
+            }
+
+            .action-button.update {
+                background-color: #2196f3;
+                color: #fff;
+            }
+
+            .action-button.cancel {
+                background-color: #9e9e9e;
+                color: #fff;
+            }
+        /* Mobile responsiveness */
+        @@media (max-width: 768px) {
+            body
+
+        {
+            padding: 12px;
+        }
+
+        .modern-button {
+            width: 100%;
+            margin: 8px 0;
+            font-size: 0.9em;
+        }
+
+        #myGrid {
+            height: 400px;
+        }
+
+        #chartdiv {
+            height: 300px;
+        }
+
+        #treemapdiv {
+            height: 400px;
+        }
+
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Portfolio Transactions</h1>
+        <div style="display: flex; flex-wrap: wrap; justify-content: center;">
+            <button class="modern-button" onclick="createNewItem()">Create New Item</button>
+            <button class="modern-button" onclick="refreshGrid()">Refresh Data</button>
+        </div>
+
+        <!-- AG Grid -->
+        <div id="myGrid" class="ag-theme-material"></div>
+
+        <!-- Bar Chart -->
+        <div id="chartdiv"></div>
+
+        <!-- Treemap (Heatmap) -->
+        <div id="treemapdiv"></div>
+
+        <!-- Pagination and Items Per Page selectors -->
+        <div id="pagination-controls">
+            <div>
+                <label for="pageNumberSelector">Page:</label>
+                <select id="pageNumberSelector"></select>
+            </div>
+            <div>
+                <label for="pageSizeSelector">Items per page:</label>
+                <select id="pageSizeSelector">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="20">20</option>
+                    <option value="50">50</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- AG Grid Enterprise (if licensed) -->
+    <script src="https://unpkg.com/@@ag-grid-enterprise/all-modules@25.0.0/dist/ag-grid-enterprise.min.js"></script>
+    <script>
+        /* -------------------------------------------------
+           1. Helper: Calculate Profit
+        ---------------------------------------------------*/
+        function calculateProfit(item) {
+          let purchasePrice = item.purchasePrice;
+          let quantity = item.quantity;
+          let commission = item.commission || 0;
+          let breakEven = (quantity > 0) ? ((purchasePrice * quantity + commission) / quantity) : 0;
+          return parseFloat((item.currentPrice - breakEven).toFixed(2));
+        }
+
+        /* -------------------------------------------------
+           2. Initialize & Update Bar Chart
+        ---------------------------------------------------*/
+        let am5Root, chart, profitSeries, priceSeries;
+        function initChart() {
+          am5Root = am5.Root.new("chartdiv");
+          am5Root.setThemes([ am5themes_Animated.new(am5Root) ]);
+
+          // Create XYChart
+          chart = am5Root.container.children.push(am5xy.XYChart.new(am5Root, {
+            layout: am5Root.verticalLayout,
+            panX: true,
+            panY: true,
+            wheelX: "panX",
+            wheelY: "zoomX"
+          }));
+
+          // Create X Axis
+          let xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(am5Root, {
+            categoryField: "symbol",
+            renderer: am5xy.AxisRendererX.new(am5Root, { minGridDistance: 30 }),
+            tooltip: am5.Tooltip.new(am5Root, {})
+          }));
+
+          // Create Y Axis
+          let yAxis = chart.yAxes.push(am5xy.ValueAxis.new(am5Root, {
+            renderer: am5xy.AxisRendererY.new(am5Root, {})
+          }));
+
+          // Profit Series
+          profitSeries = chart.series.push(am5xy.ColumnSeries.new(am5Root, {
+            name: "Profit",
+            xAxis: xAxis,
+            yAxis: yAxis,
+            valueYField: "profit",
+            categoryXField: "symbol",
+            tooltip: am5.Tooltip.new(am5Root, { labelText: "Profit: {valueY}" })
+          }));
+          profitSeries.columns.template.setAll({
+            cornerRadiusTL: 5, cornerRadiusTR: 5, fillOpacity: 0.8
+          });
+
+          // Current Price Series
+          priceSeries = chart.series.push(am5xy.ColumnSeries.new(am5Root, {
+            name: "Current Price",
+            xAxis: xAxis,
+            yAxis: yAxis,
+            valueYField: "currentPrice",
+            categoryXField: "symbol",
+            tooltip: am5.Tooltip.new(am5Root, { labelText: "Price: {valueY}" })
+          }));
+          priceSeries.columns.template.setAll({
+            cornerRadiusTL: 5, cornerRadiusTR: 5, fillOpacity: 0.8
+          });
+
+          // Legend
+          let legend = chart.children.push(am5.Legend.new(am5Root, {}));
+          legend.data.setAll(chart.series.values);
+        }
+
+        function updateChart() {
+          if (!gridOptions.api || !chart) return;
+          let chartData = [];
+          gridOptions.api.forEachNodeAfterFilterAndSort(function(node) {
+            let data = node.data;
+            if (data.symbol && data.symbol.trim() !== "") {
+              chartData.push({
+                symbol: data.symbol,
+                profit: calculateProfit(data),
+                currentPrice: data.currentPrice
+              });
+            }
+          });
+          profitSeries.data.setAll(chartData);
+          priceSeries.data.setAll(chartData);
+          chart.xAxes.getIndex(0).data.setAll(chartData);
+        }
+
+        /* -------------------------------------------------
+           3. Initialize & Update Treemap (Heatmap)
+        ---------------------------------------------------*/
+        let treemapRoot, treemapSeries;
+        function initTreemapChart() {
+          // Create root element for treemap
+          treemapRoot = am5.Root.new("treemapdiv");
+          treemapRoot.setThemes([ am5themes_Animated.new(treemapRoot) ]);
+
+          // Create Treemap series
+          treemapSeries = treemapRoot.container.children.push(
+            am5hierarchy.Treemap.new(treemapRoot, {
+              singleBranchOnly: false,
+              downDepth: 1,
+              initialDepth: 1,
+              valueField: "value",
+              categoryField: "name",
+              childDataField: "children",
+              nodePaddingOuter: 2,
+              nodePaddingInner: 2
+            })
+          );
+
+          // Set up adapter for coloring rectangles
+          treemapSeries.rectangles.template.adapters.add("fill", function(fill, target) {
+            const dataItem = target.dataItem;
+            if (dataItem && dataItem.dataContext) {
+              const profit = dataItem.dataContext.profit || 0;
+              if (profit > 0) {
+                return am5.color(0x00c853); // Green for profit
+              } else if (profit < 0) {
+                return am5.color(0xd50000); // Red for loss
+              }
+              return am5.color(0x9e9e9e);   // Gray for zero profit
+            }
+            return fill;
+          });
+        }
+
+        function updateTreemapChart() {
+          if (!gridOptions.api || !treemapSeries) return;
+          let childrenData = [];
+          gridOptions.api.forEachNodeAfterFilterAndSort((node) => {
+            let d = node.data;
+            if (d.symbol && d.symbol.trim() !== "") {
+              let profit = calculateProfit(d);
+              childrenData.push({
+                name: d.symbol,
+                value: d.quantity || 0, // size by quantity
+                profit: profit         // used in adapter for coloring
+              });
+            }
+          });
+          // Wrap children in a root object
+          let rootData = [{
+            name: "Portfolio",
+            children: childrenData
+          }];
+          treemapSeries.data.setAll(rootData);
+        }
+
+        /* -------------------------------------------------
+           4. AG Grid & Pagination
+        ---------------------------------------------------*/
+        // Custom cell renderer for actions column
+        function actionCellRenderer(params) {
+          let eGui = document.createElement("div");
+          let editingCells = params.api.getEditingCells();
+          let isCurrentRowEditing = editingCells.some(cell => cell.rowIndex === params.node.rowIndex);
+          if (isCurrentRowEditing) {
+            eGui.innerHTML = `
+              <button class="action-button update" data-action="update">Update</button>
+              <button class="action-button cancel" data-action="cancel">Cancel</button>
+            `;
+          } else {
+            eGui.innerHTML = `
+              <button class="action-button edit" data-action="edit">Edit</button>
+              <button class="action-button delete" data-action="delete">Delete</button>
+            `;
+          }
+          return eGui;
+        }
+
+        // Create or update item via API calls
+        function updateItem(rowData) {
+          if (!rowData.id || rowData.id === 0) {
+            fetch('/api/PortfolioTransactions/CreateItem', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(rowData)
+            })
+            .then(response => response.json())
+            .then(result => {
+              if (!result.success) {
+                alert('Error creating item.');
+              } else {
+                refreshGrid();
+              }
+            })
+            .catch(error => console.error('Error creating item:', error));
+          } else {
+            fetch('/api/PortfolioTransactions/UpdateItem', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(rowData)
+            })
+            .then(response => response.json())
+            .then(result => {
+              if (!result.success) {
+                alert('Error updating item.');
+              } else {
+                refreshGrid();
+              }
+            })
+            .catch(error => console.error('Error updating item:', error));
+          }
+        }
+
+        // Delete item
+        function deleteItem(id) {
+          if (confirm("Are you sure you want to delete this item?")) {
+            fetch('/api/PortfolioTransactions/DeleteItem/' + id, {
+              method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(result => {
+              if (!result.success) {
+                alert('Error deleting item.');
+              } else {
+                refreshGrid();
+              }
+            })
+            .catch(error => console.error('Error deleting item:', error));
+          }
+        }
+
+        // Refresh grid data and update charts
+        function refreshGrid() {
+          fetch('/PortfolioTransactions/PortfolioItemsList')
+            .then(response => response.json())
+            .then(newData => {
+              setTimeout(() => {
+                gridOptions.api.setRowData(newData);
+                updatePageSelector();
+                updateChart();
+                updateTreemapChart();
+              }, 0);
+            })
+            .catch(error => console.error('Error refreshing data:', error));
+        }
+
+        // Create a new row and start editing
+        function createNewItem() {
+          const newItem = {
+            id: 0,
+            symbol: "",
+            operationType: "",
+            purchasePrice: 0,
+            currentPrice: 0,
+            quantity: 0,
+            commission: 0
+          };
+          gridOptions.api.applyTransaction({ add: [newItem], addIndex: 0 });
+          gridOptions.api.startEditingCell({
+            rowIndex: 0,
+            colKey: "symbol"
+          });
+        }
+
+        // Update pagination selector
+        function updatePageSelector() {
+          if (!gridOptions.api) return;
+          const totalPages = gridOptions.api.paginationGetTotalPages();
+          const currentPage = gridOptions.api.paginationGetCurrentPage();
+          const selector = document.getElementById('pageNumberSelector');
+          selector.innerHTML = '';
+          for (let i = 0; i < totalPages; i++) {
+            let option = document.createElement('option');
+            option.value = i;
+            option.text = i + 1;
+            if (i === currentPage) option.selected = true;
+            selector.appendChild(option);
+          }
+        }
+
+        document.getElementById('pageNumberSelector').addEventListener('change', function(e) {
+          const page = parseInt(e.target.value, 10);
+          gridOptions.api.paginationGoToPage(page);
+        });
+
+        document.getElementById('pageSizeSelector').addEventListener('change', function(e) {
+          const newPageSize = Number(e.target.value);
+          gridOptions.api.paginationSetPageSize(newPageSize);
+          updatePageSelector();
+        });
+
+        /* -------------------------------------------------
+           5. AG Grid Configuration
+        ---------------------------------------------------*/
+        const gridOptions = {
+          suppressClickEdit: true,
+          editType: "fullRow",
+          defaultColDef: {
+            editable: true,
+            flex: 1,
+            minWidth: 100,
+            filter: true,
+            sortable: true
+          },
+          columnDefs: [
+            { field: "id", editable: false, headerName: "ID", maxWidth: 80 },
+            { field: "symbol", headerName: "Symbol" },
+            { field: "operationType", headerName: "Operation Type" },
+            { field: "purchasePrice", headerName: "Purchase Price", valueFormatter: params => params.value?.toFixed(2) },
+            { field: "currentPrice", headerName: "Current Price", valueFormatter: params => params.value?.toFixed(2) },
+            { field: "quantity", headerName: "Quantity" },
+            {
+              headerName: "Break Even Price",
+              editable: false,
+              valueGetter: function(params) {
+                let purchasePrice = params.data.purchasePrice;
+                let quantity = params.data.quantity;
+                let commission = params.data.commission || 0;
+                if (quantity > 0) {
+                  return ((purchasePrice * quantity + commission) / quantity).toFixed(2);
+                }
+                return "0.00";
+              }
+            },
+            {
+              headerName: "Profit/Loss",
+              editable: false,
+              valueGetter: function(params) {
+                let purchasePrice = params.data.purchasePrice;
+                let quantity = params.data.quantity;
+                let commission = params.data.commission || 0;
+                let breakEven = (quantity > 0) ? ((purchasePrice * quantity + commission) / quantity) : 0;
+                let profit = params.data.currentPrice - breakEven;
+                return profit;
+              },
+              cellRenderer: function(params) {
+                let profit = params.value;
+                if (profit > 0) {
+                  return `<span style="color: green;">▲ ${profit.toFixed(2)}</span>`;
+                } else if (profit < 0) {
+                  return `<span style="color: red;">▼ ${profit.toFixed(2)}</span>`;
+                } else {
+                  return `<span>${profit.toFixed(2)}</span>`;
+                }
+              }
+            },
+            {
+              headerName: "Actions",
+              colId: "action",
+              editable: false,
+              cellRenderer: actionCellRenderer,
+              minWidth: 150
+            }
+          ],
+          onCellClicked: function(params) {
+            if (params.column.getColId() === "action" && params.event.target.dataset.action) {
+              let action = params.event.target.dataset.action;
+              if (action === "edit") {
+                params.api.startEditingCell({
+                  rowIndex: params.node.rowIndex,
+                  colKey: params.columnApi.getDisplayedCenterColumns()[0].getColId()
+                });
+              }
+              if (action === "delete") {
+                deleteItem(params.data.id);
+              }
+              if (action === "update") {
+                let updatedData = params.node.data;
+                updateItem(updatedData);
+                params.api.stopEditing(false);
+              }
+              if (action === "cancel") {
+                params.api.stopEditing(true);
+              }
+            }
+          },
+          onRowEditingStarted: function(params) {
+            params.api.refreshCells({
+              columns: ["action"],
+              rowNodes: [params.node],
+              force: true
+            });
+          },
+          onRowEditingStopped: function(params) {
+            params.api.refreshCells({
+              columns: ["action"],
+              rowNodes: [params.node],
+              force: true
+            });
+          },
+          onPaginationChanged: updatePageSelector,
+          pagination: true,
+          paginationPageSize: 10,
+          rowData: []
+        };
+
+        /* -------------------------------------------------
+           6. Initialize Everything on DOM Ready
+        ---------------------------------------------------*/
+        document.addEventListener("DOMContentLoaded", function () {
+          // Initialize AG Grid
+          const gridDiv = document.querySelector("#myGrid");
+          new agGrid.Grid(gridDiv, gridOptions);
+
+          // Initialize charts
+          initChart();
+          initTreemapChart();
+
+          // Load grid data and update charts
+          refreshGrid();
+        });
+    </script>
+</body>
+</html>

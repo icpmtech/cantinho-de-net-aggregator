@@ -84,6 +84,15 @@ namespace MarketAnalyticHub.Controllers
 
       return View(model);
     }
+    public async Task<IActionResult> PortfolioItemsList()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      var portfolioItems = await _context.PortfolioItems
+                                          .Where(p => p.UserId == userId)
+                                          .ToListAsync();
+
+      return Json(portfolioItems);
+    }
 
 
 
@@ -247,5 +256,8 @@ namespace MarketAnalyticHub.Controllers
     {
       return _context.PortfolioItems.Any(e => e.Id == id);
     }
+
+
+
   }
 }

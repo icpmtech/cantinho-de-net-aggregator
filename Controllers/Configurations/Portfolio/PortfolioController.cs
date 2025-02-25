@@ -31,6 +31,11 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 
       return View();
     }
+    public IActionResult Transactions()
+    {
+
+      return View();
+    }
     public IActionResult Holdings()
     {
 
