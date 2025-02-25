@@ -18,11 +18,12 @@ namespace MarketAnalyticHub.Controllers
   {
     private readonly ApplicationDbContext _context;
     private readonly PortfolioService _portfolioService;
-
-    public PortfolioTransactionsController(ApplicationDbContext context, PortfolioService portfolioService)
+    private readonly IYahooFinanceService _yahooFinanceService;
+    public PortfolioTransactionsController(ApplicationDbContext context, PortfolioService portfolioService, IYahooFinanceService yahooFinanceService)
     {
       _context = context;
       _portfolioService = portfolioService;
+      _yahooFinanceService = yahooFinanceService;
     }
 
     public async Task<IActionResult> PortfolioItemsList()
@@ -31,6 +32,13 @@ namespace MarketAnalyticHub.Controllers
       var portfolioItems = await _context.PortfolioItems
                                           .Where(p => p.UserId == userId)
                                           .ToListAsync();
+      // Fetch real-time prices for each item and update the item price
+      foreach (var symbol in portfolioItems)
+      {
+       
+          var price = await _yahooFinanceService.GetRealTimePriceAsync(symbol.Symbol);
+        symbol.CurrentPrice = (decimal)price.CurrentPrice;
+      }
 
       return Json(portfolioItems);
     }
