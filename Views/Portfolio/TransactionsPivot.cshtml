@@ -12,60 +12,133 @@
 
     <!-- Integration script for WebDataRocks and amCharts -->
     <script src="https://cdn.webdatarocks.com/latest/webdatarocks.amcharts.js"></script>
+
+    <style>
+        /* Styling for the pivot and chart containers */
+        #pivotContainer,
+        #chartContainerColumn,
+        #chartContainerLine,
+        #chartContainerPie,
+        #chartContainerProfit {
+            width: 100%;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 
 <body>
+    <!-- Pivot Table Container -->
     <div id="pivotContainer"></div>
-    <div id="amchartsContainer"></div>
+    <!-- Chart Containers -->
+    <div id="chartContainerColumn"></div>
+    <div id="chartContainerLine"></div>
+    <div id="chartContainerPie"></div>
+    <div id="chartContainerProfit"></div>
+
     <script>
-        // Use animated theme for amCharts
+        // Apply the animated theme for amCharts
         am4core.useTheme(am4themes_animated);
         am4core.options.autoDispose = true;
 
-        let chart;
+        let pivot;
 
-        // Initialize the pivot table
-        const pivot = new WebDataRocks({
+        // Initialize the pivot table with multiple measures and calculated measures
+        pivot = new WebDataRocks({
           container: "#pivotContainer",
           toolbar: true,
           report: {
             dataSource: {
-              dataSourceType: "json", // Specify JSON data source
+              dataSourceType: "json", // specify JSON data source
               filename: "/PortfolioTransactions/PortfolioItemsList"
             },
             slice: {
               rows: [
                 {
-                  uniqueName: "symbol"  // Must match your JSON property (lowercase "symbol")
-                },
+                  uniqueName: "symbol"  // must match your JSON property (lowercase "symbol")
+                }
               ],
               columns: [
                 {
                   uniqueName: "Measures"
-                },
+                }
               ],
               measures: [
                 {
-                  uniqueName: "currentPrice", // Must match your JSON property (lowercase "currentPrice")
+                  uniqueName: "currentPrice",
                   aggregation: "sum"
                 },
+                {
+                  uniqueName: "purchasePrice",
+                  aggregation: "sum"
+                },
+                {
+                  uniqueName: "quantity",
+                  aggregation: "sum"
+                },
+                {
+                  uniqueName: "totalInvestment",
+                  aggregation: "sum"
+                },
+                {
+                  uniqueName: "currentMarketValue",
+                  aggregation: "sum"
+                },
+                {
+                  uniqueName: "breakEven" // calculated measure for break even
+                },
+                {
+                  uniqueName: "profitLoss" // calculated measure for profit/loss
+                },
+                {
+                  uniqueName: "profitPct" // new measure for profit percentage
+                }
               ]
-            }
+            },
+            calculatedMeasures: [
+              {
+                uniqueName: "breakEven",
+                formula: "[totalInvestment] / [quantity]",
+                caption: "Break Even"
+              },
+              {
+                uniqueName: "profitLoss",
+                formula: "[currentMarketValue] - [totalInvestment]",
+                caption: "Profit / Loss"
+              },
+              {
+                uniqueName: "profitPct",
+                // Calculate profit percentage as (Profit / Total Investment)*100
+                formula: "(([currentMarketValue] - [totalInvestment]) / [totalInvestment]) * 100",
+                caption: "Profit (%)"
+              }
+            ]
           },
           reportcomplete: function() {
             pivot.off("reportcomplete");
-            createChart();
+            createCharts();
           }
         });
 
-        // Retrieve chart data from the pivot report
-        function createChart() {
-          pivot.amcharts.getData({}, drawChart, drawChart);
+        // Retrieve pivot data and create multiple charts
+        function createCharts() {
+          pivot.amcharts.getData({}, function(chartConfig, rawData) {
+            drawColumnChart(chartConfig, rawData);
+            drawLineChart(chartConfig, rawData);
+            drawPieChart(chartConfig, rawData);
+            drawProfitChart(chartConfig, rawData);
+          }, function(chartConfig, rawData) {
+            // In case of error, attempt to draw charts anyway
+            drawColumnChart(chartConfig, rawData);
+            drawLineChart(chartConfig, rawData);
+            drawPieChart(chartConfig, rawData);
+            drawProfitChart(chartConfig, rawData);
+          });
         }
 
-        // Draw the chart using amCharts
-        function drawChart(chartConfig, rawData) {
-          chart = am4core.create("amchartsContainer", am4charts.XYChart);
+        // Column Chart (using "currentPrice")
+        function drawColumnChart(chartConfig, rawData) {
+          let chart = am4core.create("chartContainerColumn", am4charts.XYChart);
           chart.data = chartConfig.data;
 
           let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
@@ -75,7 +148,87 @@
 
           let series = chart.series.push(new am4charts.ColumnSeries());
           series.dataFields.categoryX = pivot.amcharts.getCategoryName(rawData);
+          // Using the first measure: "currentPrice"
           series.dataFields.valueY = pivot.amcharts.getMeasureNameByIndex(rawData, 0);
+
+          // Color columns: red for negative, green for positive values
+          series.columns.template.adapter.add("fill", function(fill, target) {
+            if (target.dataItem && target.dataItem.valueY < 0) {
+              return am4core.color("red");
+            }
+            return am4core.color("green");
+          });
+
+          chart.titles.create().text = "Column Chart - Current Price";
+        }
+
+        // Line Chart (using calculated "profitLoss")
+        function drawLineChart(chartConfig, rawData) {
+          let chart = am4core.create("chartContainerLine", am4charts.XYChart);
+          chart.data = chartConfig.data;
+
+          let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+          categoryAxis.dataFields.category = pivot.amcharts.getCategoryName(rawData);
+
+          let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+
+          let series = chart.series.push(new am4charts.LineSeries());
+          series.dataFields.categoryX = pivot.amcharts.getCategoryName(rawData);
+          // "profitLoss" is the 7th measure (index 6)
+          series.dataFields.valueY = pivot.amcharts.getMeasureNameByIndex(rawData, 6);
+          series.strokeWidth = 3;
+          series.tooltipText = "{valueY.value}";
+
+          // Color line segments based on value (green for profit, red for loss)
+          series.segments.template.adapter.add("stroke", function(stroke, target) {
+            if (target.dataItem && target.dataItem.valueY < 0) {
+              return am4core.color("red");
+            }
+            return am4core.color("green");
+          });
+
+          chart.cursor = new am4charts.XYCursor();
+          chart.titles.create().text = "Line Chart - Profit / Loss";
+        }
+
+        // Pie Chart (using "quantity" which is assumed positive)
+        function drawPieChart(chartConfig, rawData) {
+          let chart = am4core.create("chartContainerPie", am4charts.PieChart);
+          chart.data = chartConfig.data;
+
+          let pieSeries = chart.series.push(new am4charts.PieSeries());
+          // "quantity" is the 3rd measure (index 2)
+          pieSeries.dataFields.value = pivot.amcharts.getMeasureNameByIndex(rawData, 2);
+          pieSeries.dataFields.category = pivot.amcharts.getCategoryName(rawData);
+          chart.innerRadius = am4core.percent(40);
+          chart.legend = new am4charts.Legend();
+          chart.titles.create().text = "Pie Chart - Quantity";
+        }
+
+        // Profit Chart (using new "profitPct" measure)
+        function drawProfitChart(chartConfig, rawData) {
+          let chart = am4core.create("chartContainerProfit", am4charts.XYChart);
+          chart.data = chartConfig.data;
+
+          let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
+          categoryAxis.dataFields.category = pivot.amcharts.getCategoryName(rawData);
+
+          let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+
+          let series = chart.series.push(new am4charts.ColumnSeries());
+          series.dataFields.categoryX = pivot.amcharts.getCategoryName(rawData);
+          // "profitPct" is the 8th measure (index 7)
+          series.dataFields.valueY = pivot.amcharts.getMeasureNameByIndex(rawData, 7);
+
+          // Color columns: red for negative profit percentage, green for positive
+          series.columns.template.adapter.add("fill", function(fill, target) {
+            if (target.dataItem && target.dataItem.valueY < 0) {
+              return am4core.color("red");
+            }
+            return am4core.color("green");
+          });
+
+          chart.titles.create().text = "Column Chart - Profit (%)";
         }
     </script>
 </body>
