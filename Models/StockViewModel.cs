@@ -16,6 +16,10 @@ namespace MarketAnalyticHub.Models
     public double? PostMarketChangePercent { get; set; }
     public double? PostMarketPrice { get; set; }
     public long? PostMarketTime { get; set; }
+    public double? PreMarketChange { get; set; }
+    public double? PreMarketChangePercent { get; set; }
+    public double? PreMarketPrice { get; set; }
+    public long? PreMarketTime { get; set; }
     public string Symbol { get; set; }
     public string CompanyName { get; set; }
     public double? Price { get; set; }

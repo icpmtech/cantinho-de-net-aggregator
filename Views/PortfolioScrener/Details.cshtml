@@ -116,7 +116,7 @@
 <div id="mainContent" style="display: none;">
     <div class="row">
         <!-- First Column -->
-        @await Html.PartialAsync("Detail/_First")
+        @await Html.PartialAsync("Detail/_First", Model)
         <!-- Second Column -->
         @await Html.PartialAsync("Detail/_Second")
     </div>
@@ -134,7 +134,7 @@
 
             // Example stock symbol
             const urlParams = new URLSearchParams(window.location.search);
-            const stockSymbol = urlParams.get('stockSymbol');
+            const stockSymbol = urlParams.get('stockSymbol') || urlParams.get('searchQuery') ;
 
             // Base API endpoint
             const apiEndpoint = "/api/stockfinance/search-finance";
@@ -664,7 +664,59 @@
                         "container_id": chartId
                     });
                 }
-
+                  // New function: Render an area (ARM) chart for dividends
+        function renderDividendsChart(dividends) {
+            const container = document.getElementById("dividendsChart");
+            if (!dividends || dividends.length === 0) {
+                container.innerHTML = "<p>No dividend data available</p>";
+                return;
+            }
+            // Convert dividend data into series data for the chart
+            const seriesData = dividends.map(dividend => ({
+                x: new Date(dividend.exDate).toLocaleDateString("en-US"),
+                y: parseFloat(dividend.amount.replace(',', '.'))
+            }));
+            const options = {
+                chart: {
+                    type: 'area',
+                    height: 300,
+                    toolbar: {
+                        show: true,
+                        tools: {
+                            download: true,
+                            selection: true,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            reset: true,
+                        },
+                    },
+                },
+                series: [{
+                    name: 'Dividend Amount',
+                    data: seriesData,
+                }],
+                xaxis: {
+                    type: 'category',
+                    title: { text: 'Ex-Dividend Date' },
+                },
+                yaxis: {
+                    title: { text: 'Dividend Amount' },
+                },
+                tooltip: {
+                    y: {
+                        formatter: function(val) { return `${val}`; }
+                    }
+                },
+                stroke: { curve: 'smooth' },
+                markers: { size: 4 },
+                grid: { borderColor: '#f1f1f1' },
+                colors: ['#28a745'],
+            };
+            const chart = new ApexCharts(container, options);
+            chart.render();
+        }
 
 
                 // Initialize Dashboard
@@ -686,6 +738,7 @@
                     renderDetails(stockDatas?.stock);
                     renderFundamentals(stockDatas?.stock);
                     renderDividends(stockDatas?.stock);
+                     renderDividendsChart(stockDatas?.stock.dividends);
                     renderTechnicalSignals(stockDatas?.stock.technicalSignals);
                     renderAnalystSignals(stockDatas?.stock.analystRatings);
                     renderChartPortfolio(stockDatas?.stock.dataCardForSymbol);

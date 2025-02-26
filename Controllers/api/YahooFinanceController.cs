@@ -7,6 +7,7 @@ using System.Text;
 using HtmlAgilityPack;
 using Azure;
 using MarketAnalyticHub.Services.ApiDataApp.Services;
+using YahooFinanceApi;
 namespace MarketAnalyticHub.Controllers.api
 {
   [ApiController]
@@ -20,7 +21,39 @@ namespace MarketAnalyticHub.Controllers.api
     {
       _httpClient = httpClient;
     }
+    // GET: api/yahoofinance/price/AAPL
+    [HttpGet("summary-today/{symbol}")]
+    public async Task<IActionResult> GetDividendsData(string symbol)
+    {
+      try
+      {
+        var detailedQuoteResponse= await  YahooService.GetDetailedQuoteAsync(symbol);
+        return Ok(detailedQuoteResponse);
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(new { Message = ex.Message });
+      }
+    }
+    // GET: api/yahoofinance/price/AAPL
+    [HttpGet("summary-data-price/{symbol}")]
+    public async Task<IActionResult> GetSummaryData(string symbol)
+    {
+      try
+      {
 
+        var securities = await YahooFinanceApi.Yahoo.Symbols(symbol).Fields(Field.Symbol, Field.RegularMarketPrice, Field.FiftyTwoWeekHigh).QueryAsync();
+        var aapl = securities[symbol];
+        var price = aapl[Field.RegularMarketPrice];
+
+
+        return Ok(price);
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(new { Message = ex.Message });
+      }
+    }
     // GET: api/yahoofinance/price/AAPL
     [HttpGet("price/{symbol}")]
     public async Task<IActionResult> GetPrice(string symbol)

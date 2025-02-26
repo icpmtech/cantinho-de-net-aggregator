@@ -1,6 +1,7 @@
 using Flurl;
 using Flurl.Http;
 using MarketAnalyticHub.Models.YahooFinance;
+using MarketAnalyticHub.Models.Yhaoo.Models;
 using MarketAnalyticHub.YaooServive.Models;
 using Newtonsoft.Json;
 using System;
@@ -12,7 +13,7 @@ using YahooFinanceApi;
 
 namespace MarketAnalyticHub.Controllers.api
 {
-  internal static class YahooService
+  internal static partial class YahooService
   {
     private static string _crumb;
     private static FlurlCookie _cookie;
@@ -766,7 +767,81 @@ namespace MarketAnalyticHub.Controllers.api
       }
   }
 
+    public static async Task<DetailedQuoteResponse> GetDetailedQuoteAsync(string symbol,CancellationToken token = default)
+    {
+      // Ensure the auth cookie and crumb have been initialized
+      await InitAsync(token);
 
+      // Build the URL with the provided query string parameters.
+      var url = $"https://query1.finance.yahoo.com/v7/finance/quote?&symbols={symbol}&fields=currency,fromCurrency,toCurrency,exchangeTimezoneName,exchangeTimezoneShortName,gmtOffSetMilliseconds,regularMarketChange,regularMarketChangePercent,regularMarketPrice,regularMarketTime,preMarketTime,postMarketTime,extendedMarketTime&crumb=00nPqdRgO8P&formatted=false&region=US&lang=en-US";
+
+      try
+      {
+        // Call the endpoint and deserialize the JSON into our model.
+        var response = await url
+          .SetQueryParam("crumb", Crumb) // Assuming 'Crumb' is a predefined string variable
+            .WithCookie(_cookie.Name, _cookie.Value) // Assuming '_cookie' is a predefined object
+            .WithHeader(UserAgentKey, UserAgentValue)
+            .GetJsonAsync<DetailedQuoteResponse>(token);
+
+        // Validate that the response contains the expected data.
+        if (response?.quoteResponse?.result == null)
+        {
+          throw new Exception("Failed to retrieve detailed quote data for AAPL.");
+        }
+
+        /* 
+         * The expected JSON result will have the following structure:
+         * {
+         *   "quoteResponse": {
+         *     "result": [
+         *       {
+         *         "language": "en-US",
+         *         "region": "US",
+         *         "quoteType": "EQUITY",
+         *         "typeDisp": "Equity",
+         *         "quoteSourceName": "Nasdaq Real Time Price",
+         *         "triggerable": true,
+         *         "customPriceAlertConfidence": "HIGH",
+         *         "regularMarketChangePercent": -0.024286853,
+         *         "marketState": "PRE",
+         *         "exchange": "NMS",
+         *         "exchangeTimezoneName": "America/New_York",
+         *         "exchangeTimezoneShortName": "EST",
+         *         "gmtOffSetMilliseconds": -18000000,
+         *         "market": "us_market",
+         *         "esgPopulated": false,
+         *         "regularMarketPrice": 247.04,
+         *         "currency": "USD",
+         *         "preMarketTime": 1740570978,
+         *         "postMarketTime": 1740531597,
+         *         "regularMarketTime": 1740517200,
+         *         "hasPrePostMarketData": true,
+         *         "firstTradeDateMilliseconds": 345479400000,
+         *         "priceHint": 2,
+         *         "regularMarketChange": -0.060012817,
+         *         "regularMarketPreviousClose": 247.1,
+         *         "fullExchangeName": "NasdaqGS",
+         *         "sourceInterval": 15,
+         *         "exchangeDataDelayedBy": 0,
+         *         "tradeable": false,
+         *         "cryptoTradeable": false,
+         *         "symbol": "AAPL"
+         *       }
+         *     ],
+         *     "error": null
+         *   }
+         * }
+         */
+
+        return response;
+      }
+      catch (FlurlHttpException ex)
+      {
+        Console.WriteLine($"Error in GetDetailedQuoteAsync: {ex.Message}");
+        throw;
+      }
+    }
 
 
     public static async Task<IEnumerable<dynamic>> GetHistoricalAsync(string symbol, DateTime startDate, DateTime endDate, Period daily, CancellationToken token = default)

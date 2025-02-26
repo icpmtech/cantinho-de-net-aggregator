@@ -31,9 +31,8 @@ namespace MarketAnalyticHub.Services
       try
       {
         // Fetching the latest price from Yahoo Finance
-        var securities = await Yahoo.Symbols(symbol).Fields(Field.Symbol, Field.RegularMarketPrice).QueryAsync();
-        var security = securities[symbol];
-        return (decimal)security.RegularMarketPrice;
+        var securities = await Yahoo.Finance.EquitySummaryData.CreateAsync(symbol);
+        return (decimal)securities.Price;
       }
       catch (Exception ex)
       {
