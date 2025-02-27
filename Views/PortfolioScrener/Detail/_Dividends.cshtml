@@ -7,14 +7,23 @@
 <!-- New container for the dividends area chart -->
 <div id="dividendsChart" style="margin-top: 20px;"></div>
 <div class="table-responsive text-nowrap mt-1" >
-    <table class="table">
+    <div>
+        <label for="startDate">Start Date:</label>
+        <input type="date" id="startDate" />
+
+        <label for="endDate">End Date:</label>
+        <input type="date" id="endDate" />
+
+        <button type="button" class="btn btn-label-primary" id="filterButton">Filter</button>
+    </div>
+    <table id="dividendsTable" class="table">
         <thead>
             <tr>
                 <th>Date</th>
                 <th>Amount</th>
             </tr>
         </thead>
-        <tbody id="dividendsTable">
+        <tbody>
             <tr>
                 <td colspan="3">No dividend data available.</td>
             </tr>

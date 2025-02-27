@@ -501,25 +501,42 @@
             }
 
             // Function to display dividends
-            function renderDividends(data) {
-                const dividendsTable = document.getElementById("dividendsTable");
-                dividendsTable.innerHTML = ""; // Clear existing data
+                function renderDividends(data, startDate, endDate) {
+          const tbody = document.getElementById("dividendsTable").getElementsByTagName("tbody")[0];
+          tbody.innerHTML = ""; // Clear existing data
 
-                if (data.dividends && data.dividends.length > 0) {
-                    data.dividends.forEach(dividend => {
-                        const row = document.createElement("tr");
-                        row.innerHTML = `
-                            <td>${dividend.exDate}</td>
-                            <td>${dividend.amount}</td>
-                        `;
-                        dividendsTable.appendChild(row);
-                    });
-                } else {
-                    const noDataRow = document.createElement("tr");
-                    noDataRow.innerHTML = `<td colspan="3">No dividend data available.</td>`;
-                    dividendsTable.appendChild(noDataRow);
-                }
-            }
+          let dividends = data.dividends || [];
+
+          // Filter dividends by date if filters are provided
+          if (startDate || endDate) {
+            dividends = dividends.filter(dividend => {
+              const dividendDate = new Date(dividend.exDate);
+              if (startDate && dividendDate < new Date(startDate)) {
+                return false;
+              }
+              if (endDate && dividendDate > new Date(endDate)) {
+                return false;
+              }
+              return true;
+            });
+          }
+
+          if (dividends.length > 0) {
+            dividends.forEach(dividend => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${dividend.exDate}</td>
+                <td>${dividend.amount}</td>
+              `;
+              tbody.appendChild(row);
+            });
+          } else {
+            const noDataRow = document.createElement("tr");
+            noDataRow.innerHTML = `<td colspan="2">No dividend data available.</td>`;
+            tbody.appendChild(noDataRow);
+          }
+        }
+            
 
             // Render technical signals
             function renderTechnicalSignals(data) {
@@ -718,10 +735,10 @@
             chart.render();
         }
 
-
+        let   stockDatas;
                 // Initialize Dashboard
             async function initializeDashboard() {
-                const stockDatas = await fetchStockData(stockSymbol);
+                 stockDatas = await fetchStockData(stockSymbol);
               
                 if (stockDatas?.stock) {
                               // Example Usage:
@@ -752,6 +769,12 @@
             }
                 document.addEventListener('DOMContentLoaded', function () {
                initializeDashboard();
+                // Event listener for the filter button
+        document.getElementById("filterButton").addEventListener("click", () => {
+          const startDate = document.getElementById("startDate").value;
+          const endDate = document.getElementById("endDate").value;
+          renderDividends(stockDatas?.stock, startDate, endDate);
+        });
             });
 
     </script>
