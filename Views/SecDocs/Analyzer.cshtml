@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SEC 10-K Financial Analysis - AI Enhanced</title>
+    <title>SEC 10-K Financial Analysis - In-Place Chart Generation</title>
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts (Roboto) -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- FontAwesome for icons -->
@@ -197,7 +196,6 @@
     </div>
 
     <!-- Bootstrap JS bundle -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
         // --------------------------
@@ -326,7 +324,7 @@
         }
 
         // --------------------------
-        // 4. Creating Tab Items (Analysis first, then Table)
+        // 4. Creating Tab Items (Analysis first, then Table, then Generate Chart button inline)
         // --------------------------
         function createTabItem(sheetName, data, index) {
           const sanitizedName = sanitizeSheetName(sheetName);
@@ -334,6 +332,8 @@
           const paneId = `sheetPane_${sanitizedName}`;
           const sheetTabs = document.getElementById("sheetTabs");
           const sheetTabsContent = document.getElementById("sheetTabsContent");
+
+          // Create tab navigation item
           const li = document.createElement("li");
           li.className = "nav-item";
           li.setAttribute("role", "presentation");
@@ -357,7 +357,7 @@
           tabPane.setAttribute("role", "tabpanel");
           tabPane.setAttribute("aria-labelledby", tabId);
 
-          // 1) Button Group: Analyze Data and Generate Chart
+          // 1) Button Group: only Analyze Data button now
           const btnGroup = document.createElement("div");
           btnGroup.className = "d-flex flex-wrap gap-2 mt-3";
           const analyzeBtn = document.createElement("button");
@@ -365,11 +365,6 @@
           analyzeBtn.innerHTML = '<i class="fas fa-robot"></i> Analyze Data';
           analyzeBtn.onclick = () => analyzeData(sheetName, data);
           btnGroup.appendChild(analyzeBtn);
-          const chartBtn = document.createElement("button");
-          chartBtn.className = "btn btn-warning";
-          chartBtn.innerHTML = '<i class="fas fa-chart-bar"></i> Generate Chart';
-          chartBtn.onclick = () => createDynamicChart(sheetName, data);
-          btnGroup.appendChild(chartBtn);
 
           // 2) Analysis Container
           const analysisDiv = document.createElement("div");
@@ -400,15 +395,22 @@
           table.appendChild(thead);
           table.appendChild(tbody);
 
-          // 4) Chart Container
+          // 4) Generate Chart Button (placed inline after the table)
+          const generateChartBtn = document.createElement("button");
+          generateChartBtn.className = "btn btn-warning mt-3";
+          generateChartBtn.innerHTML = '<i class="fas fa-chart-bar"></i> Generate Chart';
+          generateChartBtn.onclick = () => createDynamicChart(sheetName, data);
+
+          // 5) Chart Container (where the chart will be rendered)
           const chartContainerDiv = document.createElement("div");
           chartContainerDiv.className = "chart-container";
           chartContainerDiv.id = "chartContainer_" + sanitizedName;
 
-          // Append elements in order: Button Group, Analysis Container, Table, then Chart Container
+          // Append elements in order: Button Group, Analysis Container, Table, Generate Chart Button, then Chart Container
           tabPane.appendChild(btnGroup);
           tabPane.appendChild(analysisDiv);
           tabPane.appendChild(table);
+          tabPane.appendChild(generateChartBtn);
           tabPane.appendChild(chartContainerDiv);
           sheetTabsContent.appendChild(tabPane);
         }
@@ -423,7 +425,7 @@
           // Clear any previous chart
           chartDiv.innerHTML = "";
 
-          // Determine the number of numeric columns (excluding the first category column)
+          // Determine numeric column count (ignoring the first category column)
           const headers = data[0];
           let numericCount = 0;
           for (let j = 1; j < headers.length; j++) {
@@ -434,10 +436,10 @@
               }
             }
           }
-          // Decide chart type: if only one numeric column, use Pie; else use Column chart.
+          // Use a pie chart if there's only one numeric column; otherwise, use a column chart.
           const chartType = (numericCount === 1) ? "pie" : "column";
 
-          // Prepare data for charting
+          // Prepare chart data
           let chartData = [];
           for (let i = 1; i < data.length; i++) {
             const row = data[i];
@@ -450,12 +452,10 @@
             chartData.push(dataObj);
           }
 
-          // Create chart using amCharts based on the determined type
           let root = am5.Root.new(containerId);
           root.setThemes([am5themes_Animated.new(root)]);
 
           if (chartType === "pie") {
-            // Create a Pie Chart (using the second column as the value)
             if (headers.length < 2) {
               chartDiv.innerHTML = "Not enough numeric data for a Pie Chart.";
               return;
@@ -475,7 +475,6 @@
             series.data.setAll(chartData);
             series.appear(1000, 100);
           } else {
-            // Create a Column Chart (XY Chart)
             let chart = root.container.children.push(
               am5xy.XYChart.new(root, {
                 panX: true,
@@ -485,7 +484,6 @@
                 layout: root.verticalLayout
               })
             );
-            // X Axis
             let xAxis = chart.xAxes.push(
               am5xy.CategoryAxis.new(root, {
                 categoryField: "category",
@@ -494,11 +492,9 @@
               })
             );
             xAxis.data.setAll(chartData);
-            // Y Axis
             let yAxis = chart.yAxes.push(
               am5xy.ValueAxis.new(root, { renderer: am5xy.AxisRendererY.new(root, {}) })
             );
-            // For each numeric header (starting at index 1)
             for (let j = 1; j < headers.length; j++) {
               let seriesKey = headers[j] || ("Series " + j);
               let series = chart.series.push(
@@ -514,7 +510,6 @@
               series.data.setAll(chartData);
               series.appear();
             }
-            // Optional: Add a legend
             let legend = chart.children.push(
               am5.Legend.new(root, { centerX: am5.p50, x: am5.p50, layout: root.horizontalLayout })
             );
