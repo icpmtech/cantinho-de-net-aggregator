@@ -8,8 +8,12 @@ namespace MarketAnalyticHub.Controllers.Documents
     {
       return View();
     }
-
+    
     public IActionResult Analyzer()
+    {
+      return View();
+    }
+    public IActionResult BalanceAnalyzer()
     {
       return View();
     }

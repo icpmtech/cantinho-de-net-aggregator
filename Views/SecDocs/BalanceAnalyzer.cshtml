@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Financial Document Analyzer</title>
+    <!-- Bootstrap CSS for modern styling -->
+    <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Roboto', sans-serif;
+        }
+        /* Fixed top navbar with a deep blue background */
+        .navbar {
+            background-color: #004080;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        .upload-section {
+            margin-top: 80px;
+            margin-bottom: 40px;
+        }
+        /* Card styling for page previews */
+        .card {
+            margin-bottom: 30px;
+            border-radius: 10px;
+        }
+
+        .page-header {
+            background: #004080;
+            color: white;
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .analyze-button {
+            transition: background-color 0.3s;
+        }
+
+            .analyze-button:hover {
+                background-color: #003366;
+            }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding: 20px 0;
+            background-color: #004080;
+            color: white;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- Fixed Settings Button -->
+    <button class="btn btn-secondary position-fixed" style="top:10px; right:10px; z-index:1050;" data-bs-toggle="offcanvas" data-bs-target="#offcanvasAPIKey" aria-controls="offcanvasAPIKey">
+        Settings
+    </button>
+
+    <!-- Offcanvas Drawer for API Key Settings -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasAPIKey" aria-labelledby="offcanvasAPIKeyLabel">
+        <div class="offcanvas-header">
+            <h5 id="offcanvasAPIKeyLabel">API Key Settings</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="mb-3">
+                <label for="apiKeyInput" class="form-label">Enter your API Key:</label>
+                <input type="text" class="form-control" id="apiKeyInput" placeholder="sk-...">
+            </div>
+            <button id="saveApiKeyButton" class="btn btn-primary">Save API Key</button>
+            <div id="apiKeyMessage" class="mt-2"></div>
+        </div>
+    </div>
+
+    <!-- File Upload Section -->
+    <div class="container upload-section">
+        <div class="card p-4 shadow">
+            <h2 class="card-title text-center mb-4">Upload Financial Document (PDF)</h2>
+            <div class="mb-3">
+                <label for="pdfInput" class="form-label">Choose a PDF file:</label>
+                <input type="file" id="pdfInput" class="form-control" accept="application/pdf">
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Container -->
+    <div class="container" id="previewContainer"></div>
+
+    <!-- PDF.js, Bootstrap JS, and Popper.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+                // Load saved API key on page load
+                document.addEventListener('DOMContentLoaded', () => {
+                    const savedKey = localStorage.getItem("apiKey");
+                    if (savedKey) {
+                        document.getElementById("apiKeyInput").value = savedKey;
+                    }
+                });
+
+                // Save API key to local storage
+                document.getElementById("saveApiKeyButton").addEventListener("click", () => {
+                    const apiKey = document.getElementById("apiKeyInput").value.trim();
+                    if(apiKey) {
+                        localStorage.setItem("apiKey", apiKey);
+                        document.getElementById("apiKeyMessage").innerHTML = '<div class="alert alert-success">API Key saved successfully!</div>';
+                    } else {
+                        document.getElementById("apiKeyMessage").innerHTML = '<div class="alert alert-warning">Please enter a valid API Key.</div>';
+                    }
+                });
+
+                // Configure PDF.js worker
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+                document.getElementById('pdfInput').addEventListener('change', handleFileSelect);
+
+                async function handleFileSelect(event) {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const fileReader = new FileReader();
+                    fileReader.onload = async function(e) {
+                        const typedarray = new Uint8Array(e.target.result);
+                        const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                        const previewContainer = document.getElementById('previewContainer');
+                        previewContainer.innerHTML = ''; // clear previous previews
+
+                        // Loop through each page of the PDF
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            // Create a card for each page preview
+                            const pageCard = document.createElement('div');
+                            pageCard.className = 'card shadow';
+
+                            // Create header for the card
+                            const cardHeader = document.createElement('div');
+                            cardHeader.className = 'page-header';
+                            cardHeader.textContent = `Page ${i}`;
+                            pageCard.appendChild(cardHeader);
+
+                            // Create card body for canvas and button
+                            const cardBody = document.createElement('div');
+                            cardBody.className = 'card-body';
+
+                            // Add analysis button with tooltip
+                            const analyzeButton = document.createElement('button');
+                            analyzeButton.className = 'btn btn-primary analyze-button';
+                            analyzeButton.textContent = 'Analyze This Page';
+                            analyzeButton.setAttribute('data-bs-toggle', 'tooltip');
+                            analyzeButton.setAttribute('title', 'Click to analyze financial metrics on this page');
+                            analyzeButton.addEventListener('click', function() {
+                                analyzePage(page, i, pageCard);
+                            });
+                            cardBody.appendChild(analyzeButton);
+
+                            // Analysis result container
+                            const resultDiv = document.createElement('div');
+                            resultDiv.className = 'analysis-result mt-3';
+                            cardBody.appendChild(resultDiv);
+
+                            // Create a canvas element for the page preview
+                            const canvas = document.createElement('canvas');
+                            canvas.className = 'img-fluid mb-3';
+                            cardBody.appendChild(canvas);
+                            const viewport = page.getViewport({ scale: 1.0 });
+                            canvas.height = viewport.height;
+                            canvas.width = viewport.width;
+                            const context = canvas.getContext('2d');
+                            await page.render({ canvasContext: context, viewport: viewport }).promise;
+
+                            pageCard.appendChild(cardBody);
+                            previewContainer.appendChild(pageCard);
+
+                            // Enable Bootstrap tooltip for the button
+                            new bootstrap.Tooltip(analyzeButton);
+                        }
+                    };
+                    fileReader.readAsArrayBuffer(file);
+                }
+
+                async function analyzePage(page, pageNum, container) {
+                    const resultDiv = container.querySelector('.analysis-result');
+                    resultDiv.innerHTML = `<div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Analyzing page...</p>
+                    </div>`;
+
+                    // Extract text from the page using PDF.js
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(" ");
+
+                    // Reformulated prompt for deeper financial expertise
+                    const prompt = `You are a seasoned financial analyst with deep expertise in corporate finance and investment analysis. Analyze the following financial document page content in detail, focusing on extracting key metrics such as revenue, profit margins, earnings, growth trends, expenses, liquidity, and solvency ratios. Provide qualitative insights regarding operational efficiency, risk factors, and strategic implications.
+        Return your analysis as HTML table rows with two columns: 'Financial Metric' and 'Insight/Value'.
+        Content:
+        ${pageText}`;
+
+                    try {
+                        const analysisResult = await analyzeWithOpenAI(prompt);
+                        resultDiv.innerHTML = `
+                            <div class="card p-3 mt-3">
+                                <h6 class="mb-3">Analysis Result for Page ${pageNum}:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="table-dark">
+                                            <tr><th>Financial Metric</th><th>Insight/Value</th></tr>
+                                        </thead>
+                                        <tbody>
+                                            ${analysisResult}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>`;
+                    } catch (error) {
+                        resultDiv.innerHTML = `<div class="alert alert-danger mt-2">Error analyzing page: ${error.message}</div>`;
+                    }
+                }
+
+                async function analyzeWithOpenAI(prompt) {
+                    const apiKey = localStorage.getItem("apiKey");
+                    if (!apiKey) {
+                        throw new Error("API key not set. Please enter your API key in the settings drawer.");
+                    }
+                    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + apiKey
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-3.5-turbo",
+                            messages: [
+                                { "role": "system", "content": "You are an expert financial and data analyst." },
+                                { "role": "user", "content": prompt }
+                            ],
+                            max_tokens: 500,
+                            temperature: 0.7
+                        })
+                    });
+                    const data = await response.json();
+                    return data.choices[0].message.content.trim();
+                }
+    </script>
+</body>
+</html>

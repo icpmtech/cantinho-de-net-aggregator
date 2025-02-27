@@ -48,6 +48,16 @@
                 <div>Sec Fillings</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage == "/SecDocs/Analyzer" ? " active" : "")'>
+            <a asp-controller="SecDocs" asp-action="Analyzer" class="menu-link">
+                <div>Sec Analyzer</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/SecDocs/BalanceAnalyzer" ? " active" : "")'>
+            <a asp-controller="SecDocs" asp-action="BalanceAnalyzer" class="menu-link">
+                <div>Balance Analyzer</div>
+            </a>
+        </li>
     </ul>
 </li>
 
