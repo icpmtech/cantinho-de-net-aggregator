@@ -56,7 +56,6 @@ builder.Services.AddAuthentication(options =>
   IConfigurationSection googleAuthNSection = builder.Configuration.GetSection("Authentication:Google");
   options.ClientId = googleAuthNSection["ClientId"];
   options.ClientSecret = googleAuthNSection["ClientSecret"];
-  options.CallbackPath = "/signin-google";
 })
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"))
     .EnableTokenAcquisitionToCallDownstreamApi()

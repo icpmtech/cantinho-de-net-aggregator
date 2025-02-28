@@ -30,11 +30,64 @@ namespace MarketAnalyticHub.Controllers
     [HttpGet]
     public IActionResult LoginGoogle()
     {
-      var redirectUrl = Url.Action(nameof(LoginCallback), "Account");
-      var properties = new AuthenticationProperties { RedirectUri = redirectUrl };
+      var redirectUrl = Url.Action(nameof(GoogleCallback), "Account", null, Request.Scheme);
+      var properties = new AuthenticationProperties
+      {
+        RedirectUri = redirectUrl,
+        Items =
+        {
+            { "scheme", "Google" },
+        }
+      };
       return Challenge(properties, GoogleDefaults.AuthenticationScheme);
     }
+    [HttpGet]
+    public async Task<IActionResult> GoogleCallback()
+    {
+      var authenticateResult = await HttpContext!.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+      if (!authenticateResult.Succeeded && authenticateResult.Principal == null)
+        return BadRequest("Failed to authenticate.");
 
+        var claims = authenticateResult.Principal.Claims;
+        var name = claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
+        var givenName = claims.FirstOrDefault(c => c.Type == ClaimTypes.GivenName)?.Value;
+        var email = claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+
+        if (email == null)
+          return BadRequest("Email claim not found.");
+
+        var user = await _userManager.FindByEmailAsync(email);
+
+        if (user == null)
+        {
+          user = new ApplicationUser { UserName = email, Email = email };
+          var createUserResult = await _userManager.CreateAsync(user);
+
+          if (!createUserResult.Succeeded)
+          {
+            foreach (var error in createUserResult.Errors)
+            {
+              ModelState.AddModelError(string.Empty, error.Description);
+            }
+            return RedirectToAction("Index", "Home");
+          }
+
+          var roleResult = await _userManager.AddToRoleAsync(user, "Standard");
+
+          if (!roleResult.Succeeded)
+          {
+            foreach (var error in roleResult.Errors)
+            {
+              ModelState.AddModelError(string.Empty, error.Description);
+            }
+            await _userManager.DeleteAsync(user); // Rollback user creation if role assignment fails
+            return RedirectToAction("Index", "Home");
+          }
+        }
+
+        await _signInManager.SignInAsync(user, isPersistent: false);
+        return RedirectToAction("Index", "Dashboards");
+      }
     public async Task<IActionResult> LoginCallback()
     {
       var authenticateResult = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);

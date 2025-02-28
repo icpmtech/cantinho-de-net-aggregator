@@ -1,28 +1,48 @@
 @model MarketAnalyticHub.Models.UserProfile
 
+@{
+    // Define the subscription period in days.
+    int totalDays = 30;
+    // Calculate the remaining days until the plan expires.
+    int daysRemaining = (Model.PlanExpiry.Date - DateTime.Today).Days;
+    // Calculate the number of days used.
+    int daysUsed = totalDays - daysRemaining;
+    // Clamp daysUsed to a valid range (0 to totalDays)
+    daysUsed = Math.Max(0, Math.Min(daysUsed, totalDays));
+    // Calculate progress percentage.
+    int progress = (int)((daysUsed / (double)totalDays) * 100);
+}
+
 <div class="card mt-3 mb-6 border border-2 border-primary rounded primary-shadow">
     <div class="card-body">
         <div class="d-flex justify-content-between align-items-start">
-            <span class="badge bg-label-primary">Standard</span>
+            <span class="badge bg-label-primary">@Model.Plan</span>
             <div class="d-flex justify-content-center">
                 <sub class="h5 pricing-currency mb-auto mt-1 text-primary">$</sub>
-                <h1 class="mb-0 text-primary">99</h1>
+                <h1 class="mb-0 text-primary">0</h1>
                 <sub class="h6 pricing-duration mt-auto mb-3 fw-normal">month</sub>
             </div>
         </div>
         <ul class="list-unstyled g-2 my-6">
-            <li class="mb-2 d-flex align-items-center"><i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>10 Users</span></li>
-            <li class="mb-2 d-flex align-items-center"><i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>Up to 10 GB storage</span></li>
-            <li class="mb-2 d-flex align-items-center"><i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>Basic Support</span></li>
+            <li class="mb-2 d-flex align-items-center">
+                <i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>1 Portfolio</span>
+            </li>
+            <li class="mb-2 d-flex align-items-center">
+                <i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>10 Credits AI Pilot</span>
+            </li>
+            <li class="mb-2 d-flex align-items-center">
+                <i class="bx bxs-circle bx-6px text-secondary me-2"></i><span>No Support</span>
+            </li>
         </ul>
         <div class="d-flex justify-content-between align-items-center mb-1">
             <span class="h6 mb-0">Days</span>
-            <span class="h6 mb-0">26 of 30 Days</span>
+            <span class="h6 mb-0">@daysUsed of @totalDays Days</span>
         </div>
         <div class="progress mb-1">
-            <div class="progress-bar" role="progressbar" style="width: 65%;" aria-valuenow="65" aria-valuemin="0" aria-valuemax="100"></div>
+            <div class="progress-bar" role="progressbar" style="width: @progress%;" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
-        <small>4 days remaining</small>
+        <small>@daysRemaining days remaining</small>
+
         <div class="d-grid w-100 mt-6">
             <button class="btn btn-primary" data-bs-target="#upgradePlanModal" data-bs-toggle="modal">Upgrade Plan</button>
         </div>
