@@ -8,6 +8,7 @@ using HtmlAgilityPack;
 using Azure;
 using MarketAnalyticHub.Services.ApiDataApp.Services;
 using YahooFinanceApi;
+using MarketAnalyticHub.Services;
 namespace MarketAnalyticHub.Controllers.api
 {
   [ApiController]
@@ -16,11 +17,43 @@ namespace MarketAnalyticHub.Controllers.api
   {
 
     private readonly HttpClient _httpClient;
+    private readonly DividendService dividendService;
 
-    public YahooFinanceController(HttpClient httpClient)
+    public YahooFinanceController(HttpClient httpClient,DividendService dividendService)
     {
       _httpClient = httpClient;
+      this.dividendService = dividendService;
     }
+
+    // GET: api/yahoofinance/price/AAPL
+    [HttpGet("dividends-symbol/{symbol}")]
+    public async Task<IActionResult> GetDividends(string symbol, DateTime? start, DateTime? end)
+    {
+      try
+      {
+        DateTime startDate= DateTime.Today.AddYears(-5);
+        DateTime endDate= DateTime.Today;
+        // Set default values if not provided
+        if (start.HasValue)
+        {
+          startDate = start.Value;
+        }
+        if (end.HasValue)
+        {
+          endDate = end.Value;
+        }
+
+        var dividends = await dividendService.GetDividendsAsync(symbol, startDate, endDate);
+        return Ok(dividends);
+      }
+      catch (Exception ex)
+      {
+        return BadRequest(new { Message = ex.Message });
+      }
+    }
+
+
+
     // GET: api/yahoofinance/price/AAPL
     [HttpGet("summary-today/{symbol}")]
     public async Task<IActionResult> GetDividendsData(string symbol)

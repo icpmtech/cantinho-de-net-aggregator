@@ -106,26 +106,33 @@ namespace MarketAnalyticHub.Controllers
         return NotFound("No portfolios found for the user.");
       }
 
-      // Group symbols across all portfolios
+      // Group symbols across all portfolios and safely compute percentages
       var symbolStatistics = portfolios.SelectMany(p => p.Items)
                                        .GroupBy(i => i.Symbol)
-                                       .Select(g => new SymbolStatisticsDto
+                                       .Select(g =>
                                        {
-                                         Symbol = g.Key,
-                                         Quantity = g.Sum(i => i.Quantity),
-                                         TotalInvestment = g.Sum(i => i.Quantity * i.PurchasePrice),
-                                         CurrentMarketValue = g.Sum(i => i.Quantity * i.CurrentPrice),
-                                         Dividends = g.Sum(i => i.Dividends.Sum(d => d.Amount)),
-                                         Profit = g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)),
-                                         ProfitPercentage = (g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)) / g.Sum(i => i.Quantity * i.PurchasePrice)) * 100,
-                                         PLValue = g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)), // Profit/Loss Value
-                                         PLPercentage = (g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice)) / g.Sum(i => i.Quantity * i.PurchasePrice)) * 100 // Profit/Loss Percentage
+                                         // Calculate common sums
+                                         var totalInvestment = g.Sum(i => i.Quantity * i.PurchasePrice);
+                                         var profit = g.Sum(i => (i.Quantity * i.CurrentPrice) - (i.Quantity * i.PurchasePrice));
+
+                                         return new SymbolStatisticsDto
+                                         {
+                                           Symbol = g.Key,
+                                           Quantity = g.Sum(i => i.Quantity),
+                                           TotalInvestment = totalInvestment,
+                                           CurrentMarketValue = g.Sum(i => i.Quantity * i.CurrentPrice),
+                                           Dividends = g.Sum(i => i.Dividends.Sum(d => d.Amount)),
+                                           Profit = profit,
+                                           ProfitPercentage = totalInvestment != 0 ? (profit / totalInvestment) * 100 : 0,
+                                           PLValue = profit, // Profit/Loss Value
+                                           PLPercentage = totalInvestment != 0 ? (profit / totalInvestment) * 100 : 0 // Profit/Loss Percentage
+                                         };
                                        }).ToList();
 
       var result = new
       {
         TotalValue = overallStats.TotalPortfolioProfit,
-        SymbolStatistics = symbolStatistics // Returning grouped symbol statistics
+        SymbolStatistics = symbolStatistics
       };
 
       return Json(result);
