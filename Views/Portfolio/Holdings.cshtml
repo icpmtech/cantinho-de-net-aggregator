@@ -37,13 +37,7 @@
             font-size: 1.5rem;
         }
 
-        /* Increase button sizes and tap targets for easier touch interactions */
-        .btn {
-            padding: 10px 14px;
-            font-size: 14px;
-            margin: 5px 2px;
-        }
-
+        
         /* Make the finance cards take full width on mobile */
         .finance-card {
             flex: 1 1 100%;
@@ -116,20 +110,7 @@
       color: #e8eaed;
     }
 
-    /* Button Styles */
-    .btn {
-      display: inline-block;
-      padding: 10px 16px;
-      font-size: 15px;
-      cursor: pointer;
-      border: none;
-      border-radius: 2px;
-      background-color: #1a73e8;
-      color: #fff;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
-      margin: 5px 4px;
-      text-decoration: none;
-    }
+   
     .btn:hover {
       background-color: #1669c1;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -536,7 +517,8 @@
           title: "Type",
           field: "operationType",
           editor: "select",
-          editorParams: { values: ["Buy", "Sell", "Close"] }
+          editorParams: { values: ["Buy", "Sell", "Close"] },
+              cellEdited: updateTotal
         },
         {
           title: "Quantity",
