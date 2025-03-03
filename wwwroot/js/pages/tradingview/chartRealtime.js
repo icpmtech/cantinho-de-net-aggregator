@@ -326,7 +326,7 @@ am5.ready(async function () {
 
       if (isUpdate) {
         // For real-time update, call the new endpoint
-        apiUrl = `/api/yahoofinance/chart-real-time-symbol/${encodeURIComponent(symbol)}/${encodeURIComponent(interval)}`;
+        apiUrl = `/api/yahoofinance/price/${encodeURIComponent(symbol)}`;
       } else {
         // Get startDate and endDate from input fields
         let startDateInput = document.getElementById('startDateInput').value;
@@ -360,16 +360,23 @@ am5.ready(async function () {
 
       if (isUpdate) {
         // Process the data from real-time endpoint
-        const item = rawData;
+        const item = rawData[0];
+        //const newDataPoint = {
+        //  Date: new Date(item.Timestamp || item.timestamp).getTime(), // Convert to milliseconds
+        //  Open: parseFloat(item.Open || item.open),
+        //  Close: parseFloat(item.Close || item.close),
+        //  High: parseFloat(item.High || item.high),
+        //  Low: parseFloat(item.Low || item.low),
+        //  Volume: parseInt(item.Volume || item.volume, 10)
+        //};
         const newDataPoint = {
-          Date: new Date(item.Timestamp || item.timestamp).getTime(), // Convert to milliseconds
-          Open: parseFloat(item.Open || item.open),
-          Close: parseFloat(item.Close || item.close),
-          High: parseFloat(item.High || item.high),
-          Low: parseFloat(item.Low || item.low),
-          Volume: parseInt(item.Volume || item.volume, 10)
+          Date: new Date(item.regularMarketTime * 1000).getTime(),
+          Open: parseFloat(item.regularMarketOpen),
+          Close: parseFloat(item.regularMarketPrice),
+          High: parseFloat(item.regularMarketDayHigh),
+          Low: parseFloat(item.regularMarketDayLow),
+          Volume: parseInt(item.regularMarketVolume, 10)
         };
-
         // Validate newDataPoint
         if (isNaN(newDataPoint.Date) || isNaN(newDataPoint.Close)) {
           console.error("Invalid data received for real-time update.");

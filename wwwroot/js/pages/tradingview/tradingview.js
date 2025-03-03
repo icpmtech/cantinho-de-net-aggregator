@@ -184,7 +184,7 @@ async function fetchLatestData(symbol, interval) {
       low: item.low !== null && item.low !== undefined ? Number(item.low) : null,
       volume: item.volume !== null && item.volume !== undefined ? Number(item.volume) : null,
     }));
-
+    console.log("----UPDATED---: "+mappedData);
     // Validate and filter data
     const validData = mappedData.filter(item =>
       item.open !== null &&

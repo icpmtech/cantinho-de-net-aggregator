@@ -1,5 +1,697 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Realtime Stock Chart with Autocomplete Search</title>
+  <!-- Bootstrap CSS -->
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Custom styles */
+    #autocompleteResults {
+      position: absolute;
+      z-index: 1000;
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+      width: 100%;
+    }
+    .autocomplete-item {
+      padding: 8px;
+      cursor: pointer;
+    }
+    .autocomplete-item:hover {
+      background-color: #f0f0f0;
+    }
+    #chartdiv {
+      width: 100%;
+      height: 750px; /* increased height to accommodate volume panel */
+    }
+    /* Additional styles for the info card */
+    .info-card {
+      border: none;
+      border-radius: 10px;
+      background: #fff;
+      transition: transform 0.2s ease;
+    }
+    .info-card:hover {
+      transform: translateY(-3px);
+    }
+    .info-card h4 {
+      font-weight: 700;
+    }
+    .info-card .badge {
+      font-size: 1rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 20px;
+    }
+
+      .stock-card {
+            font-family: 'Arial', sans-serif;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            background: #ffffff;
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .stock-title h2 {
+            margin: 0;
+            color: #1a1a1a;
+            font-size: 24px;
+        }
+
+        .stock-title span {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .price-section {
+            margin-bottom: 25px;
+        }
+
+        .current-price {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2e2e2e;
+            margin-bottom: 8px;
+        }
+
+        .price-change {
+            display: flex;
+            gap: 15px;
+        }
+
+        .change-positive {
+            color: #28a745;
+        }
+
+        .change-negative {
+            color: #dc3545;
+        }
+
+        .market-status {
+            padding: 6px 12px;
+            border-radius: 4px;
+            background: #f8f9fa;
+            font-size: 14px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-weight: 600;
+            color: #2e2e2e;
+        }
+
+        .pre-market {
+            color: #17a2b8;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+  </style>
+</head>
+<body>
+  <div>
+    <!-- Header -->
+    <div class="text-center card mb-3">
+            <h1 class="mb-3 mt-1"><i class="fas fa-chart-line"></i> Market Statistics</h1>
+    </div>
+
+    <!-- Autocomplete Search -->
+    <div id="searchContainer" class="position-relative  mx-auto">
+      <div class="input-group  mb-3 ">
+        <span class="input-group-text"><i class="fas fa-search"></i></span>
+        <input type="text" id="searchInput" class="form-control" placeholder="Search stocks..." autocomplete="off">
+      </div>
+      <div id="autocompleteResults" class="list-group card"></div>
+    </div>
+
+  
+    <div id="stockCardContainer" class="mb-3 mt-1" ></div>
+    <!-- Toolbar container -->
+    <div id="chartcontrols" class="mb-3 mt-1"></div>
+
+    <!-- Chart container -->
+        <div id="chartdiv" class="card"></div>
+  </div>
+
+  <!-- AmCharts Resources -->
+  <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/stock.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+  <!-- Bootstrap Bundle with Popper -->
+  <script>
+    (function() {
+      // Global variable for the currently selected symbol. Default is "INTC".
+      let currentSymbol = "INTC";
+
+      // References to chart objects.
+      let root, stockChart, valueSeries, sbSeries, volumeSeries, currentLabel, currentValueDataItem;
+
+      // Utility: debounce to limit autocomplete calls.
+      function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func.apply(this, args), delay);
+        };
+      }
+
+      // Helper function to format market cap.
+      function formatMarketCap(marketCap) {
+        if (marketCap >= 1e12) {
+          return (marketCap / 1e12).toFixed(2) + "T";
+        } else if (marketCap >= 1e9) {
+          return (marketCap / 1e9).toFixed(2) + "B";
+        } else if (marketCap >= 1e6) {
+          return (marketCap / 1e6).toFixed(2) + "M";
+        } else if (marketCap >= 1e3) {
+          return (marketCap / 1e3).toFixed(2) + "K";
+        }
+        return marketCap;
+      }
+     function updateStockCard(apiData) {
+  // Validate that apiData exists
+  if (!apiData) {
+    console.error("Invalid API data provided.");
+    document.getElementById("stockCardContainer").innerHTML =
+      `<div class="error">No data available.</div>`;
+    return;
+  }
+
+  // Safely extract values with defaults
+  const name = apiData.longName || apiData.shortName || "Unknown";
+  const symbol = apiData.symbol || "N/A";
+  const exchange = apiData.fullExchangeName || "N/A";
+  const marketState = apiData.marketState || "N/A";
+
+  const regularMarketPrice = (apiData.regularMarketPrice != null)
+    ? apiData.regularMarketPrice.toFixed(2)
+    : "0.00";
+  const regularMarketChange = (apiData.regularMarketChange != null)
+    ? apiData.regularMarketChange.toFixed(2)
+    : "0.00";
+  const regularMarketChangePercent = (apiData.regularMarketChangePercent != null)
+    ? apiData.regularMarketChangePercent.toFixed(2)
+    : "0.00";
+
+  const preMarketPrice = (apiData.preMarketPrice != null)
+    ? apiData.preMarketPrice.toFixed(2)
+    : "0.00";
+  const preMarketChangePercent = (apiData.preMarketChangePercent != null)
+    ? apiData.preMarketChangePercent.toFixed(2)
+    : "0.00";
+
+  const marketCap = apiData.marketCap || 0;
+  const forwardPE = (apiData.forwardPE != null)
+    ? apiData.forwardPE.toFixed(2)
+    : "--";
+  const dividendYield = (apiData.dividendYield != null)
+    ? apiData.dividendYield.toFixed(2) + '%'
+    : '--';
+  const fiftyTwoWeekLow = (apiData.fiftyTwoWeekLow != null)
+    ? apiData.fiftyTwoWeekLow
+    : "N/A";
+  const fiftyTwoWeekHigh = (apiData.fiftyTwoWeekHigh != null)
+    ? apiData.fiftyTwoWeekHigh
+    : "N/A";
+
+  const cardHtml = `
+    <div class="stock-card">
+      <div class="stock-header">
+        <div class="stock-title">
+          <h2>${name}</h2>
+          <span>${symbol} · ${exchange}</span>
+        </div>
+        <div class="market-status">${marketState}</div>
+      </div>
+
+      <div class="price-section">
+        <div class="current-price">${regularMarketPrice}</div>
+        <div class="price-change">
+          <div class="${apiData.regularMarketChange >= 0 ? 'change-positive' : 'change-negative'}">
+            ${apiData.regularMarketChange >= 0 ? '+' : ''}${regularMarketChange} (${apiData.regularMarketChangePercent >= 0 ? '+' : ''}${regularMarketChangePercent}%)
+          </div>
+
+          <div class="pre-market">
+            Pre: ${preMarketPrice} (${apiData.preMarketChangePercent >= 0 ? '+' : ''}${preMarketChangePercent}%)
+          </div>
+        </div>
+      </div>
+
+      <div class="text-muted text-end" id="infoTime">Updated: --</div>
+
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Market Cap</div>
+          <div class="stat-value">${formatMarketCap(marketCap)}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">P/E Ratio</div>
+          <div class="stat-value">${forwardPE}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">Dividend Yield</div>
+          <div class="stat-value">${dividendYield}</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-label">52 Week Range</div>
+          <div class="stat-value">${fiftyTwoWeekLow} - ${fiftyTwoWeekHigh}</div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("stockCardContainer").innerHTML = cardHtml;
 }
+
+      // Fetch historical chart data from your API.
+      function fetchHistoricalData(symbol) {
+        const url = `/api/YahooFinance/chart-symbol/${encodeURIComponent(symbol)}?interval=1d`;
+        return fetch(url, { method: "GET", headers: { "accept": "*/*" } })
+          .then(response => response.json())
+          .then(data => {
+            // Map API data to chart data structure including volume.
+            return data.map(item => ({
+              Date: new Date(item.timestamp).getTime(),
+              Open: item.open,
+              Close: item.close,
+              Low: item.low,
+              High: item.high,
+              Volume: item.volume  // Ensure your API returns volume data
+            }));
+          })
+          .catch(err => {
+            console.error("Error fetching historical data:", err);
+            return [];
+          });
+      }
+
+      // Reset chart data when a new symbol is selected.
+      function resetChartForNewSymbol() {
+        fetchHistoricalData(currentSymbol).then(data => {
+          if (valueSeries && sbSeries && volumeSeries) {
+            valueSeries.data.clear();
+            valueSeries.data.setAll(data);
+            sbSeries.data.clear();
+            sbSeries.data.setAll(data);
+            volumeSeries.data.clear();
+            volumeSeries.data.setAll(data);
+            // Update the series name to the new symbol.
+            valueSeries.set("name", currentSymbol);
+          }
+        });
+      }
+
+      // Fetch realtime quote data for the current symbol and update the chart and info card.
+      function fetchStockData() {
+        const url = `/api/YahooFinance/price/${encodeURIComponent(currentSymbol)}`;
+        fetch(url, { method: "GET", headers: { "accept": "*/*" } })
+          .then(response => response.json())
+          .then(apiDataRaw => {
+            const apiData = apiDataRaw[0];
+            const newPoint = {
+              Date: new Date(apiData.regularMarketTime * 1000).getTime(), // convert seconds to ms
+              Close: parseFloat(apiData.regularMarketPrice),
+              Open: parseFloat(apiData.regularMarketOpen),
+              Low: parseFloat(apiData.regularMarketDayLow),
+              High: parseFloat(apiData.regularMarketDayHigh),
+              Volume: parseFloat(apiData.regularMarketVolume)
+            };
+            updateStockCard(apiData);
+                document.getElementById("infoTime").textContent = 'Updated: ' + new Date(newPoint.Date).toLocaleTimeString();
+
+          
+           
+            // Check the last data point.
+            const lastIndex = valueSeries.data.length - 1;
+            const lastDataObject = valueSeries.data.getIndex(lastIndex);
+            const currentTime = newPoint.Date;
+
+            if (lastDataObject) {
+              // Compare dates to check for a new day.
+              const lastDate = new Date(lastDataObject.Date);
+              const currentDate = new Date(currentTime);
+              if (lastDate.toDateString() !== currentDate.toDateString()) {
+                // New day: clear previous day's data and add new point.
+                valueSeries.data.clear();
+                sbSeries.data.clear();
+                volumeSeries.data.clear();
+                valueSeries.data.push(newPoint);
+                sbSeries.data.push(newPoint);
+                volumeSeries.data.push(newPoint);
+              } else {
+                // Every second, push a new data point.
+                valueSeries.data.push(newPoint);
+                sbSeries.data.push(newPoint);
+                volumeSeries.data.push(newPoint);
+              }
+            } else {
+              // If no data exists yet, add the new point.
+              valueSeries.data.push(newPoint);
+              sbSeries.data.push(newPoint);
+              volumeSeries.data.push(newPoint);
+            }
+
+            // Update current value display (for the axis range label).
+            if (currentLabel) {
+              currentValueDataItem.animate({
+                key: "value",
+                to: newPoint.Close,
+                duration: 500,
+                easing: am5.ease.out(am5.ease.cubic)
+              });
+              currentLabel.set("text", root.numberFormatter.format(newPoint.Close));
+              const bg = currentLabel.get("background");
+              if (bg) {
+                bg.set("fill", newPoint.Close < newPoint.Open
+                  ? root.interfaceColors.get("negative")
+                  : root.interfaceColors.get("positive"));
+              }
+            }
+          })
+          .catch(err => console.error("Error fetching stock data:", err));
+      }
+
+      // Autocomplete search functionality.
+      const searchInput = document.getElementById("searchInput");
+      const resultsContainer = document.getElementById("autocompleteResults");
+
+      function fetchAutocomplete(query) {
+        const url = `/api/YahooFinance/search/${encodeURIComponent(query)}`;
+        fetch(url, { method: "GET", headers: { "accept": "*/*" } })
+          .then(response => response.json())
+          .then(data => {
+            resultsContainer.innerHTML = "";
+            if (!data || data.length === 0) {
+              resultsContainer.style.display = "none";
+              return;
+            }
+            data.forEach(item => {
+              const div = document.createElement("a");
+              div.className = "list-group-item list-group-item-action autocomplete-item";
+              div.textContent = `${item.shortname} (${item.symbol})`;
+              div.addEventListener("click", () => {
+                searchInput.value = item.symbol;
+                resultsContainer.style.display = "none";
+                // Update the selected symbol, reset the chart and update series name.
+                currentSymbol = item.symbol;
+                resetChartForNewSymbol();
+              });
+              resultsContainer.appendChild(div);
+            });
+            resultsContainer.style.display = "block";
+          })
+          .catch(error => console.error("Error fetching autocomplete results:", error));
+      }
+
+      // Use debounce to prevent too many rapid API calls.
+      const debouncedFetchAutocomplete = debounce(fetchAutocomplete, 300);
+      searchInput.addEventListener("input", () => {
+        const query = searchInput.value.trim();
+        if (query.length === 0) {
+          resultsContainer.style.display = "none";
+          resultsContainer.innerHTML = "";
+          return;
+        }
+        debouncedFetchAutocomplete(query);
+      });
+
+      // Hide autocomplete results when clicking outside the search container.
+      document.addEventListener("click", (event) => {
+        if (!document.getElementById("searchContainer").contains(event.target)) {
+          resultsContainer.style.display = "none";
+        }
+      });
+
+      // Initialize the chart and start realtime updates.
+      am5.ready(function() {
+        // Create root element.
+        root = am5.Root.new("chartdiv");
+
+        // Custom theme to hide minor grid lines on scrollbars.
+        const myTheme = am5.Theme.new(root);
+        myTheme.rule("Grid", ["scrollbar", "minor"]).setAll({ visible: false });
+        root.setThemes([
+          am5themes_Animated.new(root),
+          myTheme
+        ]);
+
+        // Create a stock chart.
+        stockChart = root.container.children.push(
+          am5stock.StockChart.new(root, { paddingRight: 0 })
+        );
+
+        // Global number format.
+        root.numberFormatter.set("numberFormat", "#,###.00");
+
+        // Create main stock panel.
+        const mainPanel = stockChart.panels.push(
+          am5stock.StockPanel.new(root, {
+            wheelY: "zoomX",
+            panX: true,
+            panY: true
+          })
+        );
+
+        // Create value axis.
+        const valueAxis = mainPanel.yAxes.push(
+          am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererY.new(root, { pan: "zoom" }),
+            extraMin: 0.1,
+            tooltip: am5.Tooltip.new(root, {}),
+            numberFormat: "#,###.00",
+            extraTooltipPrecision: 2
+          })
+        );
+
+        // Create date axis.
+        const dateAxis = mainPanel.xAxes.push(
+          am5xy.GaplessDateAxis.new(root, {
+            extraMax: 0.1,
+            baseInterval: { timeUnit: "minute", count: 1 },
+            renderer: am5xy.AxisRendererX.new(root, { pan: "zoom", minorGridEnabled: true }),
+            tooltip: am5.Tooltip.new(root, {})
+          })
+        );
+
+        // Add range to show current value.
+        currentValueDataItem = valueAxis.createAxisRange(valueAxis.makeDataItem({ value: 0 }));
+        currentLabel = currentValueDataItem.get("label");
+        if (currentLabel) {
+          currentLabel.setAll({
+            fill: am5.color(0xffffff),
+            background: am5.Rectangle.new(root, { fill: am5.color(0x000000) })
+          });
+        }
+        const currentGrid = currentValueDataItem.get("grid");
+        if (currentGrid) {
+          currentGrid.setAll({ strokeOpacity: 0.5, strokeDasharray: [2, 5] });
+        }
+
+        // Add candlestick series with initial name as currentSymbol.
+        valueSeries = mainPanel.series.push(
+          am5xy.CandlestickSeries.new(root, {
+            name: currentSymbol,
+            clustered: false,
+            valueXField: "Date",
+            valueYField: "Close",
+            highValueYField: "High",
+            lowValueYField: "Low",
+            openValueYField: "Open",
+            calculateAggregates: true,
+            xAxis: dateAxis,
+            yAxis: valueAxis,
+            legendValueText:
+              "open: [bold]{openValueY}[/] high: [bold]{highValueY}[/] low: [bold]{lowValueY}[/] close: [bold]{valueY}[/]",
+            legendRangeValueText: ""
+          })
+        );
+
+        // Set main value series.
+        stockChart.set("stockSeries", valueSeries);
+
+        // Add a stock legend.
+        const valueLegend = mainPanel.plotContainer.children.push(
+          am5stock.StockLegend.new(root, { stockChart: stockChart })
+        );
+        valueLegend.data.setAll([valueSeries]);
+
+        // Add cursor.
+        mainPanel.set(
+          "cursor",
+          am5xy.XYCursor.new(root, {
+            yAxis: valueAxis,
+            xAxis: dateAxis,
+            snapToSeries: [valueSeries],
+            snapToSeriesBy: "y!"
+          })
+        );
+
+        // Add scrollbar.
+        const scrollbar = mainPanel.set(
+          "scrollbarX",
+          am5xy.XYChartScrollbar.new(root, {
+            orientation: "horizontal",
+            height: 50
+          })
+        );
+        stockChart.toolsContainer.children.push(scrollbar);
+
+        const sbDateAxis = scrollbar.chart.xAxes.push(
+          am5xy.GaplessDateAxis.new(root, {
+            extraMax: 0.1,
+            baseInterval: { timeUnit: "day", count: 1 },
+            renderer: am5xy.AxisRendererX.new(root, { minorGridEnabled: true })
+          })
+        );
+
+        const sbValueAxis = scrollbar.chart.yAxes.push(
+          am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererY.new(root, {})
+          })
+        );
+
+        sbSeries = scrollbar.chart.series.push(
+          am5xy.LineSeries.new(root, {
+            valueYField: "Close",
+            valueXField: "Date",
+            xAxis: sbDateAxis,
+            yAxis: sbValueAxis
+          })
+        );
+        sbSeries.fills.template.setAll({
+          visible: true,
+          fillOpacity: 0.3
+        });
+
+        // Create volume panel.
+        var volumePanel = stockChart.panels.push(
+          am5stock.StockPanel.new(root, {
+            height: 100,
+            marginTop: 20,
+            panX: true,
+            panY: false
+          })
+        );
+        // Create a date axis for volume panel.
+        var volumeDateAxis = volumePanel.xAxes.push(
+          am5xy.GaplessDateAxis.new(root, {
+            extraMax: 0.1,
+            baseInterval: { timeUnit: "minute", count: 1 },
+            renderer: am5xy.AxisRendererX.new(root, { pan: "zoom", minorGridEnabled: true }),
+            tooltip: am5.Tooltip.new(root, {})
+          })
+        );
+        // Create volume value axis.
+        var volumeAxis = volumePanel.yAxes.push(
+          am5xy.ValueAxis.new(root, {
+            renderer: am5xy.AxisRendererY.new(root, { inside: true }),
+            tooltip: am5.Tooltip.new(root, {}),
+            numberFormat: "#,###"
+          })
+        );
+        // Create volume series as a column series.
+        volumeSeries = volumePanel.series.push(
+          am5xy.ColumnSeries.new(root, {
+            name: "Volume",
+            valueYField: "Volume",
+            valueXField: "Date",
+            xAxis: volumeDateAxis,
+            yAxis: volumeAxis,
+            tooltip: am5.Tooltip.new(root, {
+              labelText: "[bold]{name}[/]: {valueY}"
+            })
+          })
+        );
+        volumeSeries.columns.template.setAll({
+          width: am5.percent(80)
+        });
+        // Add adapters to color volume columns based on positive (Close ≥ Open) or negative (Close < Open) movement.
+        volumeSeries.columns.template.adapters.add("fill", function(fill, target) {
+          const dataItem = target.dataItem;
+          if (dataItem && dataItem.dataContext) {
+            return (dataItem.dataContext.Close >= dataItem.dataContext.Open)
+              ? am5.color(0x00b894) // Positive: green
+              : am5.color(0xd63031); // Negative: red
+          }
+          return fill;
+        });
+        volumeSeries.columns.template.adapters.add("stroke", function(stroke, target) {
+          const dataItem = target.dataItem;
+          if (dataItem && dataItem.dataContext) {
+            return (dataItem.dataContext.Close >= dataItem.dataContext.Open)
+              ? am5.color(0x00b894)
+              : am5.color(0xd63031);
+          }
+          return stroke;
+        });
+
+        // Optionally add SeriesSwitcher if available.
+        var seriesSwitcher = am5stock.SeriesSwitcher
+          ? am5stock.SeriesSwitcher.new(root, { stockChart: stockChart })
+          : null;
+
+        // Build toolbar controls.
+        var toolbarControls = [
+          am5stock.IndicatorControl.new(root, { stockChart: stockChart, legend: valueLegend }),
+          am5stock.DateRangeSelector.new(root, { stockChart: stockChart }),
+          am5stock.PeriodSelector.new(root, { stockChart: stockChart })
+        ];
+        if (seriesSwitcher) {
+          toolbarControls.push(seriesSwitcher);
+        }
+        toolbarControls.push(
+          am5stock.DrawingControl.new(root, { stockChart: stockChart }),
+          am5stock.DataSaveControl.new(root, { stockChart: stockChart }),
+          am5stock.ResetControl.new(root, { stockChart: stockChart }),
+          am5stock.SettingsControl.new(root, { stockChart: stockChart })
+        );
+
+        // Add stock toolbar.
+        var toolbar = am5stock.StockToolbar.new(root, {
+          container: document.getElementById("chartcontrols"),
+          stockChart: stockChart,
+          controls: toolbarControls
+        });
+
+        // Fetch historical data for the current symbol from the API.
+        fetchHistoricalData(currentSymbol).then(initialData => {
+          valueSeries.data.setAll(initialData);
+          sbSeries.data.setAll(initialData);
+          volumeSeries.data.setAll(initialData);
+        });
+
+        // Start realtime updates every second.
+        setInterval(fetchStockData, 1000);
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -403,7 +403,98 @@ namespace MarketAnalyticHub.Controllers.api
         return BadRequest(new { Message = ex.Message });
       }
     }
+    [HttpGet("chart-symbol-tradingview/{symbol}")]
+    public async Task<IActionResult> GetSymbolsChartSearchTradingView(
+    string symbol,
+    DateTime? startDate = null,
+    DateTime? endDate = null,
+    string interval = "1d",
+    string range = null // e.g., "1d", "5d", "1mo", "3mo", "6mo", "1y", "2y", "5y", "max"
+)
+    {
+      try
+      {
+        // Default to 'today' for endDate if not provided
+        var finalEndDate = endDate ?? DateTime.Now;
+        // Default to 1 year prior for startDate if not provided
+        var finalStartDate = startDate ?? finalEndDate.AddYears(-1);
 
+        // If "range" is passed, override the date range logic:
+        if (!string.IsNullOrEmpty(range))
+        {
+          // Force endDate to 'now'
+          finalEndDate = DateTime.Now;
+
+          switch (range.ToLower())
+          {
+            case "1d":
+              finalStartDate = finalEndDate.AddDays(-1);
+              break;
+            case "5d":
+              finalStartDate = finalEndDate.AddDays(-5);
+              break;
+            case "1wk":
+            case "1w":
+              finalStartDate = finalEndDate.AddDays(-7);
+              break;
+            case "1mo":
+              finalStartDate = finalEndDate.AddMonths(-1);
+              break;
+            case "3mo":
+              finalStartDate = finalEndDate.AddMonths(-3);
+              break;
+            case "6mo":
+              finalStartDate = finalEndDate.AddMonths(-6);
+              break;
+            case "1y":
+              finalStartDate = finalEndDate.AddYears(-1);
+              break;
+            case "2y":
+              finalStartDate = finalEndDate.AddYears(-2);
+              break;
+            case "5y":
+              finalStartDate = finalEndDate.AddYears(-5);
+              break;
+            case "max":
+              // Example: from 1970 to now
+              finalStartDate = new DateTime(1970, 1, 1);
+              break;
+            default:
+              // If the user passes an unknown range, 
+              // you could either throw an error or 
+              // just fall back to default 1-year logic.
+              finalStartDate = finalEndDate.AddYears(-1);
+              break;
+          }
+        }
+
+        // Now fetch the quotes from your service
+        var quotes = await YahooService.GetHistoricalDataAsync(
+            symbol,
+            finalStartDate,
+            finalEndDate,
+            interval
+        );
+
+        var result = quotes.Select(q => new HistoricalQuoteViewModel
+        {
+          // If q.Timestamp is null, fallback to current time ticks
+          Timestamp = q.Timestamp ?? DateTime.UtcNow.Ticks,
+          Open = TryConvertToDecimal(q.Open),
+          Close = TryConvertToDecimal(q.Close),
+          High = TryConvertToDecimal(q.High),
+          Low = TryConvertToDecimal(q.Low),
+          Volume = TryConvertToLong(q.Volume),
+        }).ToList();
+
+        return Ok(result);
+      }
+      catch (Exception ex)
+      {
+        // Return a 400 Bad Request with the error message
+        return BadRequest(new { Message = ex.Message });
+      }
+    }
 
     // GET: api/yahoofinance/chart/{symbol}
     [HttpGet("chart-symbol/{symbol}")]
