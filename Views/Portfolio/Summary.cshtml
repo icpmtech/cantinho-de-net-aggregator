@@ -43,7 +43,7 @@
         <div class="card text-center">
           <div class="card-body">
             <h5 class="card-title"><i class="fas fa-hand-holding-usd"></i> Total Capital</h5>
-            <p class="card-text" id="cardTotalInvestment">$0.00</p>
+            <p class="card-text" id="cardTotalInvestment">0.00</p>
           </div>
         </div>
       </div>
@@ -51,12 +51,12 @@
         <div class="card text-center">
           <div class="card-body">
             <h5 class="card-title"><i class="fas fa-balance-scale"></i> Net Profit/Loss</h5>
-            <p class="card-text" id="cardNetDifference">$0.00</p>
+            <p class="card-text" id="cardNetDifference">0.00</p>
           </div>
         </div>
       </div>
     </div>
-
+        @await Html.PartialAsync("HoldingsSummary/_HoldingsSummary")
     <!-- HISTORICAL PERFORMANCE TRENDS -->
     <div class="card mb-4">
       <div class="card-header">
@@ -130,7 +130,7 @@
       <i class="fas fa-times"></i>
     </button>
   </div>
-
+   
   <script>
     /*************************************************
      * GLOBAL VARIABLES
@@ -172,11 +172,11 @@
       });
 
       // Update card fields
-      document.getElementById("cardTotalRevenue").textContent = "$" + totalRevenue.toFixed(2);
-      document.getElementById("cardTotalInvestment").textContent = "$" + totalInvestment.toFixed(2);
+      document.getElementById("cardTotalRevenue").textContent =  totalRevenue.toFixed(2);
+      document.getElementById("cardTotalInvestment").textContent =  totalInvestment.toFixed(2);
 
       const netDiffEl = document.getElementById("cardNetDifference");
-      netDiffEl.textContent = "$" + totalDifference.toFixed(2);
+      netDiffEl.textContent = totalDifference.toFixed(2);
       netDiffEl.className = "card-text"; // reset classes
 
       // Apply color coding
@@ -218,8 +218,8 @@
         html += `
           <tr>
             <td>${item.symbol}</td>
-            <td>$${item.revenue.toFixed(2)}</td>
-            <td>$${item.investment.toFixed(2)}</td>
+            <td>${item.revenue.toFixed(2)}</td>
+            <td>${item.investment.toFixed(2)}</td>
             <td class="differenceCell ${diffClass}">
               ${item.difference.toFixed(2)} ${diffIcon}
             </td>
@@ -501,7 +501,7 @@
       yAxis1.children.unshift(
         am5.Label.new(chartRoot1, {
           rotation: -90,
-          text: "USD Value",
+          text: "Value",
           y: am5.p50,
           centerX: am5.p50
         })
@@ -589,7 +589,7 @@
       yAxis2.children.unshift(
         am5.Label.new(chartRoot2, {
           rotation: -90,
-          text: "USD Value",
+          text: "Value",
           y: am5.p50,
           centerX: am5.p50
         })

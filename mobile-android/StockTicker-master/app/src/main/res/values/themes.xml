@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+  <style name="BaseAppTheme" parent="AppTheme">
+    <item name="android:windowBackground">?android:attr/colorBackground</item>
+    <item name="android:textViewStyle">@style/Widget.StocksWidget.TextView</item>
+    <item name="android:editTextStyle">@style/EditTextStyle</item>
+    <item name="android:buttonStyle">@style/ButtonStyle</item>
+    <item name="buttonStyle">@style/ButtonStyle</item>
+    <item name="buttonCompat">@style/ButtonStyle</item>
+    <item name="textAppearanceButton">@style/TextAppearance.StocksWidget.Button</item>
+    <item name="textAppearanceBodyLarge">@style/TextAppearance.StocksWidget.BodyLarge</item>
+    <item name="textAppearanceBodyMedium">@style/TextAppearance.StocksWidget.BodyMedium</item>
+    <item name="textAppearanceBodySmall">@style/TextAppearance.StocksWidget.BodySmall</item>
+    <item name="textAppearanceHeadlineLarge">@style/TextAppearance.StocksWidget.HeadlineLarge</item>
+    <item name="textAppearanceHeadlineMedium">@style/TextAppearance.StocksWidget.HeadlineMedium</item>
+    <item name="textAppearanceHeadlineSmall">@style/TextAppearance.StocksWidget.HeadlineSmall</item>
+    <item name="textAppearanceTitleLarge">@style/TextAppearance.StocksWidget.TitleLarge</item>
+    <item name="textAppearanceTitleMedium">@style/TextAppearance.StocksWidget.TitleMedium</item>
+    <item name="textAppearanceTitleSmall">@style/TextAppearance.StocksWidget.TitleSmall</item>
+    <item name="textAppearanceLabelLarge">@style/TextAppearance.StocksWidget.LabelLarge</item>
+    <item name="textAppearanceLabelMedium">@style/TextAppearance.StocksWidget.LabelMedium</item>
+    <item name="textAppearanceLabelSmall">@style/TextAppearance.StocksWidget.LabelSmall</item>
+    <item name="android:alertDialogTheme">@style/AlertDialog</item>
+    <item name="android:dialogTheme">@style/AlertDialog</item>
+    <item name="android:actionBarStyle">@style/ActionBarStyle</item>
+    <item name="tabTextAppearance">@style/TabTextAppearence</item>
+    <item name="dialogTheme">@style/AlertDialog</item>
+    <item name="alertDialogTheme">@style/AlertDialog</item>
+    <item name="editTextStyle">@style/EditTextStyle</item>
+    <item name="bottomNavigationStyle">@style/Widget.StocksWidget.BottomNavigationView</item>
+    <item name="materialCardViewStyle">@style/StocksWidget.Widget.CardView</item>
+    <item name="toolbarStyle">@style/StocksWidget.ToolbarStyle</item>
+  </style>
+
+  <style name="StocksWidget.App.Theme" parent="BaseAppTheme"/>
+
+  <style name="TranslucentTheme" parent="StocksWidget.App.Theme">
+    <item name="android:windowIsTranslucent">true</item>
+    <item name="android:windowBackground">@color/transparent</item>
+  </style>
+
+  <style name="MainActivityTheme" parent="StocksWidget.App.Theme">
+    <item name="android:statusBarColor">@color/transparent</item>
+    <item name="toolbarStyle">@style/StocksWidget.ToolbarStyle.MainActivity</item>
+  </style>
+  <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+    <!-- Set the splash screen background, animated icon, and animation duration. -->
+    <item name="windowSplashScreenBackground">@drawable/bg_splash</item>
+    <!-- Use windowSplashScreenAnimatedIcon to add either a drawable or an
+         animated drawable. One of these is required. -->
+    <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher_foreground</item>
+    <item name="windowSplashScreenIconBackgroundColor">@color/transparent</item>
+    <!-- Required for animated icons -->
+    <item name="windowSplashScreenAnimationDuration">200</item>
+    <!-- Required -->
+    <item name="postSplashScreenTheme">@style/MainActivityTheme</item>
+  </style>
+
+
+  <style name="NewsFeedActivityTheme" parent="StocksWidget.App.Theme" />
+
+  <style name="GraphActivityTheme" parent="StocksWidget.App.Theme" />
+
+  <style name="AddPositionTheme" parent="StocksWidget.App.Theme" />
+
+  <style name="WidgetSettingsTheme" parent="StocksWidget.App.Theme">
+    <item name="android:windowBackground">@android:color/transparent</item>
+    <item name="android:colorBackgroundCacheHint">@null</item>
+    <item name="android:windowShowWallpaper">true</item>
+  </style>
+
+  <style name="SearchTheme" parent="StocksWidget.App.Theme" />
+
+  <style name="WebViewTheme" parent="StocksWidget.App.Theme" />
+
+  <style name="DbViewerTheme" parent="StocksWidget.App.Theme" />
+</resources>
