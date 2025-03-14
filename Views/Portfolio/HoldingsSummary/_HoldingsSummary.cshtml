@@ -1,388 +1,404 @@
 @{
+    // If you have a layout, remove or change this. Otherwise, Layout = null ensures this is a standalone partial.
     Layout = null;
 }
-<div class="holdings-summary-container">
-    <!-- Header Section -->
-    <div class="header-section">
-        <div class="main-value">
-            <span id="mainValueDisplay">€0</span>
-        </div>
-        <div class="sub-label" id="marketValueDisplay">
-            Market Value €0
-        </div>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portfolio Holdings Summary</title>
+    <!-- Chart.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .holdings-summary-container {
+            background: #fff;
+            border: 1px solid #e1e1e1;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+        /* Card Background Color for Positive/Negative Performance */
+        .positive-card {
+            background: #eaffea; /* light green */
+        }
 
-    <!-- Secondary Info -->
-    <div class="secondary-info">
-        <div class="info-item">
-            <div class="label">Day Change</div>
-            <!-- Placeholder; update if you have a day-change calculation -->
-            <div class="value positive" id="dayChangeDisplay">+€273.98 (+1.03%)</div>
-        </div>
-        <div class="info-item">
-            <div class="label">Unrealized G/L</div>
-            <!-- Updated from API's totalGainsLosses and portfolioPercentage -->
-            <div class="value negative" id="unrealizedDisplay">-€0 (-0%)</div>
-        </div>
-        <div class="info-item">
-            <div class="label">Realized G/L</div>
-            <!-- Placeholder; replace if available -->
-            <div class="value positive" id="realizedDisplay">+€2,998.85</div>
-        </div>
-    </div>
+        .negative-card {
+            background: #ffeaea; /* light red */
+        }
+        /* Header Section */
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
 
-    <!-- Time-Range Toggle Row (static buttons for now) -->
-    <div class="chart-toggles">
-        <button class="toggle-btn active">1D</button>
-        <button class="toggle-btn">1W</button>
-        <button class="toggle-btn">1M</button>
-        <button class="toggle-btn">1Y</button>
-        <button class="toggle-btn">YTD</button>
-        <button class="toggle-btn">All</button>
-        <button class="toggle-btn">Custom</button>
-        <span class="about-chart">About this chart</span>
-    </div>
+        .main-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
 
-    <!-- Chart Section: Performance Line Chart -->
-    <div class="chart-section">
-        <canvas id="performanceChart"></canvas>
-    </div>
-
-    <!-- Chart Section: Stock HeatMap -->
-    <!-- Note: amCharts uses a div container -->
-    <div class="chart-section">
-        <div id="heatmapChart" style="width:100%; height:350px;"></div>
-    </div>
-</div>
-
-<!-- Styles -->
-<style>
-    .holdings-summary-container {
-        background: #fff;
-        border: 1px solid #e1e1e1;
-        border-radius: 6px;
-        padding: 20px;
-        margin: 20px auto;
-        font-family: Arial, sans-serif;
-       
-    }
-
-    .header-section {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        margin-bottom: 10px;
-    }
-
-    .main-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #333;
-    }
-
-    .sub-label {
-        font-size: 0.95rem;
-        color: #666;
-        margin-top: 4px;
-    }
-
-    .secondary-info {
-        display: flex;
-        gap: 40px;
-        margin: 15px 0;
-        flex-wrap: wrap;
-    }
-
-    .info-item {
-        display: flex;
-        flex-direction: column;
-    }
-
-        .info-item .label {
-            font-size: 0.9rem;
+        .sub-label {
+            font-size: 0.95rem;
             color: #666;
-            margin-bottom: 4px;
+            margin-top: 4px;
+        }
+        /* Secondary Info */
+        .secondary-info {
+            display: flex;
+            gap: 40px;
+            margin: 15px 0;
+            flex-wrap: wrap;
         }
 
-        .info-item .value {
-            font-size: 1.05rem;
-            font-weight: 600;
+        .info-item {
+            display: flex;
+            flex-direction: column;
         }
 
-    .positive {
-        color: #2ecc71;
-    }
-
-    .negative {
-        color: #e74c3c;
-    }
-
-    .chart-toggles {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-
-    .toggle-btn {
-        border: 1px solid #ccc;
-        background-color: #fff;
-        color: #333;
-        padding: 6px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.85rem;
-    }
-
-        .toggle-btn.active,
-        .toggle-btn:hover {
-            background-color: #f0f0f0;
-        }
-
-    .about-chart {
-        margin-left: auto;
-        font-size: 0.8rem;
-        color: #888;
-        cursor: pointer;
-    }
-
-    .chart-section {
-        position: relative;
-        width: 100%;
-        height: 350px;
-        margin-bottom: 20px;
-    }
-
-    canvas {
-        width: 100% !important;
-        height: 100% !important;
-    }
-    @@media (max-width: 600px) {
-        .secondary-info
-
-    {
-        gap: 20px;
-    }
-
-    .info-item {
-        margin-bottom: 10px;
-    }
-
-    }
-</style>
-
-<!-- Include Chart.js for the performance chart -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- Include amCharts 5 libraries for the heatmap -->
-<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
-<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
-<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
-
-<!-- Integrated JavaScript -->
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        try {
-            // Fetch portfolio data from the API (adjust endpoint URL as needed)
-            const response = await fetch("/api/Portfolio", {
-                method: "GET",
-                headers: { "Accept": "*/*" }
-            });
-            if (!response.ok) {
-                throw new Error("Network response was not ok");
+            .info-item .label {
+                font-size: 0.9rem;
+                color: #666;
+                margin-bottom: 4px;
             }
-            const data = await response.json();
-            const portfolio = data[0]; // Use the first portfolio
 
-            // Update UI metrics
-            updateUI(portfolio);
+            .info-item .value {
+                font-size: 1.05rem;
+                font-weight: 600;
+            }
 
-            // Create performance line chart (using Chart.js)
-            createPerformanceChart(portfolio);
-
-            // Create stock heatmap chart using amCharts
-            createStockHeatmapChart(portfolio);
-        } catch (error) {
-            console.error("Error fetching portfolio data:", error);
-        }
-    });
-
-    function updateUI(portfolio) {
-        const mainValueEl   = document.getElementById("mainValueDisplay");
-        const marketValueEl = document.getElementById("marketValueDisplay");
-        const dayChangeEl   = document.getElementById("dayChangeDisplay");
-        const unrealizedEl  = document.getElementById("unrealizedDisplay");
-        const realizedEl    = document.getElementById("realizedDisplay");
-
-        const formatCurrency = val => new Intl.NumberFormat("en-GB", {
-            style: "currency",
-            currency: "EUR"
-        }).format(val);
-
-        // Update Market Value
-        mainValueEl.textContent = formatCurrency(portfolio.currentMarketValue);
-        marketValueEl.textContent = `Market Value ${formatCurrency(portfolio.currentMarketValue)}`;
-
-        // Day Change: Placeholder (update if your API provides a value)
-        dayChangeEl.textContent = "+€273.98 (+1.03%)";
-        dayChangeEl.classList.add("positive");
-
-        // Unrealized G/L using totalGainsLosses and portfolioPercentage
-        const unrealized = portfolio.totalGainsLosses;
-        const sign = unrealized >= 0 ? "+" : "";
-        unrealizedEl.textContent = `${sign}${formatCurrency(unrealized)} (${portfolio.portfolioPercentage.toFixed(2)}%)`;
-        if (unrealized >= 0) {
-            unrealizedEl.classList.add("positive");
-            unrealizedEl.classList.remove("negative");
-        } else {
-            unrealizedEl.classList.add("negative");
-            unrealizedEl.classList.remove("positive");
+        .positive {
+            color: #2ecc71; /* green */
         }
 
-        // Realized G/L: Placeholder
-        realizedEl.textContent = "+€2,998.85";
-        realizedEl.classList.add("positive");
-    }
+        .negative {
+            color: #e74c3c; /* red */
+        }
+        /* Chart Toggles */
+        .chart-toggles {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
 
-    function createPerformanceChart(portfolio) {
-        const ctx = document.getElementById("performanceChart").getContext("2d");
-        const labels = ["Weekly", "Monthly", "Yearly"];
-        const dataPoints = [
-            portfolio.weeklyPercentage,
-            portfolio.monthlyPercentage,
-            portfolio.yearlyPercentage
-        ];
+        .toggle-btn {
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: #333;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
 
-        new Chart(ctx, {
-            type: "line",
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: "Performance (%)",
-                    data: dataPoints,
-                    borderColor: "#8e44ad",
-                    backgroundColor: "rgba(142, 68, 173, 0.1)",
-                    tension: 0.3,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    title: { display: true, text: "Weekly / Monthly / Yearly Performance" }
+            .toggle-btn.active,
+            .toggle-btn:hover {
+                background-color: #f0f0f0;
+            }
+
+        .about-chart {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: #888;
+            cursor: pointer;
+        }
+        /* Chart Section */
+        .chart-section {
+            position: relative;
+            width: 100%;
+            height: 350px;
+        }
+
+        #myChart {
+            width: 100%;
+            height: 100%;
+        }
+        /* Symbol Summary Section */
+        .symbol-summary-container {
+            margin-top: 20px;
+            border-top: 1px solid #e1e1e1;
+            padding-top: 20px;
+        }
+
+        .symbol-summary {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+            .symbol-summary h4 {
+                margin: 0 0 5px 0;
+            }
+
+            .symbol-summary p {
+                margin: 3px 0;
+                font-size: 0.9rem;
+            }
+        /* Responsive */
+        @@media (max-width: 600px) {
+            .secondary-info {
+                gap: 20px;
+            }
+
+            .info-item {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="holdings-summary-container">
+        <!-- Header Row -->
+        <div class="header-section">
+            <div class="main-value">
+                <!-- Main number: updated dynamically -->
+                <span id="mainValueDisplay">€0</span>
+            </div>
+            <!-- Sub-label for Market Value -->
+            <div class="sub-label" id="marketValueDisplay">
+                Market Value €0
+            </div>
+        </div>
+
+        <!-- Secondary Info (Day Change, Unrealized G/L, Realized G/L) -->
+        <div class="secondary-info">
+            <div class="info-item">
+                <div class="label">Day Change</div>
+                <!-- Updated dynamically -->
+                <div class="value" id="dayChangeDisplay">+€0 (+0%)</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Unrealized G/L</div>
+                <!-- Updated dynamically -->
+                <div class="value" id="unrealizedDisplay">-€0 (-0%)</div>
+            </div>
+            <div class="info-item">
+                <div class="label">Realized G/L</div>
+                <!-- Placeholder for Realized Gains -->
+                <div class="value" id="realizedDisplay">+€0</div>
+            </div>
+        </div>
+
+        <!-- Time-Range Toggle Row -->
+        <div class="chart-toggles">
+            <button class="toggle-btn active">1D</button>
+            <button class="toggle-btn">1W</button>
+            <button class="toggle-btn">1M</button>
+            <button class="toggle-btn">1Y</button>
+            <button class="toggle-btn">YTD</button>
+            <button class="toggle-btn">All</button>
+            <button class="toggle-btn">Custom</button>
+            <span class="about-chart">About this chart</span>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-section">
+            <canvas id="myChart"></canvas>
+        </div>
+
+        <!-- Symbol Summary Section -->
+        <div id="symbolSummaryContainer" class="symbol-summary-container">
+            <!-- Per-symbol summaries will be injected here -->
+        </div>
+    </div>
+
+    <!-- Script to fetch data, calculate metrics, update UI, and create chart -->
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            try {
+                // 1) Fetch portfolio data from your API
+                const response = await fetch("/api/Portfolio", {
+                    method: "GET",
+                    headers: { "Accept": "*/*" }
+                });
+                if (!response.ok) throw new Error("Network response was not ok");
+
+                // 2) Parse the JSON array (using the first portfolio in this example)
+                const data = await response.json();
+                const portfolio = data[0];
+
+                // 3) Update the overall UI with calculated data
+                updateUI(portfolio);
+
+                // 4) Update per-symbol summaries
+                updateSymbolSummaries(portfolio);
+
+                // 5) Create the chart (using provided weekly/monthly/yearly percentages)
+                createLineChart(portfolio);
+            } catch (error) {
+                console.error("Error fetching portfolio data:", error);
+            }
+        });
+
+        // Helper function to format currency in EUR
+        function formatCurrency(val) {
+            return new Intl.NumberFormat("en-GB", {
+                style: "currency",
+                currency: "EUR"
+            }).format(val);
+        }
+
+        function updateUI(portfolio) {
+            // DOM elements for overall portfolio summary
+            const mainValueEl   = document.getElementById("mainValueDisplay");
+            const marketValueEl = document.getElementById("marketValueDisplay");
+            const dayChangeEl   = document.getElementById("dayChangeDisplay");
+            const unrealizedEl  = document.getElementById("unrealizedDisplay");
+            const realizedEl    = document.getElementById("realizedDisplay");
+
+            // Aggregated calculations across all items with quantity > 0
+            let totalInvestment = 0;
+            let totalCurrentValue = 0;
+            let totalDailyChange = 0;
+            let totalPrevClose = 0;
+
+            portfolio.items.forEach(item => {
+                if (item.quantity > 0) {
+                    totalInvestment += item.purchasePrice * item.quantity;
+                    totalCurrentValue += item.currentPrice * item.quantity;
+                    totalDailyChange += (item.currentPrice - item.previousClosePrice) * item.quantity;
+                    totalPrevClose += item.previousClosePrice * item.quantity;
+                }
+            });
+
+            // Overall performance (unrealized gains/losses)
+            const overallGainLoss = totalCurrentValue - totalInvestment;
+            const overallPercent = totalInvestment > 0 ? (overallGainLoss / totalInvestment) * 100 : 0;
+
+            // Aggregated Daily performance
+            const dailyPercent = totalPrevClose > 0 ? (totalDailyChange / totalPrevClose) * 100 : 0;
+
+            // Update UI Elements
+            mainValueEl.textContent = formatCurrency(totalCurrentValue);
+            marketValueEl.textContent = `Market Value ${formatCurrency(totalCurrentValue)}`;
+
+            const daySign = totalDailyChange >= 0 ? "+" : "";
+            dayChangeEl.textContent = `${daySign}${formatCurrency(totalDailyChange)} (${daySign}${dailyPercent.toFixed(2)}%)`;
+            dayChangeEl.classList.toggle("positive", totalDailyChange >= 0);
+            dayChangeEl.classList.toggle("negative", totalDailyChange < 0);
+
+            const overallSign = overallGainLoss >= 0 ? "+" : "";
+            unrealizedEl.textContent = `${overallSign}${formatCurrency(overallGainLoss)} (${overallSign}${overallPercent.toFixed(2)}%)`;
+            unrealizedEl.classList.toggle("positive", overallGainLoss >= 0);
+            unrealizedEl.classList.toggle("negative", overallGainLoss < 0);
+
+            // Update the card background color based on overall gain/loss
+            const container = document.querySelector(".holdings-summary-container");
+            if (overallGainLoss >= 0) {
+                container.classList.add("positive-card");
+                container.classList.remove("negative-card");
+            } else {
+                container.classList.add("negative-card");
+                container.classList.remove("positive-card");
+            }
+
+            // Realized gains: if provided in portfolio, use it; otherwise, use a placeholder.
+            if (portfolio.realized !== undefined) {
+                const realizedValue = portfolio.realized;
+                const realizedSign = realizedValue >= 0 ? "+" : "";
+                realizedEl.textContent = `${realizedSign}${formatCurrency(realizedValue)}`;
+                realizedEl.classList.toggle("positive", realizedValue >= 0);
+                realizedEl.classList.toggle("negative", realizedValue < 0);
+            } else {
+                realizedEl.textContent = "+€0";
+                realizedEl.classList.add("positive");
+            }
+        }
+
+        // Create a summary for each symbol using portfolio.groupedItems
+        function updateSymbolSummaries(portfolio) {
+            const container = document.getElementById("symbolSummaryContainer");
+            container.innerHTML = ""; // Clear existing content
+
+            portfolio.groupedItems.forEach(group => {
+                const symbol = group.symbol;
+                let totalInvestment = 0;
+                let totalCurrentValue = 0;
+                let totalDailyChange = 0;
+                let totalPrevClose = 0;
+
+                group.items.forEach(item => {
+                    if (item.quantity > 0) {
+                        totalInvestment += item.purchasePrice * item.quantity;
+                        totalCurrentValue += item.currentPrice * item.quantity;
+                        totalDailyChange += (item.currentPrice - item.previousClosePrice) * item.quantity;
+                        totalPrevClose += item.previousClosePrice * item.quantity;
+                    }
+                });
+
+                const overallGainLoss = totalCurrentValue - totalInvestment;
+                const overallPercent = totalInvestment > 0 ? (overallGainLoss / totalInvestment) * 100 : 0;
+                const dailyPercent = totalPrevClose > 0 ? (totalDailyChange / totalPrevClose) * 100 : 0;
+
+                // Create a container element for this symbol
+                const symbolDiv = document.createElement("div");
+                symbolDiv.classList.add("symbol-summary");
+                symbolDiv.innerHTML = `
+                    <h4>${symbol}</h4>
+                    <p>Total Investment: ${formatCurrency(totalInvestment)}</p>
+                    <p>Current Value: ${formatCurrency(totalCurrentValue)}</p>
+                    <p>Gain/Loss: ${overallGainLoss >= 0 ? "+" : ""}${formatCurrency(overallGainLoss)} (${overallPercent.toFixed(2)}%)</p>
+                    <p>Daily Change: ${totalDailyChange >= 0 ? "+" : ""}${formatCurrency(totalDailyChange)} (${dailyPercent.toFixed(2)}%)</p>
+                `;
+                container.appendChild(symbolDiv);
+            });
+        }
+
+        /**
+         * Creates a line chart displaying the weekly, monthly, and yearly performance.
+         * It uses the aggregated percentages provided in the portfolio.
+         */
+        function createLineChart(portfolio) {
+            const ctx = document.getElementById("myChart").getContext("2d");
+
+            // Labels for the chart
+            const labels = ["Weekly", "Monthly", "Yearly"];
+            const dataPoints = [
+                portfolio.weeklyPercentage,  // e.g., 115.79%
+                portfolio.monthlyPercentage, // e.g., 110.80%
+                portfolio.yearlyPercentage   // e.g., -24.98%
+            ];
+
+            new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: "Performance (%)",
+                        data: dataPoints,
+                        borderColor: "#8e44ad",
+                        backgroundColor: "rgba(142, 68, 173, 0.1)",
+                        tension: 0.3,
+                        fill: true
+                    }]
                 },
-                scales: {
-                    y: {
-                        ticks: { callback: value => value + "%" }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        title: {
+                            display: true,
+                            text: "Weekly / Monthly / Yearly Performance"
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: {
+                                // Append "%" to tick labels
+                                callback: (value) => value + "%"
+                            }
+                        }
                     }
                 }
-            }
-        });
-    }
-
-    function createStockHeatmapChart(portfolio) {
-        // Process the groupedItems from the portfolio to create a matrix of data.
-        const groups = portfolio.groupedItems || [];
-        const totalCells = groups.length;
-        // Define grid dimensions: adjust the number of columns as desired.
-        const columns = 4;
-        const rows = Math.ceil(totalCells / columns);
-        const matrixData = groups.map((group, index) => {
-            // Compute the average percent change for this symbol.
-            const avgPercent = group.items.reduce((sum, item) => sum + item.percentChange, 0) / group.items.length;
-            return {
-                categoryX: (index % columns).toString(),
-                categoryY: Math.floor(index / columns).toString(),
-                value: avgPercent,
-                symbol: group.symbol
-            };
-        });
-
-        // Create amCharts 5 heatmap using an XY chart.
-        // "heatmapChart" is the id of our div container.
-        var root = am5.Root.new("heatmapChart");
-        root.setThemes([am5themes_Animated.new(root)]);
-
-        var chart = root.container.children.push(am5xy.XYChart.new(root, {
-            panX: false,
-            panY: false,
-            wheelX: "panX",
-            wheelY: "zoomX",
-            layout: root.verticalLayout,
-            paddingLeft: 20,
-            paddingRight: 20,
-            paddingTop: 20,
-            paddingBottom: 20
-        }));
-
-        // Create X Axis (Category)
-        var xAxis = chart.xAxes.push(am5xy.CategoryAxis.new(root, {
-            categoryField: "categoryX",
-            renderer: am5xy.AxisRendererX.new(root, { minGridDistance: 30 })
-        }));
-        // Create Y Axis (Category)
-        var yAxis = chart.yAxes.push(am5xy.CategoryAxis.new(root, {
-            categoryField: "categoryY",
-            renderer: am5xy.AxisRendererY.new(root, { inversed: true, minGridDistance: 30 })
-        }));
-
-        // Prepare categories for X and Y axes.
-        var xCategories = [];
-        for (var i = 0; i < columns; i++) {
-            xCategories.push({ categoryX: i.toString() });
+            });
         }
-        xAxis.data.setAll(xCategories);
-
-        var yCategories = [];
-        for (var j = 0; j < rows; j++) {
-            yCategories.push({ categoryY: j.toString() });
-        }
-        yAxis.data.setAll(yCategories);
-
-        // Create the Column Series to represent the cells.
-        var series = chart.series.push(am5xy.ColumnSeries.new(root, {
-            xAxis: xAxis,
-            yAxis: yAxis,
-            valueField: "value",
-            categoryXField: "categoryX",
-            categoryYField: "categoryY",
-            sequencedInterpolation: true,
-            tooltip: am5.Tooltip.new(root, {
-                labelText: "{symbol}: {value.formatNumber('0.00')}%"
-            })
-        }));
-
-        series.columns.template.setAll({
-            cornerRadiusTL: 5,
-            cornerRadiusTR: 5,
-            cornerRadiusBL: 5,
-            cornerRadiusBR: 5,
-            strokeOpacity: 0
-        });
-
-        // Set data for the series from our matrixData
-        series.data.setAll(matrixData);
-
-        // Use an adapter to set the fill color based on value.
-        series.columns.template.adapters.add("fill", function(fill, target) {
-            var dataItem = target.dataItem;
-            if (dataItem) {
-                var value = dataItem.get("value");
-                // Define a maximum magnitude for scaling (here 10%)
-                var max = 10;
-                // Compute opacity from 0.3 (low) to 1 (high)
-                var opacity = Math.min(1, Math.max(0.3, Math.abs(value) / max));
-                // Return green for positive, red for negative.
-                return value >= 0
-                    ? am5.color(0x2ecc71).brighten(1 - opacity)
-                    : am5.color(0xe74c3c).brighten(1 - opacity);
-            }
-            return fill;
-        });
-
-        series.appear(1000);
-        chart.appear(1000, 100);
-    }
-</script>
+    </script>
+</body>
+</html>
