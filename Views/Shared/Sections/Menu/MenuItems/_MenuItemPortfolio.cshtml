@@ -20,6 +20,13 @@
                 <div>Holdings</div>
             </a>
         </li>
+        <li class='menu-item@(currentPage == "/ManagePortfolioHoldings" ? " active" : "")'>
+            <a asp-controller="ManagePortfolioHoldings" asp-action="Index" class="menu-link">
+                <i class="menu-icon tf-icons bx bx bx-archive"></i>
+                <div>Manage Portfolio Holdings</div>
+            </a>
+        </li>
+        
         <li class='menu-item@(currentPage == "/Portfolio/Transactions" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Transactions" class="menu-link">
                 <i class="menu-icon tf-icons bx bx bx-archive"></i>
@@ -32,11 +39,7 @@
                 <div>Transactions Pivot</div>
             </a>
         </li>
-        <li class='menu-item@(currentPage == "/Portfolio/SummaryXtb" ? " active" : "")'>
-            <a asp-controller="Portfolio" asp-action="SummaryXtb" class="menu-link">
-                <div>Summary XTB</div>
-            </a>
-        </li>
+       
         <li class='menu-item@(currentPage == "/Portfolio/Performance" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Performance" class="menu-link">
                 <div>Performance</div>

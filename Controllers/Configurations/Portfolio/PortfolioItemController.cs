@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using MarketAnalyticHub.Models.Portfolio.Entities;
+using MarketAnalyticHub.Models.Configurations;
 
 [Route("api/[controller]")]
 [Authorize]
@@ -43,6 +44,77 @@ public class PortfolioItemController : Controller
     item.UserId = userId;
     await _portfolioItemService.AddItemAsync(item);
     return CreatedAtAction(nameof(GetItem), new { id = item.Id }, item);
+  }
+  [HttpPost("CreateItemV1")]
+  public async Task<IActionResult> CreateItemV1([FromBody] CreatePortfolioItemViewModel model)
+  {
+    // Validate model
+    if (!ModelState.IsValid)
+    {
+      return BadRequest(ModelState);
+    }
+
+    // Map the ViewModel to the entity
+    var newItem = new PortfolioItem
+    {
+      Symbol = model.Symbol,
+      OperationType = model.OperationType,
+      PortfolioId = model.PortfolioId,
+      PurchaseDate = model.PurchaseDate ?? DateTime.Now,
+      Quantity = model.Quantity,
+      PurchasePrice = model.PurchasePrice,
+      Commission = model.Commission,
+      CurrentPrice = model.CurrentPrice
+    };
+
+    // Attach user from token
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    newItem.UserId = userId;
+
+    // Save via service
+    await _portfolioItemService.AddItemAsync(newItem);
+
+    // Return the newly-created item info
+    // If you have a GetItem action, you can reference it:
+    return CreatedAtAction(
+        nameof(GetItem),
+        new { id = newItem.Id },
+        newItem
+    );
+  }
+  [HttpPut("UpdateItemV1/{id}")]
+  public async Task<IActionResult> UpdateItemV1(int id, [FromBody] UpdatePortfolioItemViewModel model)
+  {
+    if (id != model.Id)
+    {
+      return BadRequest("Route ID and model ID do not match.");
+    }
+
+    // Retrieve the entity from the database (e.g., for concurrency checks)
+    var existingItem = await _portfolioItemService.GetItemByIdAsync(id);
+    if (existingItem == null)
+    {
+      return NotFound("Portfolio item not found.");
+    }
+
+    // Map the incoming ViewModel values onto the entity
+    existingItem.Symbol = model.Symbol;
+    existingItem.OperationType = model.OperationType;
+    existingItem.PortfolioId = model.PortfolioId;
+    existingItem.PurchaseDate = model.PurchaseDate??DateTime.MinValue;
+    existingItem.Quantity = model.Quantity;
+    existingItem.PurchasePrice = model.PurchasePrice;
+    existingItem.Commission = model.Commission;
+    existingItem.CurrentPrice = model.CurrentPrice;
+
+    // The user ID could be attached from the token
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    existingItem.UserId = userId;
+
+    // Perform the update
+    await _portfolioItemService.UpdateItemAsync(existingItem);
+
+    return NoContent();
   }
 
   [HttpPut("{id}")]

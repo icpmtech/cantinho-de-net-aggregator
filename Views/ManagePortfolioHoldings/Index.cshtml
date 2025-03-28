@@ -1,0 +1,809 @@
+@section PageStyles {
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/dataTables.bootstrap5.min.css" />
+
+    <!-- (Optional) Ensure you have Bootstrap 5 CSS in your layout -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" /> -->
+}
+
+<div class="container my-5">
+    <h1>Manage Transactions Portfolio</h1>
+
+    <!-- ALERTS Container (Bootstrap 5) -->
+    <div id="alertContainer" style="position: relative;"></div>
+
+    <!-- BUTTONS -->
+    <div class="mb-3">
+        <!-- Existing "Add New Item" button -->
+        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createItemModal">
+            Add New Item
+        </button>
+
+        <!-- NEW: Show Chart Heatmap -->
+        <button class="btn btn-outline-secondary btn-sm" id="btnShowChartHeatmap">
+            Show Chart Heatmap
+        </button>
+
+        <!-- NEW: Back to Table -->
+        <button class="btn btn-outline-secondary btn-sm" id="btnShowTable" style="display: none;">
+            Back to Table
+        </button>
+    </div>
+
+    <!-- CREATE ITEM MODAL -->
+    <div class="modal fade" id="createItemModal" tabindex="-1" aria-labelledby="createItemModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <!-- MODAL HEADER -->
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createItemModalLabel">Create New Portfolio Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- MODAL BODY -->
+                <div class="modal-body">
+                    <form id="createItemForm">
+                        <!-- SYMBOL SEARCH SECTION -->
+                        <div class="mb-3">
+                            <label for="symbolSearchInput" class="form-label">Search Symbol Name</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="symbolSearchInput" placeholder="e.g. Apple, Intel, NOS" />
+                                <button class="btn btn-secondary btn-sm" type="button" id="btnSymbolSearch">Search</button>
+                            </div>
+                            <!-- Where we display the results -->
+                            <select class="form-select mt-2" id="symbolSearchResults" size="6" style="display: none;">
+                                <!-- Populated dynamically in JS -->
+                            </select>
+                        </div>
+
+                        <!-- ACTUAL FIELDS -->
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label for="createSymbol" class="form-label">Symbol</label>
+                                <input type="text" class="form-control" id="createSymbol" placeholder="e.g. AAPL" required />
+                            </div>
+                            <div class="col-6">
+                                <label for="createOpType" class="form-label">Operation Type</label>
+                                <select class="form-select" id="createOpType" required>
+                                    <option value="Buy">Buy</option>
+                                    <option value="Sell">Sell</option>
+                                    <option value="Close">Close</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label for="createPortfolioId" class="form-label">Portfolio ID</label>
+                                <input type="number" class="form-control" id="createPortfolioId" placeholder="e.g. 101" required />
+                            </div>
+                            <div class="col-6">
+                                <label for="createDate" class="form-label">Purchase Date</label>
+                                <input type="date" class="form-control" id="createDate" />
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-3">
+                                <label for="createQuantity" class="form-label">Quantity</label>
+                                <input type="number" class="form-control" id="createQuantity" step="1" placeholder="e.g. 100" />
+                            </div>
+                            <div class="col-3">
+                                <label for="createPurchasePrice" class="form-label">Purchase Price</label>
+                                <input type="number" class="form-control" id="createPurchasePrice" step="0.01" placeholder="e.g. 13.55" />
+                            </div>
+                            <div class="col-3">
+                                <label for="createCommission" class="form-label">Commission</label>
+                                <input type="number" class="form-control" id="createCommission" step="0.01" placeholder="e.g. 1.50" />
+                            </div>
+                            <div class="col-3">
+                                <label for="createCurrentPrice" class="form-label">Current Price</label>
+                                <input type="number" class="form-control" id="createCurrentPrice" step="0.01" placeholder="e.g. 15.20" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- MODAL FOOTER -->
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
+                        Cancel
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm" id="btnSaveItem">
+                        Save
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOADING INDICATOR (Centered Overlay) -->
+    <div id="loadingIndicator" class="d-none"
+         style="
+           position: fixed;
+           top: 50%;
+           left: 50%;
+           transform: translate(-50%, -50%);
+           z-index: 9999;
+           text-align: center;
+           background-color: rgba(255, 255, 255, 0.8);
+           padding: 30px;
+           border-radius: 8px;
+         ">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="mt-2">Loading data, please wait...</div>
+    </div>
+
+    <!-- DATA TABLE (initially visible) -->
+    <table id="portfolioTable" class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th style="display:none;">ID</th> <!-- Hidden column for the item.id -->
+                <th>Symbol</th>
+                <th>Operation Type</th>
+                <th>Portfolio ID</th>
+                <th>Purchase Date</th>
+                <th>Quantity</th>
+                <th>Purchase Price</th>
+                <th>Commission</th>
+                <th>Current Price</th>
+                <th>Total Investment</th>
+                <th>Current Value</th>
+                <th>Industry</th>
+                <th>% Change</th>
+                <th>Profit</th>
+            </tr>
+        </thead>
+        <tbody><!-- Rows dynamically added in JS --></tbody>
+    </table>
+
+    <!-- NEW: Canvas for the Chart Heatmap (initially hidden) -->
+    <canvas id="heatmapChart" width="900" height="500" style="display: none;"></canvas>
+</div>
+
+@section PageScripts {
+    <!-- jQuery & DataTables JS -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.3/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- (Optional) Bootstrap 5 JS if not already in your layout -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script> -->
+    <!-- CHART.JS + Matrix Plugin from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
+
+    <script>
+        let table;
+        let heatmapChartRef = null;
+
+        // ==========================
+        // HELPER: Show success alert
+        // ==========================
+        function showSuccessMessage(messageText) {
+            const container = document.getElementById('alertContainer');
+            const div = document.createElement('div');
+            div.className = 'alert alert-success alert-dismissible fade show';
+            div.setAttribute('role', 'alert');
+            div.innerHTML = `
+                ${messageText}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            container.appendChild(div);
+        }
+
+        // ==========================
+        // HELPER: Show error alert
+        // ==========================
+        function showErrorMessage(messageText) {
+            const container = document.getElementById('alertContainer');
+            const div = document.createElement('div');
+            div.className = 'alert alert-danger alert-dismissible fade show';
+            div.setAttribute('role', 'alert');
+            div.innerHTML = `
+                ${messageText}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            container.appendChild(div);
+        }
+
+        // ==========================
+        // HELPER: Show/hide spinner
+        // ==========================
+        function showLoadingSpinner(show = true) {
+            const el = document.getElementById('loadingIndicator');
+            if (show) {
+                el.classList.remove('d-none'); // show
+            } else {
+                el.classList.add('d-none');    // hide
+            }
+        }
+
+        $(document).ready(function () {
+            // 1) Initialize DataTable
+            table = $('#portfolioTable').DataTable({
+                columnDefs: [
+                    { targets: 0, visible: false } // Hide ID column
+                ]
+            });
+
+            // 2) Load existing data
+            loadExistingPortfolioItems();
+
+            // 3) Inline editing
+            setupInlineEditing();
+
+            // 4) Create item (Modal)
+            setupCreateItemModal();
+
+            // 5) Symbol search
+            setupSymbolSearch();
+
+            // 6) “Show Chart Heatmap” => hide table, show canvas
+            document.getElementById('btnShowChartHeatmap').addEventListener('click', showHeatmapChart);
+
+            // 7) “Back to Table” => hide canvas, show table
+            document.getElementById('btnShowTable').addEventListener('click', showTableAgain);
+        });
+
+        // -------------------------------
+        // LOAD EXISTING PORTFOLIO ITEMS
+        // -------------------------------
+        async function loadExistingPortfolioItems() {
+            showLoadingSpinner(true);
+            try {
+                const response = await fetch('/api/Portfolio', { method: 'GET' });
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+                const portfolios = await response.json();
+                const portfolio = portfolios[0]; // e.g. the first portfolio
+                const items = portfolio.items || [];
+
+                items.forEach(item => {
+                    let dateStr = '';
+                    if (item.purchaseDate) {
+                        const d = new Date(item.purchaseDate);
+                        if (!isNaN(d)) {
+                            dateStr = d.toLocaleDateString(); // "3/27/2025"
+                        }
+                    }
+
+                    // Calculate Profit only if "Sell"
+                    let profit = '';
+                    if (item.operationType === 'Sell') {
+                        const qty    = item.quantity      || 0;
+                        const pPrice = item.purchasePrice || 0;
+                        const cPrice = item.currentPrice  || 0;
+                        const comm   = item.commission    || 0;
+                        profit = ((cPrice - pPrice) * qty - comm).toFixed(2);
+                    }
+
+                    table.row.add([
+                        item.id,
+                        item.symbol,
+                        item.operationType,
+                        item.portfolioId,
+                        dateStr,
+                        item.quantity,
+                        item.purchasePrice,
+                        item.commission,
+                        item.currentPrice,
+                        item.totalInvestment,
+                        item.currentMarketValue,
+                        item.industry || '',
+                        (item.percentChange || 0).toFixed(2) + '%',
+                        profit
+                    ]);
+                });
+                table.draw(false);
+
+                showSuccessMessage('Portfolio data loaded successfully.');
+            } catch (err) {
+                console.error('Error fetching portfolio:', err);
+                showErrorMessage('Failed to load portfolio data. See console for details.');
+            } finally {
+                showLoadingSpinner(false);
+            }
+        }
+
+        // -------------------------------
+        // INLINE EDITING
+        // -------------------------------
+        function setupInlineEditing() {
+            // We skip col 0 (hidden ID), col 12 (%), col 13 (Profit)
+            $('#portfolioTable tbody').on('click', 'td', async function () {
+                const colIdx = table.cell(this).index().column;
+                if (colIdx === 0 || colIdx === 12 || colIdx === 13) return;
+
+                const $cell = $(this);
+                const originalValue = table.cell(this).data();
+                if ($cell.find('input').length > 0 || $cell.find('select').length > 0) return;
+
+                if (colIdx === 2) {
+                    // Operation Type => <select>
+                    const $select = $(`
+                        <select class="form-select form-select-sm">
+                            <option value="Buy">Buy</option>
+                            <option value="Sell">Sell</option>
+                            <option value="Close">Close</option>
+                        </select>
+                    `);
+                    $select.val(originalValue);
+                    $cell.html($select);
+                    $select.trigger('focus');
+
+                    $select.on('blur change keyup', async function (e) {
+                        if (e.type === 'blur' || e.key === 'Enter' || e.type === 'change') {
+                            let newValue = $select.val();
+                            table.cell($cell).data(newValue).draw(false);
+                            $cell.text(newValue);
+                            await saveItemChange($cell.closest('tr'));
+                        }
+                    });
+                }
+                else if (colIdx === 4) {
+                    // Purchase Date => <input type="date">
+                    const dateValueForInput = toDateInputValue(originalValue);
+                    const $input = $(`<input type="date" class="form-control form-control-sm" />`).val(dateValueForInput);
+                    $cell.html($input);
+                    $input.trigger('focus');
+
+                    $input.on('blur keyup', async function (e) {
+                        if (e.type === 'blur' || e.key === 'Enter') {
+                            let newISO = $input.val().trim();
+                            let newDisplayValue = fromDateInputValue(newISO);
+                            if (!newDisplayValue) newDisplayValue = originalValue;
+                            table.cell($cell).data(newDisplayValue).draw(false);
+                            $cell.text(newDisplayValue);
+                            await saveItemChange($cell.closest('tr'));
+                        }
+                    });
+                }
+                else {
+                    // Generic text input
+                    const $input = $('<input type="text" class="form-control form-control-sm">').val(originalValue);
+                    $cell.html($input);
+                    $input.trigger('focus');
+
+                    $input.on('blur keyup', async function (e) {
+                        if (e.type === 'blur' || e.key === 'Enter') {
+                            let newValue = $input.val().trim();
+                            if (!newValue) newValue = originalValue;
+                            table.cell($cell).data(newValue).draw(false);
+                            $cell.text(newValue);
+                            await saveItemChange($cell.closest('tr'));
+                        }
+                    });
+                }
+            });
+        }
+
+        // PUT /api/PortfolioItem/UpdateItemV1/{id}
+        async function saveItemChange($row) {
+            const rowIndex = table.row($row).index();
+            const rowData = table.row(rowIndex).data();
+            // rowData => [0:id,1:symbol,2:opType,3:portfolioId,4:date,...,12:%,13:profit]
+
+            const itemId        = parseInt(rowData[0]);
+            const symbol        = rowData[1];
+            const operationType = rowData[2];
+            const portfolioId   = parseInt(rowData[3]) || 0;
+            const dateString    = rowData[4];
+            const quantity      = parseFloat(rowData[5]) || 0;
+            const purchasePrice = parseFloat(rowData[6]) || 0;
+            const commission    = parseFloat(rowData[7]) || 0;
+            const currentPrice  = parseFloat(rowData[8]) || 0;
+
+            // Convert "MM/DD/YYYY" -> ISO
+            let parsedDate = null;
+            try {
+                let dateParts = dateString.split('/');
+                if (dateParts.length === 3) {
+                    let mm = dateParts[0].padStart(2, '0');
+                    let dd = dateParts[1].padStart(2, '0');
+                    let yyyy = dateParts[2];
+                    let isoStr = `${yyyy}-${mm}-${dd}`;
+                    let d = new Date(isoStr);
+                    if (!isNaN(d)) {
+                        parsedDate = d.toISOString();
+                    }
+                }
+            } catch(_) {}
+
+            // Recompute "Profit" if operation is Sell
+            let profit = '';
+            if (operationType === 'Sell') {
+                profit = ((currentPrice - purchasePrice) * quantity - commission).toFixed(2);
+            }
+            rowData[13] = profit;
+            table.row($row).data(rowData).draw(false);
+
+            const requestBody = {
+                id: itemId,
+                symbol: symbol,
+                operationType: operationType,
+                portfolioId: portfolioId,
+                purchaseDate: parsedDate,
+                quantity: quantity,
+                purchasePrice: purchasePrice,
+                commission: commission,
+                currentPrice: currentPrice
+            };
+
+            try {
+                const resp = await fetch(`/api/PortfolioItem/UpdateItemV1/${itemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                if (!resp.ok) {
+                    throw new Error(`Server returned status ${resp.status}`);
+                }
+                showSuccessMessage(`Item updated: ${itemId}`);
+            } catch (err) {
+                console.error("Error updating item:", err);
+                showErrorMessage("Failed to update item. Check console.");
+            }
+        }
+
+        // -------------------------------
+        // CREATE ITEM (Modal)
+        // -------------------------------
+        function setupCreateItemModal() {
+            const btnSave = document.getElementById('btnSaveItem');
+            btnSave.addEventListener('click', async function() {
+                const form = document.getElementById('createItemForm');
+
+                // Gather fields
+                const symbol        = document.getElementById('createSymbol').value.trim();
+                const operationType = document.getElementById('createOpType').value;
+                const portfolioId   = parseInt(document.getElementById('createPortfolioId').value.trim()) || 0;
+                const dateString    = document.getElementById('createDate').value;
+                const quantity      = parseFloat(document.getElementById('createQuantity').value) || 0;
+                const purchasePrice = parseFloat(document.getElementById('createPurchasePrice').value) || 0;
+                const commission    = parseFloat(document.getElementById('createCommission').value) || 0;
+                const currentPrice  = parseFloat(document.getElementById('createCurrentPrice').value) || 0;
+
+                // Convert date to ISO
+                let parsedDate = null;
+                if (dateString) {
+                    try {
+                        const d = new Date(dateString);
+                        if (!isNaN(d)) {
+                            parsedDate = d.toISOString();
+                        }
+                    } catch(_) {}
+                }
+
+                const createPayload = {
+                    symbol: symbol,
+                    operationType: operationType,
+                    portfolioId: portfolioId,
+                    purchaseDate: parsedDate,
+                    quantity: quantity,
+                    purchasePrice: purchasePrice,
+                    commission: commission,
+                    currentPrice: currentPrice
+                };
+
+                try {
+                    const resp = await fetch('/api/PortfolioItem/CreateItemV1', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(createPayload)
+                    });
+                    if (!resp.ok) {
+                        throw new Error(`Server returned status ${resp.status}`);
+                    }
+                    const newItem = await resp.json();
+                    showSuccessMessage('Item created. ID = ' + newItem.id);
+
+                    // If server doesn't return "profit", recalc if Sell
+                    let profit = '';
+                    if (newItem.operationType === 'Sell') {
+                        const qty    = newItem.quantity      || 0;
+                        const pPrice = newItem.purchasePrice || 0;
+                        const cPrice = newItem.currentPrice  || 0;
+                        const comm   = newItem.commission    || 0;
+                        profit = ((cPrice - pPrice) * qty - comm).toFixed(2);
+                    }
+
+                    // Convert date for display
+                    let dateStr = '';
+                    if (newItem.purchaseDate) {
+                        let tmp = new Date(newItem.purchaseDate);
+                        if (!isNaN(tmp)) {
+                            dateStr = tmp.toLocaleDateString();
+                        }
+                    }
+
+                    // Add row to DataTable
+                    table.row.add([
+                        newItem.id,
+                        newItem.symbol,
+                        newItem.operationType,
+                        newItem.portfolioId,
+                        dateStr,
+                        newItem.quantity,
+                        newItem.purchasePrice,
+                        newItem.commission,
+                        newItem.currentPrice,
+                        newItem.totalInvestment || 0,
+                        newItem.currentMarketValue || 0,
+                        newItem.industry || '',
+                        (newItem.percentChange || 0).toFixed(2) + '%',
+                        profit
+                    ]).draw(false);
+
+                    form.reset();
+                    const modalEl = document.getElementById('createItemModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+
+                } catch (err) {
+                    console.error('Error creating item:', err);
+                    showErrorMessage('Failed to create item. See console for details.');
+                }
+            });
+        }
+
+        // -------------------------------
+        // SYMBOL SEARCH
+        // -------------------------------
+        function setupSymbolSearch() {
+            const searchBtn     = document.getElementById('btnSymbolSearch');
+            const searchInput   = document.getElementById('symbolSearchInput');
+            const resultsSelect = document.getElementById('symbolSearchResults');
+
+            searchBtn.addEventListener('click', async function() {
+                const query = searchInput.value.trim();
+                if (!query) {
+                    showErrorMessage('Please enter a search term, e.g. "intel" or "nos".');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/YahooFinance/search/${query}`);
+                    if (!response.ok) {
+                        throw new Error(`Server returned status ${response.status}`);
+                    }
+
+                    const results = await response.json();
+                    resultsSelect.innerHTML = '';
+
+                    if (!Array.isArray(results) || results.length === 0) {
+                        resultsSelect.style.display = 'none';
+                        showErrorMessage(`No symbols found for "${query}".`);
+                        return;
+                    }
+
+                    results.forEach(item => {
+                        const opt = document.createElement('option');
+                        let label = `${item.symbol} - ${item.shortname || ''}`;
+                        if (item.exchange) {
+                            label += ` [${item.exchange}]`;
+                        }
+                        opt.textContent = label;
+                        opt.value = item.symbol;
+                        resultsSelect.appendChild(opt);
+                    });
+
+                    resultsSelect.style.display = 'block';
+                } catch (err) {
+                    console.error('Error searching symbols:', err);
+                    showErrorMessage('Failed to search symbols. See console for details.');
+                }
+            });
+
+            resultsSelect.addEventListener('change', function() {
+                const chosenSymbol = resultsSelect.value;
+                document.getElementById('createSymbol').value = chosenSymbol;
+            });
+        }
+
+        // ============================
+        // HELPER: "MM/DD/YYYY" -> "YYYY-MM-DD"
+        // ============================
+        function toDateInputValue(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('/');
+            if (parts.length !== 3) return '';
+            let mm = parts[0].padStart(2, '0');
+            let dd = parts[1].padStart(2, '0');
+            let yyyy = parts[2];
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        // ============================
+        // HELPER: "YYYY-MM-DD" -> "MM/DD/YYYY"
+        // ============================
+        function fromDateInputValue(dateStr) {
+            if (!dateStr) return '';
+            const parts = dateStr.split('-');
+            if (parts.length !== 3) return '';
+            let yyyy = parts[0];
+            let mm = parseInt(parts[1], 10); // 1-12
+            let dd = parseInt(parts[2], 10); // 1-31
+            return `${mm}/${dd}/${yyyy}`;
+        }
+
+        // -------------------------------
+        // SHOW CHART HEATMAP
+        // -------------------------------
+        function showHeatmapChart() {
+            // Hide table
+            document.getElementById('portfolioTable').style.display = 'none';
+            // Show heatmap canvas
+            document.getElementById('heatmapChart').style.display = 'block';
+            // Show "Back to Table" button
+            document.getElementById('btnShowTable').style.display = 'inline-block';
+            // Hide the "Show Chart Heatmap" button
+            document.getElementById('btnShowChartHeatmap').style.display = 'none';
+
+            // Build the matrix chart
+            buildMatrixChart();
+        }
+
+        // -------------------------------
+        // BACK TO TABLE
+        // -------------------------------
+        function showTableAgain() {
+            // Show table
+            document.getElementById('portfolioTable').style.display = '';
+            // Hide canvas
+            document.getElementById('heatmapChart').style.display = 'none';
+            // Hide "Back to Table"
+            document.getElementById('btnShowTable').style.display = 'none';
+            // Show "Show Chart Heatmap"
+            document.getElementById('btnShowChartHeatmap').style.display = 'inline-block';
+
+            // Destroy the chart if it exists
+            if (heatmapChartRef) {
+                heatmapChartRef.destroy();
+                heatmapChartRef = null;
+            }
+        }
+
+        // -------------------------------
+        // BUILD MATRIX CHART
+        // -------------------------------
+        function buildMatrixChart() {
+            // If chart already exists, destroy
+            if (heatmapChartRef) {
+                heatmapChartRef.destroy();
+                heatmapChartRef = null;
+            }
+
+            // We pick numeric columns:
+            // e.g., 5=Quantity, 6=PurchasePrice, 7=Commission, 8=CurrentPrice, 12=%Change, 13=Profit
+            const numericCols = [5, 6, 7, 8, 12, 13];
+            const colLabels = ["Qty", "P.Price", "Comm", "Curr.Price", "%Chg", "Profit"];
+
+            const matrixData = [];
+            let minValue = Infinity;
+            let maxValue = -Infinity;
+
+            // Gather data from each row
+            const allRowIndexes = table.rows().indexes();
+            allRowIndexes.each((rowIdx) => {
+                const rowData = table.row(rowIdx).data();
+                if (!rowData) return;
+
+                numericCols.forEach((colIndex, i) => {
+                    let rawStr = rowData[colIndex];
+                    if (typeof rawStr === 'string') {
+                        rawStr = rawStr.replace("%", "").trim(); // remove possible '%'
+                    }
+                    let val = parseFloat(rawStr);
+                    if (isNaN(val)) {
+                        val = 0;
+                    }
+                    if (val < minValue) minValue = val;
+                    if (val > maxValue) maxValue = val;
+
+                    matrixData.push({
+                        x: rowIdx, // use row index for X
+                        y: i,      // i for Y
+                        v: val     // the value
+                    });
+                });
+            });
+
+            if (matrixData.length === 0) {
+                showErrorMessage("No data found for heatmap.");
+                return;
+            }
+
+            const range = maxValue - minValue;
+            if (range === 0) {
+                // all same => skip coloring
+                showErrorMessage("All values are identical, can't create heatmap.");
+                return;
+            }
+
+            const ctx = document.getElementById('heatmapChart').getContext('2d');
+            heatmapChartRef = new Chart(ctx, {
+                type: 'matrix',
+                data: {
+                    datasets: [{
+                        label: 'Heatmap',
+                        data: matrixData,
+                        width: 20,
+                        height: 20,
+                        backgroundColor: function(ctx) {
+                            const val = ctx.raw.v;
+                            const ratio = (val - minValue) / (range);
+                            // ratio=0 => green, ratio=1 => red
+                            const r = Math.round(255 * ratio);
+                            const g = Math.round(255 * (1 - ratio));
+                            return `rgba(${r},${g},0,0.8)`;
+                        },
+                        borderColor: 'rgba(255,255,255,0.5)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: table.rows().count() - 0.5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    // rowIdx => get Symbol (col 1)
+                                    const rowIdx = parseInt(value);
+                                    if (rowIdx < 0 || rowIdx >= table.rows().count()) {
+                                        return '';
+                                    }
+                                    const rowData = table.row(rowIdx).data();
+                                    if (!rowData) return '';
+                                    return rowData[1]; // "Symbol"
+                                },
+                                autoSkip: false
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: numericCols.length - 0.5,
+                            reverse: true,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    const i = parseInt(value);
+                                    if (i < 0 || i >= colLabels.length) {
+                                        return '';
+                                    }
+                                    return colLabels[i];
+                                },
+                                autoSkip: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    // ctx.raw => { x, y, v }
+                                    const itemRow = ctx.raw.x; // row index
+                                    const colLabel = colLabels[ctx.raw.y];
+                                    const val = ctx.raw.v;
+                                    // we can also show the Symbol
+                                    const rowData = table.row(itemRow).data();
+                                    const symbol = rowData ? rowData[1] : `Row ${itemRow}`;
+                                    return `${symbol} / ${colLabel}: ${val}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+}
