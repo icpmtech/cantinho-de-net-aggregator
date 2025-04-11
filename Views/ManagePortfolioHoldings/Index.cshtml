@@ -1,7 +1,7 @@
+<!-- Page Markup & Styles -->
 @section PageStyles {
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/dataTables.bootstrap5.min.css" />
-
     <!-- (Optional) Ensure you have Bootstrap 5 CSS in your layout -->
     <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" /> -->
 }
@@ -14,22 +14,21 @@
 
     <!-- BUTTONS -->
     <div class="mb-3">
-        <!-- Existing "Add New Item" button -->
+        <!-- Add New Item button -->
         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createItemModal">
             Add New Item
         </button>
 
-        <!-- NEW: Show Chart Heatmap -->
+        <!-- Show Chart Heatmap -->
         <button class="btn btn-outline-secondary btn-sm" id="btnShowChartHeatmap">
             Show Chart Heatmap
         </button>
 
-        <!-- NEW: Back to Table -->
+        <!-- Back to Table -->
         <button class="btn btn-outline-secondary btn-sm" id="btnShowTable" style="display: none;">
             Back to Table
         </button>
     </div>
-
     <!-- CREATE ITEM MODAL -->
     <div class="modal fade" id="createItemModal" tabindex="-1" aria-labelledby="createItemModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -118,27 +117,96 @@
     <!-- LOADING INDICATOR (Centered Overlay) -->
     <div id="loadingIndicator" class="d-none"
          style="
-           position: fixed;
-           top: 50%;
-           left: 50%;
-           transform: translate(-50%, -50%);
-           z-index: 9999;
-           text-align: center;
-           background-color: rgba(255, 255, 255, 0.8);
-           padding: 30px;
-           border-radius: 8px;
-         ">
+         position: fixed;
+         top: 50%;
+         left: 50%;
+         transform: translate(-50%, -50%);
+         z-index: 9999;
+         text-align: center;
+         background-color: rgba(255, 255, 255, 0.8);
+         padding: 30px;
+         border-radius: 8px;
+       ">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
         <div class="mt-2">Loading data, please wait...</div>
     </div>
+    <!-- Hide/Show Columns Panel -->
+    <div id="columnVisibilityPanel" class="mb-3">
+        <h5>Toggle Table Columns</h5>
+        <!-- Each checkbox corresponds to a column (indexed by DataTables zero-based index) -->
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="0" id="toggle0" checked>
+            <label class="form-check-label" for="toggle0">ID</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="1" id="toggle1" checked>
+            <label class="form-check-label" for="toggle1">Symbol</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="2" id="toggle2" checked>
+            <label class="form-check-label" for="toggle2">Op Type</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="3" id="toggle3" checked>
+            <label class="form-check-label" for="toggle3">Portfolio ID</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="4" id="toggle4" checked>
+            <label class="form-check-label" for="toggle4">Purchase Date</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="5" id="toggle5" checked>
+            <label class="form-check-label" for="toggle5">Quantity</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="6" id="toggle6" checked>
+            <label class="form-check-label" for="toggle6">Purchase Price</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="7" id="toggle7" checked>
+            <label class="form-check-label" for="toggle7">Commission</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="8" id="toggle8" checked>
+            <label class="form-check-label" for="toggle8">Current Price</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="9" id="toggle9" checked>
+            <label class="form-check-label" for="toggle9">Total Invest.</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="10" id="toggle10" checked>
+            <label class="form-check-label" for="toggle10">Current Value</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="11" id="toggle11" checked>
+            <label class="form-check-label" for="toggle11">Industry</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="12" id="toggle12" checked>
+            <label class="form-check-label" for="toggle12">% Change</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="13" id="toggle13" checked>
+            <label class="form-check-label" for="toggle13">Profit</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="14" id="toggle14" checked>
+            <label class="form-check-label" for="toggle14">P/L</label>
+        </div>
+        <div class="form-check form-check-inline">
+            <input class="form-check-input toggle-vis" type="checkbox" data-column="15" id="toggle15" checked>
+            <label class="form-check-label" for="toggle15">Value P/L</label>
+        </div>
+    </div>
 
-    <!-- DATA TABLE (initially visible) -->
+    <!-- Data Table -->
     <table id="portfolioTable" class="table table-striped table-bordered">
         <thead>
             <tr>
-                <th style="display:none;">ID</th> <!-- Hidden column for the item.id -->
+                <th style="display:none;">ID</th>
                 <th>Symbol</th>
                 <th>Operation Type</th>
                 <th>Portfolio ID</th>
@@ -152,24 +220,25 @@
                 <th>Industry</th>
                 <th>% Change</th>
                 <th>Profit</th>
+                <th>P/L</th>
+                <th>Value P/L</th>
             </tr>
         </thead>
-        <tbody><!-- Rows dynamically added in JS --></tbody>
+        <tbody>
+            <!-- Rows will be added dynamically -->
+        </tbody>
     </table>
 
-    <!-- NEW: Canvas for the Chart Heatmap (initially hidden) -->
+    <!-- Chart Heatmap Canvas (initially hidden) -->
     <canvas id="heatmapChart" width="900" height="500" style="display: none;"></canvas>
 </div>
 
 @section PageScripts {
-    <!-- jQuery & DataTables JS -->
+    <!-- jQuery, DataTables, Bootstrap (if needed), and Chart.js libraries -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.3/js/dataTables.bootstrap5.min.js"></script>
-
-    <!-- (Optional) Bootstrap 5 JS if not already in your layout -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script> -->
-    <!-- CHART.JS + Matrix Plugin from CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
 
@@ -177,9 +246,7 @@
         let table;
         let heatmapChartRef = null;
 
-        // ==========================
-        // HELPER: Show success alert
-        // ==========================
+        // ---------- ALERT HELPERS ----------
         function showSuccessMessage(messageText) {
             const container = document.getElementById('alertContainer');
             const div = document.createElement('div');
@@ -191,10 +258,6 @@
             `;
             container.appendChild(div);
         }
-
-        // ==========================
-        // HELPER: Show error alert
-        // ==========================
         function showErrorMessage(messageText) {
             const container = document.getElementById('alertContainer');
             const div = document.createElement('div');
@@ -206,49 +269,98 @@
             `;
             container.appendChild(div);
         }
-
-        // ==========================
-        // HELPER: Show/hide spinner
-        // ==========================
         function showLoadingSpinner(show = true) {
             const el = document.getElementById('loadingIndicator');
             if (show) {
-                el.classList.remove('d-none'); // show
+                el.classList.remove('d-none');
             } else {
-                el.classList.add('d-none');    // hide
+                el.classList.add('d-none');
             }
         }
 
         $(document).ready(function () {
-            // 1) Initialize DataTable
+            // ---------- Initialize DataTable with Render Callbacks ----------
             table = $('#portfolioTable').DataTable({
                 columnDefs: [
-                    { targets: 0, visible: false } // Hide ID column
+                    { targets: 0, visible: false }, // Hide ID
+
+                    // Profit (col 13): Calculate if operation type is "Sell"
+                    {
+                        targets: 13,
+                        render: function(data, type, row, meta) {
+                            if (row[2] === 'Sell') {
+                                const quantity = parseFloat(row[5]) || 0;
+                                const purchasePrice = parseFloat(row[6]) || 0;
+                                const currentPrice = parseFloat(row[8]) || 0;
+                                const commission = parseFloat(row[7]) || 0;
+                                const profit = (currentPrice - purchasePrice) * quantity - commission;
+                                return profit.toFixed(2);
+                            }
+                            return '';
+                        }
+                    },
+
+                    // P/L (col 14): Percentage gain/loss with green/red color
+                    {
+                        targets: 14,
+                        render: function(data, type, row, meta) {
+                            const quantity = parseFloat(row[5]) || 0;
+                            const purchasePrice = parseFloat(row[6]) || 0;
+                            const currentPrice = parseFloat(row[8]) || 0;
+                            const commission = parseFloat(row[7]) || 0;
+                            if (purchasePrice > 0 && quantity > 0) {
+                                const invested = purchasePrice * quantity;
+                                const netProfit = (currentPrice - purchasePrice) * quantity - commission;
+                                const plPercentage = (netProfit / invested) * 100;
+                                const formatted = plPercentage.toFixed(2) + '%';
+                                return plPercentage >= 0 ?
+                                    '<span style="color: green;">' + formatted + '</span>' :
+                                    '<span style="color: red;">' + formatted + '</span>';
+                            }
+                            return '';
+                        }
+                    },
+
+                    // Value P/L (col 15): (Current Value - Total Investment) with green/red color
+                    {
+                        targets: 15,
+                        render: function(data, type, row, meta) {
+                            const totalInvestment = parseFloat(row[9]) || 0;
+                            const currentMarketValue = parseFloat(row[10]) || 0;
+                            const valuePL = currentMarketValue - totalInvestment;
+                            const formatted = valuePL.toFixed(2);
+                            return valuePL >= 0 ?
+                                '<span style="color: green;">' + formatted + '</span>' :
+                                '<span style="color: red;">' + formatted + '</span>';
+                        }
+                    }
                 ]
             });
 
-            // 2) Load existing data
+            // ---------- Column Visibility Toggle ----------
+            $('input.toggle-vis').on('change', function(e) {
+                const column = table.column($(this).attr('data-column'));
+                column.visible(!column.visible());
+            });
+
+            // ---------- Load Existing Data ----------
             loadExistingPortfolioItems();
 
-            // 3) Inline editing
+            // ---------- Inline Editing for Base Columns ----------
             setupInlineEditing();
 
-            // 4) Create item (Modal)
+            // ---------- Create Item Modal Setup ----------
             setupCreateItemModal();
 
-            // 5) Symbol search
+            // ---------- Symbol Search Setup ----------
             setupSymbolSearch();
 
-            // 6) “Show Chart Heatmap” => hide table, show canvas
+            // ---------- Chart Heatmap Show/Hide ----------
             document.getElementById('btnShowChartHeatmap').addEventListener('click', showHeatmapChart);
-
-            // 7) “Back to Table” => hide canvas, show table
             document.getElementById('btnShowTable').addEventListener('click', showTableAgain);
         });
 
-        // -------------------------------
-        // LOAD EXISTING PORTFOLIO ITEMS
-        // -------------------------------
+        // ---------- LOAD EXISTING PORTFOLIO ITEMS ----------
         async function loadExistingPortfolioItems() {
             showLoadingSpinner(true);
             try {
@@ -257,7 +369,7 @@
                     throw new Error(`Server returned ${response.status}`);
                 }
                 const portfolios = await response.json();
-                const portfolio = portfolios[0]; // e.g. the first portfolio
+                const portfolio = portfolios[0]; // For example, use the first portfolio
                 const items = portfolio.items || [];
 
                 items.forEach(item => {
@@ -265,20 +377,10 @@
                     if (item.purchaseDate) {
                         const d = new Date(item.purchaseDate);
                         if (!isNaN(d)) {
-                            dateStr = d.toLocaleDateString(); // "3/27/2025"
+                            dateStr = d.toLocaleDateString();
                         }
                     }
-
-                    // Calculate Profit only if "Sell"
-                    let profit = '';
-                    if (item.operationType === 'Sell') {
-                        const qty    = item.quantity      || 0;
-                        const pPrice = item.purchasePrice || 0;
-                        const cPrice = item.currentPrice  || 0;
-                        const comm   = item.commission    || 0;
-                        profit = ((cPrice - pPrice) * qty - comm).toFixed(2);
-                    }
-
+                    // Add row with placeholders for computed columns
                     table.row.add([
                         item.id,
                         item.symbol,
@@ -293,11 +395,12 @@
                         item.currentMarketValue,
                         item.industry || '',
                         (item.percentChange || 0).toFixed(2) + '%',
-                        profit
+                        '',  // Profit (computed dynamically)
+                        '',  // P/L (computed dynamically)
+                        ''   // Value P/L (computed dynamically)
                     ]);
                 });
                 table.draw(false);
-
                 showSuccessMessage('Portfolio data loaded successfully.');
             } catch (err) {
                 console.error('Error fetching portfolio:', err);
@@ -307,21 +410,17 @@
             }
         }
 
-        // -------------------------------
-        // INLINE EDITING
-        // -------------------------------
+        // ---------- INLINE EDITING ----------
         function setupInlineEditing() {
-            // We skip col 0 (hidden ID), col 12 (%), col 13 (Profit)
-            $('#portfolioTable tbody').on('click', 'td', async function () {
+            $('#portfolioTable tbody').on('click', 'td', function () {
                 const colIdx = table.cell(this).index().column;
-                if (colIdx === 0 || colIdx === 12 || colIdx === 13) return;
-
+                // Do not allow editing on hidden and computed columns (ID, Profit, P/L, Value P/L)
+                if (colIdx === 0 || colIdx === 13 || colIdx === 14 || colIdx === 15) return;
                 const $cell = $(this);
                 const originalValue = table.cell(this).data();
                 if ($cell.find('input').length > 0 || $cell.find('select').length > 0) return;
-
+                // For Operation Type, use a select input
                 if (colIdx === 2) {
-                    // Operation Type => <select>
                     const $select = $(`
                         <select class="form-select form-select-sm">
                             <option value="Buy">Buy</option>
@@ -332,23 +431,20 @@
                     $select.val(originalValue);
                     $cell.html($select);
                     $select.trigger('focus');
-
                     $select.on('blur change keyup', async function (e) {
                         if (e.type === 'blur' || e.key === 'Enter' || e.type === 'change') {
-                            let newValue = $select.val();
+                            const newValue = $select.val();
                             table.cell($cell).data(newValue).draw(false);
                             $cell.text(newValue);
                             await saveItemChange($cell.closest('tr'));
                         }
                     });
                 }
-                else if (colIdx === 4) {
-                    // Purchase Date => <input type="date">
+                else if (colIdx === 4) { // Purchase Date using date input
                     const dateValueForInput = toDateInputValue(originalValue);
                     const $input = $(`<input type="date" class="form-control form-control-sm" />`).val(dateValueForInput);
                     $cell.html($input);
                     $input.trigger('focus');
-
                     $input.on('blur keyup', async function (e) {
                         if (e.type === 'blur' || e.key === 'Enter') {
                             let newISO = $input.val().trim();
@@ -360,12 +456,10 @@
                         }
                     });
                 }
-                else {
-                    // Generic text input
+                else { // Generic text input
                     const $input = $('<input type="text" class="form-control form-control-sm">').val(originalValue);
                     $cell.html($input);
                     $input.trigger('focus');
-
                     $input.on('blur keyup', async function (e) {
                         if (e.type === 'blur' || e.key === 'Enter') {
                             let newValue = $input.val().trim();
@@ -379,12 +473,10 @@
             });
         }
 
-        // PUT /api/PortfolioItem/UpdateItemV1/{id}
+        // ---------- SAVE ITEM CHANGE (Base Columns Only) ----------
         async function saveItemChange($row) {
             const rowIndex = table.row($row).index();
             const rowData = table.row(rowIndex).data();
-            // rowData => [0:id,1:symbol,2:opType,3:portfolioId,4:date,...,12:%,13:profit]
-
             const itemId        = parseInt(rowData[0]);
             const symbol        = rowData[1];
             const operationType = rowData[2];
@@ -395,7 +487,7 @@
             const commission    = parseFloat(rowData[7]) || 0;
             const currentPrice  = parseFloat(rowData[8]) || 0;
 
-            // Convert "MM/DD/YYYY" -> ISO
+            // Convert "MM/DD/YYYY" to ISO string
             let parsedDate = null;
             try {
                 let dateParts = dateString.split('/');
@@ -410,14 +502,6 @@
                     }
                 }
             } catch(_) {}
-
-            // Recompute "Profit" if operation is Sell
-            let profit = '';
-            if (operationType === 'Sell') {
-                profit = ((currentPrice - purchasePrice) * quantity - commission).toFixed(2);
-            }
-            rowData[13] = profit;
-            table.row($row).data(rowData).draw(false);
 
             const requestBody = {
                 id: itemId,
@@ -447,15 +531,11 @@
             }
         }
 
-        // -------------------------------
-        // CREATE ITEM (Modal)
-        // -------------------------------
+        // ---------- CREATE ITEM (Modal) ----------
         function setupCreateItemModal() {
             const btnSave = document.getElementById('btnSaveItem');
             btnSave.addEventListener('click', async function() {
                 const form = document.getElementById('createItemForm');
-
-                // Gather fields
                 const symbol        = document.getElementById('createSymbol').value.trim();
                 const operationType = document.getElementById('createOpType').value;
                 const portfolioId   = parseInt(document.getElementById('createPortfolioId').value.trim()) || 0;
@@ -465,7 +545,6 @@
                 const commission    = parseFloat(document.getElementById('createCommission').value) || 0;
                 const currentPrice  = parseFloat(document.getElementById('createCurrentPrice').value) || 0;
 
-                // Convert date to ISO
                 let parsedDate = null;
                 if (dateString) {
                     try {
@@ -475,7 +554,6 @@
                         }
                     } catch(_) {}
                 }
-
                 const createPayload = {
                     symbol: symbol,
                     operationType: operationType,
@@ -498,18 +576,6 @@
                     }
                     const newItem = await resp.json();
                     showSuccessMessage('Item created. ID = ' + newItem.id);
-
-                    // If server doesn't return "profit", recalc if Sell
-                    let profit = '';
-                    if (newItem.operationType === 'Sell') {
-                        const qty    = newItem.quantity      || 0;
-                        const pPrice = newItem.purchasePrice || 0;
-                        const cPrice = newItem.currentPrice  || 0;
-                        const comm   = newItem.commission    || 0;
-                        profit = ((cPrice - pPrice) * qty - comm).toFixed(2);
-                    }
-
-                    // Convert date for display
                     let dateStr = '';
                     if (newItem.purchaseDate) {
                         let tmp = new Date(newItem.purchaseDate);
@@ -517,8 +583,7 @@
                             dateStr = tmp.toLocaleDateString();
                         }
                     }
-
-                    // Add row to DataTable
+                    // Add new row with computed columns placeholders
                     table.row.add([
                         newItem.id,
                         newItem.symbol,
@@ -533,14 +598,14 @@
                         newItem.currentMarketValue || 0,
                         newItem.industry || '',
                         (newItem.percentChange || 0).toFixed(2) + '%',
-                        profit
+                        '', // Profit
+                        '', // P/L
+                        ''  // Value P/L
                     ]).draw(false);
-
                     form.reset();
                     const modalEl = document.getElementById('createItemModal');
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     modal.hide();
-
                 } catch (err) {
                     console.error('Error creating item:', err);
                     showErrorMessage('Failed to create item. See console for details.');
@@ -548,36 +613,29 @@
             });
         }
 
-        // -------------------------------
-        // SYMBOL SEARCH
-        // -------------------------------
+        // ---------- SYMBOL SEARCH ----------
         function setupSymbolSearch() {
             const searchBtn     = document.getElementById('btnSymbolSearch');
             const searchInput   = document.getElementById('symbolSearchInput');
             const resultsSelect = document.getElementById('symbolSearchResults');
-
             searchBtn.addEventListener('click', async function() {
                 const query = searchInput.value.trim();
                 if (!query) {
                     showErrorMessage('Please enter a search term, e.g. "intel" or "nos".');
                     return;
                 }
-
                 try {
                     const response = await fetch(`/api/YahooFinance/search/${query}`);
                     if (!response.ok) {
                         throw new Error(`Server returned status ${response.status}`);
                     }
-
                     const results = await response.json();
                     resultsSelect.innerHTML = '';
-
                     if (!Array.isArray(results) || results.length === 0) {
                         resultsSelect.style.display = 'none';
                         showErrorMessage(`No symbols found for "${query}".`);
                         return;
                     }
-
                     results.forEach(item => {
                         const opt = document.createElement('option');
                         let label = `${item.symbol} - ${item.shortname || ''}`;
@@ -588,23 +646,19 @@
                         opt.value = item.symbol;
                         resultsSelect.appendChild(opt);
                     });
-
                     resultsSelect.style.display = 'block';
                 } catch (err) {
                     console.error('Error searching symbols:', err);
                     showErrorMessage('Failed to search symbols. See console for details.');
                 }
             });
-
             resultsSelect.addEventListener('change', function() {
                 const chosenSymbol = resultsSelect.value;
                 document.getElementById('createSymbol').value = chosenSymbol;
             });
         }
 
-        // ============================
-        // HELPER: "MM/DD/YYYY" -> "YYYY-MM-DD"
-        // ============================
+        // ---------- DATE HELPERS ----------
         function toDateInputValue(dateStr) {
             if (!dateStr) return '';
             const parts = dateStr.split('/');
@@ -614,86 +668,55 @@
             let yyyy = parts[2];
             return `${yyyy}-${mm}-${dd}`;
         }
-
-        // ============================
-        // HELPER: "YYYY-MM-DD" -> "MM/DD/YYYY"
-        // ============================
         function fromDateInputValue(dateStr) {
             if (!dateStr) return '';
             const parts = dateStr.split('-');
             if (parts.length !== 3) return '';
             let yyyy = parts[0];
-            let mm = parseInt(parts[1], 10); // 1-12
-            let dd = parseInt(parts[2], 10); // 1-31
+            let mm = parseInt(parts[1], 10);
+            let dd = parseInt(parts[2], 10);
             return `${mm}/${dd}/${yyyy}`;
         }
 
-        // -------------------------------
-        // SHOW CHART HEATMAP
-        // -------------------------------
+        // ---------- CHART HEATMAP SHOW/HIDE ----------
         function showHeatmapChart() {
-            // Hide table
             document.getElementById('portfolioTable').style.display = 'none';
-            // Show heatmap canvas
             document.getElementById('heatmapChart').style.display = 'block';
-            // Show "Back to Table" button
             document.getElementById('btnShowTable').style.display = 'inline-block';
-            // Hide the "Show Chart Heatmap" button
             document.getElementById('btnShowChartHeatmap').style.display = 'none';
-
-            // Build the matrix chart
             buildMatrixChart();
         }
-
-        // -------------------------------
-        // BACK TO TABLE
-        // -------------------------------
         function showTableAgain() {
-            // Show table
             document.getElementById('portfolioTable').style.display = '';
-            // Hide canvas
             document.getElementById('heatmapChart').style.display = 'none';
-            // Hide "Back to Table"
             document.getElementById('btnShowTable').style.display = 'none';
-            // Show "Show Chart Heatmap"
             document.getElementById('btnShowChartHeatmap').style.display = 'inline-block';
-
-            // Destroy the chart if it exists
             if (heatmapChartRef) {
                 heatmapChartRef.destroy();
                 heatmapChartRef = null;
             }
         }
 
-        // -------------------------------
-        // BUILD MATRIX CHART
-        // -------------------------------
+        // ---------- BUILD MATRIX CHART ----------
         function buildMatrixChart() {
-            // If chart already exists, destroy
             if (heatmapChartRef) {
                 heatmapChartRef.destroy();
                 heatmapChartRef = null;
             }
-
-            // We pick numeric columns:
-            // e.g., 5=Quantity, 6=PurchasePrice, 7=Commission, 8=CurrentPrice, 12=%Change, 13=Profit
-            const numericCols = [5, 6, 7, 8, 12, 13];
-            const colLabels = ["Qty", "P.Price", "Comm", "Curr.Price", "%Chg", "Profit"];
-
+            // Numeric columns include our computed columns as well
+            const numericCols = [5, 6, 7, 8, 12, 14, 15];
+            const colLabels = ["Qty", "P.Price", "Comm", "Curr.Price", "%Chg", "P/L", "Val P/L"];
             const matrixData = [];
             let minValue = Infinity;
             let maxValue = -Infinity;
-
-            // Gather data from each row
             const allRowIndexes = table.rows().indexes();
             allRowIndexes.each((rowIdx) => {
                 const rowData = table.row(rowIdx).data();
                 if (!rowData) return;
-
                 numericCols.forEach((colIndex, i) => {
                     let rawStr = rowData[colIndex];
                     if (typeof rawStr === 'string') {
-                        rawStr = rawStr.replace("%", "").trim(); // remove possible '%'
+                        rawStr = rawStr.replace("%", "").trim();
                     }
                     let val = parseFloat(rawStr);
                     if (isNaN(val)) {
@@ -701,27 +724,22 @@
                     }
                     if (val < minValue) minValue = val;
                     if (val > maxValue) maxValue = val;
-
                     matrixData.push({
-                        x: rowIdx, // use row index for X
-                        y: i,      // i for Y
-                        v: val     // the value
+                        x: rowIdx,
+                        y: i,
+                        v: val
                     });
                 });
             });
-
             if (matrixData.length === 0) {
                 showErrorMessage("No data found for heatmap.");
                 return;
             }
-
             const range = maxValue - minValue;
             if (range === 0) {
-                // all same => skip coloring
                 showErrorMessage("All values are identical, can't create heatmap.");
                 return;
             }
-
             const ctx = document.getElementById('heatmapChart').getContext('2d');
             heatmapChartRef = new Chart(ctx, {
                 type: 'matrix',
@@ -733,8 +751,7 @@
                         height: 20,
                         backgroundColor: function(ctx) {
                             const val = ctx.raw.v;
-                            const ratio = (val - minValue) / (range);
-                            // ratio=0 => green, ratio=1 => red
+                            const ratio = (val - minValue) / range;
                             const r = Math.round(255 * ratio);
                             const g = Math.round(255 * (1 - ratio));
                             return `rgba(${r},${g},0,0.8)`;
@@ -753,14 +770,12 @@
                             ticks: {
                                 stepSize: 1,
                                 callback: function(value) {
-                                    // rowIdx => get Symbol (col 1)
                                     const rowIdx = parseInt(value);
                                     if (rowIdx < 0 || rowIdx >= table.rows().count()) {
                                         return '';
                                     }
                                     const rowData = table.row(rowIdx).data();
-                                    if (!rowData) return '';
-                                    return rowData[1]; // "Symbol"
+                                    return rowData ? rowData[1] : '';
                                 },
                                 autoSkip: false
                             }
@@ -774,27 +789,20 @@
                                 stepSize: 1,
                                 callback: function(value) {
                                     const i = parseInt(value);
-                                    if (i < 0 || i >= colLabels.length) {
-                                        return '';
-                                    }
-                                    return colLabels[i];
+                                    return (i >= 0 && i < colLabels.length) ? colLabels[i] : '';
                                 },
                                 autoSkip: false
                             }
                         }
                     },
                     plugins: {
-                        legend: {
-                            display: false
-                        },
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
                                 label: function(ctx) {
-                                    // ctx.raw => { x, y, v }
-                                    const itemRow = ctx.raw.x; // row index
+                                    const itemRow = ctx.raw.x;
                                     const colLabel = colLabels[ctx.raw.y];
                                     const val = ctx.raw.v;
-                                    // we can also show the Symbol
                                     const rowData = table.row(itemRow).data();
                                     const symbol = rowData ? rowData[1] : `Row ${itemRow}`;
                                     return `${symbol} / ${colLabel}: ${val}`;
