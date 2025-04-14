@@ -147,55 +147,66 @@
         //====================
         // PDF EXPORT (pdfmake)
         //====================
-        function exportTableToPdf(tableId) {
-          var tableElem = document.getElementById(tableId);
-          if (!tableElem) {
-            alert("Table not found: " + tableId);
-            return;
-          }
-
-          // Build the pdfmake table body array
-          var tableBody = [];
-          // Headers
-          var headers = tableElem.querySelectorAll("thead tr th");
-          var headerRow = [];
-          headers.forEach(th => {
-            headerRow.push(th.innerText.trim());
-          });
-          tableBody.push(headerRow);
-          // Body rows
-          var bodyRows = tableElem.querySelectorAll("tbody tr");
-          bodyRows.forEach(row => {
-            var rowData = [];
-            row.querySelectorAll("td").forEach(td => {
-              rowData.push(td.innerText.trim());
-            });
-            tableBody.push(rowData);
-          });
-
-          var docDefinition = {
-            content: [
-              { text: 'Exported Table: ' + tableId, style: 'header' },
-              {
-                table: {
-                  headerRows: 1,
-                  widths: Array(headerRow.length).fill('*'),
-                  body: tableBody
+                   function exportTableToPdf(tableId) {
+                var tableElem = document.getElementById(tableId);
+                if (!tableElem) {
+                    alert("Table not found: " + tableId);
+                    return;
                 }
-              }
-            ],
-            styles: {
-              header: {
-                bold: true,
-                fontSize: 14,
-                margin: [0, 0, 0, 10]
-              }
+
+                // Build the pdfmake table body array
+                var tableBody = [];
+
+                // 1) Grab table headers
+                var headerCells = tableElem.querySelectorAll("thead tr th");
+                var headerRow = [];
+                headerCells.forEach(th => {
+                    headerRow.push(th.innerText.trim());
+                });
+                tableBody.push(headerRow);
+
+                var expectedCells = headerRow.length;
+
+                // 2) Grab table body rows and ensure consistent cell count
+                var bodyRows = tableElem.querySelectorAll("tbody tr");
+                bodyRows.forEach(row => {
+                    var rowData = [];
+                    var cells = row.querySelectorAll("td");
+                    for (var i = 0; i < expectedCells; i++) {
+                        // If the cell at index i exists, use its text; otherwise, add an empty string.
+                        if (cells[i]) {
+                            rowData.push(cells[i].innerText.trim());
+                        } else {
+                            rowData.push('');
+                        }
+                    }
+                    tableBody.push(rowData);
+                });
+
+                // 3) Define the pdfmake document
+                var docDefinition = {
+                    content: [
+                        { text: 'Exported Table: ' + tableId, style: 'header' },
+                        {
+                            table: {
+                                headerRows: 1,
+                                widths: Array(expectedCells).fill('*'),
+                                body: tableBody
+                            }
+                        }
+                    ],
+                    styles: {
+                        header: {
+                            bold: true,
+                            fontSize: 14,
+                            margin: [0, 0, 0, 10]
+                        }
+                    }
+                };
+
+                // 4) Create and download the PDF file
+                pdfMake.createPdf(docDefinition).download(tableId + ".pdf");
             }
-          };
-
-          pdfMake.createPdf(docDefinition).download(tableId + ".pdf");
-        }
-
         //================================
         // MAIN LOGIC - LOAD & BUILD TABLES
         //================================
