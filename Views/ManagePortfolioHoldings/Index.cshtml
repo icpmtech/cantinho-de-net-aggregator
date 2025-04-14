@@ -1,9 +1,16 @@
-<!-- Page Markup & Styles -->
 @section PageStyles {
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/dataTables.bootstrap5.min.css" />
-    <!-- (Optional) Ensure you have Bootstrap 5 CSS in your layout -->
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" /> -->
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/dataTables.bootstrap5.min.css" />
+        <!-- ColReorder CSS for Bootstrap 5 -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.bootstrap5.min.css" />
+        <!-- (Optional) Ensure you have Bootstrap 5 CSS in your layout -->
+        <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/css/bootstrap.min.css" /> -->
+        <style>
+            /* Optional: Adjust offcanvas width if needed */
+            .offcanvas-end {
+                width: 300px;
+            }
+        </style>
 }
 
 <div class="container my-5">
@@ -28,7 +35,13 @@
         <button class="btn btn-outline-secondary btn-sm" id="btnShowTable" style="display: none;">
             Back to Table
         </button>
+
+        <!-- Open Sidebar for Column Settings -->
+        <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#columnsSidebar" aria-controls="columnsSidebar">
+            Column Settings
+        </button>
     </div>
+
     <!-- CREATE ITEM MODAL -->
     <div class="modal fade" id="createItemModal" tabindex="-1" aria-labelledby="createItemModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -38,7 +51,6 @@
                     <h5 class="modal-title" id="createItemModalLabel">Create New Portfolio Item</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-
                 <!-- MODAL BODY -->
                 <div class="modal-body">
                     <form id="createItemForm">
@@ -54,7 +66,6 @@
                                 <!-- Populated dynamically in JS -->
                             </select>
                         </div>
-
                         <!-- ACTUAL FIELDS -->
                         <div class="row mb-3">
                             <div class="col-6">
@@ -100,7 +111,6 @@
                         </div>
                     </form>
                 </div>
-
                 <!-- MODAL FOOTER -->
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
@@ -116,90 +126,19 @@
 
     <!-- LOADING INDICATOR (Centered Overlay) -->
     <div id="loadingIndicator" class="d-none"
-         style="
-         position: fixed;
-         top: 50%;
-         left: 50%;
-         transform: translate(-50%, -50%);
-         z-index: 9999;
-         text-align: center;
-         background-color: rgba(255, 255, 255, 0.8);
-         padding: 30px;
-         border-radius: 8px;
-       ">
+         style="position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 9999;
+                text-align: center;
+                background-color: rgba(255, 255, 255, 0.8);
+                padding: 30px;
+                border-radius: 8px;">
         <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
         </div>
         <div class="mt-2">Loading data, please wait...</div>
-    </div>
-    <!-- Hide/Show Columns Panel -->
-    <div id="columnVisibilityPanel" class="mb-3">
-        <h5>Toggle Table Columns</h5>
-        <!-- Each checkbox corresponds to a column (indexed by DataTables zero-based index) -->
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="0" id="toggle0" checked>
-            <label class="form-check-label" for="toggle0">ID</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="1" id="toggle1" checked>
-            <label class="form-check-label" for="toggle1">Symbol</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="2" id="toggle2" checked>
-            <label class="form-check-label" for="toggle2">Op Type</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="3" id="toggle3" checked>
-            <label class="form-check-label" for="toggle3">Portfolio ID</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="4" id="toggle4" checked>
-            <label class="form-check-label" for="toggle4">Purchase Date</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="5" id="toggle5" checked>
-            <label class="form-check-label" for="toggle5">Quantity</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="6" id="toggle6" checked>
-            <label class="form-check-label" for="toggle6">Purchase Price</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="7" id="toggle7" checked>
-            <label class="form-check-label" for="toggle7">Commission</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="8" id="toggle8" checked>
-            <label class="form-check-label" for="toggle8">Current Price</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="9" id="toggle9" checked>
-            <label class="form-check-label" for="toggle9">Total Invest.</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="10" id="toggle10" checked>
-            <label class="form-check-label" for="toggle10">Current Value</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="11" id="toggle11" checked>
-            <label class="form-check-label" for="toggle11">Industry</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="12" id="toggle12" checked>
-            <label class="form-check-label" for="toggle12">% Change</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="13" id="toggle13" checked>
-            <label class="form-check-label" for="toggle13">Profit</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="14" id="toggle14" checked>
-            <label class="form-check-label" for="toggle14">P/L</label>
-        </div>
-        <div class="form-check form-check-inline">
-            <input class="form-check-input toggle-vis" type="checkbox" data-column="15" id="toggle15" checked>
-            <label class="form-check-label" for="toggle15">Value P/L</label>
-        </div>
     </div>
 
     <!-- Data Table -->
@@ -215,7 +154,7 @@
                 <th>Purchase Price</th>
                 <th>Commission</th>
                 <th>Current Price</th>
-                <th>Total Investment</th>
+                <th>Total Invest.</th>
                 <th>Current Value</th>
                 <th>Industry</th>
                 <th>% Change</th>
@@ -233,328 +172,369 @@
     <canvas id="heatmapChart" width="900" height="500" style="display: none;"></canvas>
 </div>
 
+<!-- RIGHT SIDEBAR: OFFCANVAS PANEL FOR COLUMN VISIBILITY -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="columnsSidebar" aria-labelledby="columnsSidebarLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="columnsSidebarLabel">Toggle Table Columns</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <!-- Hide/Show Columns Panel Content -->
+        <div id="columnVisibilityPanel">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="0" id="toggle0" checked>
+                <label class="form-check-label" for="toggle0">ID</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="1" id="toggle1" checked>
+                <label class="form-check-label" for="toggle1">Symbol</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="2" id="toggle2" checked>
+                <label class="form-check-label" for="toggle2">Op Type</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="3" id="toggle3" checked>
+                <label class="form-check-label" for="toggle3">Portfolio ID</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="4" id="toggle4" checked>
+                <label class="form-check-label" for="toggle4">Purchase Date</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="5" id="toggle5" checked>
+                <label class="form-check-label" for="toggle5">Quantity</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="6" id="toggle6" checked>
+                <label class="form-check-label" for="toggle6">Purchase Price</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="7" id="toggle7" checked>
+                <label class="form-check-label" for="toggle7">Commission</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="8" id="toggle8" checked>
+                <label class="form-check-label" for="toggle8">Current Price</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="9" id="toggle9" checked>
+                <label class="form-check-label" for="toggle9">Total Invest.</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="10" id="toggle10" checked>
+                <label class="form-check-label" for="toggle10">Current Value</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="11" id="toggle11" checked>
+                <label class="form-check-label" for="toggle11">Industry</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="12" id="toggle12" checked>
+                <label class="form-check-label" for="toggle12">% Change</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="13" id="toggle13" checked>
+                <label class="form-check-label" for="toggle13">Profit</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="14" id="toggle14" checked>
+                <label class="form-check-label" for="toggle14">P/L</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input toggle-vis" type="checkbox" data-column="15" id="toggle15" checked>
+                <label class="form-check-label" for="toggle15">Value P/L</label>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section PageScripts {
-    <!-- jQuery, DataTables, Bootstrap (if needed), and Chart.js libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.3/js/dataTables.bootstrap5.min.js"></script>
-    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
+        <!-- jQuery, DataTables, Bootstrap (if needed), and Chart.js libraries -->
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.3/js/dataTables.bootstrap5.min.js"></script>
+        <!-- ColReorder JS -->
+        <script src="https://cdn.datatables.net/colreorder/1.6.2/js/dataTables.colReorder.min.js"></script>
+        <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5/dist/js/bootstrap.bundle.min.js"></script> -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@2.0.1/dist/chartjs-chart-matrix.min.js"></script>
 
-    <script>
-        let table;
-        let heatmapChartRef = null;
+        <script>
+            let table;
+            let heatmapChartRef = null;
 
-        // ---------- ALERT HELPERS ----------
-        function showSuccessMessage(messageText) {
-            const container = document.getElementById('alertContainer');
-            const div = document.createElement('div');
-            div.className = 'alert alert-success alert-dismissible fade show';
-            div.setAttribute('role', 'alert');
-            div.innerHTML = `
-                ${messageText}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            container.appendChild(div);
-        }
-        function showErrorMessage(messageText) {
-            const container = document.getElementById('alertContainer');
-            const div = document.createElement('div');
-            div.className = 'alert alert-danger alert-dismissible fade show';
-            div.setAttribute('role', 'alert');
-            div.innerHTML = `
-                ${messageText}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            container.appendChild(div);
-        }
-        function showLoadingSpinner(show = true) {
-            const el = document.getElementById('loadingIndicator');
-            if (show) {
-                el.classList.remove('d-none');
-            } else {
-                el.classList.add('d-none');
+            // ---------- ALERT HELPERS ----------
+            function showSuccessMessage(messageText) {
+                const container = document.getElementById('alertContainer');
+                const div = document.createElement('div');
+                div.className = 'alert alert-success alert-dismissible fade show';
+                div.setAttribute('role', 'alert');
+                div.innerHTML = `
+                    ${messageText}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                container.appendChild(div);
             }
-        }
+            function showErrorMessage(messageText) {
+                const container = document.getElementById('alertContainer');
+                const div = document.createElement('div');
+                div.className = 'alert alert-danger alert-dismissible fade show';
+                div.setAttribute('role', 'alert');
+                div.innerHTML = `
+                    ${messageText}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                `;
+                container.appendChild(div);
+            }
+            function showLoadingSpinner(show = true) {
+                const el = document.getElementById('loadingIndicator');
+                if (show) {
+                    el.classList.remove('d-none');
+                } else {
+                    el.classList.add('d-none');
+                }
+            }
 
-        $(document).ready(function () {
-            // ---------- Initialize DataTable with Render Callbacks ----------
-            table = $('#portfolioTable').DataTable({
-                columnDefs: [
-                    { targets: 0, visible: false }, // Hide ID
+            $(document).ready(function () {
+                // Retrieve saved column order from local storage (if any)
+                let savedOrder = localStorage.getItem('columnOrder');
+                if (savedOrder) {
+                    savedOrder = JSON.parse(savedOrder);
+                }
 
-                    // Profit (col 13): Calculate if operation type is "Sell"
-                    {
-                        targets: 13,
-                        render: function(data, type, row, meta) {
-                            if (row[2] === 'Sell') {
+                // ---------- Initialize DataTable with Render Callbacks and ColReorder ----------
+                table = $('#portfolioTable').DataTable({
+                    colReorder: savedOrder ? { order: savedOrder } : true,
+                    columnDefs: [
+                        { targets: 0, visible: false }, // Hide ID
+
+                        // Profit (col 13): Calculate if operation type is "Sell"
+                        {
+                            targets: 13,
+                            render: function(data, type, row, meta) {
+                                if (row[2] === 'Sell') {
+                                    const quantity = parseFloat(row[5]) || 0;
+                                    const purchasePrice = parseFloat(row[6]) || 0;
+                                    const currentPrice = parseFloat(row[8]) || 0;
+                                    const commission = parseFloat(row[7]) || 0;
+                                    const profit = (currentPrice - purchasePrice) * quantity - commission;
+                                    return profit.toFixed(2);
+                                }
+                                return '';
+                            }
+                        },
+
+                        // P/L (col 14): Percentage gain/loss with green/red color
+                        {
+                            targets: 14,
+                            render: function(data, type, row, meta) {
                                 const quantity = parseFloat(row[5]) || 0;
                                 const purchasePrice = parseFloat(row[6]) || 0;
                                 const currentPrice = parseFloat(row[8]) || 0;
                                 const commission = parseFloat(row[7]) || 0;
-                                const profit = (currentPrice - purchasePrice) * quantity - commission;
-                                return profit.toFixed(2);
+                                if (purchasePrice > 0 && quantity > 0) {
+                                    const invested = purchasePrice * quantity;
+                                    const netProfit = (currentPrice - purchasePrice) * quantity - commission;
+                                    const plPercentage = (netProfit / invested) * 100;
+                                    const formatted = plPercentage.toFixed(2) + '%';
+                                    return plPercentage >= 0 ?
+                                        '<span style="color: green;">' + formatted + '</span>' :
+                                        '<span style="color: red;">' + formatted + '</span>';
+                                }
+                                return '';
                             }
-                            return '';
-                        }
-                    },
+                        },
 
-                    // P/L (col 14): Percentage gain/loss with green/red color
-                    {
-                        targets: 14,
-                        render: function(data, type, row, meta) {
-                            const quantity = parseFloat(row[5]) || 0;
-                            const purchasePrice = parseFloat(row[6]) || 0;
-                            const currentPrice = parseFloat(row[8]) || 0;
-                            const commission = parseFloat(row[7]) || 0;
-                            if (purchasePrice > 0 && quantity > 0) {
-                                const invested = purchasePrice * quantity;
-                                const netProfit = (currentPrice - purchasePrice) * quantity - commission;
-                                const plPercentage = (netProfit / invested) * 100;
-                                const formatted = plPercentage.toFixed(2) + '%';
-                                return plPercentage >= 0 ?
+                        // Value P/L (col 15): (Current Value - Total Investment) with green/red color
+                        {
+                            targets: 15,
+                            render: function(data, type, row, meta) {
+                                const totalInvestment = parseFloat(row[9]) || 0;
+                                const currentMarketValue = parseFloat(row[10]) || 0;
+                                const valuePL = currentMarketValue - totalInvestment;
+                                const formatted = valuePL.toFixed(2);
+                                return valuePL >= 0 ?
                                     '<span style="color: green;">' + formatted + '</span>' :
                                     '<span style="color: red;">' + formatted + '</span>';
                             }
-                            return '';
                         }
-                    },
-
-                    // Value P/L (col 15): (Current Value - Total Investment) with green/red color
-                    {
-                        targets: 15,
-                        render: function(data, type, row, meta) {
-                            const totalInvestment = parseFloat(row[9]) || 0;
-                            const currentMarketValue = parseFloat(row[10]) || 0;
-                            const valuePL = currentMarketValue - totalInvestment;
-                            const formatted = valuePL.toFixed(2);
-                            return valuePL >= 0 ?
-                                '<span style="color: green;">' + formatted + '</span>' :
-                                '<span style="color: red;">' + formatted + '</span>';
-                        }
-                    }
-                ]
-            });
-
-            // ---------- Column Visibility Toggle ----------
-            $('input.toggle-vis').on('change', function(e) {
-                const column = table.column($(this).attr('data-column'));
-                column.visible(!column.visible());
-            });
-
-            // ---------- Load Existing Data ----------
-            loadExistingPortfolioItems();
-
-            // ---------- Inline Editing for Base Columns ----------
-            setupInlineEditing();
-
-            // ---------- Create Item Modal Setup ----------
-            setupCreateItemModal();
-
-            // ---------- Symbol Search Setup ----------
-            setupSymbolSearch();
-
-            // ---------- Chart Heatmap Show/Hide ----------
-            document.getElementById('btnShowChartHeatmap').addEventListener('click', showHeatmapChart);
-            document.getElementById('btnShowTable').addEventListener('click', showTableAgain);
-        });
-
-        // ---------- LOAD EXISTING PORTFOLIO ITEMS ----------
-        async function loadExistingPortfolioItems() {
-            showLoadingSpinner(true);
-            try {
-                const response = await fetch('/api/Portfolio', { method: 'GET' });
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status}`);
-                }
-                const portfolios = await response.json();
-                const portfolio = portfolios[0]; // For example, use the first portfolio
-                const items = portfolio.items || [];
-
-                items.forEach(item => {
-                    let dateStr = '';
-                    if (item.purchaseDate) {
-                        const d = new Date(item.purchaseDate);
-                        if (!isNaN(d)) {
-                            dateStr = d.toLocaleDateString();
-                        }
-                    }
-                    // Add row with placeholders for computed columns
-                    table.row.add([
-                        item.id,
-                        item.symbol,
-                        item.operationType,
-                        item.portfolioId,
-                        dateStr,
-                        item.quantity,
-                        item.purchasePrice,
-                        item.commission,
-                        item.currentPrice,
-                        item.totalInvestment,
-                        item.currentMarketValue,
-                        item.industry || '',
-                        (item.percentChange || 0).toFixed(2) + '%',
-                        '',  // Profit (computed dynamically)
-                        '',  // P/L (computed dynamically)
-                        ''   // Value P/L (computed dynamically)
-                    ]);
+                    ]
                 });
-                table.draw(false);
-                showSuccessMessage('Portfolio data loaded successfully.');
-            } catch (err) {
-                console.error('Error fetching portfolio:', err);
-                showErrorMessage('Failed to load portfolio data. See console for details.');
-            } finally {
-                showLoadingSpinner(false);
-            }
-        }
 
-        // ---------- INLINE EDITING ----------
-        function setupInlineEditing() {
-            $('#portfolioTable tbody').on('click', 'td', function () {
-                const colIdx = table.cell(this).index().column;
-                // Do not allow editing on hidden and computed columns (ID, Profit, P/L, Value P/L)
-                if (colIdx === 0 || colIdx === 13 || colIdx === 14 || colIdx === 15) return;
-                const $cell = $(this);
-                const originalValue = table.cell(this).data();
-                if ($cell.find('input').length > 0 || $cell.find('select').length > 0) return;
-                // For Operation Type, use a select input
-                if (colIdx === 2) {
-                    const $select = $(`
-                        <select class="form-select form-select-sm">
-                            <option value="Buy">Buy</option>
-                            <option value="Sell">Sell</option>
-                            <option value="Close">Close</option>
-                        </select>
-                    `);
-                    $select.val(originalValue);
-                    $cell.html($select);
-                    $select.trigger('focus');
-                    $select.on('blur change keyup', async function (e) {
-                        if (e.type === 'blur' || e.key === 'Enter' || e.type === 'change') {
-                            const newValue = $select.val();
-                            table.cell($cell).data(newValue).draw(false);
-                            $cell.text(newValue);
-                            await saveItemChange($cell.closest('tr'));
-                        }
-                    });
-                }
-                else if (colIdx === 4) { // Purchase Date using date input
-                    const dateValueForInput = toDateInputValue(originalValue);
-                    const $input = $(`<input type="date" class="form-control form-control-sm" />`).val(dateValueForInput);
-                    $cell.html($input);
-                    $input.trigger('focus');
-                    $input.on('blur keyup', async function (e) {
-                        if (e.type === 'blur' || e.key === 'Enter') {
-                            let newISO = $input.val().trim();
-                            let newDisplayValue = fromDateInputValue(newISO);
-                            if (!newDisplayValue) newDisplayValue = originalValue;
-                            table.cell($cell).data(newDisplayValue).draw(false);
-                            $cell.text(newDisplayValue);
-                            await saveItemChange($cell.closest('tr'));
-                        }
-                    });
-                }
-                else { // Generic text input
-                    const $input = $('<input type="text" class="form-control form-control-sm">').val(originalValue);
-                    $cell.html($input);
-                    $input.trigger('focus');
-                    $input.on('blur keyup', async function (e) {
-                        if (e.type === 'blur' || e.key === 'Enter') {
-                            let newValue = $input.val().trim();
-                            if (!newValue) newValue = originalValue;
-                            table.cell($cell).data(newValue).draw(false);
-                            $cell.text(newValue);
-                            await saveItemChange($cell.closest('tr'));
-                        }
-                    });
-                }
-            });
-        }
-
-        // ---------- SAVE ITEM CHANGE (Base Columns Only) ----------
-        async function saveItemChange($row) {
-            const rowIndex = table.row($row).index();
-            const rowData = table.row(rowIndex).data();
-            const itemId        = parseInt(rowData[0]);
-            const symbol        = rowData[1];
-            const operationType = rowData[2];
-            const portfolioId   = parseInt(rowData[3]) || 0;
-            const dateString    = rowData[4];
-            const quantity      = parseFloat(rowData[5]) || 0;
-            const purchasePrice = parseFloat(rowData[6]) || 0;
-            const commission    = parseFloat(rowData[7]) || 0;
-            const currentPrice  = parseFloat(rowData[8]) || 0;
-
-            // Convert "MM/DD/YYYY" to ISO string
-            let parsedDate = null;
-            try {
-                let dateParts = dateString.split('/');
-                if (dateParts.length === 3) {
-                    let mm = dateParts[0].padStart(2, '0');
-                    let dd = dateParts[1].padStart(2, '0');
-                    let yyyy = dateParts[2];
-                    let isoStr = `${yyyy}-${mm}-${dd}`;
-                    let d = new Date(isoStr);
-                    if (!isNaN(d)) {
-                        parsedDate = d.toISOString();
-                    }
-                }
-            } catch(_) {}
-
-            const requestBody = {
-                id: itemId,
-                symbol: symbol,
-                operationType: operationType,
-                portfolioId: portfolioId,
-                purchaseDate: parsedDate,
-                quantity: quantity,
-                purchasePrice: purchasePrice,
-                commission: commission,
-                currentPrice: currentPrice
-            };
-
-            try {
-                const resp = await fetch(`/api/PortfolioItem/UpdateItemV1/${itemId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestBody)
+                // Save column order changes to local storage whenever a column is reordered
+                table.on('column-reorder.dt', function(e, settings, details) {
+                    localStorage.setItem('columnOrder', JSON.stringify(table.colReorder.order()));
                 });
-                if (!resp.ok) {
-                    throw new Error(`Server returned status ${resp.status}`);
+
+                // ---------- Column Visibility Toggle ----------
+                $('input.toggle-vis').on('change', function(e) {
+                    const column = table.column($(this).attr('data-column'));
+                    column.visible(!column.visible());
+                });
+
+                // ---------- Load Existing Data ----------
+                loadExistingPortfolioItems();
+
+                // ---------- Inline Editing for Base Columns ----------
+                setupInlineEditing();
+
+                // ---------- Create Item Modal Setup ----------
+                setupCreateItemModal();
+
+                // ---------- Symbol Search Setup ----------
+                setupSymbolSearch();
+
+                // ---------- Chart Heatmap Show/Hide ----------
+                document.getElementById('btnShowChartHeatmap').addEventListener('click', showHeatmapChart);
+                document.getElementById('btnShowTable').addEventListener('click', showTableAgain);
+            });
+
+            // ---------- LOAD EXISTING PORTFOLIO ITEMS ----------
+            async function loadExistingPortfolioItems() {
+                showLoadingSpinner(true);
+                try {
+                    const response = await fetch('/api/Portfolio', { method: 'GET' });
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status}`);
+                    }
+                    const portfolios = await response.json();
+                    const portfolio = portfolios[0]; // For example, use the first portfolio
+                    const items = portfolio.items || [];
+
+                    items.forEach(item => {
+                        let dateStr = '';
+                        if (item.purchaseDate) {
+                            const d = new Date(item.purchaseDate);
+                            if (!isNaN(d)) {
+                                dateStr = d.toLocaleDateString();
+                            }
+                        }
+                        // Add row with placeholders for computed columns
+                        table.row.add([
+                            item.id,
+                            item.symbol,
+                            item.operationType,
+                            item.portfolioId,
+                            dateStr,
+                            item.quantity,
+                            item.purchasePrice,
+                            item.commission,
+                            item.currentPrice,
+                            item.totalInvestment,
+                            item.currentMarketValue,
+                            item.industry || '',
+                            (item.percentChange || 0).toFixed(2) + '%',
+                            '',  // Profit (computed dynamically)
+                            '',  // P/L (computed dynamically)
+                            ''   // Value P/L (computed dynamically)
+                        ]);
+                    });
+                    table.draw(false);
+                    showSuccessMessage('Portfolio data loaded successfully.');
+                } catch (err) {
+                    console.error('Error fetching portfolio:', err);
+                    showErrorMessage('Failed to load portfolio data. See console for details.');
+                } finally {
+                    showLoadingSpinner(false);
                 }
-                showSuccessMessage(`Item updated: ${itemId}`);
-            } catch (err) {
-                console.error("Error updating item:", err);
-                showErrorMessage("Failed to update item. Check console.");
             }
-        }
 
-        // ---------- CREATE ITEM (Modal) ----------
-        function setupCreateItemModal() {
-            const btnSave = document.getElementById('btnSaveItem');
-            btnSave.addEventListener('click', async function() {
-                const form = document.getElementById('createItemForm');
-                const symbol        = document.getElementById('createSymbol').value.trim();
-                const operationType = document.getElementById('createOpType').value;
-                const portfolioId   = parseInt(document.getElementById('createPortfolioId').value.trim()) || 0;
-                const dateString    = document.getElementById('createDate').value;
-                const quantity      = parseFloat(document.getElementById('createQuantity').value) || 0;
-                const purchasePrice = parseFloat(document.getElementById('createPurchasePrice').value) || 0;
-                const commission    = parseFloat(document.getElementById('createCommission').value) || 0;
-                const currentPrice  = parseFloat(document.getElementById('createCurrentPrice').value) || 0;
+            // ---------- INLINE EDITING ----------
+            function setupInlineEditing() {
+                $('#portfolioTable tbody').on('click', 'td', function () {
+                    const colIdx = table.cell(this).index().column;
+                    // Do not allow editing on hidden and computed columns (ID, Profit, P/L, Value P/L)
+                    if (colIdx === 0 || colIdx === 13 || colIdx === 14 || colIdx === 15) return;
+                    const $cell = $(this);
+                    const originalValue = table.cell(this).data();
+                    if ($cell.find('input').length > 0 || $cell.find('select').length > 0) return;
+                    // For Operation Type, use a select input
+                    if (colIdx === 2) {
+                        const $select = $(`
+                            <select class="form-select form-select-sm">
+                                <option value="Buy">Buy</option>
+                                <option value="Sell">Sell</option>
+                                <option value="Close">Close</option>
+                            </select>
+                        `);
+                        $select.val(originalValue);
+                        $cell.html($select);
+                        $select.trigger('focus');
+                        $select.on('blur change keyup', async function (e) {
+                            if (e.type === 'blur' || e.key === 'Enter' || e.type === 'change') {
+                                const newValue = $select.val();
+                                table.cell($cell).data(newValue).draw(false);
+                                $cell.text(newValue);
+                                await saveItemChange($cell.closest('tr'));
+                            }
+                        });
+                    }
+                    else if (colIdx === 4) { // Purchase Date using date input
+                        const dateValueForInput = toDateInputValue(originalValue);
+                        const $input = $(`<input type="date" class="form-control form-control-sm" />`).val(dateValueForInput);
+                        $cell.html($input);
+                        $input.trigger('focus');
+                        $input.on('blur keyup', async function (e) {
+                            if (e.type === 'blur' || e.key === 'Enter') {
+                                let newISO = $input.val().trim();
+                                let newDisplayValue = fromDateInputValue(newISO);
+                                if (!newDisplayValue) newDisplayValue = originalValue;
+                                table.cell($cell).data(newDisplayValue).draw(false);
+                                $cell.text(newDisplayValue);
+                                await saveItemChange($cell.closest('tr'));
+                            }
+                        });
+                    }
+                    else { // Generic text input
+                        const $input = $('<input type="text" class="form-control form-control-sm">').val(originalValue);
+                        $cell.html($input);
+                        $input.trigger('focus');
+                        $input.on('blur keyup', async function (e) {
+                            if (e.type === 'blur' || e.key === 'Enter') {
+                                let newValue = $input.val().trim();
+                                if (!newValue) newValue = originalValue;
+                                table.cell($cell).data(newValue).draw(false);
+                                $cell.text(newValue);
+                                await saveItemChange($cell.closest('tr'));
+                            }
+                        });
+                    }
+                });
+            }
 
+            // ---------- SAVE ITEM CHANGE (Base Columns Only) ----------
+            async function saveItemChange($row) {
+                const rowIndex = table.row($row).index();
+                const rowData = table.row(rowIndex).data();
+                const itemId        = parseInt(rowData[0]);
+                const symbol        = rowData[1];
+                const operationType = rowData[2];
+                const portfolioId   = parseInt(rowData[3]) || 0;
+                const dateString    = rowData[4];
+                const quantity      = parseFloat(rowData[5]) || 0;
+                const purchasePrice = parseFloat(rowData[6]) || 0;
+                const commission    = parseFloat(rowData[7]) || 0;
+                const currentPrice  = parseFloat(rowData[8]) || 0;
+
+                // Convert "MM/DD/YYYY" to ISO string
                 let parsedDate = null;
-                if (dateString) {
-                    try {
-                        const d = new Date(dateString);
+                try {
+                    let dateParts = dateString.split('/');
+                    if (dateParts.length === 3) {
+                        let mm = dateParts[0].padStart(2, '0');
+                        let dd = dateParts[1].padStart(2, '0');
+                        let yyyy = dateParts[2];
+                        let isoStr = `${yyyy}-${mm}-${dd}`;
+                        let d = new Date(isoStr);
                         if (!isNaN(d)) {
                             parsedDate = d.toISOString();
                         }
-                    } catch(_) {}
-                }
-                const createPayload = {
+                    }
+                } catch(_) {}
+
+                const requestBody = {
+                    id: itemId,
                     symbol: symbol,
                     operationType: operationType,
                     portfolioId: portfolioId,
@@ -566,252 +546,302 @@
                 };
 
                 try {
-                    const resp = await fetch('/api/PortfolioItem/CreateItemV1', {
-                        method: 'POST',
+                    const resp = await fetch(`/api/PortfolioItem/UpdateItemV1/${itemId}`, {
+                        method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(createPayload)
+                        body: JSON.stringify(requestBody)
                     });
                     if (!resp.ok) {
                         throw new Error(`Server returned status ${resp.status}`);
                     }
-                    const newItem = await resp.json();
-                    showSuccessMessage('Item created. ID = ' + newItem.id);
-                    let dateStr = '';
-                    if (newItem.purchaseDate) {
-                        let tmp = new Date(newItem.purchaseDate);
-                        if (!isNaN(tmp)) {
-                            dateStr = tmp.toLocaleDateString();
-                        }
-                    }
-                    // Add new row with computed columns placeholders
-                    table.row.add([
-                        newItem.id,
-                        newItem.symbol,
-                        newItem.operationType,
-                        newItem.portfolioId,
-                        dateStr,
-                        newItem.quantity,
-                        newItem.purchasePrice,
-                        newItem.commission,
-                        newItem.currentPrice,
-                        newItem.totalInvestment || 0,
-                        newItem.currentMarketValue || 0,
-                        newItem.industry || '',
-                        (newItem.percentChange || 0).toFixed(2) + '%',
-                        '', // Profit
-                        '', // P/L
-                        ''  // Value P/L
-                    ]).draw(false);
-                    form.reset();
-                    const modalEl = document.getElementById('createItemModal');
-                    const modal = bootstrap.Modal.getInstance(modalEl);
-                    modal.hide();
+                    showSuccessMessage(`Item updated: ${itemId}`);
                 } catch (err) {
-                    console.error('Error creating item:', err);
-                    showErrorMessage('Failed to create item. See console for details.');
+                    console.error("Error updating item:", err);
+                    showErrorMessage("Failed to update item. Check console.");
                 }
-            });
-        }
+            }
 
-        // ---------- SYMBOL SEARCH ----------
-        function setupSymbolSearch() {
-            const searchBtn     = document.getElementById('btnSymbolSearch');
-            const searchInput   = document.getElementById('symbolSearchInput');
-            const resultsSelect = document.getElementById('symbolSearchResults');
-            searchBtn.addEventListener('click', async function() {
-                const query = searchInput.value.trim();
-                if (!query) {
-                    showErrorMessage('Please enter a search term, e.g. "intel" or "nos".');
-                    return;
-                }
-                try {
-                    const response = await fetch(`/api/YahooFinance/search/${query}`);
-                    if (!response.ok) {
-                        throw new Error(`Server returned status ${response.status}`);
+            // ---------- CREATE ITEM (Modal) ----------
+            function setupCreateItemModal() {
+                const btnSave = document.getElementById('btnSaveItem');
+                btnSave.addEventListener('click', async function() {
+                    const form = document.getElementById('createItemForm');
+                    const symbol        = document.getElementById('createSymbol').value.trim();
+                    const operationType = document.getElementById('createOpType').value;
+                    const portfolioId   = parseInt(document.getElementById('createPortfolioId').value.trim()) || 0;
+                    const dateString    = document.getElementById('createDate').value;
+                    const quantity      = parseFloat(document.getElementById('createQuantity').value) || 0;
+                    const purchasePrice = parseFloat(document.getElementById('createPurchasePrice').value) || 0;
+                    const commission    = parseFloat(document.getElementById('createCommission').value) || 0;
+                    const currentPrice  = parseFloat(document.getElementById('createCurrentPrice').value) || 0;
+
+                    let parsedDate = null;
+                    if (dateString) {
+                        try {
+                            const d = new Date(dateString);
+                            if (!isNaN(d)) {
+                                parsedDate = d.toISOString();
+                            }
+                        } catch(_) {}
                     }
-                    const results = await response.json();
-                    resultsSelect.innerHTML = '';
-                    if (!Array.isArray(results) || results.length === 0) {
-                        resultsSelect.style.display = 'none';
-                        showErrorMessage(`No symbols found for "${query}".`);
+                    const createPayload = {
+                        symbol: symbol,
+                        operationType: operationType,
+                        portfolioId: portfolioId,
+                        purchaseDate: parsedDate,
+                        quantity: quantity,
+                        purchasePrice: purchasePrice,
+                        commission: commission,
+                        currentPrice: currentPrice
+                    };
+
+                    try {
+                        const resp = await fetch('/api/PortfolioItem/CreateItemV1', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(createPayload)
+                        });
+                        if (!resp.ok) {
+                            throw new Error(`Server returned status ${resp.status}`);
+                        }
+                        const newItem = await resp.json();
+                        showSuccessMessage('Item created. ID = ' + newItem.id);
+                        let dateStr = '';
+                        if (newItem.purchaseDate) {
+                            let tmp = new Date(newItem.purchaseDate);
+                            if (!isNaN(tmp)) {
+                                dateStr = tmp.toLocaleDateString();
+                            }
+                        }
+                        // Add new row with computed columns placeholders
+                        table.row.add([
+                            newItem.id,
+                            newItem.symbol,
+                            newItem.operationType,
+                            newItem.portfolioId,
+                            dateStr,
+                            newItem.quantity,
+                            newItem.purchasePrice,
+                            newItem.commission,
+                            newItem.currentPrice,
+                            newItem.totalInvestment || 0,
+                            newItem.currentMarketValue || 0,
+                            newItem.industry || '',
+                            (newItem.percentChange || 0).toFixed(2) + '%',
+                            '', // Profit
+                            '', // P/L
+                            ''  // Value P/L
+                        ]).draw(false);
+                        form.reset();
+                        const modalEl = document.getElementById('createItemModal');
+                        const modal = bootstrap.Modal.getInstance(modalEl);
+                        modal.hide();
+                    } catch (err) {
+                        console.error('Error creating item:', err);
+                        showErrorMessage('Failed to create item. See console for details.');
+                    }
+                });
+            }
+
+            // ---------- SYMBOL SEARCH ----------
+            function setupSymbolSearch() {
+                const searchBtn     = document.getElementById('btnSymbolSearch');
+                const searchInput   = document.getElementById('symbolSearchInput');
+                const resultsSelect = document.getElementById('symbolSearchResults');
+                searchBtn.addEventListener('click', async function() {
+                    const query = searchInput.value.trim();
+                    if (!query) {
+                        showErrorMessage('Please enter a search term, e.g. "intel" or "nos".');
                         return;
                     }
-                    results.forEach(item => {
-                        const opt = document.createElement('option');
-                        let label = `${item.symbol} - ${item.shortname || ''}`;
-                        if (item.exchange) {
-                            label += ` [${item.exchange}]`;
+                    try {
+                        const response = await fetch(`/api/YahooFinance/search/${query}`);
+                        if (!response.ok) {
+                            throw new Error(`Server returned status ${response.status}`);
                         }
-                        opt.textContent = label;
-                        opt.value = item.symbol;
-                        resultsSelect.appendChild(opt);
-                    });
-                    resultsSelect.style.display = 'block';
-                } catch (err) {
-                    console.error('Error searching symbols:', err);
-                    showErrorMessage('Failed to search symbols. See console for details.');
+                        const results = await response.json();
+                        resultsSelect.innerHTML = '';
+                        if (!Array.isArray(results) || results.length === 0) {
+                            resultsSelect.style.display = 'none';
+                            showErrorMessage(`No symbols found for "${query}".`);
+                            return;
+                        }
+                        results.forEach(item => {
+                            const opt = document.createElement('option');
+                            let label = `${item.symbol} - ${item.shortname || ''}`;
+                            if (item.exchange) {
+                                label += ` [${item.exchange}]`;
+                            }
+                            opt.textContent = label;
+                            opt.value = item.symbol;
+                            resultsSelect.appendChild(opt);
+                        });
+                        resultsSelect.style.display = 'block';
+                    } catch (err) {
+                        console.error('Error searching symbols:', err);
+                        showErrorMessage('Failed to search symbols. See console for details.');
+                    }
+                });
+                resultsSelect.addEventListener('change', function() {
+                    const chosenSymbol = resultsSelect.value;
+                    document.getElementById('createSymbol').value = chosenSymbol;
+                });
+            }
+
+            // ---------- DATE HELPERS ----------
+            function toDateInputValue(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('/');
+                if (parts.length !== 3) return '';
+                let mm = parts[0].padStart(2, '0');
+                let dd = parts[1].padStart(2, '0');
+                let yyyy = parts[2];
+                return `${yyyy}-${mm}-${dd}`;
+            }
+            function fromDateInputValue(dateStr) {
+                if (!dateStr) return '';
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return '';
+                let yyyy = parts[0];
+                let mm = parseInt(parts[1], 10);
+                let dd = parseInt(parts[2], 10);
+                return `${mm}/${dd}/${yyyy}`;
+            }
+
+            // ---------- CHART HEATMAP SHOW/HIDE ----------
+            function showHeatmapChart() {
+                document.getElementById('portfolioTable').style.display = 'none';
+                document.getElementById('heatmapChart').style.display = 'block';
+                document.getElementById('btnShowTable').style.display = 'inline-block';
+                document.getElementById('btnShowChartHeatmap').style.display = 'none';
+                buildMatrixChart();
+            }
+            function showTableAgain() {
+                document.getElementById('portfolioTable').style.display = '';
+                document.getElementById('heatmapChart').style.display = 'none';
+                document.getElementById('btnShowTable').style.display = 'none';
+                document.getElementById('btnShowChartHeatmap').style.display = 'inline-block';
+                if (heatmapChartRef) {
+                    heatmapChartRef.destroy();
+                    heatmapChartRef = null;
                 }
-            });
-            resultsSelect.addEventListener('change', function() {
-                const chosenSymbol = resultsSelect.value;
-                document.getElementById('createSymbol').value = chosenSymbol;
-            });
-        }
-
-        // ---------- DATE HELPERS ----------
-        function toDateInputValue(dateStr) {
-            if (!dateStr) return '';
-            const parts = dateStr.split('/');
-            if (parts.length !== 3) return '';
-            let mm = parts[0].padStart(2, '0');
-            let dd = parts[1].padStart(2, '0');
-            let yyyy = parts[2];
-            return `${yyyy}-${mm}-${dd}`;
-        }
-        function fromDateInputValue(dateStr) {
-            if (!dateStr) return '';
-            const parts = dateStr.split('-');
-            if (parts.length !== 3) return '';
-            let yyyy = parts[0];
-            let mm = parseInt(parts[1], 10);
-            let dd = parseInt(parts[2], 10);
-            return `${mm}/${dd}/${yyyy}`;
-        }
-
-        // ---------- CHART HEATMAP SHOW/HIDE ----------
-        function showHeatmapChart() {
-            document.getElementById('portfolioTable').style.display = 'none';
-            document.getElementById('heatmapChart').style.display = 'block';
-            document.getElementById('btnShowTable').style.display = 'inline-block';
-            document.getElementById('btnShowChartHeatmap').style.display = 'none';
-            buildMatrixChart();
-        }
-        function showTableAgain() {
-            document.getElementById('portfolioTable').style.display = '';
-            document.getElementById('heatmapChart').style.display = 'none';
-            document.getElementById('btnShowTable').style.display = 'none';
-            document.getElementById('btnShowChartHeatmap').style.display = 'inline-block';
-            if (heatmapChartRef) {
-                heatmapChartRef.destroy();
-                heatmapChartRef = null;
             }
-        }
 
-        // ---------- BUILD MATRIX CHART ----------
-        function buildMatrixChart() {
-            if (heatmapChartRef) {
-                heatmapChartRef.destroy();
-                heatmapChartRef = null;
-            }
-            // Numeric columns include our computed columns as well
-            const numericCols = [5, 6, 7, 8, 12, 14, 15];
-            const colLabels = ["Qty", "P.Price", "Comm", "Curr.Price", "%Chg", "P/L", "Val P/L"];
-            const matrixData = [];
-            let minValue = Infinity;
-            let maxValue = -Infinity;
-            const allRowIndexes = table.rows().indexes();
-            allRowIndexes.each((rowIdx) => {
-                const rowData = table.row(rowIdx).data();
-                if (!rowData) return;
-                numericCols.forEach((colIndex, i) => {
-                    let rawStr = rowData[colIndex];
-                    if (typeof rawStr === 'string') {
-                        rawStr = rawStr.replace("%", "").trim();
-                    }
-                    let val = parseFloat(rawStr);
-                    if (isNaN(val)) {
-                        val = 0;
-                    }
-                    if (val < minValue) minValue = val;
-                    if (val > maxValue) maxValue = val;
-                    matrixData.push({
-                        x: rowIdx,
-                        y: i,
-                        v: val
+            // ---------- BUILD MATRIX CHART ----------
+            function buildMatrixChart() {
+                if (heatmapChartRef) {
+                    heatmapChartRef.destroy();
+                    heatmapChartRef = null;
+                }
+                // Numeric columns include our computed columns as well
+                const numericCols = [5, 6, 7, 8, 12, 14, 15];
+                const colLabels = ["Qty", "P.Price", "Comm", "Curr.Price", "%Chg", "P/L", "Val P/L"];
+                const matrixData = [];
+                let minValue = Infinity;
+                let maxValue = -Infinity;
+                const allRowIndexes = table.rows().indexes();
+                allRowIndexes.each((rowIdx) => {
+                    const rowData = table.row(rowIdx).data();
+                    if (!rowData) return;
+                    numericCols.forEach((colIndex, i) => {
+                        let rawStr = rowData[colIndex];
+                        if (typeof rawStr === 'string') {
+                            rawStr = rawStr.replace("%", "").trim();
+                        }
+                        let val = parseFloat(rawStr);
+                        if (isNaN(val)) {
+                            val = 0;
+                        }
+                        if (val < minValue) minValue = val;
+                        if (val > maxValue) maxValue = val;
+                        matrixData.push({
+                            x: rowIdx,
+                            y: i,
+                            v: val
+                        });
                     });
                 });
-            });
-            if (matrixData.length === 0) {
-                showErrorMessage("No data found for heatmap.");
-                return;
-            }
-            const range = maxValue - minValue;
-            if (range === 0) {
-                showErrorMessage("All values are identical, can't create heatmap.");
-                return;
-            }
-            const ctx = document.getElementById('heatmapChart').getContext('2d');
-            heatmapChartRef = new Chart(ctx, {
-                type: 'matrix',
-                data: {
-                    datasets: [{
-                        label: 'Heatmap',
-                        data: matrixData,
-                        width: 20,
-                        height: 20,
-                        backgroundColor: function(ctx) {
-                            const val = ctx.raw.v;
-                            const ratio = (val - minValue) / range;
-                            const r = Math.round(255 * ratio);
-                            const g = Math.round(255 * (1 - ratio));
-                            return `rgba(${r},${g},0,0.8)`;
-                        },
-                        borderColor: 'rgba(255,255,255,0.5)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: false,
-                    scales: {
-                        x: {
-                            type: 'linear',
-                            min: -0.5,
-                            max: table.rows().count() - 0.5,
-                            ticks: {
-                                stepSize: 1,
-                                callback: function(value) {
-                                    const rowIdx = parseInt(value);
-                                    if (rowIdx < 0 || rowIdx >= table.rows().count()) {
-                                        return '';
-                                    }
-                                    const rowData = table.row(rowIdx).data();
-                                    return rowData ? rowData[1] : '';
-                                },
-                                autoSkip: false
-                            }
-                        },
-                        y: {
-                            type: 'linear',
-                            min: -0.5,
-                            max: numericCols.length - 0.5,
-                            reverse: true,
-                            ticks: {
-                                stepSize: 1,
-                                callback: function(value) {
-                                    const i = parseInt(value);
-                                    return (i >= 0 && i < colLabels.length) ? colLabels[i] : '';
-                                },
-                                autoSkip: false
-                            }
-                        }
+                if (matrixData.length === 0) {
+                    showErrorMessage("No data found for heatmap.");
+                    return;
+                }
+                const range = maxValue - minValue;
+                if (range === 0) {
+                    showErrorMessage("All values are identical, can't create heatmap.");
+                    return;
+                }
+                const ctx = document.getElementById('heatmapChart').getContext('2d');
+                heatmapChartRef = new Chart(ctx, {
+                    type: 'matrix',
+                    data: {
+                        datasets: [{
+                            label: 'Heatmap',
+                            data: matrixData,
+                            width: 20,
+                            height: 20,
+                            backgroundColor: function(ctx) {
+                                const val = ctx.raw.v;
+                                const ratio = (val - minValue) / range;
+                                const r = Math.round(255 * ratio);
+                                const g = Math.round(255 * (1 - ratio));
+                                return `rgba(${r},${g},0,0.8)`;
+                            },
+                            borderColor: 'rgba(255,255,255,0.5)',
+                            borderWidth: 1
+                        }]
                     },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(ctx) {
-                                    const itemRow = ctx.raw.x;
-                                    const colLabel = colLabels[ctx.raw.y];
-                                    const val = ctx.raw.v;
-                                    const rowData = table.row(itemRow).data();
-                                    const symbol = rowData ? rowData[1] : `Row ${itemRow}`;
-                                    return `${symbol} / ${colLabel}: ${val}`;
+                    options: {
+                        responsive: false,
+                        scales: {
+                            x: {
+                                type: 'linear',
+                                min: -0.5,
+                                max: table.rows().count() - 0.5,
+                                ticks: {
+                                    stepSize: 1,
+                                    callback: function(value) {
+                                        const rowIdx = parseInt(value);
+                                        if (rowIdx < 0 || rowIdx >= table.rows().count()) {
+                                            return '';
+                                        }
+                                        const rowData = table.row(rowIdx).data();
+                                        return rowData ? rowData[1] : '';
+                                    },
+                                    autoSkip: false
+                                }
+                            },
+                            y: {
+                                type: 'linear',
+                                min: -0.5,
+                                max: numericCols.length - 0.5,
+                                reverse: true,
+                                ticks: {
+                                    stepSize: 1,
+                                    callback: function(value) {
+                                        const i = parseInt(value);
+                                        return (i >= 0 && i < colLabels.length) ? colLabels[i] : '';
+                                    },
+                                    autoSkip: false
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const itemRow = ctx.raw.x;
+                                        const colLabel = colLabels[ctx.raw.y];
+                                        const val = ctx.raw.v;
+                                        const rowData = table.row(itemRow).data();
+                                        const symbol = rowData ? rowData[1] : `Row ${itemRow}`;
+                                        return `${symbol} / ${colLabel}: ${val}`;
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
-        }
-    </script>
+                });
+            }
+        </script>
 }

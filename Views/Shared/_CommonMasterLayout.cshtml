@@ -39,6 +39,17 @@
 
   <!-- Include Scripts for customizer, helper, analytics, config -->
   @await Html.PartialAsync("Sections/_ScriptsIncludes")
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-0ZPDNEN25D"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-0ZPDNEN25D');
+    </script>
+
 </head>
 
 <body>
