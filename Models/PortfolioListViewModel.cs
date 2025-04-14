@@ -1,9 +1,8 @@
-using MarketAnalyticHub.Models.Portfolio.ViewModels;
 
 namespace MarketAnalyticHub.Models
 {
   public class PortfolioListViewModel
   {
-    public IEnumerable<PortfolioViewModel> Portfolios { get; set; }
+    public IEnumerable<MarketAnalyticHub.Models.Portfolio.Portfolio> Portfolios { get; set; }
   }
 }

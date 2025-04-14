@@ -1,7 +1,7 @@
-﻿namespace MarketAnalyticHub.Controllers.Configurations.Portfolio
+namespace MarketAnalyticHub.Controllers.Configurations.Portfolio
 {
-  internal class PortfolioListViewModel
+  public class PortfolioListViewModel
   {
-    public object Portfolios { get; set; }
+    public dynamic Portfolios { get; set; }
   }
 }

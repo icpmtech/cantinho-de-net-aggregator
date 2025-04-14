@@ -60,16 +60,6 @@
                 <div>Holdings</div>
             </a>
         </li>
-        <li class='menu-item@(currentPage == "/Portfolio/Dividends" ? " active" : "")'>
-            <a asp-controller="Portfolio" asp-action="Dividends" class="menu-link">
-                <div>Dividends</div>
-            </a>
-        </li>
-        <li class='menu-item@(currentPage == "/Portfolio/DividendsCalendar" ? " active" : "")'>
-            <a asp-controller="Portfolio" asp-action="DividendsCalendar" class="menu-link">
-                <div>Dividends Calendar</div>
-            </a>
-        </li>
         <li class='menu-item@(currentPage == "/StockEvents/Index" ? " active" : "")'>
             <a asp-controller="StockEvents" asp-action="Index" class="menu-link">
                 <div>Events</div>
@@ -97,5 +87,39 @@
         </li>
 
 
+    </ul>
+</li>
+
+<li class="menu-header small text-uppercase">
+    <span class="menu-header-text">Portfolio Dividends</span>
+</li>
+<li class='menu-item@(currentPage.StartsWith("/PortfolioDividends")  ? " active open" : "")'>
+    <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx bx-archive"></i>
+        <div>Portfolio Dividends </div>
+    </a>
+
+    <ul class="menu-sub">
+    
+        <li class='menu-item@(currentPage == "/PortfolioDividends/Dividends" ? " active" : "")'>
+            <a asp-controller="PortfolioDividends" asp-action="Dividends" class="menu-link">
+                <div>Dividends</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/PortfolioDividends/PortfolioUpcomingDividends" ? " active" : "")'>
+            <a asp-controller="PortfolioDividends" asp-action="PortfolioUpcomingDividends" class="menu-link">
+                <div>Upcoming Dividends</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/PortfolioDividends/PortfolioAllDividends" ? " active" : "")'>
+            <a asp-controller="PortfolioDividends" asp-action="PortfolioAllDividends" class="menu-link">
+                <div>All Dividends</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/PortfolioDividends/DividendsCalendar" ? " active" : "")'>
+            <a asp-controller="PortfolioDividends" asp-action="DividendsCalendar" class="menu-link">
+                <div>Dividends Calendar</div>
+            </a>
+        </li>
     </ul>
 </li>

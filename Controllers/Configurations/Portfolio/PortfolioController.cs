@@ -135,6 +135,41 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     {
       return View();
     }
+    public async Task<IActionResult> PortfolioUpcomingDividends()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+      var model = new PortfolioListViewModel
+      {
+        Portfolios = portfolios
+      };
+
+      return View(model);
+    }
+    public async Task<IActionResult> PortfolioAllDividends()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+      var model = new PortfolioListViewModel
+      {
+        Portfolios = portfolios
+      };
+
+      return View(model);
+    }
+    
     public IActionResult DividendsCalendar()
     {
       return View();

@@ -1,9 +1,11 @@
 using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace MarketAnalyticHub.Controllers.api
@@ -12,14 +14,34 @@ namespace MarketAnalyticHub.Controllers.api
   [ApiController]
   public class DividendsTrackerApiController : ControllerBase
   {
+    private readonly PortfolioService _portfolioService;
     private readonly IDividendsTrackerRepository _dividendsTrackerRepository;
     private readonly IIndicesDividendsTrackerRepository _indicesDividendsTrackerRepository;
     private readonly ApplicationDbContext _context;
-    public DividendsTrackerApiController(ApplicationDbContext context,IDividendsTrackerRepository dividendsTrackerRepository, IIndicesDividendsTrackerRepository indicesDividendsTrackerRepository)
+    public DividendsTrackerApiController(ApplicationDbContext context, PortfolioService portfolioService, IDividendsTrackerRepository dividendsTrackerRepository, IIndicesDividendsTrackerRepository indicesDividendsTrackerRepository)
     {
       _context = context;
       _dividendsTrackerRepository = dividendsTrackerRepository;
       _indicesDividendsTrackerRepository = indicesDividendsTrackerRepository;
+      _portfolioService = portfolioService;
+    }
+    [HttpGet("portfolio-upcoming-dividends")]
+    public async Task<IActionResult> PortfolioUpcomingDividends()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized();
+      }
+
+
+      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+      var model = new PortfolioListViewModel
+      {
+        Portfolios = portfolios
+      };
+
+      return Ok(model);
     }
 
     [HttpGet("dividends/by-index/{index}")]
