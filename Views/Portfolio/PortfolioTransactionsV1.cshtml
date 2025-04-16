@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stocks & Transactions Manager</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @section PageStyles {
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.bootstrap5.min.css">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+    <!-- FullCalendar CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            padding: 40px;
+            background: #f8f9fa;
+        }
+
+        .table-group {
+            background-color: #e9ecef !important;
+            font-weight: bold;
+        }
+
+        .btn-icon {
+            padding: 0.3rem 0.6rem;
+        }
+        /* Modal styling */
+        .modal-header,
+        .modal-footer {
+            border: none;
+        }
+        /* Calendar container styling */
+        #calendarView {
+            min-height: 500px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        /* Responsive adjustments */
+        @@media (max-width: 576px) {
+            body
+
+        {
+            padding: 20px;
+        }
+
+        h2 {
+            font-size: 1.5rem;
+        }
+
+        .d-flex.flex-wrap > * {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        }
+    </style>
+}
+</head>
+<body>
+    <!-- Toast container for notifications -->
+    <div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="top:84px"></div>
+
+    <div class="container bg-white p-4 rounded shadow-sm">
+        <h2 class="text-primary mb-4">Stocks & Dividends Manager</h2>
+
+        <!-- View Toggle Buttons -->
+        <div class="btn-group mb-3" role="group">
+            <button id="tableViewBtn" type="button" class="btn btn-outline-primary active">Table View</button>
+            <button id="calendarViewBtn" type="button" class="btn btn-outline-primary">Calendar View</button>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="row mb-3">
+            <div class="col-12 col-md-6 mb-2">
+                <button class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#addModal">
+                    <i class="bi bi-plus-circle"></i> Add New Stock
+                </button>
+            </div>
+            <div class="col-12 col-md-6 d-flex justify-content-md-end gap-2 mb-2">
+                <button id="exportCSV" class="btn btn-outline-secondary" title="Export as CSV">
+                    <i class="bi bi-download"></i> Export CSV
+                </button>
+                <button id="exportExcel" class="btn btn-outline-success" title="Export as Excel">
+                    <i class="bi bi-download"></i> Export Excel
+                </button>
+                <label class="btn btn-outline-primary mb-0" title="Import CSV">
+                    <i class="bi bi-upload"></i> Import CSV
+                    <input type="file" id="importCSV" accept=".csv" hidden>
+                </label>
+            </div>
+        </div>
+
+        <!-- Portfolio List Container with Loading Indicator -->
+        <div id="portfolioList">
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="spinner-grow text-primary mx-auto d-block" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <!-- Table View Container (DataTable) -->
+            <div id="tableViewContainer" style="display: block;">
+                <div class="table-responsive">
+                    <table id="stockTable" class="table table-striped table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Stock Symbol</th>
+                                <th>Quantity</th>
+                                <th>Purchase Price (€)</th>
+                                <th>Total Investment (€)</th>
+                                <th>Purchase Date</th>
+                                <th>Current Market Value (€)</th>
+                                <th style="min-width: 120px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <th colspan="3" class="text-end">Grand Total (€):</th>
+                                <th id="grandTotal">0.00</th>
+                                <th colspan="3"></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <!-- Calendar View Container -->
+            <div id="calendarViewContainer" style="display: none;">
+                <div id="calendarView"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="addForm" class="modal-content needs-validation" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addModalLabel">Add Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- For adding a new stock (portfolio item) -->
+                    <div class="mb-3">
+                        <label for="addName" class="form-label">Stock Symbol</label>
+                        <input type="text" id="addName" class="form-control" placeholder="e.g. NVDA, INTL" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addQuantity" class="form-label">Quantity</label>
+                        <input type="number" id="addQuantity" class="form-control" placeholder="Enter quantity" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addDividend" class="form-label">Purchase Price (€)</label>
+                        <input type="number" id="addDividend" step="0.01" class="form-control" placeholder="Enter purchase price" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addExDate" class="form-label">Purchase Date</label>
+                        <input type="date" id="addExDate" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="addPaymentDate" class="form-label">Current Market Value (€)</label>
+                        <input type="number" id="addPaymentDate" step="0.01" class="form-control" placeholder="Current market value" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Add</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="editForm" class="modal-content needs-validation" novalidate>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Edit Stock</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Editing a stock (portfolio item) -->
+                    <div class="mb-3">
+                        <label for="editName" class="form-label">Stock Symbol</label>
+                        <input type="text" id="editName" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editQuantity" class="form-label">Quantity</label>
+                        <input type="number" id="editQuantity" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDividend" class="form-label">Purchase Price (€)</label>
+                        <input type="number" id="editDividend" step="0.01" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editExDate" class="form-label">Purchase Date</label>
+                        <input type="date" id="editExDate" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editPaymentDate" class="form-label">Current Market Value (€)</label>
+                        <input type="number" id="editPaymentDate" step="0.01" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete this entry? This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="confirmDelete">Yes, Delete</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Details Modal (for calendar event click) -->
+    <div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-labelledby="eventDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="eventDetailsModalLabel">Event Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Stock Symbol:</strong> <span id="eventDetailsStockName"></span></p>
+                    <p><strong>Quantity:</strong> <span id="eventDetailsQuantity"></span></p>
+                    <p><strong>Purchase Price (€):</strong> <span id="eventDetailsDividend"></span></p>
+                    <p><strong>Total Investment (€):</strong> <span id="eventDetailsTotal"></span></p>
+                    <p><strong>Purchase Date:</strong> <span id="eventDetailsExDate"></span></p>
+                    <p><strong>Current Market Value (€):</strong> <span id="eventDetailsPaymentDate"></span></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="editEventBtn">Edit</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+     @section PageScripts {
+    <!-- Scripts -->
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- DataTables and Buttons JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.bootstrap5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+
+    <!-- FullCalendar JS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+        <script>
+            // SERVICES API OBJECT: Wrap your API calls here.
+            const servicesApi = {
+              // Call the portfolio dividends API endpoint
+              getPortfolios: () => fetchData('/api/PortfolioDividends'),
+              addPortfolio: (data) => fetchData('/api/Portfolio', 'POST', data),
+              updatePortfolio: (id, data) => fetchData(`/api/Portfolio/${id}`, 'PUT', data),
+              deletePortfolio: (id) => fetchData(`/api/Portfolio/${id}`, 'DELETE'),
+              getPortfolioItem: (id) => fetchData(`/api/PortfolioItem/item/${id}`),
+              addDividend: (data) => fetchData('/api/Dividend', 'POST', data),
+              updateDividend: (id, data) => fetchData(`/api/Dividend/${id}`, 'PUT', data),
+              deleteDividend: (id) => fetchData(`/api/Dividend/${id}`, 'DELETE')
+            };
+
+            // GLOBAL VARIABLES
+            window.portfoliosData = []; // will store the items array from the portfolio
+            let fullCalendar = null;
+            window.currentDtRowIndex = null; // For calendar events (we store the stock item id)
+            window.currentPortfolioId = null; // From the fetched portfolio
+
+            // Generic fetch wrapper
+            async function fetchData(url, method = 'GET', body = null) {
+              const options = { method, headers: { 'Content-Type': 'application/json' } };
+              if (body) options.body = JSON.stringify(body);
+              const response = await fetch(url, options);
+              if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `Request failed: ${response.statusText}`);
+              }
+              return response.json();
+            }
+
+            // Toast helper with null check
+            function showToast(message, type = 'primary') {
+              const toastContainer = document.getElementById('toastContainer');
+              if (!toastContainer) {
+                console.error('Toast container not found.');
+                return;
+              }
+              const toastId = `toast-${Date.now()}`;
+              const toastHTML = `
+                <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
+                  <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                  </div>
+                </div>`;
+              toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+              const toastElem = document.getElementById(toastId);
+              if (toastElem) new bootstrap.Toast(toastElem).show();
+            }
+
+            // Show/hide loading indicator safely
+            function showLoadingIndicator(show) {
+              const loadingElement = document.getElementById('loading-indicator');
+              if (loadingElement) {
+                loadingElement.style.display = show ? 'block' : 'none';
+              }
+            }
+
+            // Toggle view buttons (Table vs Calendar)
+            $('#tableViewBtn').on('click', function () {
+              $(this).addClass('active');
+              $('#calendarViewBtn').removeClass('active');
+              $('#tableViewContainer').show();
+              $('#calendarViewContainer').hide();
+            });
+
+            $('#calendarViewBtn').on('click', function () {
+              $(this).addClass('active');
+              $('#tableViewBtn').removeClass('active');
+              $('#tableViewContainer').hide();
+              $('#calendarViewContainer').show();
+              updateCalendar();
+            });
+
+            // Load portfolio data from API and populate DataTable.
+            async function loadPortfolios() {
+              try {
+                showLoadingIndicator(true);
+                // Call the API – it returns an array of portfolio objects.
+                const portfolios = await servicesApi.getPortfolios();
+                // Take the first portfolio from the array
+                const portfolioData = Array.isArray(portfolios) && portfolios.length ? portfolios[0] : portfolios;
+                let items = [];
+                if (portfolioData.items && Array.isArray(portfolioData.items)) {
+                  items = portfolioData.items;
+                  window.currentPortfolioId = portfolioData.id;
+                }
+                window.portfoliosData = items;
+                const table = $('#stockTable').DataTable();
+                table.clear();
+                let grandTotal = 0;
+                items.forEach(item => {
+                  const quantity = parseFloat(item.quantity);
+                  const purchasePrice = parseFloat(item.purchasePrice);
+                  const totalInvestment = parseFloat(item.totalInvestment);
+                  grandTotal += totalInvestment;
+                  const purchaseDate = item.purchaseDate ? item.purchaseDate.substring(0, 10) : '';
+                  const currentMarketValue = item.currentMarketValue ? parseFloat(item.currentMarketValue).toFixed(2) : '';
+                  const rowNode = table.row.add([
+                    item.symbol,
+                    quantity,
+                    purchasePrice.toFixed(2),
+                    totalInvestment.toFixed(2),
+                    purchaseDate,
+                    currentMarketValue,
+                    `<button class="btn btn-sm btn-outline-primary btn-icon editBtn" title="Edit">
+                       <i class="bi bi-pencil-square"></i>
+                     </button>
+                     <button class="btn btn-sm btn-outline-danger btn-icon deleteBtn" title="Delete">
+                       <i class="bi bi-trash"></i>
+                     </button>`
+                  ]).draw(false).node();
+                  $(rowNode).attr('data-id', item.id);
+                });
+                $('#grandTotal').text(grandTotal.toFixed(2));
+                showLoadingIndicator(false);
+              } catch (error) {
+                showToast(error.message, 'danger');
+                showLoadingIndicator(false);
+              }
+            }
+
+            // Update FullCalendar with events from portfolio items.
+            function updateCalendar() {
+              const events = [];
+              window.portfoliosData.forEach(item => {
+                if (item.purchaseDate) {
+                  events.push({
+                    title: item.symbol,
+                    start: item.purchaseDate,
+                    extendedProps: {
+                      purchasePrice: parseFloat(item.purchasePrice).toFixed(2),
+                      quantity: item.quantity,
+                      totalInvestment: parseFloat(item.totalInvestment).toFixed(2),
+                      currentMarketValue: item.currentMarketValue ? parseFloat(item.currentMarketValue).toFixed(2) : "",
+                      purchaseDate: item.purchaseDate.substring(0,10),
+                      stockId: item.id
+                    }
+                  });
+                }
+              });
+              if (fullCalendar) {
+                fullCalendar.removeAllEvents();
+                events.forEach(e => fullCalendar.addEvent(e));
+              } else {
+                const calendarEl = document.getElementById('calendarView');
+                fullCalendar = new FullCalendar.Calendar(calendarEl, {
+                  themeSystem: 'bootstrap5',
+                  initialView: 'dayGridMonth',
+                  headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                  },
+                  eventContent: function(arg) {
+                    const symbol = arg.event.title;
+                    const price = arg.event.extendedProps.purchasePrice;
+                    const html = `<div style="font-weight:bold;">${symbol}</div>
+                                  <div style="font-size:0.85em;">Price: €${price}</div>`;
+                    return { html: html };
+                  },
+                  eventDidMount: function(info) {
+                    $(info.el).tooltip({
+                      title: "Qty: " + info.event.extendedProps.quantity +
+                             ", Total: €" + info.event.extendedProps.totalInvestment +
+                             ", Date: " + info.event.extendedProps.purchaseDate,
+                      placement: 'top',
+                      container: 'body'
+                    });
+                  },
+                  eventClick: function(info) {
+                    const ext = info.event.extendedProps;
+                    document.getElementById('eventDetailsStockName').textContent = info.event.title;
+                    document.getElementById('eventDetailsDividend').textContent = "€" + ext.purchasePrice;
+                    document.getElementById('eventDetailsQuantity').textContent = ext.quantity;
+                    document.getElementById('eventDetailsTotal').textContent = "€" + ext.totalInvestment;
+                    document.getElementById('eventDetailsExDate').textContent = ext.purchaseDate;
+                    document.getElementById('eventDetailsPaymentDate').textContent = ext.currentMarketValue;
+                    window.currentDtRowIndex = ext.stockId;
+                    new bootstrap.Modal(document.getElementById('eventDetailsModal')).show();
+                  }
+                });
+                fullCalendar.render();
+                events.forEach(e => fullCalendar.addEvent(e));
+              }
+            }
+
+            // DataTable operations: Edit and Delete
+            $('#stockTable tbody').on('click', '.editBtn', function () {
+              const table = $('#stockTable').DataTable();
+              editRow = table.row($(this).closest('tr'));
+              const data = editRow.data();
+              $('#editName').val(data[0]);
+              $('#editQuantity').val(data[1]);
+              $('#editDividend').val(data[2]);
+              $('#editExDate').val(data[4]);
+              $('#editPaymentDate').val(data[5]);
+              new bootstrap.Modal(document.getElementById('editModal')).show();
+            });
+
+            $('#stockTable tbody').on('click', '.deleteBtn', function () {
+              const table = $('#stockTable').DataTable();
+              deleteRow = table.row($(this).closest('tr'));
+              new bootstrap.Modal(document.getElementById('deleteModal')).show();
+            });
+
+            // Update stock via Edit Form
+            $('#editForm').on('submit', async function (e) {
+              e.preventDefault();
+              if (!this.checkValidity()) {
+                this.classList.add('was-validated');
+                return;
+              }
+              const table = $('#stockTable').DataTable();
+              const quantity = parseFloat($('#editQuantity').val());
+              const purchasePrice = parseFloat($('#editDividend').val());
+              const total = (quantity * purchasePrice).toFixed(2);
+              const updatedItem = {
+                symbol: $('#editName').val().trim(),
+                quantity: quantity,
+                purchasePrice: purchasePrice,
+                totalInvestment: total,
+                purchaseDate: $('#editExDate').val(),
+                currentMarketValue: $('#editPaymentDate').val()
+              };
+              // Get the id stored in data-id attribute from the edited row.
+              const itemId = $(editRow.node()).attr('data-id');
+              try {
+                // Update the item using the updatePortfolio endpoint.
+                await servicesApi.updatePortfolio(itemId, updatedItem);
+                await loadPortfolios();
+                new bootstrap.Modal(document.getElementById('editModal')).hide();
+                this.classList.remove('was-validated');
+                showToast('Stock updated successfully', 'success');
+              } catch (error) {
+                showToast(error.message, 'danger');
+              }
+            });
+
+            // Delete stock on Confirm Delete
+            $('#confirmDelete').on('click', async function () {
+              if (deleteRow) {
+                const itemId = $(deleteRow.node()).attr('data-id');
+                try {
+                  await servicesApi.deletePortfolio(itemId);
+                  await loadPortfolios();
+                  new bootstrap.Modal(document.getElementById('deleteModal')).hide();
+                  showToast('Stock deleted successfully', 'success');
+                } catch (error) {
+                  showToast(error.message, 'danger');
+                }
+              }
+            });
+
+            // Add new stock via Add Form
+            $('#addForm').on('submit', async function (e) {
+              e.preventDefault();
+              if (!this.checkValidity()) {
+                this.classList.add('was-validated');
+                return;
+              }
+              const quantity = parseFloat($('#addQuantity').val());
+              const purchasePrice = parseFloat($('#addDividend').val());
+              const total = (quantity * purchasePrice).toFixed(2);
+              const newItem = {
+                symbol: $('#addName').val().trim(),
+                quantity: quantity,
+                purchasePrice: purchasePrice,
+                totalInvestment: total,
+                purchaseDate: $('#addExDate').val(),
+                currentMarketValue: $('#addPaymentDate').val()
+              };
+              try {
+                await servicesApi.addPortfolio(newItem);
+                await loadPortfolios();
+                new bootstrap.Modal(document.getElementById('addModal')).hide();
+                this.reset();
+                this.classList.remove('was-validated');
+                showToast('Stock added successfully', 'success');
+              } catch (error) {
+                showToast(error.message, 'danger');
+              }
+            });
+
+            // Import CSV (updating DataTable locally)
+            $('#importCSV').on('change', function () {
+              const file = this.files[0];
+              if (!file || !file.name.endsWith('.csv')) {
+                alert('Please upload a valid CSV file.');
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = function (e) {
+                const lines = e.target.result.trim().split('\n');
+                const table = $('#stockTable').DataTable();
+                lines.forEach((line, i) => {
+                  if (i === 0 || !line.trim()) return;
+                  const parts = line.split(',');
+                  if (parts.length >= 6) {
+                    const [symbol, qty, price, total, pDate, mValue] = parts;
+                    const rowNode = table.row.add([
+                      symbol.trim(),
+                      parseFloat(qty),
+                      parseFloat(price).toFixed(2),
+                      parseFloat(total).toFixed(2),
+                      pDate.trim(),
+                      parseFloat(mValue).toFixed(2),
+                      `<button class="btn btn-sm btn-outline-primary btn-icon editBtn" title="Edit">
+                         <i class="bi bi-pencil-square"></i>
+                       </button>
+                       <button class="btn btn-sm btn-outline-danger btn-icon deleteBtn" title="Delete">
+                         <i class="bi bi-trash"></i>
+                       </button>`
+                    ]).draw(false).node();
+                    $(rowNode).attr('data-id', '');
+                  }
+                });
+              };
+              reader.readAsText(file);
+              $(this).val('');
+            });
+
+            // Load portfolios when the document is ready.
+            $(document).ready(function () {
+              loadPortfolios();
+            });
+        </script>
+
+
+}
+</body>
+</html>
+
+

@@ -92,6 +92,11 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     {
       return PartialView(); // Renders the Events Sentiment chart
     }
+    public IActionResult PortfolioTransactionsV1()
+    {
+
+      return View();
+    }
     public IActionResult LossesManager()
     {
 

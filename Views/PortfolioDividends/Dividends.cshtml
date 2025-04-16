@@ -1,650 +1,441 @@
-@using Microsoft.AspNetCore.Mvc.Localization
-@inject IViewLocalizer Localizer
 @{
-    ViewData["Title"] = "Portfolio Manager";
+    ViewData["Title"] = "Portfolio Dividends";
 }
 
+@section PageStyles {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css" />
+    <!-- FullCalendar CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
 
-@section VendorStyles {
-    <!-- Removed ApexCharts CSS -->
+    <style>
+        td.details-control {
+            background: url('https://www.datatables.net/examples/resources/details_open.png') no-repeat center center;
+            cursor: pointer;
+        }
+
+        tr.shown td.details-control {
+            background: url('https://www.datatables.net/examples/resources/details_close.png') no-repeat center center;
+        }
+
+        #loading {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+        }
+
+        .grand-total {
+            font-weight: bold;
+            text-align: right;
+            padding-top: 20px;
+        }
+
+        .filters {
+            margin-bottom: 1rem;
+        }
+
+        #dividendModal {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 1rem;
+            border: 1px solid #ccc;
+            display: none;
+            z-index: 9999;
+            width: 300px;
+        }
+
+            #dividendModal input, #dividendModal label {
+                display: block;
+                margin-bottom: 0.5rem;
+                width: 100%;
+            }
+
+            #dividendModal .modal-buttons {
+                margin-top: 1rem;
+                text-align: right;
+            }
+        /* FullCalendar container styling */
+        #calendarView {
+            max-width: 900px;
+            margin: 40px auto;
+            display: none; /* Hidden by default */
+        }
+    </style>
 }
 
-@section VendorScripts {
-    <!-- Load TradingView Script -->
-    <script src="https://s3.tradingview.com/tv.js"></script>
-    <!-- Removed ApexCharts JS -->
-}
+<h2>Portfolio Dividends</h2>
+
+<!-- Buttons to toggle between views -->
+<div class="view-toggle" style="margin-bottom: 1rem;">
+    <button id="btnTableView">Table View</button>
+    <button id="btnCalendarView">Calendar View</button>
+</div>
+
+<!-- Filters (applies only to table view) -->
+<div class="filters">
+    <label for="symbolFilter">Filter by Symbol:</label>
+    <select id="symbolFilter"><option value="">All</option></select>
+
+    <label style="margin-left:20px;">
+        <input type="checkbox" id="hasDividendsOnly"> Only show with dividends
+    </label>
+</div>
+
+<div id="loading">Loading dividends...</div>
+
+<!-- DataTable Container -->
+<div id="tableViewContainer">
+    <table id="stocksTable" class="display nowrap" style="width:100%; display:none;">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Symbol</th>
+                <th>Quantity</th>
+                <th>Purchase Date</th>
+                <th>Has Dividends</th>
+                <th>Total Dividends (€)</th>
+                <th>Total Value (€)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <div id="grandTotal" class="grand-total"></div>
+</div>
+
+<!-- FullCalendar Container -->
+<div id="calendarView">
+    <div id="calendar"></div>
+</div>
+
+<!-- Modal for Create/Edit Dividends -->
+<div id="dividendModal">
+    <form id="dividendForm">
+        <input type="hidden" id="dividendId" />
+        <input type="hidden" id="portfolioItemId" />
+        <input type="hidden" id="quantity" />
+
+        <label>Symbol</label>
+        <input type="text" id="symbol" readonly />
+
+        <label>Amount (€)</label>
+        <input type="number" id="amount" step="0.01" required />
+
+        <label>Ex-Date</label>
+        <input type="date" id="exDate" />
+
+        <label>Payment Date</label>
+        <input type="date" id="paymentDate" />
+
+        <label>Total (€)</label>
+        <input type="text" id="total" readonly />
+
+        <div class="modal-buttons">
+            <button type="submit">Save</button>
+            <button type="button" onclick="closeModal()">Cancel</button>
+        </div>
+    </form>
+</div>
 
 @section PageScripts {
-    <!-- Your custom dashboard analytics script -->
-    <script src="~/js/dashboards-analytics.js"></script>
-}
+    <!-- jQuery and DataTables Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
+    <!-- FullCalendar Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/6.1.8/index.global.min.js"
+            
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3" style="top:84px"></div>
-
-<div class="row">
-    <div class="col-md-12">
-        <div class="card mb-4">
-            <div class="card-body" id="portfolioList">
-                <div id="loading-indicator" class="spinner-grow text-primary text-center" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <!-- Portfolio list will be rendered here -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Add Portfolio Modal -->
-<div id="addPortfolioModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form id="addPortfolioForm">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Portfolio</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="portfolioName">Name</label>
-                        <input type="text" class="form-control" id="portfolioName" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Portfolio Modal -->
-<div id="editPortfolioModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form id="editPortfolioForm">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Portfolio</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="editPortfolioId">
-                    <div class="form-group">
-                        <label for="editPortfolioName">Name</label>
-                        <input type="text" class="form-control" id="editPortfolioName" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Add Dividends Modal -->
-<div id="addDividendModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form id="addDividendForm">
-                <div class="modal-header">
-                    <h5 class="modal-title">Add Dividend</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Hidden Fields -->
-                    <input type="hidden" id="portfolioItemId" name="portfolioItemId" required>
-                    <input type="hidden" id="dividendSymbol" name="symbol" required>
-                    <input type="hidden" id="dividendQuantity" name="quantity" required>
-                    <input type="hidden" id="dividendTotal" name="total" required>
-
-                    <!-- Display Symbol and Quantity for User Reference -->
-                    <div class="form-group">
-                        <label>Symbol:</label>
-                        <span id="displaySymbol" class="ms-2 fw-bold"></span>
-                    </div>
-                    <div class="form-group">
-                        <label>Quantity:</label>
-                        <span id="displayQuantity" class="ms-2 fw-bold"></span>
-                    </div>
-
-                    <!-- Dividend Details -->
-                    <div class="form-group">
-                        <label for="dividendAmount">Dividend Amount (€)</label>
-                        <input type="number" step="0.0001" class="form-control" id="dividendAmount" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="dividendExDate">Ex Date</label>
-                        <input type="date" class="form-control" id="dividendExDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="dividendPaymentDate">Payment Date</label>
-                        <input type="date" class="form-control" id="dividendPaymentDate" required>
-                    </div>
-                    <!-- Total Display -->
-                    <div class="form-group">
-                        <label for="dividendTotalDisplay">Total (€)</label>
-                        <input type="text" class="form-control" id="dividendTotalDisplay" readonly>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Dividend Modal -->
-<div id="editDividendModal" class="modal fade" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <form id="editDividendForm">
-                <div class="modal-header">
-                    <h5 class="modal-title">Edit Dividend</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Hidden Fields -->
-                    <input type="hidden" id="editDividendId">
-                    <input type="hidden" id="editDividendSymbol" name="symbol" required>
-
-                    <!-- Dividend Details -->
-                    <div class="form-group">
-                        <label for="editDividendAmount">Dividend Amount</label>
-                        <input type="number" step="0.0001" class="form-control" id="editDividendAmount" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editDividendExDate">Ex Date</label>
-                        <input type="date" class="form-control" id="editDividendExDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="editDividendPaymentDate">Payment Date</label>
-                        <input type="date" class="form-control" id="editDividendPaymentDate" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- TradingView Widgets Initialization Script -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        loadPortfolios();
-    });
-
-    async function fetchData(url, method = 'GET', body = null) {
-        const options = {
-            method,
-            headers: {
-                'Content-Type': 'application/json'
-            }
+    <script>
+        // Helper functions for API calls.
+        const fetchData = async (url, method, body = null) => {
+            const res = await fetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: body ? JSON.stringify(body) : null
+            });
+            return res.ok ? res.json() : alert('Error: ' + res.statusText);
         };
 
-        if (body) {
-            options.body = JSON.stringify(body);
+        const addDividend = (data) => fetchData('/api/Dividend', 'POST', data);
+        const updateDividend = (id, data) => fetchData(`/api/Dividend/${id}`, 'PUT', data);
+        const deleteDividend = (id) => fetchData(`/api/Dividend/${id}`, 'DELETE');
+
+        // Helper function to format dividends for a row's child details.
+        function format(dividends, portfolioItemId, symbol, quantity) {
+            dividends = dividends || [];
+            let html = `<button onclick="openModal(null, ${portfolioItemId}, '${symbol}', ${quantity})">➕ Add Dividend</button>`;
+            if (dividends.length === 0) return html;
+            html += `<table style="margin-top:10px;"><thead>
+                        <tr><th>ID</th><th>Amount</th><th>Ex-Date</th><th>Payment Date</th><th>Total</th><th>Actions</th></tr>
+                     </thead><tbody>`;
+            dividends.forEach(div => {
+                const amount = div.amount || 0;
+                const total = (amount * quantity).toFixed(2);
+                html += `<tr>
+                            <td>${div.id}</td>
+                            <td>${amount.toFixed(2)} €</td>
+                            <td>${div.exDate ? new Date(div.exDate).toLocaleDateString('en-GB') : '-'}</td>
+                            <td>${div.paymentDate ? new Date(div.paymentDate).toLocaleDateString('en-GB') : '-'}</td>
+                            <td>${total} €</td>
+                            <td>
+                                <button onclick='openModal(${JSON.stringify(div)}, ${portfolioItemId}, "${symbol}", ${quantity})'>✏️</button>
+                                <button onclick="deleteDividendConfirm(${div.id})">🗑️</button>
+                            </td>
+                        </tr>`;
+            });
+            html += '</tbody></table>';
+            return html;
         }
 
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || `Failed to fetch: ${response.statusText}`);
+        // Opens the dividend modal for create/edit.
+        function openModal(dividend = null, portfolioItemId, symbol, quantity) {
+            $('#dividendId').val(dividend?.id || '');
+            $('#amount').val(dividend?.amount || '');
+            $('#exDate').val(dividend?.exDate ? dividend.exDate.split('T')[0] : '');
+            $('#paymentDate').val(dividend?.paymentDate ? dividend.paymentDate.split('T')[0] : '');
+            $('#portfolioItemId').val(portfolioItemId);
+            $('#symbol').val(symbol);
+            $('#quantity').val(quantity);
+            $('#total').val(dividend ? (dividend.amount * quantity).toFixed(2) + ' €' : '');
+            $('#dividendModal').show();
         }
 
-        return response.json();
-    }
-
-    function showToast(message, type = 'primary') {
-        const toastContainer = document.getElementById('toastContainer');
-        const toastId = `toast-${Date.now()}`;
-        const toastHTML = `
-            <div id="${toastId}" class="toast align-items-center text-bg-${type} border-0" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="d-flex">
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-            </div>
-        `;
-        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
-        const toastElement = document.getElementById(toastId);
-        const toast = new bootstrap.Toast(toastElement);
-        toast.show();
-    }
-
-    async function loadPortfolios() {
-        try {
-            showLoadingIndicator(true); // Show loading indicator
-            const portfolios = await fetchData('/api/Portfolio');
-            renderPortfolioList(portfolios);
-        } catch (error) {
-            showToast(error.message, 'danger');
-            showLoadingIndicator(false); // Hide loading indicator on error
+        // Closes the modal and resets the form.
+        function closeModal() {
+            $('#dividendModal').hide();
+            $('#dividendForm')[0].reset();
         }
-    }
 
-    function formatDate(date) {
-        const d = new Date(date);
-        let month = '' + (d.getMonth() + 1);
-        let day = '' + d.getDate();
-        const year = d.getFullYear();
-
-        if (month.length < 2) month = '0' + month;
-        if (day.length < 2) day = '0' + day;
-
-        return [year, month, day].join('/');
-    }
-
-    function renderPortfolioList(portfolios) {
-        const portfolioList = document.getElementById('portfolioList');
-        portfolioList.innerHTML = '';
-
-        portfolios.forEach(portfolio => {
-            const portfolioDiv = document.createElement('div');
-            portfolioDiv.classList.add('portfolio-card'); // Optional: Add a class for styling
-            portfolioDiv.innerHTML = `
-                <h3 class="card-title">${portfolio.name}</h3>
-                <div class="row">
-                    <!-- Portfolio Overview Card -->
-                    <div class="col-lg-12 col-md-12 mb-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="card-title d-flex align-items-start justify-content-between">
-                                    <div class="avatar flex-shrink-0">
-                                        <img src="/img/icons/unicons/chart-success.png" alt="chart success" class="rounded">
-                                    </div>
-                                    <div class="dropdown">
-                                        <button class="btn p-0" type="button" id="cardOpt3-${portfolio.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt3-${portfolio.id}">
-                                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                            <a class="dropdown-item" href="javascript:showEditPortfolioModal(${portfolio.id}, '${portfolio.name}');">Edit Portfolio</a>
-                                            <a class="dropdown-item" href="javascript:deletePortfolio(${portfolio.id});">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <span class="fw-medium d-block mb-1">Total Investment</span>
-                                <h3 class="card-title mb-2">€ ${portfolio.totalInvestment.toFixed(3)}</h3>
-                                ${portfolio.portfolioPercentage >= 0
-                                    ? `<small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +${portfolio.portfolioPercentage.toFixed(3)}%</small>`
-                                    : `<small class="text-danger fw-medium"><i class='bx bx-down-arrow-alt'></i> ${portfolio.portfolioPercentage.toFixed(3)}%</small>`}
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Current Market Value Card -->
-                    <div class="col-lg-12 col-md-12 mb-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="card-title d-flex align-items-start justify-content-between">
-                                    <div class="avatar flex-shrink-0">
-                                        <img src="/img/icons/unicons/wallet-info.png" alt="Credit Card" class="rounded">
-                                    </div>
-                                    <div class="dropdown">
-                                        <button class="btn p-0" type="button" id="cardOpt6-${portfolio.id}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                            <i class="bx bx-dots-vertical-rounded"></i>
-                                        </button>
-                                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="cardOpt6-${portfolio.id}">
-                                            <a class="dropdown-item" href="javascript:void(0);">View More</a>
-                                            <a class="dropdown-item" href="javascript:void(0);">Delete</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <span>Current Market Value</span>
-                                <h3 class="card-title text-nowrap mb-1">€${portfolio.currentMarketValue.toFixed(3)}</h3>
-                                ${portfolio.portfolioPercentage >= 0
-                                    ? `<small class="text-success fw-medium"><i class='bx bx-up-arrow-alt'></i> +${portfolio.portfolioPercentage.toFixed(3)}%</small>`
-                                    : `<small class="text-danger fw-medium"><i class='bx bx-down-arrow-alt'></i> ${portfolio.portfolioPercentage.toFixed(3)}%</small>`}
-                                <div class="list-group list-group-flush">
-                                    ${portfolio.items?.map(item => `
-                                        <div class="list-group-item">
-                                            <div class="container">
-                                                <div class="row">
-                                                    <div class="col-md-2">
-                                                        <strong>Symbol:</strong> ${item.symbol}
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <strong>Quantity:</strong> ${item.quantity}
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <strong>Total Investment:</strong> €${item.totalInvestment.toFixed(3)}
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <strong>Current Market Value:</strong> €${item.currentMarketValue.toFixed(3)}
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <strong>Total Dividend Income:</strong> €${item.totalDividendIncome.toFixed(3)}
-                                                    </div>
-                                                </div>
-                                                <div class="row mt-2">
-                                                    <div class="col-md-12">
-                                                        <a class="btn btn-primary btn-sm" href="javascript:showAddDividendModal(${item.id});">Add Dividends</a>
-                                                    </div>
-                                                </div>
-                                                <!-- TradingView Widget for Each Item -->
-                                                <div id="tradingview_item_${item.id}" class="tradingview-widget-container mt-3" style="height: 300px;">
-                                                    <div class="tradingview-widget-container__widget"></div>
-                                                    <div class="tradingview-widget-copyright">
-                                                        <a href="https://www.tradingview.com/symbols/${item.symbol}/" rel="noopener" target="_blank">
-                                                            ${item.symbol} Chart by TradingView
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                                <div class="list-group list-group-flush mt-2">
-                                                    ${item.dividends?.map(dividend => `
-                                                        <div class="list-group-item">
-                                                            <div class="row">
-                                                                <div class="col-md-3">
-                                                                    <strong>Symbol:</strong> ${dividend.symbol}
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <strong>Dividend Amount:</strong> €${dividend.amount.toFixed(4)}
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <strong>Ex Date:</strong> ${formatDate(dividend.exDate)}
-                                                                </div>
-                                                                <div class="col-md-3">
-                                                                    <strong>Payment Date:</strong> ${formatDate(dividend.paymentDate)}
-                                                                </div>
-                                                            </div>
-                                                            <div class="row mt-2">
-                                                                <div class="col-md-12">
-                                                                    <button class="btn btn-primary btn-sm" onclick="showEditDividendModal(${dividend.id})">Edit</button>
-                                                                    <button class="btn btn-danger btn-sm" onclick="deleteDividend(${dividend.id})">Delete</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    `).join('')}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            portfolioList.appendChild(portfolioDiv);
+        // Update total when the dividend amount is changed.
+        $('#amount').on('input', function () {
+            const amount = parseFloat(this.value) || 0;
+            const quantity = parseFloat($('#quantity').val()) || 0;
+            $('#total').val((amount * quantity).toFixed(2) + ' €');
         });
 
-        // Initialize TradingView widgets after all portfolios are rendered
-        initializeLazyLoading(portfolios);
-    }
+        // Handles form submission for adding/updating a dividend.
+        $('#dividendForm').on('submit', async function (e) {
+            e.preventDefault();
+            const id = $('#dividendId').val();
+            const data = {
+                id: id,
+                portfolioItemId: $('#portfolioItemId').val(),
+                symbol: $('#symbol').val(),
+                amount: parseFloat($('#amount').val()),
+                exDate: $('#exDate').val(),
+                paymentDate: $('#paymentDate').val()
+            };
+            id ? await updateDividend(id, data) : await addDividend(data);
+            closeModal();
+            reloadDividends();
+        });
 
-    function initializeLazyLoading(portfolios) {
-        const widgetContainers = document.querySelectorAll('.tradingview-widget-container');
+        // Confirm deletion of a dividend entry.
+        async function deleteDividendConfirm(id) {
+            if (confirm('Delete this dividend?')) {
+                await deleteDividend(id);
+                reloadDividends();
+            }
+        }
 
-        const observerOptions = {
-            root: null, // viewport
-            rootMargin: '0px',
-            threshold: 0.1 // 10% of the container is visible
-        };
+        // Reload dividend data for both DataTable and Calendar.
+        function reloadDividends() {
+            $('#stocksTable').DataTable().destroy();
+            $('#stocksTable tbody').empty();
+            $('#grandTotal').html('');
+            $('#loading').show();
+            $('#stocksTable').hide();
+            loadDividends();
+            if(calendar) {
+                loadCalendarEvents();
+            }
+        }
 
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const container = entry.target;
-                    const containerId = container.id;
-                    const symbolMatch = containerId.match(/tradingview_(portfolio|item)_(\d+)/);
+        // Loads dividend and portfolio data from the API and initializes the DataTable.
+        function loadDividends() {
+            $.getJSON('/api/PortfolioDividends', function (data) {
+                const grouped = {};
+                let grandTotal = 0;
 
-                    if (symbolMatch) {
-                        const type = symbolMatch[1]; // 'portfolio' or 'item'
-                        const id = symbolMatch[2];
-
-                        // Find the corresponding portfolio or item symbol
-                        let symbol = '';
-                        if (type === 'portfolio') {
-                            const portfolio = portfolios.find(p => p.id === parseInt(id));
-                            symbol = portfolio ? portfolio.symbol : '';
-                        } else if (type === 'item') {
-                            // Flatten all items across portfolios to find the item
-                            const allItems = portfolios.flatMap(p => p.items || []);
-                            const item = allItems.find(i => i.id === parseInt(id));
-                            symbol = item ? item.symbol : '';
-                        }
-
-                        if (symbol) {
-                            // Ensure the symbol is in the correct format (e.g., "NASDAQ:AAPL")
-                            const formattedSymbol = formatTradingViewSymbol(symbol);
-
-                            // Initialize the TradingView widget
-                            new TradingView.widget({
-                                "width": "100%", // Responsive width
-                                "height": type === 'portfolio' ? 400 : 300,
-                                "symbol": formattedSymbol,
-                                "interval": "D",
-                                "timezone": "Etc/UTC",
-                                "theme": "light",
-                                "style": "1", // 1 for candles, 2 for bars, etc.
-                                "locale": "en",
-                                "toolbar_bg": "#f1f3f6",
-                                "enable_publishing": false,
-                                "allow_symbol_change": true,
-                                "container_id": containerId
-                            });
-
-                            // Stop observing after initializing
-                            observer.unobserve(container);
-                        }
+                data.forEach(d => {
+                    const key = `${d.symbol}_${d.portfolioItemId}`;
+                    if (!grouped[key]) {
+                        grouped[key] = {
+                            symbol: d.symbol,
+                            quantity: d.quantity,
+                            purchaseDate: d.purchaseDate,
+                            dividends: [],
+                            portfolioItemId: d.portfolioItemId,
+                            totalAmount: 0
+                        };
                     }
+                    if (d.id !== -1) {
+                        grouped[key].dividends.push({
+                            id: d.id,
+                            amount: d.amount,
+                            exDate: d.exDate,
+                            paymentDate: d.paymentDate
+                        });
+                        grouped[key].totalAmount += d.amount;
+                        grandTotal += d.amount * d.quantity;
+                    }
+                });
+
+                const tableData = Object.values(grouped);
+
+                // Populate the symbol filter dropdown.
+                $('#symbolFilter').empty().append(`<option value="">All</option>`);
+                [...new Set(tableData.map(d => d.symbol))].forEach(sym => {
+                    $('#symbolFilter').append(`<option value="${sym}">${sym}</option>`);
+                });
+
+                // Initialize the DataTable.
+                const table = $('#stocksTable').DataTable({
+                    data: tableData,
+                    columns: [
+                        { className: 'details-control', orderable: false, data: null, defaultContent: '' },
+                        { data: 'symbol' },
+                        { data: 'quantity' },
+                        {
+                            data: 'purchaseDate',
+                            render: d => d ? new Date(d).toLocaleDateString('en-GB') : '-'
+                        },
+                        {
+                            data: 'dividends',
+                            render: d => d && d.length ? '✔️' : '❌',
+                            orderable: false
+                        },
+                        {
+                            data: 'totalAmount',
+                            render: d => d.toFixed(2) + ' €'
+                        },
+                        {
+                            data: null,
+                            render: d => (d.totalAmount * d.quantity).toFixed(2) + ' €',
+                            orderable: false
+                        }
+                    ],
+                    dom: 'Bfrtip',
+                    buttons: [
+                        {
+                            extend: 'csvHtml5',
+                            text: 'Export CSV',
+                            title: 'Portfolio_Dividends',
+                            customize: function (csv) {
+                                return csv + `\nGrand Total,,${grandTotal.toFixed(2)} €`;
+                            }
+                        }
+                    ],
+                    order: [[1, 'asc']],
+                    pageLength: 10
+                });
+
+                // Toggle child row details on click.
+                $('#stocksTable tbody').on('click', 'td.details-control', function () {
+                    const tr = $(this).closest('tr');
+                    const row = table.row(tr);
+                    const data = row.data();
+                    if (!data || typeof data.dividends === 'undefined') {
+                        console.error('Invalid row data:', data);
+                        return;
+                    }
+                    if (row.child.isShown()) {
+                        row.child.hide();
+                        tr.removeClass('shown');
+                    } else {
+                        row.child(format(data.dividends, data.portfolioItemId, data.symbol, data.quantity)).show();
+                        tr.addClass('shown');
+                    }
+                });
+
+                $('#symbolFilter').on('change', function () {
+                    table.column(1).search(this.value).draw();
+                });
+                $('#hasDividendsOnly').on('change', function () {
+                    table.column(4).search(this.checked ? '✔️' : '').draw();
+                });
+                $('#loading').hide();
+                $('#stocksTable').show();
+                $('#grandTotal').html(`💰 <strong>Grand Total: ${grandTotal.toFixed(2)} €</strong>`);
+            });
+        }
+
+        // FullCalendar integration.
+        let calendar;
+        function initCalendar() {
+            var calendarEl = document.getElementById('calendar');
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                events: async function(fetchInfo, successCallback, failureCallback) {
+                    try {
+                        const response = await fetch('/api/PortfolioDividends');
+                        const data = await response.json();
+                        let events = [];
+                        data.forEach(d => {
+                            if(d.id !== -1 && d.paymentDate) {
+                                events.push({
+                                    id: d.id,
+                                    title: `${d.symbol}: ${parseFloat(d.amount).toFixed(2)}€ Dividend`,
+                                    start: d.paymentDate,
+                                    allDay: true,
+                                    extendedProps: {
+                                        exDate: d.exDate,
+                                        quantity: d.quantity,
+                                        portfolioItemId: d.portfolioItemId
+                                    }
+                                });
+                            }
+                        });
+                        successCallback(events);
+                    } catch (error) {
+                        failureCallback(error);
+                    }
+                },
+                eventClick: function(info) {
+                    alert('Dividend Details:\n' + info.event.title);
                 }
             });
-        }, observerOptions);
+            calendar.render();
+        }
 
-        widgetContainers.forEach(container => {
-            observer.observe(container);
+        // Reload calendar events.
+        function loadCalendarEvents() {
+            if(calendar) {
+                calendar.refetchEvents();
+            }
+        }
+
+        // Toggle between Table and Calendar views.
+        $('#btnTableView').on('click', function() {
+            $('#calendarView').hide();
+            $('#tableViewContainer').show();
         });
-    }
 
-    function formatTradingViewSymbol(symbol) {
-        // Assuming symbols are provided as "AAPL", "GOOGL", etc.
-        // Adjust this based on your API's symbol format
-        // For example, prepend with "NASDAQ:" or "NYSE:" as required
-        // Here, we'll assume NASDAQ by default
-        if (symbol.includes(':')) {
-            return symbol; // Already formatted
-        }
-        return `NASDAQ:${symbol}`;
-    }
+        $('#btnCalendarView').on('click', function() {
+            $('#tableViewContainer').hide();
+            $('#calendarView').show();
+            if(!calendar) {
+                initCalendar();
+            } else {
+                loadCalendarEvents();
+            }
+        });
 
-    function showAddPortfolioModal() {
-        document.getElementById('addPortfolioForm').reset();
-        new bootstrap.Modal(document.getElementById('addPortfolioModal')).show();
-    }
-
-    function showEditPortfolioModal(id, name) {
-        document.getElementById('editPortfolioId').value = id;
-        document.getElementById('editPortfolioName').value = name;
-        new bootstrap.Modal(document.getElementById('editPortfolioModal')).show();
-    }
-
-    async function showAddDividendModal(portfolioItemId) {
-        try {
-            // Fetch portfolio item details
-            const portfolioItem = await fetchData(`/api/PortfolioItem/item/${portfolioItemId}`);
-
-            // Populate the form fields
-            document.getElementById('addDividendForm').reset();
-            document.getElementById('portfolioItemId').value = portfolioItem.id;
-            document.getElementById('dividendSymbol').value = portfolioItem.symbol;
-            document.getElementById('dividendQuantity').value = portfolioItem.quantity;
-
-            // Display symbol and quantity for user reference
-            document.getElementById('displaySymbol').textContent = portfolioItem.symbol;
-            document.getElementById('displayQuantity').textContent = portfolioItem.quantity;
-
-            // Show the modal
-            new bootstrap.Modal(document.getElementById('addDividendModal')).show();
-        } catch (error) {
-            showToast('Failed to load portfolio item details.', 'danger');
-        }
-    }
-
-    async function showEditDividendModal(dividendId) {
-        try {
-            const dividend = await fetchData(`/api/Dividend/${dividendId}`);
-            document.getElementById('editDividendId').value = dividend.id;
-            document.getElementById('editDividendSymbol').value = dividend.symbol;
-            document.getElementById('editDividendAmount').value = dividend.amount;
-            document.getElementById('editDividendExDate').value = new Date(dividend.exDate).toISOString().substring(0, 10);
-            document.getElementById('editDividendPaymentDate').value = new Date(dividend.paymentDate).toISOString().substring(0, 10);
-            new bootstrap.Modal(document.getElementById('editDividendModal')).show();
-        } catch (error) {
-            showToast('Failed to load dividend', 'danger');
-        }
-    }
-
-    async function saveDividend(event) {
-        event.preventDefault();
-        const portfolioItemId = document.getElementById('portfolioItemId').value;
-        const symbol = document.getElementById('dividendSymbol').value;
-        const quantity = parseFloat(document.getElementById('dividendQuantity').value);
-        const amount = parseFloat(document.getElementById('dividendAmount').value);
-        const exDate = document.getElementById('dividendExDate').value;
-        const paymentDate = document.getElementById('dividendPaymentDate').value;
-
-        // Input Validation
-        if (!symbol || isNaN(quantity) || isNaN(amount) || !exDate || !paymentDate) {
-            showToast('Please fill in all required fields correctly.', 'warning');
-            return;
-        }
-
-        try {
-            await fetchData('/api/Dividend', 'POST', {
-                portfolioItemId,
-                symbol,
-                quantity,
-                amount,
-                exDate,
-                paymentDate
-            });
-            bootstrap.Modal.getInstance(document.getElementById('addDividendModal')).hide();
-            showToast('Dividend added successfully', 'success');
-            loadPortfolios();
-        } catch (error) {
-            showToast(error.message, 'danger');
-        }
-    }
-
-    async function saveEditedDividend(event) {
-        event.preventDefault();
-        const id = document.getElementById('editDividendId').value;
-        const symbol = document.getElementById('editDividendSymbol').value;
-        const amount = parseFloat(document.getElementById('editDividendAmount').value);
-        const exDate = document.getElementById('editDividendExDate').value;
-        const paymentDate = document.getElementById('editDividendPaymentDate').value;
-
-        // Input Validation
-        if (!symbol || isNaN(amount) || !exDate || !paymentDate) {
-            showToast('Please fill in all required fields correctly.', 'warning');
-            return;
-        }
-
-        try {
-            await fetchData(`/api/Dividend/${id}`, 'PUT', { id, symbol, amount, exDate, paymentDate });
-            bootstrap.Modal.getInstance(document.getElementById('editDividendModal')).hide();
-            showToast('Dividend updated successfully', 'success');
-            loadPortfolios();
-        } catch (error) {
-            showToast('Failed to edit dividend', 'danger');
-        }
-    }
-
-    async function deleteDividend(id) {
-        if (!confirm('Are you sure you want to delete this dividend?')) return;
-        try {
-            await fetchData(`/api/Dividend/${id}`, 'DELETE');
-            showToast('Dividend deleted successfully', 'success');
-            loadPortfolios();
-        } catch (error) {
-            showToast('Failed to delete dividend', 'danger');
-        }
-    }
-
-    async function deletePortfolio(id) {
-        if (!confirm('Are you sure you want to delete this portfolio?')) return;
-        try {
-            await fetchData(`/api/Portfolio/${id}`, 'DELETE');
-            showToast('Portfolio deleted successfully', 'success');
-            loadPortfolios();
-        } catch (error) {
-            showToast('Failed to delete portfolio', 'danger');
-        }
-    }
-
-    async function savePortfolio(event) {
-        event.preventDefault();
-        const name = document.getElementById('portfolioName').value.trim();
-
-        if (!name) {
-            showToast('Portfolio name is required.', 'warning');
-            return;
-        }
-
-        try {
-            await fetchData('/api/Portfolio', 'POST', { name });
-            bootstrap.Modal.getInstance(document.getElementById('addPortfolioModal')).hide();
-            showToast('Portfolio added successfully', 'success');
-            loadPortfolios();
-        } catch (error) {
-            showToast('Failed to add portfolio', 'danger');
-        }
-    }
-
-    async function saveEditedPortfolio(event) {
-        event.preventDefault();
-        const id = document.getElementById('editPortfolioId').value;
-        const name = document.getElementById('editPortfolioName').value.trim();
-
-        if (!name) {
-            showToast('Portfolio name is required.', 'warning');
-            return;
-        }
-
-        try {
-            await fetchData(`/api/Portfolio/${id}`, 'PUT', { id, name });
-            bootstrap.Modal.getInstance(document.getElementById('editPortfolioModal')).hide();
-            showToast('Portfolio updated successfully', 'success');
-            loadPortfolios();
-        } catch (error) {
-            showToast('Failed to edit portfolio', 'danger');
-        }
-    }
-
-    function showLoadingIndicator(show) {
-        const loadingElement = document.getElementById('loading-indicator');
-        if (loadingElement) {
-            loadingElement.style.display = show ? 'block' : 'none';
-        }
-    }
-
-    // Event Listeners for Forms
-    document.getElementById('addPortfolioForm').addEventListener('submit', savePortfolio);
-    document.getElementById('editPortfolioForm').addEventListener('submit', saveEditedPortfolio);
-    document.getElementById('addDividendForm').addEventListener('submit', saveDividend);
-    document.getElementById('editDividendForm').addEventListener('submit', saveEditedDividend);
-</script>
-
-<style>
-    .tradingview-widget-container {
-        margin-top: 20px;
-        /* Optional: Add borders, shadows, etc. */
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        overflow: hidden;
-    }
-
-    .portfolio-card {
-        margin-bottom: 30px;
-    }
-</style>
+        $(document).ready(function() {
+            loadDividends();
+        });
+    </script>
+}

@@ -18,7 +18,7 @@
       const data = await fetchData('/api/Dashboards/revenue');
       updateRevenueChart(data);
     } catch (error) {
-      alert('Failed to load revenue data: ' + error.message);
+       console.error('Failed to load revenue data: ' + error.message);
     }
   }
 
@@ -307,7 +307,7 @@
       const data = await fetchData('/api/Dashboards/growth');
       updateGrowthChart(data);
     } catch (error) {
-      alert('Failed to load growth data: ' + error.message);
+       console.error('Failed to load growth data: ' + error.message);
     }
   }
 
@@ -418,7 +418,7 @@
       const data = await fetchData('/api/Dashboards/profit');
       updateProfitChart(data);
     } catch (error) {
-      alert('Failed to load profit data: ' + error.message);
+       console.error('Failed to load profit data: ' + error.message);
     }
   }
 
@@ -495,7 +495,7 @@
       const data = await fetchData('/api/Dashboards/profit');
       updateProfitChartExpenses(data);
     } catch (error) {
-      alert('Failed to load profit data: ' + error.message);
+       console.error('Failed to load profit data: ' + error.message);
     }
   }
 
@@ -591,7 +591,7 @@
       const data = await fetchData('/api/Dashboards/symbols-statistics');
       updatesymbolStatisticsChart(data);
     } catch (error) {
-      alert('Failed to load order statistics data: ' + error.message);
+       console.error('Failed to load order statistics data: ' + error.message);
     }
   }
 
@@ -683,7 +683,7 @@
       const data = await fetchData('/api/Dashboards/dividends');
       updateDividendsChart(data);
     } catch (error) {
-      alert('Failed to load dividends data: ' + error.message);
+       console.error('Failed to load dividends data: ' + error.message);
     }
   }
 
@@ -796,7 +796,7 @@
       const data = await fetchData('/api/Dashboards/income');
       updateIncomeChart(data);
     } catch (error) {
-      alert('Failed to load income data: ' + error.message);
+       console.error('Failed to load income data: ' + error.message);
     }
   }
 
@@ -911,7 +911,7 @@
       const data = await fetchData('/api/Dashboards/expenses');
       updateExpensesChart(data);
     } catch (error) {
-      alert('Failed to load expenses data: ' + error.message);
+      console.error('Failed to load expenses data: ' + error.message);
     }
   }
 
@@ -921,7 +921,7 @@
       const data = await fetchData('/api/Dashboards/profit-week');
       updateProfitWeekChart(data);
     } catch (error) {
-      alert('Failed to load expenses data: ' + error.message);
+      console.error('Failed to load expenses data: ' + error.message);
     }
   }
 
@@ -931,7 +931,7 @@
       const data = await fetchData('/api/Dashboards/dividends-week');
       updateDividendsOfWeekChart(data);
     } catch (error) {
-      alert('Failed to load expenses data: ' + error.message);
+      console.error('Failed to load expenses data: ' + error.message);
     }
   }
 

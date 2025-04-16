@@ -4,39 +4,39 @@
     <meta charset="UTF-8">
     <title>Portfolio All Dividends</title>
     @section PageStyles {
-    <!-- DataTables CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/dataTables.bootstrap5.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.bootstrap5.min.css" />
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
-    <!-- DataTables RowGroup CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.4/css/rowGroup.bootstrap5.min.css" />
-    <!-- DataTables Buttons CSS -->
-    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.5/css/buttons.bootstrap5.min.css" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
+        <!-- DataTables CSS -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.13.3/css/dataTables.bootstrap5.min.css" />
+        <link rel="stylesheet" href="https://cdn.datatables.net/colreorder/1.6.2/css/colReorder.bootstrap5.min.css" />
+        <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/jquery.dataTables.min.css">
+        <!-- DataTables RowGroup CSS -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/rowgroup/1.1.4/css/rowGroup.bootstrap5.min.css" />
+        <!-- DataTables Buttons CSS -->
+        <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.3.5/css/buttons.bootstrap5.min.css" />
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+            }
 
-        h1 {
-            text-align: center;
-        }
+            h1 {
+                text-align: center;
+            }
 
-        .portfolio-section {
-            margin-bottom: 40px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            background-color: #f7f7f7;
-        }
+            .portfolio-section {
+                margin-bottom: 40px;
+                padding: 15px;
+                border: 1px solid #ddd;
+                background-color: #f7f7f7;
+            }
 
-        .portfolio-header h2 {
-            margin-top: 0;
-        }
+            .portfolio-header h2 {
+                margin-top: 0;
+            }
 
-        table.dataTable thead th {
-            background-color: #f2f2f2;
-        }
-    </style>
+            table.dataTable thead th {
+                background-color: #f2f2f2;
+            }
+        </style>
     }
 </head>
 <body>
@@ -44,248 +44,276 @@
     <div id="portfolioList">
         <!-- Portfolio sections will be appended here -->
     </div>
-       @section PageScripts {
-    <!-- Scripts -->
-    <!-- jQuery -->
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
-    <!-- DataTables core -->
-    <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.3/js/dataTables.bootstrap5.min.js"></script>
-    <!-- RowGroup plugin -->
-    <script src="https://cdn.datatables.net/rowgroup/1.1.4/js/dataTables.rowGroup.min.js"></script>
-    <!-- DataTables Buttons -->
-    <script src="https://cdn.datatables.net/buttons/2.3.5/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.3.5/js/buttons.bootstrap5.min.js"></script>
-    <!-- HTML5 export support -->
-    <script src="https://cdn.datatables.net/buttons/2.3.5/js/buttons.html5.min.js"></script>
-    <!-- PDFMake (required for PDF export, if you also want PDF) -->
-    <script src="https://cdn.rawgit.com/bpampuch/pdfmake/0.1.36/build/pdfmake.min.js"></script>
-    <script src="https://cdn.rawgit.com/bpampuch/pdfmake/0.1.36/build/vfs_fonts.js"></script>
+    @section PageScripts {
+        <!-- Scripts -->
+        <!-- jQuery -->
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.min.js"></script>
+        <!-- DataTables core -->
+        <script src="https://cdn.datatables.net/1.13.3/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.13.3/js/dataTables.bootstrap5.min.js"></script>
+        <!-- RowGroup plugin -->
+        <script src="https://cdn.datatables.net/rowgroup/1.1.4/js/dataTables.rowGroup.min.js"></script>
+        <!-- DataTables Buttons -->
+        <script src="https://cdn.datatables.net/buttons/2.3.5/js/dataTables.buttons.min.js"></script>
+        <script src="https://cdn.datatables.net/buttons/2.3.5/js/buttons.bootstrap5.min.js"></script>
+        <!-- HTML5 export support -->
+        <script src="https://cdn.datatables.net/buttons/2.3.5/js/buttons.html5.min.js"></script>
+        <!-- PDFMake (required for PDF export, if you also want PDF) -->
+        <script src="https://cdn.rawgit.com/bpampuch/pdfmake/0.1.36/build/pdfmake.min.js"></script>
+        <script src="https://cdn.rawgit.com/bpampuch/pdfmake/0.1.36/build/vfs_fonts.js"></script>
 
-    <script>
-        $(document).ready(function() {
-            // Object mapping each symbol (uppercase) to an array of row details.
-            var symbolRows = {};
-            var uniqueIdCounter = 0;
-            // Store DataTable instances keyed by table id.
-            var tableInstances = {};
+        <script>
+            $(document).ready(function() {
+                // Object mapping each symbol (uppercase) to an array of row details.
+                var symbolRows = {};
+                var uniqueIdCounter = 0;
+                // Store DataTable instances keyed by table id.
+                var tableInstances = {};
 
-            // Load portfolio data and build table(s)
-            function loadPortfolio() {
-                $.ajax({
-                    url: "/api/DividendsTrackerApi/portfolio-upcoming-dividends",
-                    method: "GET",
-                    dataType: "json",
-                    success: function(data) {
-                        if (data.portfolios && data.portfolios.length > 0) {
-                            $.each(data.portfolios, function(idx, portfolio) {
-                                var portfolioSection = $('<div class="portfolio-section"></div>');
-                                var headerHtml = '<div class="portfolio-header">' +
-                                    '<h2>Portfolio: ' + portfolio.name + ' (ID: ' + portfolio.id + ')</h2>' +
-                                    '<p><strong>Total Investment:</strong> ' + parseFloat(portfolio.totalInvestment).toFixed(2) + '</p>' +
-                                    '<p><strong>Current Market Value:</strong> ' + parseFloat(portfolio.currentMarketValue).toFixed(2) + '</p>' +
-                                    '<p><strong>Total Gains/Losses:</strong> ' + parseFloat(portfolio.totalGainsLosses).toFixed(2) + '</p>' +
-                                    '</div>';
-                                portfolioSection.append(headerHtml);
+                // Load portfolio data and build table(s)
+                function loadPortfolio() {
+                    $.ajax({
+                        url: "/api/DividendsTrackerApi/portfolio-upcoming-dividends",
+                        method: "GET",
+                        dataType: "json",
+                        success: function(data) {
+                            if (data.portfolios && data.portfolios.length > 0) {
+                                $.each(data.portfolios, function(idx, portfolio) {
+                                    var portfolioSection = $('<div class="portfolio-section"></div>');
+                                    var headerHtml = '<div class="portfolio-header">' +
+                                        '<h2>Portfolio: ' + portfolio.name + ' (ID: ' + portfolio.id + ')</h2>' +
+                                        '<p><strong>Total Investment:</strong> ' + parseFloat(portfolio.totalInvestment).toFixed(2) + '</p>' +
+                                        '<p><strong>Current Market Value:</strong> ' + parseFloat(portfolio.currentMarketValue).toFixed(2) + '</p>' +
+                                        '<p><strong>Total Gains/Losses:</strong> ' + parseFloat(portfolio.totalGainsLosses).toFixed(2) + '</p>' +
+                                        '</div>';
+                                    portfolioSection.append(headerHtml);
 
-                                var tableId = "portfolioTable-" + portfolio.id;
-                                // Build table header, body and footer.
-                                var tableHtml = '<table id="' + tableId + '" class="display table table-striped" style="width:100%">' +
-                                    '<thead>' +
-                                        '<tr>' +
-                                          '<th>Symbol</th>' +
-                                          '<th>Operation</th>' +
-                                          '<th>Purchase Date</th>' +
-                                          '<th>Quantity</th>' +
-                                          '<th>Purchase Price</th>' +
-                                          '<th>Current Price</th>' +
-                                          '<th>Commission</th>' +
-                                          '<th>Upcoming Dividend</th>' +
-                                          '<th>Next Dividend Value</th>' +
-                                          '<th>Predicted Ex-Date</th>' +
-                                          '<th>Predicted Dividend (Total)</th>' +
-                                        '</tr>' +
-                                    '</thead>' +
-                                    '<tbody>';
+                                    var tableId = "portfolioTable-" + portfolio.id;
+                                    // Build table header, body and footer.
+                                    var tableHtml = '<table id="' + tableId + '" class="display table table-striped" style="width:100%">' +
+                                        '<thead>' +
+                                            '<tr>' +
+                                              '<th>Symbol</th>' +
+                                              '<th>Operation</th>' +
+                                              '<th>Purchase Date</th>' +
+                                              '<th>Quantity</th>' +
+                                              '<th>Purchase Price</th>' +
+                                              '<th>Current Price</th>' +
+                                              '<th>Commission</th>' +
+                                              '<th>Upcoming Dividend</th>' +
+                                              '<th>Next Dividend Value</th>' +
+                                              '<th>Predicted Ex-Date</th>' +
+                                              // Updated header for the total dividends since purchase.
+                                              '<th>Total Dividends (Since Purchase)</th>' +
+                                            '</tr>' +
+                                        '</thead>' +
+                                        '<tbody>';
 
-                                if (portfolio.items && portfolio.items.length > 0) {
-                                    $.each(portfolio.items, function(i, item) {
-                                        var purchaseDate = new Date(item.purchaseDate);
-                                        var purchaseDateStr = purchaseDate.toLocaleDateString();
+                                    if (portfolio.items && portfolio.items.length > 0) {
+                                        $.each(portfolio.items, function(i, item) {
+                                            var purchaseDate = new Date(item.purchaseDate);
+                                            var purchaseDateStr = purchaseDate.toLocaleDateString();
 
-                                        // Create unique IDs for cells updated asynchronously.
-                                        uniqueIdCounter++;
-                                        var upDivId = "upDiv-" + uniqueIdCounter;
-                                        var nextDivId = "nextDiv-" + uniqueIdCounter;
+                                            // Create unique IDs for cells updated asynchronously.
+                                            uniqueIdCounter++;
+                                            var upDivId = "upDiv-" + uniqueIdCounter;
+                                            var nextDivId = "nextDiv-" + uniqueIdCounter;
 
-                                        uniqueIdCounter++;
-                                        var predExId = "predEx-" + uniqueIdCounter;
-                                        var predDivId = "predDiv-" + uniqueIdCounter;
+                                            uniqueIdCounter++;
+                                            var predExId = "predEx-" + uniqueIdCounter;
+                                            var predDivId = "predDiv-" + uniqueIdCounter;
 
-                                        // Map this row info under the uppercase version of the symbol.
-                                        var sym = item.symbol.toUpperCase();
-                                        if (!symbolRows[sym]) {
-                                            symbolRows[sym] = [];
-                                        }
-                                        symbolRows[sym].push({
-                                            upDivId: upDivId,
-                                            nextDivId: nextDivId,
-                                            predExId: predExId,
-                                            predDivId: predDivId,
-                                            purchaseDate: purchaseDate,
-                                            quantity: item.quantity,
-                                            tableId: tableId
+                                            // Map this row info under the uppercase version of the symbol.
+                                            var sym = item.symbol.toUpperCase();
+                                            if (!symbolRows[sym]) {
+                                                symbolRows[sym] = [];
+                                            }
+                                            symbolRows[sym].push({
+                                                upDivId: upDivId,
+                                                nextDivId: nextDivId,
+                                                predExId: predExId,
+                                                predDivId: predDivId,
+                                                purchaseDate: purchaseDate,
+                                                quantity: item.quantity,
+                                                tableId: tableId
+                                            });
+
+                                            tableHtml += '<tr>' +
+                                                '<td>' + item.symbol + '</td>' +
+                                                '<td>' + item.operationType + '</td>' +
+                                                '<td>' + purchaseDateStr + '</td>' +
+                                                '<td>' + item.quantity + '</td>' +
+                                                '<td>' + parseFloat(item.purchasePrice).toFixed(2) + '</td>' +
+                                                '<td>' + parseFloat(item.currentPrice).toFixed(2) + '</td>' +
+                                                '<td>' + parseFloat(item.commission).toFixed(2) + '</td>' +
+                                                '<td id="' + upDivId + '">Loading...</td>' +
+                                                '<td id="' + nextDivId + '">Loading...</td>' +
+                                                '<td id="' + predExId + '">Loading...</td>' +
+                                                '<td id="' + predDivId + '">Loading...</td>' +
+                                                '</tr>';
                                         });
+                                    }
+                                    else {
+                                        tableHtml += '<tr><td colspan="11">No items available.</td></tr>';
+                                    }
+                                    tableHtml += '</tbody>';
+                                    // Add a footer row that will show the grand total.
+                                    tableHtml += '<tfoot><tr>' +
+                                                 '<th colspan="10" style="text-align:right;">Grand Total:</th>' +
+                                                 '<th></th>' +
+                                                 '</tr></tfoot>';
+                                    tableHtml += '</table>';
+                                    portfolioSection.append(tableHtml);
+                                    $("#portfolioList").append(portfolioSection);
 
-                                        tableHtml += '<tr>' +
-                                            '<td>' + item.symbol + '</td>' +
-                                            '<td>' + item.operationType + '</td>' +
-                                            '<td>' + purchaseDateStr + '</td>' +
-                                            '<td>' + item.quantity + '</td>' +
-                                            '<td>' + parseFloat(item.purchasePrice).toFixed(2) + '</td>' +
-                                            '<td>' + parseFloat(item.currentPrice).toFixed(2) + '</td>' +
-                                            '<td>' + parseFloat(item.commission).toFixed(2) + '</td>' +
-                                            '<td id="' + upDivId + '">Loading...</td>' +
-                                            '<td id="' + nextDivId + '">Loading...</td>' +
-                                            '<td id="' + predExId + '">Loading...</td>' +
-                                            '<td id="' + predDivId + '">Loading...</td>' +
-                                            '</tr>';
-                                    });
-                                }
-                                else {
-                                    tableHtml += '<tr><td colspan="11">No items available.</td></tr>';
-                                }
-                                tableHtml += '</tbody>';
-                                // Add a footer row that will show the grand total.
-                                tableHtml += '<tfoot><tr>' +
-                                             '<th colspan="10" style="text-align:right;">Grand Total:</th>' +
-                                             '<th></th>' +
-                                             '</tr></tfoot>';
-                                tableHtml += '</table>';
-                                portfolioSection.append(tableHtml);
-                                $("#portfolioList").append(portfolioSection);
-
-                                // Initialize DataTable with row grouping, export buttons, etc.
-                                var dt = $("#" + tableId).DataTable({
-                                    paging: false,
-                                    dom: 'Bfrtip',
-                                    buttons: [
-                                        {
-                                            extend: 'excelHtml5',
-                                            text: 'Export to Excel'
+                                    // Initialize DataTable with row grouping, export buttons, etc.
+                                    var dt = $("#" + tableId).DataTable({
+                                        paging: false,
+                                        dom: 'Bfrtip',
+                                        buttons: [
+                                            {
+                                                extend: 'excelHtml5',
+                                                text: 'Export to Excel'
+                                            },
+                                            {
+                                                extend: 'pdfHtml5',
+                                                text: 'Export to PDF'
+                                            }
+                                        ],
+                                        rowGroup: {
+                                            dataSrc: 0,
+                                            endRender: function (rows, group) {
+                                                var groupTotal = 0;
+                                                var validCount = 0;
+                                                rows.data().each(function(d) {
+                                                    // The total dividends amount is in column index 10.
+                                                    var num = parseFloat(d[10]);
+                                                    if (!isNaN(num)) {
+                                                        groupTotal += num;
+                                                        validCount++;
+                                                    }
+                                                });
+                                                var displayTotal = validCount === 0 ? 0 : groupTotal.toFixed(2);
+                                                return $('<tr/>')
+                                                    .append('<td colspan="10" style="text-align:right; font-weight:bold;">Total for ' + group + ':</td>')
+                                                    .append('<td style="font-weight:bold;">' + displayTotal + '</td>');
+                                            }
                                         },
-                                        {
-                                            extend: 'pdfHtml5',
-                                            text: 'Export to PDF'
-                                        }
-                                    ],
-                                    rowGroup: {
-                                        dataSrc: 0,
-                                        endRender: function (rows, group) {
-                                            var groupTotal = 0;
+                                        footerCallback: function (row, data, start, end, display) {
+                                            var api = this.api();
+                                            var grandTotal = 0;
                                             var validCount = 0;
-                                            rows.data().each(function(d) {
-                                                // The predicted dividend total is in column index 10.
-                                                var num = parseFloat(d[10]);
+                                            api.column(10).data().each(function(value) {
+                                                var num = parseFloat(value);
                                                 if (!isNaN(num)) {
-                                                    groupTotal += num;
+                                                    grandTotal += num;
                                                     validCount++;
                                                 }
                                             });
-                                            var displayTotal = validCount === 0 ? 0 : groupTotal.toFixed(2);
-                                            return $('<tr/>')
-                                                .append('<td colspan="10" style="text-align:right; font-weight:bold;">Total for ' + group + ':</td>')
-                                                .append('<td style="font-weight:bold;">' + displayTotal + '</td>');
+                                            var displayTotal = validCount === 0 ? 0 : grandTotal.toFixed(2);
+                                            $(api.column(10).footer()).html(displayTotal);
+                                        }
+                                    });
+                                    // Save the DataTable instance for later redraws.
+                                    tableInstances[tableId] = dt;
+                                });
+                            }
+                            else {
+                                $("#portfolioList").html("<p>No portfolio data found.</p>");
+                            }
+                            // Once portfolios are loaded, update the dividend predictions.
+                            processDividendPredictions();
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error("Error fetching portfolio data: " + textStatus, errorThrown);
+                            $("#portfolioList").html("<p>Error loading data.</p>");
+                        }
+                    });
+                }
+
+                // For each unique symbol, call the API and update the corresponding rows.
+                function processDividendPredictions() {
+                    for (var symbol in symbolRows) {
+                        if (symbolRows.hasOwnProperty(symbol)) {
+                            (function(symbol) {
+                                $.ajax({
+                                    url: "/api/YahooFinance/dividends-symbol/" + symbol,
+                                    method: "GET",
+                                    dataType: "json",
+                                    success: function(divData) {
+                                        if (divData && divData.length > 0) {
+                                            // Sort dividend records in ascending order based on ex-date.
+                                            divData.sort(function(a, b) {
+                                                return new Date(a.exDate) - new Date(b.exDate);
+                                            });
+
+                                            // Process each portfolio item (row) for this symbol.
+                                            symbolRows[symbol].forEach(function(rowInfo) {
+                                                var totalDividendPerShare = 0;
+                                                var upcomingDividendRecord = null;
+
+                                                // Loop through all dividend records.
+                                                for (var i = 0; i < divData.length; i++) {
+                                                    var recordExDate = new Date(divData[i].exDate);
+                                                    // Only consider dividends with an ex-date on or after the purchase date.
+                                                    if (recordExDate >= rowInfo.purchaseDate) {
+                                                        totalDividendPerShare += parseFloat(divData[i].amount.replace(",", "."));
+                                                        // The first matching record is considered the upcoming dividend.
+                                                        if (!upcomingDividendRecord) {
+                                                            upcomingDividendRecord = divData[i];
+                                                        }
+                                                    }
+                                                }
+
+                                                if (upcomingDividendRecord) {
+                                                    // Set upcoming dividend details from the nearest dividend record.
+                                                    var upDivAmount = parseFloat(upcomingDividendRecord.amount.replace(",", "."));
+                                                    $("#" + rowInfo.upDivId).text(upDivAmount.toFixed(2));
+                                                    var nextDividendValue = (upDivAmount * rowInfo.quantity).toFixed(2);
+                                                    $("#" + rowInfo.nextDivId).text(nextDividendValue);
+                                                    $("#" + rowInfo.predExId).text(new Date(upcomingDividendRecord.exDate).toISOString().slice(0, 10));
+                                                }
+                                                else {
+                                                    $("#" + rowInfo.upDivId).text("N/A");
+                                                    $("#" + rowInfo.nextDivId).text("N/A");
+                                                    $("#" + rowInfo.predExId).text("N/A");
+                                                }
+
+                                                // Calculate the total dividend amount based on all dividend records since the purchase date.
+                                                var accumulatedDividend = (totalDividendPerShare * rowInfo.quantity).toFixed(2);
+                                                $("#" + rowInfo.predDivId).text(accumulatedDividend);
+                                            });
+
+                                            // Redraw each updated table so that totals are recalculated.
+                                            var updatedTables = {};
+                                            symbolRows[symbol].forEach(function(rowInfo) {
+                                                updatedTables[rowInfo.tableId] = true;
+                                            });
+                                            for (var tblId in updatedTables) {
+                                                if (updatedTables.hasOwnProperty(tblId) && tableInstances[tblId]) {
+                                                    tableInstances[tblId].rows().invalidate().draw();
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            // If no dividend data, mark cells as "N/A"
+                                            var updatedTables = {};
+                                            symbolRows[symbol].forEach(function(rowInfo) {
+                                                $("#" + rowInfo.upDivId).text("N/A");
+                                                $("#" + rowInfo.nextDivId).text("N/A");
+                                                $("#" + rowInfo.predExId).text("N/A");
+                                                $("#" + rowInfo.predDivId).text("N/A");
+                                                updatedTables[rowInfo.tableId] = true;
+                                            });
+                                            for (var tblId in updatedTables) {
+                                                if (updatedTables.hasOwnProperty(tblId) && tableInstances[tblId]) {
+                                                    tableInstances[tblId].rows().invalidate().draw();
+                                                }
+                                            }
                                         }
                                     },
-                                    footerCallback: function (row, data, start, end, display) {
-                                        var api = this.api();
-                                        var grandTotal = 0;
-                                        var validCount = 0;
-                                        api.column(10).data().each(function(value) {
-                                            var num = parseFloat(value);
-                                            if (!isNaN(num)) {
-                                                grandTotal += num;
-                                                validCount++;
-                                            }
-                                        });
-                                        var displayTotal = validCount === 0 ? 0 : grandTotal.toFixed(2);
-                                        $(api.column(10).footer()).html(displayTotal);
-                                    }
-                                });
-                                // Save the DataTable instance for later redraws.
-                                tableInstances[tableId] = dt;
-                            });
-                        }
-                        else {
-                            $("#portfolioList").html("<p>No portfolio data found.</p>");
-                        }
-                        // Once portfolios are loaded, we update the dividend predictions.
-                        processDividendPredictions();
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error("Error fetching portfolio data: " + textStatus, errorThrown);
-                        $("#portfolioList").html("<p>Error loading data.</p>");
-                    }
-                });
-            }
-
-            // For each unique symbol, call the API and update the corresponding rows.
-            function processDividendPredictions() {
-                for (var symbol in symbolRows) {
-                    if (symbolRows.hasOwnProperty(symbol)) {
-                        (function(symbol) {
-                            $.ajax({
-                                url: "/api/YahooFinance/dividends-symbol/" + symbol,
-                                method: "GET",
-                                dataType: "json",
-                                success: function(divData) {
-                                    if (divData && divData.length > 0) {
-                                        divData.sort(function(a, b) {
-                                            return new Date(a.exDate) - new Date(b.exDate);
-                                        });
-                                        var lastRecord = divData[divData.length - 1];
-                                        var lastExDate = new Date(lastRecord.exDate);
-                                        var dividendPerShare = parseFloat(lastRecord.amount.replace(",", "."));
-
-                                        // Determine payment interval in months.
-                                        var intervalMonths = 12;
-                                        if (divData.length > 1) {
-                                            var secondLastEx = new Date(divData[divData.length - 2].exDate);
-                                            var diff = (lastExDate.getFullYear() - secondLastEx.getFullYear()) * 12 +
-                                                       (lastExDate.getMonth() - secondLastEx.getMonth());
-                                            if (diff > 0) {
-                                                intervalMonths = diff;
-                                            }
-                                        }
-                                        var updatedTables = {};
-                                        symbolRows[symbol].forEach(function(rowInfo) {
-                                            $("#" + rowInfo.upDivId).text(dividendPerShare.toFixed(2));
-                                            var nextDividendValue = (dividendPerShare * rowInfo.quantity).toFixed(2);
-                                            $("#" + rowInfo.nextDivId).text(nextDividendValue);
-
-                                            // Roll forward from the last ex-date until after the purchase date.
-                                            var predictedDate = new Date(lastExDate);
-                                            while (predictedDate <= rowInfo.purchaseDate) {
-                                                predictedDate.setMonth(predictedDate.getMonth() + intervalMonths);
-                                            }
-                                            var predictedExDateStr = predictedDate.toISOString().slice(0, 10);
-                                            $("#" + rowInfo.predExId).text(predictedExDateStr);
-
-                                            var predictedTotalDividend = (dividendPerShare * rowInfo.quantity).toFixed(2);
-                                            $("#" + rowInfo.predDivId).text(predictedTotalDividend);
-
-                                            updatedTables[rowInfo.tableId] = true;
-                                        });
-                                        // Redraw each updated table so that totals are recalculated.
-                                        for (var tblId in updatedTables) {
-                                            if (updatedTables.hasOwnProperty(tblId) && tableInstances[tblId]) {
-                                                tableInstances[tblId].rows().invalidate().draw();
-                                            }
-                                        }
-                                    }
-                                    else {
-                                        // If no dividend data, mark cells as "N/A"
+                                    error: function(jqXHR, textStatus, errorThrown) {
+                                        console.error("Error fetching dividend details for " + symbol + ": " + textStatus, errorThrown);
                                         var updatedTables = {};
                                         symbolRows[symbol].forEach(function(rowInfo) {
                                             $("#" + rowInfo.upDivId).text("N/A");
@@ -300,33 +328,16 @@
                                             }
                                         }
                                     }
-                                },
-                                error: function(jqXHR, textStatus, errorThrown) {
-                                    console.error("Error fetching dividend details for " + symbol + ": " + textStatus, errorThrown);
-                                    var updatedTables = {};
-                                    symbolRows[symbol].forEach(function(rowInfo) {
-                                        $("#" + rowInfo.upDivId).text("N/A");
-                                        $("#" + rowInfo.nextDivId).text("N/A");
-                                        $("#" + rowInfo.predExId).text("N/A");
-                                        $("#" + rowInfo.predDivId).text("N/A");
-                                        updatedTables[rowInfo.tableId] = true;
-                                    });
-                                    for (var tblId in updatedTables) {
-                                        if (updatedTables.hasOwnProperty(tblId) && tableInstances[tblId]) {
-                                            tableInstances[tblId].rows().invalidate().draw();
-                                        }
-                                    }
-                                }
-                            });
-                        })(symbol);
+                                });
+                            })(symbol);
+                        }
                     }
                 }
-            }
 
-            // Start loading the portfolio
-            loadPortfolio();
-        });
-    </script>
-}
+                // Start loading the portfolio.
+                loadPortfolio();
+            });
+        </script>
+    }
 </body>
 </html>
