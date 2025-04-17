@@ -30,7 +30,12 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
           .ThenInclude(di => di.IndexDividendsTracker);
       return View(await dividends.ToListAsync());
     }
-
+    // GET: Admin/DividendsTracker
+    public async Task<IActionResult> Manage()
+    {
+   
+      return View();
+    }
     // GET: Admin/DividendsTracker/Details/5
     public async Task<IActionResult> Details(int? id)
     {

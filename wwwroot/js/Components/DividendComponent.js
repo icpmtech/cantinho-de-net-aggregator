@@ -6,14 +6,14 @@ class DividendComponent {
    * @param {Object} options - Configuration options for the component.
    * @param {string|HTMLElement} options.container - The container element or its selector where the component will be rendered.
    * @param {string} [options.symbol='AAPL'] - The default stock symbol to fetch dividends for.
-   * @param {string} [options.apiUrl='https://apimarketsanalyticshub.azurewebsites.net/dividends'] - The base API URL for fetching dividends.
+   * @param {string} [options.apiUrl='https://apimarketsanalyticshub-aeccaahebzamare9.eastus-01.azurewebsites.net/'] - The base API URL for fetching dividends.
    */
   constructor(options) {
     // Destructure and set default options
     const {
       container,
       symbol = 'AAPL',
-      apiUrl = 'https://apimarketsanalyticshub.azurewebsites.net/dividends'
+      apiUrl = 'https://apimarketsanalyticshub-aeccaahebzamare9.eastus-01.azurewebsites.net/dividends'
     } = options;
 
     // Resolve the container element

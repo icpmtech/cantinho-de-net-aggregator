@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dividend Tracker Administration</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .clickable {
+            cursor: pointer;
+        }
+        .dividend-row:hover {
+            background-color: #f8f9fa;
+        }
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #86b7fe;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .badge {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>Dividend Tracker Administration</h1>
+            <button id="addNewBtn" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add New Dividend
+            </button>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Dividends List</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Company</th>
+                                <th>Ticker</th>
+                                <th>Country</th>
+                                <th>Exchange</th>
+                                <th>Share Price</th>
+                                <th>Ex-Date</th>
+                                <th>Pay Date</th>
+                                <th>Indices</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dividendsTableBody">
+                            <!-- Dividends will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form Modal -->
+    <div class="modal fade" id="dividendFormModal" tabindex="-1" aria-labelledby="dividendFormModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dividendFormModalLabel">Add Dividend</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="dividendForm">
+                        <input type="hidden" id="dividendId">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="company" class="form-label">Company Name</label>
+                                <input type="text" class="form-control" id="company" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="ticker" class="form-label">Ticker Symbol</label>
+                                <input type="text" class="form-control" id="ticker" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="country" class="form-label">Country</label>
+                                <input type="text" class="form-control" id="country" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="region" class="form-label">Region</label>
+                                <input type="text" class="form-control" id="region" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="exchange" class="form-label">Exchange</label>
+                                <input type="text" class="form-control" id="exchange" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sharePrice" class="form-label">Share Price</label>
+                                <input type="text" class="form-control" id="sharePrice" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="prevDividend" class="form-label">Previous Dividend</label>
+                                <input type="text" class="form-control" id="prevDividend" required>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="exDateDividend" class="form-label">Ex-Date Dividend</label>
+                                <input type="date" class="form-control" id="exDateDividend" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="payDateDividend" class="form-label">Pay Date Dividend</label>
+                                <input type="date" class="form-control" id="payDateDividend" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Indices</label>
+                            <div id="indicesCheckboxes" class="border rounded p-3">
+                                <!-- Indices checkboxes will be loaded here -->
+                                <div class="d-flex align-items-center justify-content-center h-100">
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Loading indices...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this dividend record for <span id="deleteCompanyName" class="fw-bold"></span>?</p>
+                    <p class="text-danger mb-0">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 5">
+        <div id="toastNotification" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notification</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Message here
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API URL base
+        const apiBaseUrl = '/api/admin/AdminDividendsTrackerApi';
+        
+        // Current state
+        let dividends = [];
+        let indices = [];
+        let deleteId = null;
+        
+        // Modal instances
+        let formModal;
+        let deleteModal;
+        let toastInstance;
+        
+        // Initialize the page when DOM is ready
+        $(document).ready(function() {
+            // Initialize Bootstrap modals
+            formModal = new bootstrap.Modal(document.getElementById('dividendFormModal'));
+            deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            toastInstance = new bootstrap.Toast(document.getElementById('toastNotification'));
+            
+            // Load initial data
+            loadDividends();
+            loadIndices();
+            
+            // Setup event listeners
+            $('#addNewBtn').click(openCreateForm);
+            $('#saveBtn').click(saveDividend);
+            $('#confirmDeleteBtn').click(deleteDividend);
+            
+            // Hide loading initially
+            hideLoading();
+        });
+        
+        // API Functions
+        
+        // Load all dividends
+        function loadDividends() {
+            showLoading();
+            $.ajax({
+                url: apiBaseUrl,
+                type: 'GET',
+                success: function(data) {
+                    dividends = data;
+                    renderDividendsTable();
+                    hideLoading();
+                },
+                error: function(xhr, status, error) {
+                    handleApiError(xhr, status, error);
+                    hideLoading();
+                }
+            });
+        }
+        
+        // Load all indices
+        function loadIndices() {
+            $.ajax({
+                url: `${apiBaseUrl}/indices`,
+                type: 'GET',
+                success: function(data) {
+                    indices = data;
+                    renderIndicesCheckboxes();
+                },
+                error: function(xhr, status, error) {
+                    handleApiError(xhr, status, error);
+                }
+            });
+        }
+        
+        // Create a new dividend
+        function createDividend(dividendData) {
+            showLoading();
+            $.ajax({
+                url: apiBaseUrl,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(dividendData),
+                success: function() {
+                    formModal.hide();
+                    showToast('Dividend added successfully');
+                    loadDividends();
+                },
+                error: function(xhr, status, error) {
+                    handleApiError(xhr, status, error);
+                    hideLoading();
+                }
+            });
+        }
+        
+        // Update an existing dividend
+        function updateDividend(id, dividendData) {
+            showLoading();
+            $.ajax({
+                url: `${apiBaseUrl}/${id}`,
+                type: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify(dividendData),
+                success: function() {
+                    formModal.hide();
+                    showToast('Dividend updated successfully');
+                    loadDividends();
+                },
+                error: function(xhr, status, error) {
+                    handleApiError(xhr, status, error);
+                    hideLoading();
+                }
+            });
+        }
+        
+        // Delete a dividend
+        function deleteDividend() {
+            if (!deleteId) return;
+            
+            showLoading();
+            $.ajax({
+                url: `${apiBaseUrl}/${deleteId}`,
+                type: 'DELETE',
+                success: function() {
+                    deleteModal.hide();
+                    showToast('Dividend deleted successfully');
+                    loadDividends();
+                },
+                error: function(xhr, status, error) {
+                    handleApiError(xhr, status, error);
+                    hideLoading();
+                }
+            });
+        }
+        
+        // UI Functions
+        
+        // Render the dividends table
+        function renderDividendsTable() {
+            const tableBody = $('#dividendsTableBody');
+            tableBody.empty();
+            
+            if (dividends.length === 0) {
+                tableBody.append(`
+                    <tr>
+                        <td colspan="9" class="text-center py-4">
+                            <div class="text-muted">No dividend records found</div>
+                            <button class="btn btn-sm btn-outline-primary mt-2" id="noDataAddBtn">
+                                <i class="fas fa-plus me-1"></i>Add your first dividend
+                            </button>
+                        </td>
+                    </tr>
+                `);
+                $('#noDataAddBtn').click(openCreateForm);
+                return;
+            }
+            
+            dividends.forEach(dividend => {
+                const indicesBadges = dividend.indices.length > 0 
+                    ? dividend.indices.map(i => `<span class="badge bg-info">${i.region}</span>`).join(' ')
+                    : '<span class="badge bg-light text-dark">None</span>';
+                
+                const exDate = dividend.exDateDividend ? new Date(dividend.exDateDividend).toLocaleDateString() : 'N/A';
+                const payDate = dividend.payDateDividend ? new Date(dividend.payDateDividend).toLocaleDateString() : 'N/A';
+                
+                tableBody.append(`
+                    <tr class="dividend-row" data-id="${dividend.id}">
+                        <td>${dividend.company}</td>
+                        <td><strong>${dividend.ticker}</strong></td>
+                        <td>${dividend.country}</td>
+                        <td>${dividend.exchange}</td>
+                        <td>${dividend.sharePrice}</td>
+                        <td>${exDate}</td>
+                        <td>${payDate}</td>
+                        <td>${indicesBadges}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary edit-btn me-1" data-id="${dividend.id}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger delete-btn" data-id="${dividend.id}" data-company="${dividend.company}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+            
+            // Add event listeners to the buttons
+            $('.edit-btn').click(function() {
+                const id = $(this).data('id');
+                openEditForm(id);
+            });
+            
+            $('.delete-btn').click(function() {
+                const id = $(this).data('id');
+                const company = $(this).data('company');
+                confirmDelete(id, company);
+            });
+        }
+        
+        // Render checkboxes for indices
+        function renderIndicesCheckboxes() {
+            const container = $('#indicesCheckboxes');
+            container.empty();
+            
+            if (indices.length === 0) {
+                container.html('<div class="text-muted text-center py-2">No indices available</div>');
+                return;
+            }
+            
+            indices.forEach(index => {
+                container.append(`
+                    <div class="form-check">
+                        <input class="form-check-input index-checkbox" type="checkbox" 
+                               value="${index.id}" id="index${index.id}">
+                        <label class="form-check-label" for="index${index.id}">
+                            ${index.region}
+                        </label>
+                    </div>
+                `);
+            });
+        }
+        
+        // Open form for creating a new dividend
+        function openCreateForm() {
+            resetForm();
+            $('#dividendFormModalLabel').text('Add New Dividend');
+            formModal.show();
+        }
+        
+        // Open form for editing an existing dividend
+        function openEditForm(id) {
+            resetForm();
+            
+            const dividend = dividends.find(d => d.id === id);
+            if (!dividend) return;
+            
+            $('#dividendFormModalLabel').text('Edit Dividend');
+            $('#dividendId').val(dividend.id);
+            $('#company').val(dividend.company);
+            $('#ticker').val(dividend.ticker);
+            $('#country').val(dividend.country);
+            $('#region').val(dividend.region);
+            $('#exchange').val(dividend.exchange);
+            $('#sharePrice').val(dividend.sharePrice);
+            $('#prevDividend').val(dividend.prevDividend);
+            
+            if (dividend.exDateDividend) {
+                const exDate = new Date(dividend.exDateDividend);
+                $('#exDateDividend').val(formatDateForInput(exDate));
+            }
+            
+            if (dividend.payDateDividend) {
+                const payDate = new Date(dividend.payDateDividend);
+                $('#payDateDividend').val(formatDateForInput(payDate));
+            }
+            
+            // Set selected indices
+            dividend.indices.forEach(index => {
+                $(`#index${index.id}`).prop('checked', true);
+            });
+            
+            formModal.show();
+        }
+        
+        // Reset the form fields
+        function resetForm() {
+            $('#dividendId').val('');
+            $('#dividendForm')[0].reset();
+            $('.index-checkbox').prop('checked', false);
+        }
+        
+        // Confirm delete action
+        function confirmDelete(id, company) {
+            deleteId = id;
+            $('#deleteCompanyName').text(company);
+            deleteModal.show();
+        }
+        
+        // Save dividend (create or update)
+        function saveDividend() {
+            if (!validateForm()) {
+                return;
+            }
+            
+            const id = $('#dividendId').val();
+            const isEdit = id !== '';
+            
+            // Get selected indices
+            const selectedIndices = [];
+            $('.index-checkbox:checked').each(function() {
+                selectedIndices.push(parseInt($(this).val()));
+            });
+            
+            const dividendData = {
+                company: $('#company').val(),
+                ticker: $('#ticker').val(),
+                country: $('#country').val(),
+                region: $('#region').val(),
+                exchange: $('#exchange').val(),
+                sharePrice: $('#sharePrice').val(),
+                prevDividend: $('#prevDividend').val(),
+                exDateDividend: $('#exDateDividend').val(),
+                payDateDividend: $('#payDateDividend').val(),
+                selectedIndices: selectedIndices
+            };
+            
+            if (isEdit) {
+                dividendData.id = parseInt(id);
+                updateDividend(id, dividendData);
+            } else {
+                createDividend(dividendData);
+            }
+        }
+        
+        // Validate the form
+        function validateForm() {
+            return $('#dividendForm')[0].checkValidity();
+        }
+        
+        // Helper Functions
+        
+        // Format date for input fields
+        function formatDateForInput(date) {
+            return date.toISOString().split('T')[0];
+        }
+        
+        // Show loading spinner
+        function showLoading() {
+            $('.loading').removeClass('hidden');
+        }
+        
+        // Hide loading spinner
+        function hideLoading() {
+            $('.loading').addClass('hidden');
+        }
+        
+        // Handle API errors
+        function handleApiError(xhr, status, error) {
+            let errorMessage = 'An error occurred';
+            
+            if (xhr.responseJSON && xhr.responseJSON.errors) {
+                errorMessage = Object.values(xhr.responseJSON.errors)
+                    .flat()
+                    .join('\n');
+            } else if (xhr.responseText) {
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    errorMessage = response.message || response.title || errorMessage;
+                } catch (e) {
+                    errorMessage = xhr.responseText;
+                }
+            }
+            
+            alert(`Error: ${errorMessage}`);
+            console.error('API Error:', {xhr, status, error});
+        }
+        
+        // Show toast notification
+        function showToast(message) {
+            $('#toastMessage').text(message);
+            toastInstance.show();
+        }
+    </script>
+</body>
+</html>

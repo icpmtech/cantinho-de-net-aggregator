@@ -107,6 +107,9 @@
       <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
+    <Content Update="wwwroot\assets\img\preview-image.PNG">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Update="wwwroot\js\dashboards-analytics-portfolio-f.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

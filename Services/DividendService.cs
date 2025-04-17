@@ -47,7 +47,7 @@ namespace MarketAnalyticHub.Services
       try
       {
         // Construct the API URL with query parameters
-        string apiUrl = $"http://apimarketsanalyticshub.azurewebsites.net/dividends?symbol={Uri.EscapeDataString(symbol)}&start={startDate:yyyy-MM-dd}&end={endDate:yyyy-MM-dd}";
+        string apiUrl = $"https://apimarketsanalyticshub-aeccaahebzamare9.eastus-01.azurewebsites.net/dividends?symbol={Uri.EscapeDataString(symbol)}&start={startDate:yyyy-MM-dd}&end={endDate:yyyy-MM-dd}";
 
         // Make the HTTP GET request
         HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
