@@ -62,31 +62,26 @@ namespace MarketAnalyticHub.Controllers.api
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutDividend(int id, DividendViewModel dividendViewModel)
+    [Produces("application/json")]
+    public async Task<IActionResult> PutDividend(int id, [FromBody] DividendViewModel vm)
     {
-      if (dividendViewModel == null || id != dividendViewModel.Id) // Ensure the ID matches
-      {
-        return BadRequest("Invalid data.");
-      }
+      if (vm == null || id != vm.Id)
+        return BadRequest(new { message = "Invalid data." });
 
       var dividend = await _context.Dividends.FindAsync(id);
       if (dividend == null)
-      {
-        return NotFound();
-      }
+        return NotFound(new { message = "Dividend not found." });
 
-      var portfolioItem = await _context.PortfolioItems.FindAsync(dividendViewModel.PortfolioItemId);
+      var portfolioItem = await _context.PortfolioItems.FindAsync(vm.PortfolioItemId);
       if (portfolioItem == null)
-      {
-        return BadRequest("Invalid PortfolioItemId.");
-      }
+        return BadRequest(new { message = "Invalid PortfolioItemId." });
 
-      // Update the entity with the ViewModel data
-      dividend.PortfolioItemId = dividendViewModel.PortfolioItemId;
-      dividend.Symbol = dividendViewModel.Symbol;
-      dividend.Amount = dividendViewModel.Amount;
-      dividend.ExDate = dividendViewModel.ExDate;
-      dividend.PaymentDate = dividendViewModel.PaymentDate;
+      // Actualiza os campos
+      dividend.PortfolioItemId = vm.PortfolioItemId;
+      dividend.Symbol = vm.Symbol;
+      dividend.Amount = vm.Amount;
+      dividend.ExDate = vm.ExDate;
+      dividend.PaymentDate = vm.PaymentDate;
 
       _context.Entry(dividend).State = EntityState.Modified;
 
@@ -97,17 +92,14 @@ namespace MarketAnalyticHub.Controllers.api
       catch (DbUpdateConcurrencyException)
       {
         if (!DividendExists(id))
-        {
-          return NotFound();
-        }
-        else
-        {
-          throw;
-        }
+          return NotFound(new { message = "Dividend no longer exists." });
+        throw;
       }
 
-      return NoContent();
+      // Devolve a entidade actualizada em JSON
+      return Ok(dividend);
     }
+
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteDividend(int id)
@@ -121,7 +113,7 @@ namespace MarketAnalyticHub.Controllers.api
       _context.Dividends.Remove(dividend);
       await _context.SaveChangesAsync();
 
-      return NoContent();
+      return Ok(new { message = "Dividend no longer exists." });
     }
 
     private bool DividendExists(int id)

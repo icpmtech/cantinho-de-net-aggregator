@@ -7,6 +7,6 @@ namespace AspnetCoreMvcFull.Models
     public DateTime ExDate { get; set; }
     public DateTime PaymentDate { get; set; }
     public int PortfolioItemId { get; set; }
-    public int Id { get; set; }
+    public int? Id { get; set; }
   }
 }
