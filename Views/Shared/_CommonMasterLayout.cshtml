@@ -22,6 +22,35 @@
 
   <!-- Canonical SEO -->
   <link rel="canonical" href='@productPage'>
+    <!-- Canonical -->
+  
+
+    <!-- SEO core -->
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Market Analytics Hub" />
+    <meta name="description" content="Most Powerful Market Analizer Hub">
+    <meta name="keywords" content="dashboard, stock markets, portfolio management Analizer Hub, Market Analizer Hub,Powerful dashboards for market analysis, portfolio management and stock tracking">
+    <!-- Canonical SEO -->
+    <link rel="canonical" href="MAHUB & https://cantinhode.net">
+    <link rel="author" href="MAHUB & https://cantinhode.net">
+    <!-- Social / Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Market Analytics Hub – Market Analysis Tools" />
+    <meta property="og:description" content="Dashboards, insights and investment management in one place." />
+    <meta property="og:url" content="https://marketanalyticshub.app/" />
+    <meta property="og:image" content="https://marketanalyticshubapp.azurewebsites.net/assets/img/preview-image.png" />
+    <meta property="og:image:alt" content="Market Analytics Hub dashboard screenshot" />
+
+    <!-- Twitter Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Market Analytics Hub – Market Analysis Tools" />
+    <meta name="twitter:description" content="Dashboards, insights and investment management in one place." />
+    <meta name="twitter:image" content="https://marketanalyticshubapp.azurewebsites.net/assets/img/preview-image.png" />
+
+    <!-- Manifest & Favicon -->
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/icons/marketanalytichub_icon_192x192.png" type="image/png" alt="Market Analytics Hub icon" />
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="~/img/favicon/favicon.ico" />
     <!-- Fonts -->
@@ -36,7 +65,19 @@
 
   <!-- Page Styles -->
   @RenderSection("PageStyles", required: false)
-
+    <!--Start of Tawk.to Script-->
+    <script type="text/javascript">
+        var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+        (function(){
+        var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+        s1.async=true;
+        s1.src='https://embed.tawk.to/604d2bcc067c2605c0b81243/1ip1shovo';
+        s1.charset='UTF-8';
+        s1.setAttribute('crossorigin','*');
+        s0.parentNode.insertBefore(s1,s0);
+        })();
+    </script>
+    <!--End of Tawk.to Script-->
   <!-- Include Scripts for customizer, helper, analytics, config -->
   @await Html.PartialAsync("Sections/_ScriptsIncludes")
 

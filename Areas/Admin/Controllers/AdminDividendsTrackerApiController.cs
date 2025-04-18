@@ -25,12 +25,12 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
 
     // GET: api/admin/DividendsTracker
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<DividendsTrackerDto>>> GetDividends()
+    public async Task<ActionResult<IEnumerable<AdminDividendsTrackerDto>>> GetDividends()
     {
       var dividends = await _context.DividendsTrackers
           .Include(d => d.DividendIndices)
           .ThenInclude(di => di.IndexDividendsTracker)
-          .Select(d => new DividendsTrackerDto
+          .Select(d => new AdminDividendsTrackerDto
           {
             Id = d.Id,
             Company = d.Company,
@@ -55,7 +55,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
 
     // GET: api/admin/DividendsTracker/5
     [HttpGet("{id}")]
-    public async Task<ActionResult<DividendsTrackerDto>> GetDividend(int id)
+    public async Task<ActionResult<AdminDividendsTrackerDto>> GetDividend(int id)
     {
       var dividend = await _context.DividendsTrackers
           .Include(d => d.DividendIndices)
@@ -67,7 +67,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
         return NotFound();
       }
 
-      var dividendDto = new DividendsTrackerDto
+      var dividendDto = new AdminDividendsTrackerDto
       {
         Id = dividend.Id,
         Company = dividend.Company,
@@ -106,7 +106,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
 
     // POST: api/admin/DividendsTracker
     [HttpPost]
-    public async Task<ActionResult<DividendsTrackerDto>> CreateDividend(DividendsTrackerCreateDto dto)
+    public async Task<ActionResult<AdminDividendsTrackerDto>> CreateDividend(DividendsTrackerCreateDto dto)
     {
       if (!ModelState.IsValid)
       {
@@ -150,7 +150,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
       return CreatedAtAction(
           nameof(GetDividend),
           new { id = dividend.Id },
-          new DividendsTrackerDto
+          new AdminDividendsTrackerDto
           {
             Id = dividend.Id,
             Company = dividend.Company,
@@ -280,7 +280,7 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
   }
 
   // DTOs (Data Transfer Objects)
-  public class DividendsTrackerDto
+  public class AdminDividendsTrackerDto
   {
     public int Id { get; set; }
     public string Company { get; set; }
