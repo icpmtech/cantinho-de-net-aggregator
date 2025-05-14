@@ -1,11 +1,8 @@
 using MarketAnalyticHub.Services;
 using MarketAnalyticHub.Models.SetupDb;
-using MarketAnalyticHub.Services;
 using Microsoft.AspNetCore.Mvc;
 using MarketAnalyticHub.Controllers.Configurations.Portfolio;
-using MarketAnalyticHub.Models.Portfolio;
 using System.Security.Claims;
-using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 {
@@ -76,6 +73,7 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
     }
 
     // Partial view for Monthly Stock Returns (Bar Chart)
+    
     public ActionResult MonthlyStockReturns()
     {
       return PartialView(); // Renders the Bar Chart
@@ -102,11 +100,19 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 
       return View();
     }
+   
     public IActionResult Index()
     {
 
       return View();
     }
+
+    public IActionResult PortfolioSummary()
+    {
+
+      return View();
+    }
+
     [HttpGet("GetPortfolioStatistics")]
     public IActionResult GetPortfolioStatistics()
     {

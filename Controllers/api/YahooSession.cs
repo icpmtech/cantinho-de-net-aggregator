@@ -270,7 +270,7 @@ namespace MarketAnalyticHub.Controllers.api
             .WithHeader(UserAgentKey, UserAgentValue)
             .GetAsync(token)
             .ReceiveJson<QuoteSummaryResponse>();
-
+        Thread.Sleep(100);
         var industry = response?.QuoteSummary?.Result?[0]?.AssetProfile?.Industry;
 
         if (string.IsNullOrEmpty(industry))
