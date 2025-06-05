@@ -12,6 +12,7 @@ namespace MarketAnalyticHub.Models.SetupDb
         : base(options)
     {
     }
+    public DbSet<AssetTransactionUser> AssetTransactionUsers { get; set; }
     public DbSet<HtmlPage> HtmlPages { get; set; }
     public DbSet<UserCredit> UserCredits { get; set; }
     public DbSet<Dividend> Dividends { get; set; }
@@ -47,7 +48,12 @@ namespace MarketAnalyticHub.Models.SetupDb
       // Configure relationships
       modelBuilder.Entity<StockExchange>().OwnsOne(s => s.OpenHoursLocal);
       modelBuilder.Entity<StockExchange>().OwnsOne(s => s.OpenHoursUTC);
-
+      modelBuilder.Entity<AssetTransactionUser>(entity =>
+      {
+        entity.ToTable("AssetTransactionUsers");
+        entity.Property(e => e.Date).HasColumnType("date");
+        entity.Property(e => e.UserId).HasMaxLength(450).IsRequired();
+      });
 
       modelBuilder.Entity<PortfolioItem>()
           .HasMany(p => p.StockEvents)

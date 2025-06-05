@@ -106,7 +106,11 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 
       return View();
     }
+    public IActionResult PortfolioOperations()
+    {
 
+      return View();
+    }
     public IActionResult PortfolioSummary()
     {
 

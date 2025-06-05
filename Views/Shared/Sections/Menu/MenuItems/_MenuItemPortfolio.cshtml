@@ -29,10 +29,21 @@
         <li class='menu-item@(currentPage == "/ManagePortfolioHoldings" ? " active" : "")'>
             <a asp-controller="ManagePortfolioHoldings" asp-action="Index" class="menu-link">
                 <i class="menu-icon tf-icons bx bx bx-archive"></i>
-                <div>Manage Portfolio Holdings</div>
+                <div>Manage Holdings</div>
             </a>
         </li>
-        
+        <li class='menu-item@(currentPage == "/Portfolio/PortfolioSummary" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="PortfolioSummary" class="menu-link">
+                <i class="menu-icon tf-icons bx bx bx-archive"></i>
+                <div>Assets</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Portfolio/PortfolioOperations" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="PortfolioOperations" class="menu-link">
+                <i class="menu-icon tf-icons bx bx bx-archive"></i>
+                <div>Operations</div>
+            </a>
+        </li>
         <li class='menu-item@(currentPage == "/Portfolio/Transactions" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Transactions" class="menu-link">
                 <i class="menu-icon tf-icons bx bx bx-archive"></i>

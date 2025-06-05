@@ -469,385 +469,286 @@
     </div>
   </footer>
 
-  <script>
-    // Portfolio data
-    const portfolio = [
-      { ticker: "AAPL", name: "Apple", sector: "Technology", price: 175.23, quantity: 20, variations: { today: 1.2, "1week": 3.5, "1month": 6.8, "1year": 30.2 } },
-      { ticker: "XOM", name: "Exxon", sector: "Energy", price: 102.45, quantity: 10, variations: { today: -0.8, "1week": 0.5, "1month": 1.2, "1year": 12.5 } },
-      { ticker: "JPM", name: "JPMorgan", sector: "Financial", price: 142.10, quantity: 15, variations: { today: 0.4, "1week": -0.3, "1month": 1.1, "1year": 5.7 } },
-      { ticker: "PFE", name: "Pfizer", sector: "Healthcare", price: 39.88, quantity: 25, variations: { today: -1.2, "1week": 2.0, "1month": -0.4, "1year": -3.2 } },
-      { ticker: "NVDA", name: "NVIDIA", sector: "Technology", price: 820.55, quantity: 5, variations: { today: 2.3, "1week": 5.1, "1month": 8.4, "1year": 42.6 } },
-      { ticker: "TSLA", name: "Tesla", sector: "Consumer", price: 191.88, quantity: 12, variations: { today: -3.1, "1week": -4.0, "1month": -6.7, "1year": 15.0 } }
-    ];
+    <script>
+            // Portfolio data
+        let portfolio = [];
 
-    // Chart objects
-    let pieChart = null;
-    let barChart = null;
-    
-    // Format currency
-    function formatCurrency(value) {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
-    }
+        // Chart instances
+        let pieChart = null;
+        let barChart = null;
 
-    // Format percent
-    function formatPercent(value) {
-      return `${value.toFixed(2)}%`;
-    }
-
-    // Get badge class based on value
-    function getBadgeClass(value) {
-      if (value > 0) return "badge-success";
-      if (value < 0) return "badge-danger";
-      return "badge-neutral";
-    }
-
-    // Get arrow based on value
-    function getArrow(value) {
-      if (value > 0) return "▲";
-      if (value < 0) return "▼";
-      return "◆";
-    }
-
-    // Set current date
-    function setCurrentDate() {
-      const now = new Date();
-      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-      document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
-    }
-
-    // Calculate portfolio statistics
-    function calculateStats(period) {
-      const totalValue = portfolio.reduce((sum, asset) => sum + asset.price * asset.quantity, 0);
-      
-      // Calculate weighted average performance
-      let weightedPerformance = 0;
-      for (const asset of portfolio) {
-        const assetValue = asset.price * asset.quantity;
-        const weight = assetValue / totalValue;
-        weightedPerformance += asset.variations[period] * weight;
-      }
-      
-      // Find top and worst performers
-      let topPerformer = portfolio[0];
-      let worstPerformer = portfolio[0];
-      
-      for (const asset of portfolio) {
-        if (asset.variations[period] > topPerformer.variations[period]) {
-          topPerformer = asset;
-        }
-        if (asset.variations[period] < worstPerformer.variations[period]) {
-          worstPerformer = asset;
-        }
-      }
-      
-      return {
-        totalValue,
-        performance: weightedPerformance,
-        topPerformer,
-        worstPerformer
-      };
-    }
-
-    // Sort portfolio based on user selection
-    function sortPortfolio(period, sortBy) {
-      const sortedPortfolio = [...portfolio];
-      
-      switch (sortBy) {
-        case "value":
-          sortedPortfolio.sort((a, b) => (b.price * b.quantity) - (a.price * a.quantity));
-          break;
-        case "performance":
-          sortedPortfolio.sort((a, b) => b.variations[period] - a.variations[period]);
-          break;
-        case "alphabetical":
-          sortedPortfolio.sort((a, b) => a.name.localeCompare(b.name));
-          break;
-      }
-      
-      return sortedPortfolio;
-    }
-
-    // Render statistics
-    function renderStats(period) {
-      const stats = calculateStats(period);
-      
-      document.getElementById('totalValue').textContent = formatCurrency(stats.totalValue);
-      document.getElementById('overallPerf').textContent = formatPercent(stats.performance);
-      document.getElementById('overallPerfText').textContent = `${getArrow(stats.performance)} Over ${period}`;
-      document.getElementById('overallPerfText').className = `stat-change ${stats.performance >= 0 ? 'positive' : 'negative'}`;
-      
-      document.getElementById('topPerformer').textContent = stats.topPerformer.ticker;
-      document.getElementById('topPerformerValue').textContent = `${getArrow(stats.topPerformer.variations[period])} ${formatPercent(stats.topPerformer.variations[period])}`;
-      
-      document.getElementById('worstPerformer').textContent = stats.worstPerformer.ticker;
-      document.getElementById('worstPerformerValue').textContent = `${getArrow(stats.worstPerformer.variations[period])} ${formatPercent(stats.worstPerformer.variations[period])}`;
-      
-      document.getElementById('holdingsCount').textContent = `${portfolio.length} Assets`;
-    }
-
-    // Render pie chart
-    function renderPieChart() {
-      const ctx = document.getElementById('pieChart').getContext('2d');
-      
-      // Calculate values and percentages
-      const totalValue = portfolio.reduce((sum, asset) => sum + asset.price * asset.quantity, 0);
-      const labels = portfolio.map(asset => asset.ticker);
-      const values = portfolio.map(asset => asset.price * asset.quantity);
-      
-      // Define colors based on sectors
-      const sectorColors = {
-        'Technology': '#6366f1',
-        'Energy': '#f59e0b',
-        'Financial': '#10b981',
-        'Healthcare': '#ef4444',
-        'Consumer': '#8b5cf6'
-      };
-      
-      const colors = portfolio.map(asset => sectorColors[asset.sector] || '#94a3b8');
-      
-      // Create or update chart
-      if (pieChart) {
-        pieChart.data.labels = labels;
-        pieChart.data.datasets[0].data = values;
-        pieChart.data.datasets[0].backgroundColor = colors;
-        pieChart.update();
-      } else {
-        pieChart = new Chart(ctx, {
-          type: 'doughnut',
-          data: {
-            labels: labels,
-            datasets: [{
-              data: values,
-              backgroundColor: colors,
-              borderColor: '#1e293b',
-              borderWidth: 2,
-              hoverOffset: 15
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                position: 'right',
-                labels: {
-                  color: '#e2e8f0',
-                  font: {
-                    size: 12
-                  },
-                  generateLabels: function(chart) {
-                    const data = chart.data;
-                    if (data.labels.length && data.datasets.length) {
-                      return data.labels.map(function(label, i) {
-                        const value = data.datasets[0].data[i];
-                        const percentage = ((value / totalValue) * 100).toFixed(1);
-                        return {
-                          text: `${label} (${percentage}%)`,
-                          fillStyle: data.datasets[0].backgroundColor[i],
-                          strokeStyle: '#1e293b',
-                          lineWidth: 2,
-                          hidden: false,
-                          index: i
-                        };
-                      });
-                    }
-                    return [];
-                  }
-                }
-              },
-              tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    const label = context.label || '';
-                    const value = context.raw || 0;
-                    const percentage = ((value / totalValue) * 100).toFixed(1);
-                    return `${label}: ${formatCurrency(value)} (${percentage}%)`;
-                  }
-                }
-              }
-            },
-            cutout: '60%'
+        // Fetch portfolio from API
+        async function fetchPortfolio(sortBy = 'value') {
+          try {
+            const res = await fetch(`/api/Assets?sortBy=${sortBy}`);
+            if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+            const data = await res.json();
+            portfolio = data.map(item => ({
+              ticker:    item.ticker,
+              name:      item.name,
+              sector:    item.sector,
+              price:     item.price,
+              quantity:  item.quantity,
+              variations:item.variations
+            }));
+          } catch (err) {
+            console.error('Failed to load portfolio:', err);
+            portfolio = [];
           }
-        });
-      }
-    }
+        }
 
-    // Render bar chart
-    function renderBarChart(period) {
-      const ctx = document.getElementById('barChart').getContext('2d');
-      
-      const labels = portfolio.map(asset => asset.ticker);
-      const values = portfolio.map(asset => asset.variations[period]);
-      
-      // Colors based on performance
-      const colors = values.map(value => 
-        value > 0 ? 'rgba(34, 197, 94, 0.7)' : 'rgba(239, 68, 68, 0.7)'
-      );
-      
-      // Create or update chart
-      if (barChart) {
-        barChart.data.labels = labels;
-        barChart.data.datasets[0].data = values;
-        barChart.data.datasets[0].backgroundColor = colors;
-        barChart.options.plugins.title.text = `Performance by Asset (${period})`;
-        barChart.update();
-      } else {
-        barChart = new Chart(ctx, {
-          type: 'bar',
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Performance (%)',
-              data: values,
-              backgroundColor: colors,
-              borderColor: colors.map(color => color.replace('0.7', '1')),
-              borderWidth: 1
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                beginAtZero: true,
-                grid: {
-                  color: 'rgba(71, 85, 105, 0.1)'
-                },
-                ticks: {
-                  color: '#94a3b8',
-                  callback: function(value) {
-                    return value + '%';
+        // Formatters
+        const formatCurrency = v =>
+          new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
+        const formatPercent  = v => `${v?.toFixed(2)}%`;
+        const getBadgeClass  = v => v > 0 ? 'badge-success' : v < 0 ? 'badge-danger' : 'badge-neutral';
+        const getArrow       = v => v > 0 ? '▲' : v < 0 ? '▼' : '◆';
+
+        // Set current date text
+        function setCurrentDate() {
+          const now = new Date();
+          document.getElementById('currentDate').textContent =
+            now.toLocaleDateString('en-US', {
+              weekday: 'long', year: 'numeric',
+              month: 'long',   day: 'numeric'
+            });
+        }
+
+        // Calculate overall stats for a period
+        function calculateStats(period) {
+          const totalValue = portfolio.reduce((sum, a) => sum + a.price * a.quantity, 0);
+
+          let weightedPerf = 0;
+          portfolio.forEach(a => {
+            const val = a.price * a.quantity;
+            weightedPerf += (a.variations[period] * val) / totalValue;
+          });
+
+          let top   = portfolio[0] || {};
+          let worst = portfolio[0] || {};
+          portfolio.forEach(a => {
+            if (a.variations[period] > top.variations?.[period])    top = a;
+            if (a.variations[period] < worst.variations?.[period])  worst = a;
+          });
+
+          return { totalValue, performance: weightedPerf, topPerformer: top, worstPerformer: worst };
+        }
+
+        // Sort portfolio by value, performance, or name
+        function sortPortfolio(period, sortBy) {
+          const arr = [...portfolio];
+          if (sortBy === 'value') {
+            arr.sort((a, b) => (b.price * b.quantity) - (a.price * a.quantity));
+          } else if (sortBy === 'performance') {
+            arr.sort((a, b) => b.variations[period] - a.variations[period]);
+          } else {
+            arr.sort((a, b) => a.name.localeCompare(b.name));
+          }
+          return arr;
+        }
+
+        // Render stats panel
+        function renderStats(period) {
+          const { totalValue, performance, topPerformer, worstPerformer } = calculateStats(period);
+
+          document.getElementById('totalValue').textContent      = formatCurrency(totalValue);
+          document.getElementById('overallPerf').textContent     = formatPercent(performance);
+          const perfText = document.getElementById('overallPerfText');
+          perfText.textContent = `${getArrow(performance)} Over ${period}`;
+          perfText.className   = `stat-change ${(performance >= 0) ? 'positive' : 'negative'}`;
+
+          document.getElementById('topPerformer').textContent      = topPerformer.ticker || '—';
+          document.getElementById('topPerformerValue').textContent =
+            topPerformer.variations
+              ? `${getArrow(topPerformer.variations[period])} ${formatPercent(topPerformer.variations[period])}`
+              : 'N/A';
+
+          document.getElementById('worstPerformer').textContent      = worstPerformer.ticker || '—';
+          document.getElementById('worstPerformerValue').textContent =
+            worstPerformer.variations
+              ? `${getArrow(worstPerformer.variations[period])} ${formatPercent(worstPerformer.variations[period])}`
+              : 'N/A';
+
+          document.getElementById('holdingsCount').textContent = `${portfolio.length} Assets`;
+        }
+
+        // Render doughnut (pie) chart
+        function renderPieChart() {
+          const ctx   = document.getElementById('pieChart').getContext('2d');
+          const total = portfolio.reduce((sum, a) => sum + a.price * a.quantity, 0);
+          const labels= portfolio.map(a => a.ticker);
+          const data  = portfolio.map(a => a.price * a.quantity);
+          const colors= portfolio.map(a => ({
+            Technology:'#6366f1', Energy:'#f59e0b',
+            Financial: '#10b981', Healthcare:'#ef4444',
+            Consumer:  '#8b5cf6'
+          }[a.sector] || '#94a3b8'));
+
+          const cfg = {
+            type: 'doughnut',
+            data:{ labels, datasets:[{ data, backgroundColor:colors, borderColor:'#1e293b', borderWidth:2 }]},
+            options:{
+              responsive:true, maintainAspectRatio:false, cutout:'60%',
+              plugins:{
+                legend:{
+                  position:'right',
+                  labels:{
+                    color:'#e2e8f0', font:{ size:12 },
+                    generateLabels(chart){
+                      const d=chart.data;
+                      return d.labels.map((lbl,i)=>({
+                        text:`${lbl} (${((d.datasets[0].data[i]/total)*100).toFixed(1)}%)`,
+                        fillStyle:d.datasets[0].backgroundColor[i],
+                        strokeStyle:'#1e293b', lineWidth:2, hidden:false, index:i
+                      }));
+                    }
                   }
-                }
-              },
-              x: {
-                grid: {
-                  display: false
                 },
-                ticks: {
-                  color: '#94a3b8'
-                }
-              }
-            },
-            plugins: {
-              legend: {
-                display: false
-              },
-              tooltip: {
-                callbacks: {
-                  label: function(context) {
-                    return `${context.dataset.label}: ${context.raw.toFixed(2)}%`;
+                tooltip:{
+                  callbacks:{
+                    label(ctx){
+                      const val=ctx.raw;
+                      return `${ctx.label}: ${formatCurrency(val)} (${((val/total)*100).toFixed(1)}%)`;
+                    }
                   }
-                }
-              },
-              title: {
-                display: true,
-                text: `Performance by Asset (${period})`,
-                color: '#e2e8f0',
-                font: {
-                  size: 16
                 }
               }
             }
+          };
+
+          if (pieChart) {
+            pieChart.config = cfg;
+            pieChart.update();
+          } else {
+            pieChart = new Chart(ctx, cfg);
           }
-        });
-      }
-    }
+        }
 
-    // Render heatmap
-    function renderHeatmap(period) {
-      const sortedPortfolio = sortPortfolio(period, document.getElementById('sortBy').value);
-      const labelsY = sortedPortfolio.map(p => `${p.sector} - ${p.ticker} (${p.name})`);
-      const z = sortedPortfolio.map(p => [p.variations[period]]);
-      const tooltip = sortedPortfolio.map(p => {
-        const val = p.variations[period];
-        const color = val > 0 ? '#22c55e' : val < 0 ? '#ef4444' : '#f59e0b';
-        const arrow = val > 0 ? '▲' : val < 0 ? '▼' : '◆';
-        return `<span style="color:${color}">${p.name} (${p.ticker})<br>${arrow} ${val.toFixed(2)}%<br>Qty: ${p.quantity}<br>${formatCurrency(p.price)}</span>`;
-      });
+        // Render bar chart of performances
+        function renderBarChart(period) {
+          const ctx    = document.getElementById('barChart').getContext('2d');
+          const labels = portfolio.map(a => a.ticker);
+          const data   = portfolio.map(a => a.variations[period]);
+          const bg     = data.map(v => v > 0 ? 'rgba(34,197,94,0.7)' : 'rgba(239,68,68,0.7)');
 
-      Plotly.newPlot("heatmap", [{
-        z: z,
-        x: ["Performance"],
-        y: labelsY,
-        type: "heatmap",
-        text: tooltip,
-        hoverinfo: "text",
-        colorscale: [
-          [0, "rgba(239, 68, 68, 0.9)"],
-          [0.5, "rgba(245, 158, 11, 0.9)"],
-          [1, "rgba(34, 197, 94, 0.9)"]
-        ],
-        showscale: true
-      }], {
-        title: `Performance Heatmap (${period})`,
-        plot_bgcolor: "rgba(30, 41, 59, 0)",
-        paper_bgcolor: "rgba(30, 41, 59, 0)",
-        font: { color: "#e2e8f0" },
-        margin: { l: 150, r: 50, t: 50, b: 50 }
-      });
-    }
+          const cfg = {
+            type:'bar',
+            data:{ labels, datasets:[{
+              label:'Performance (%)', data, backgroundColor:bg,
+              borderColor:bg.map(c=>c.replace('0.7','1')), borderWidth:1
+            }]},
+            options:{
+              responsive:true, maintainAspectRatio:false,
+              scales:{
+                y:{ beginAtZero:true, grid:{ color:'rgba(71,85,105,0.1)' },
+                    ticks:{ color:'#94a3b8', callback:v=>v+'%' } },
+                x:{ grid:{ display:false }, ticks:{ color:'#94a3b8' } }
+              },
+              plugins:{
+                title:{
+                  display:true, text:`Performance by Asset (${period})`,
+                  color:'#e2e8f0', font:{ size:16 }
+                },
+                legend:{ display:false },
+                tooltip:{
+                  callbacks:{ label(ctx){ return `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%`; } }
+                }
+              }
+            }
+          };
 
-    // Render holdings table
-    function renderHoldingsTable(period) {
-      const sortedPortfolio = sortPortfolio(period, document.getElementById('sortBy').value);
-      const totalValue = sortedPortfolio.reduce((sum, asset) => sum + asset.price * asset.quantity, 0);
-      
-      const tableBody = document.getElementById('holdingsTableBody');
-      tableBody.innerHTML = '';
-      
-      for (const asset of sortedPortfolio) {
-        const assetValue = asset.price * asset.quantity;
-        const portfolioPercentage = (assetValue / totalValue) * 100;
-        const variation = asset.variations[period];
-        
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td><strong>${asset.ticker}</strong></td>
-          <td>${asset.name}</td>
-          <td>${asset.sector}</td>
-          <td>${asset.quantity}</td>
-          <td>${formatCurrency(asset.price)}</td>
-          <td>${formatCurrency(assetValue)}</td>
-          <td>${portfolioPercentage.toFixed(2)}%</td>
-          <td>
-            <span class="badge ${getBadgeClass(variation)}">
-              ${getArrow(variation)} ${formatPercent(variation)}
-            </span>
-          </td>
-        `;
-        
-        tableBody.appendChild(row);
-      }
-    }
+          if (barChart) {
+            barChart.config = cfg;
+            barChart.update();
+          } else {
+            barChart = new Chart(ctx, cfg);
+          }
+        }
 
-    // Toggle view function
-    function toggleView() {
-      const heatmapContainer = document.getElementById('heatmap').parentNode.parentNode;
-      if (heatmapContainer.style.display === 'none') {
-        heatmapContainer.style.display = 'block';
-      } else {
-        heatmapContainer.style.display = 'none';
-      }
-    }
+        // Render heatmap with Plotly
+        function renderHeatmap(period) {
+          const sorted = sortPortfolio(period, document.getElementById('sortBy').value);
+          const yLabels= sorted.map(p => `${p.sector} - ${p.ticker} (${p.name})`);
+          const zData  = sorted.map(p => [p.variations[period]]);
+          const hover  = sorted.map(p => {
+            const v   = p.variations[period];
+            const col = v>0?'#22c55e':v<0?'#ef4444':'#f59e0b';
+            const arr = v>0?'▲':v<0?'▼':'◆';
+            return `<span style="color:${col}">${p.name} (${p.ticker})<br>${arr} ${v?.toFixed(2)}%<br>Qty: ${p.quantity}<br>${formatCurrency(p.price)}</span>`;
+          });
 
-    // Render all components
-    function renderAll() {
-      // Get current period selection
-      const period = document.getElementById('period').value;
-      
-      renderStats(period);
-      renderPieChart();
-      renderBarChart(period);
-      renderHeatmap(period);
-      renderHoldingsTable(period);
-    }
+          Plotly.newPlot('heatmap',[{
+            z: zData, x:['Performance'], y:yLabels, type:'heatmap',
+            text:hover, hoverinfo:'text',
+            colorscale:[[0,'rgba(239,68,68,0.9)'],[0.5,'rgba(245,158,11,0.9)'],[1,'rgba(34,197,94,0.9)']],
+            showscale:true
+          }],{
+            title:`Performance Heatmap (${period})`,
+            plot_bgcolor:'rgba(30,41,59,0)', paper_bgcolor:'rgba(30,41,59,0)',
+            font:{ color:'#e2e8f0' }, margin:{ l:150, r:50, t:50, b:50 }
+          });
+        }
 
-    // Initialize on page load
-    window.onload = function() {
-      setCurrentDate();
-      renderAll();
-    };
-  </script>
+        // Render holdings table
+        function renderHoldingsTable(period) {
+          const sorted = sortPortfolio(period, document.getElementById('sortBy').value);
+          const total  = sorted.reduce((sum,a)=>sum + a.price * a.quantity, 0);
+          const tbody  = document.getElementById('holdingsTableBody');
+          tbody.innerHTML = '';
+
+          sorted.forEach(a => {
+            const val   = a.price * a.quantity;
+            const pct   = ((val / total) * 100).toFixed(2);
+            const varP  = a.variations[period];
+            const row   = document.createElement('tr');
+            row.innerHTML = `
+              <td><strong>${a.ticker}</strong></td>
+              <td>${a.name}</td>
+              <td>${a.sector}</td>
+              <td>${a.quantity}</td>
+              <td>${formatCurrency(a.price)}</td>
+              <td>${formatCurrency(val)}</td>
+              <td>${pct}%</td>
+              <td>
+                <span class="badge ${getBadgeClass(varP)}">
+                  ${getArrow(varP)} ${formatPercent(varP)}
+                </span>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        }
+
+        // Toggle heatmap/table view
+        function toggleView() {
+          const container = document.getElementById('heatmap').closest('.chart-container');
+          container.style.display = container.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Main render
+        function renderAll() {
+          const period = document.getElementById('period').value;
+          renderStats(period);
+          renderPieChart();
+          renderBarChart(period);
+          renderHeatmap(period);
+          renderHoldingsTable(period);
+        }
+
+        // Initialize on load
+        window.onload = async () => {
+          setCurrentDate();
+          await fetchPortfolio();
+          renderAll();
+          document.getElementById('period').addEventListener('change', renderAll);
+          document.getElementById('sortBy').addEventListener('change', renderAll);
+          document.getElementById('toggleBtn').addEventListener('click', toggleView);
+        };
+
+    </script>
+
+
+
+
 </body>
 </html>

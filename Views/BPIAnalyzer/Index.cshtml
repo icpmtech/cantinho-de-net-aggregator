@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Análise BPI Research com IA</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f4;
+        }
+
+        header {
+            background: #f26522;
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+            header img {
+                height: 50px;
+            }
+
+            header h1 {
+                margin: 0;
+                font-size: 1.6em;
+            }
+
+        main {
+            padding: 20px;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        textarea, input[type="text"] {
+            width: 100%;
+            margin-bottom: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            padding: 10px;
+        }
+
+        textarea {
+            height: 300px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #f26522;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .lang-switch {
+            float: right;
+            margin: -10px 0 10px 0;
+        }
+
+            .lang-switch button {
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                font-size: 18px;
+                margin-left: 5px;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background: #f26522;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+        .table-container {
+            max-height: 500px;
+            overflow: auto;
+            margin-bottom: 40px;
+        }
+
+        .chart {
+            margin-bottom: 60px;
+        }
+
+        #deepseekOutput {
+            margin-top: 20px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1 id="titulo">Análise de Previsões Económicas - BPI Research</h1>
+        <img src="https://www.bancobpi.pt/particulares/CW_SP_Common/img/x86_logo_bpi_caixabank.png" alt="BPI Logo">
+    </header>
+
+    <main>
+        <div class="lang-switch">
+            <button onclick="setLang('pt')">🇵🇹</button>
+            <button onclick="setLang('en')">🇬🇧</button>
+        </div>
+
+        <h2 class="link">
+            <a href="https://www.bancobpi.pt/grupo-bpi/estudos-e-mercados/informacao-mensal" target="_blank">
+                www.bancobpi.pt/grupo-bpi/estudos-e-mercados/informacao-mensal
+            </a>
+        </h2>
+
+        <p id="textoDescricao">Cole abaixo os dados do relatório ou carregue o PDF:</p>
+
+        <label><strong>🔐 Chave API DeepSeek:</strong></label>
+        <input type="text" id="input" placeholder="Cola aqui a tua chave API da DeepSeek">
+
+        <input type="file" id="pdfInput" accept="application/pdf" onchange="lerPDF()" />
+        <textarea id="inputData" placeholder="Cole aqui os dados do relatório BPI..."></textarea>
+
+        <button onclick="analisarDados()" id="botaoAnalise">📊 Analisar</button>
+        <button onclick="analisarComDeepSeek()" style="background:#333; margin-left: 10px;">🧠 Analisar com IA</button>
+
+        <div class="table-container">
+            <table id="resultTable"></table>
+        </div>
+
+        <div id="chartsContainer"></div>
+
+        <div id="deepseekOutput"></div>
+    </main>
+
+    <script>
+        let lang = 'pt';
+
+        const textos = {
+          pt: {
+            titulo: "Análise de Previsões Económicas - BPI Research",
+            descricao: "Cole abaixo os dados do relatório ou carregue o PDF:",
+            botao: "📊 Analisar",
+            placeholder: "Cole aqui os dados do relatório BPI...",
+            alertaPDF: "Texto extraído do PDF. Agora clique em 'Analisar'."
+          },
+          en: {
+            titulo: "Forecast Analysis - BPI Research",
+            descricao: "Paste the report data below or upload a PDF:",
+            botao: "📊 Analyze",
+            placeholder: "Paste the BPI report data here...",
+            alertaPDF: "Text extracted from PDF. Now click 'Analyze'."
+          }
+        };
+
+        function setLang(l) {
+          lang = l;
+          document.getElementById("titulo").innerText = textos[l].titulo;
+          document.getElementById("textoDescricao").innerText = textos[l].descricao;
+          document.getElementById("botaoAnalise").innerText = textos[l].botao;
+          document.getElementById("inputData").placeholder = textos[l].placeholder;
+        }
+
+        async function lerPDF() {
+          const file = document.getElementById('pdfInput').files[0];
+          if (!file) return;
+
+          const reader = new FileReader();
+          reader.onload = async function () {
+            const typedArray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(typedArray).promise;
+            let textoFinal = "";
+
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const textContent = await page.getTextContent();
+              const pageText = textContent.items.map(item => item.str).join(" ");
+              textoFinal += pageText + "\n";
+            }
+
+            document.getElementById('inputData').value = textoFinal;
+            alert(textos[lang].alertaPDF);
+          };
+
+          reader.readAsArrayBuffer(file);
+        }
+
+        function analisarDados() {
+          const input = document.getElementById('inputData').value;
+          const linhas = input.trim().split('\n').filter(l => l.match(/\d/));
+          const tabela = document.getElementById('resultTable');
+          const chartsDiv = document.getElementById('chartsContainer');
+          tabela.innerHTML = '';
+          chartsDiv.innerHTML = '';
+
+          if (linhas.length === 0) {
+            tabela.innerHTML = '<tr><td>Sem dados detectados.</td></tr>';
+            return;
+          }
+
+          const primeiraLinhaComNumeros = linhas.find(l => l.trim().split(/\s+/).filter(p => !isNaN(p.replace(',', '.'))).length > 1);
+          const totalValores = primeiraLinhaComNumeros.trim().split(/\s+/).filter(p => !isNaN(p.replace(',', '.'))).length;
+          const cabecalho = ['Indicador'];
+          const anosBase = ['2000-2007', '2008-2019', '2020-2022', '2023', '2024', '2025', '2026'];
+          cabecalho.push(...anosBase.slice(-totalValores));
+
+          const thead = document.createElement('thead');
+          const headerRow = document.createElement('tr');
+          cabecalho.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = h;
+            headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+          tabela.appendChild(thead);
+
+          const tbody = document.createElement('tbody');
+          const series = [];
+
+          linhas.forEach(linha => {
+            const partes = linha.trim().split(/\s+/);
+            const valores = partes.filter(p => !isNaN(p.replace(',', '.')));
+            const label = linha.replace(valores.join(' '), '').trim();
+
+            if (valores.length === 0 || label === '') return;
+
+            const row = document.createElement('tr');
+            const tdLabel = document.createElement('td');
+            tdLabel.textContent = label;
+            row.appendChild(tdLabel);
+
+            valores.forEach(valor => {
+              const td = document.createElement('td');
+              td.textContent = valor;
+              row.appendChild(td);
+            });
+
+            tbody.appendChild(row);
+
+            const numericValues = valores.map(v => parseFloat(v.replace(',', '.')));
+            series.push({ label, data: numericValues });
+          });
+
+          tabela.appendChild(tbody);
+
+          series.forEach((serie, index) => {
+            const div = document.createElement('div');
+            div.id = 'chart-' + index;
+            div.classList.add('chart');
+            chartsDiv.appendChild(div);
+
+            const trace = {
+              x: cabecalho.slice(1),
+              y: serie.data,
+              mode: 'lines+markers',
+              type: 'scatter',
+              name: serie.label
+            };
+
+            const layout = {
+              title: serie.label,
+              margin: { t: 40 },
+              xaxis: { title: lang === 'pt' ? 'Ano' : 'Year' },
+              yaxis: { title: lang === 'pt' ? 'Valor' : 'Value' }
+            };
+
+            Plotly.newPlot(div.id, [trace], layout);
+          });
+        }
+
+        async function analisarComDeepSeek() {
+          const inputTexto = document.getElementById('inputData').value;
+          const apiKey = document.getElementById('input').value;
+          const outputDiv = document.getElementById('deepseekOutput');
+          outputDiv.innerHTML = "<p><em>🔍 A analisar com IA...</em></p>";
+
+          if (!apiKey || apiKey.length < 10) {
+            outputDiv.innerHTML = "<p style='color:red;'>⚠️ API Key inválida.</p>";
+            return;
+          }
+
+          try {
+            const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + apiKey
+              },
+              body: JSON.stringify({
+                model: "deepseek-chat",
+                messages: [
+                  {
+                    role: "system",
+                    content: "És um analista económico. Resume, interpreta e destaca as tendências principais dos dados económicos fornecidos (juros, dívida, câmbio e petróleo)."
+                  },
+                  {
+                    role: "user",
+                    content: inputTexto
+                  }
+                ]
+              })
+            });
+
+            const data = await response.json();
+            const resposta = data.choices?.[0]?.message?.content || "Sem resposta da IA.";
+            outputDiv.innerHTML = `<strong>🧠 Resposta da IA:</strong><br><br>${resposta}`;
+          } catch (error) {
+            outputDiv.innerHTML = "<p style='color:red;'>Erro ao comunicar com a API DeepSeek.</p>";
+            console.error(error);
+          }
+        }
+    </script>
+
+</body>
+</html>

@@ -115,6 +115,8 @@ builder.Services.AddScoped<PortfolioItemService>();
 builder.Services.AddScoped<MarketAnalyticHub.Services.ISymbolService, MarketAnalyticHub.Services.SymbolService>();
 builder.Services.AddScoped<IQualitativeEventService, QualitativeEventService>();
 builder.Services.AddScoped<ISymbolRepository, SymbolRepository>();
+builder.Services.AddScoped<IPortfolioAssetsService, PortfolioAssetsService>();
+
 builder.Services.AddScoped<SymbolService>();
 builder.Services.AddHttpClient<AlphaVantageService>();
 builder.Services.AddHttpClient<FinnhubService>();

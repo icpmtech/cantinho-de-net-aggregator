@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestão de Ações / Stock Management (Editar, Fechar, Abrir / Edit, Close, Open)</title>
+    <!-- Usar versão específica mais recente do Plotly -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background: #111;
+            color: #fff;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #00ffff;
+            margin-top: 30px;
+        }
+
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            margin: 10px 0;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 8px;
+            border: 1px solid #444;
+            text-align: center;
+        }
+
+        th {
+            background-color: #222;
+        }
+
+        tr:nth-child(even) {
+            background-color: #1a1a1a;
+        }
+
+        tr.fechar {
+            opacity: 0.5;
+            text-decoration: line-through;
+        }
+
+        .btn {
+            background-color: #00cc99;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .remove-btn {
+            background-color: red;
+        }
+
+        .fechar-btn {
+            background-color: #cc6600;
+        }
+
+        .abrir-btn {
+            background-color: #0066cc;
+        }
+
+        #filtro {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #lucroAcumulado {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2em;
+            color: #00ffcc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Gestão de Ações / Stock Management<br>(Editar, Fechar, Abrir / Edit, Close, Open)</h1>
+
+    <!-- Formulário de Registo / Registration & Edit Form -->
+    <div style="text-align:center;">
+        <input type="hidden" id="editIndex" value="-1">
+        <input type="date" id="dataTransacao" title="Data / Date">
+        <input type="text" id="ticker" placeholder="Ticker / Symbol">
+        <input type="number" id="precoCompra" placeholder="Preço Compra (€) / Buy Price (€)" step="0.01">
+        <input type="number" id="quantidade" placeholder="Quantidade / Quantity">
+        <input type="number" id="precoVenda" placeholder="Preço Venda (€) / Sell Price (€)" step="0.01">
+        <select id="tipo" title="Tipo / Type">
+            <option value="Compra">Compra / Buy</option>
+            <option value="Venda">Venda / Sell</option>
+            <option value="Dividendos">Dividendos / Dividends</option>
+            <option value="Outros">Outros / Others</option>
+        </select>
+        <select id="estado" title="Estado / Status">
+            <option value="Aberto">Aberto / Open</option>
+            <option value="Fechado">Fechado / Closed</option>
+        </select>
+        <input type="text" id="notas" placeholder="Notas / Notes">
+        <button class="btn" id="btnAddUpdate" onclick="salvarTransacao()">
+            Registar / Record Transaction
+        </button>
+    </div>
+
+    <!-- Filtro por Data / Date Filter -->
+    <div id="filtro">
+        <label>Data Início / Start Date: <input type="date" id="startDate"></label>
+        <label>Data Fim / End Date: <input type="date" id="endDate"></label>
+        <button class="btn" onclick="aplicarFiltro()">
+            Aplicar Filtro / Apply Filter
+        </button>
+    </div>
+
+    <!-- Tabela de Transações / Transactions Table -->
+    <h2>Transações / Transactions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Data / Date</th>
+                <th>Tipo / Type</th>
+                <th>Ticker / Symbol</th>
+                <th>Compra / Buy (€)</th>
+                <th>Venda / Sell (€)</th>
+                <th>Qtd / Qty</th>
+                <th>Lucro (€) / Profit (€)</th>
+                <th>Estado / Status</th>
+                <th>Ações / Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaTransacoes"></tbody>
+    </table>
+
+    <!-- Lucro Acumulado e Gráfico / Total Profit and Chart -->
+    <div id="lucroAcumulado">Lucro acumulado / Total Profit: 0&nbsp;€</div>
+    <div id="grafico" style="width:100%;height:400px;"></div>
+
+    <script>
+        let transacoes = JSON.parse(localStorage.getItem("transacoes")) || [];
+        let filtroInicio = null, filtroFim = null;
+
+        function guardar() {
+          localStorage.setItem("transacoes", JSON.stringify(transacoes));
+        }
+
+        function calcularLucro(compra, venda, qtd) {
+          const totalCompra = compra * qtd;
+          const totalVenda  = venda * qtd;
+          const lucro = totalVenda - totalCompra;
+          const perc  = totalCompra ? ((lucro / totalCompra) * 100).toFixed(2) : "0.00";
+          return { lucro: lucro.toFixed(2), perc };
+        }
+
+        function salvarTransacao() {
+          const idx    = parseInt(document.getElementById("editIndex").value);
+          const data   = document.getElementById("dataTransacao").value;
+          const ticker = document.getElementById("ticker").value.toUpperCase();
+          const compra = parseFloat(document.getElementById("precoCompra").value);
+          const venda  = parseFloat(document.getElementById("precoVenda").value);
+          const qtd    = parseInt(document.getElementById("quantidade").value);
+          const tipo   = document.getElementById("tipo").value;
+          const estado = document.getElementById("estado").value;
+          const notas  = document.getElementById("notas").value;
+
+          if (!data || !ticker || isNaN(compra) || isNaN(qtd)) {
+            alert("Preenche data, ticker, preço de compra e quantidade. / Fill date, symbol, buy price and quantity.");
+            return;
+          }
+
+          const obj = {
+            data,
+            ticker,
+            compra,
+            venda: isNaN(venda) ? 0 : venda,
+            qtd,
+            tipo,
+            estado,
+            notas
+          };
+
+          if (idx >= 0) {
+            transacoes[idx] = obj;
+          } else {
+            transacoes.push(obj);
+          }
+
+          document.getElementById("editIndex").value = -1;
+          document.getElementById("btnAddUpdate").textContent = "Registar / Record Transaction";
+          guardar();
+          renderTabela();
+          desenharGrafico();
+          limparForm();
+        }
+
+        function editarTransacao(idx) {
+          const t = transacoes[idx];
+          document.getElementById("editIndex").value     = idx;
+          document.getElementById("dataTransacao").value = t.data;
+          document.getElementById("ticker").value       = t.ticker;
+          document.getElementById("precoCompra").value  = t.compra;
+          document.getElementById("precoVenda").value   = t.venda;
+          document.getElementById("quantidade").value   = t.qtd;
+          document.getElementById("tipo").value         = t.tipo;
+          document.getElementById("estado").value       = t.estado;
+          document.getElementById("notas").value        = t.notas;
+          document.getElementById("btnAddUpdate").textContent = "Atualizar / Update";
+        }
+
+        function fecharTransacao(idx) {
+          transacoes[idx].estado = 'Fechado';
+          guardar(); renderTabela(); desenharGrafico();
+        }
+        function abrirTransacao(idx) {
+          transacoes[idx].estado = 'Aberto';
+          guardar(); renderTabela(); desenharGrafico();
+        }
+        function removerTransacao(idx) {
+          transacoes.splice(idx, 1);
+          guardar(); renderTabela(); desenharGrafico();
+        }
+
+        function limparForm() {
+          ["dataTransacao","ticker","precoCompra","quantidade","precoVenda","notas"]
+            .forEach(id => document.getElementById(id).value = "");
+          document.getElementById("tipo").value   = "Venda";
+          document.getElementById("estado").value = "Aberto";
+        }
+
+        function aplicarFiltro() {
+          filtroInicio = document.getElementById("startDate").value || null;
+          filtroFim    = document.getElementById("endDate").value   || null;
+          renderTabela();
+          desenharGrafico();
+        }
+
+        function getTransacoesFiltradas() {
+          return transacoes.filter(t => {
+            const d = new Date(t.data).getTime();
+            if (filtroInicio && d < new Date(filtroInicio).getTime()) return false;
+            if (filtroFim    && d > new Date(filtroFim).getTime())    return false;
+            return true;
+          });
+        }
+
+        function renderTabela() {
+          const todas = getTransacoesFiltradas();
+          const tbody = document.getElementById("tabelaTransacoes");
+          tbody.innerHTML = "";
+
+          todas.forEach((t, i) => {
+            const cls = t.estado === 'Fechado' ? 'fechar' : '';
+            const { lucro, perc } = calcularLucro(t.compra, t.venda, t.qtd);
+            tbody.innerHTML += `
+              <tr class="${cls}">
+                <td>${t.data}</td>
+                <td>${
+                  t.tipo === "Compra" ? "Compra / Buy" :
+                  t.tipo === "Venda"  ? "Venda / Sell" :
+                  t.tipo === "Dividendos" ? "Dividendos / Dividends" :
+                  "Outros / Others"
+                }</td>
+                <td>${t.ticker}</td>
+                <td>${t.compra.toFixed(2)}</td>
+                <td>${t.venda.toFixed(2)}</td>
+                <td>${t.qtd}</td>
+                <td>${lucro}</td>
+                <td>${t.estado === 'Aberto' ? "Aberto / Open" : "Fechado / Closed"}</td>
+                <td>
+                  <button class="btn" onclick="editarTransacao(${i})">Editar / Edit</button>
+                  ${
+                    t.estado === 'Aberto'
+                      ? `<button class="fechar-btn btn" onclick="fecharTransacao(${i})">Fechar / Close</button>`
+                      : `<button class="abrir-btn btn" onclick="abrirTransacao(${i})">Abrir / Open</button>`
+                  }
+                  <button class="remove-btn btn" onclick="removerTransacao(${i})">X / Delete</button>
+                </td>
+              </tr>`;
+          });
+
+          const lucroTotal = getTransacoesFiltradas()
+            .filter(t => t.tipo === 'Venda' && t.estado === 'Aberto')
+            .reduce((sum, t) => sum + parseFloat(calcularLucro(t.compra, t.venda, t.qtd).lucro), 0);
+
+          document.getElementById("lucroAcumulado").textContent =
+            `Lucro acumulado / Total Profit: ${lucroTotal.toFixed(2)} €`;
+        }
+
+        function desenharGrafico() {
+          const vendas = getTransacoesFiltradas()
+            .filter(t => t.tipo === "Venda" && t.estado === 'Aberto');
+          const xs      = vendas.map(t => t.data);
+          const lucros  = vendas.map(t => parseFloat(calcularLucro(t.compra, t.venda, t.qtd).lucro));
+          let acc = 0;
+          const acumulados = lucros.map(v => acc += v);
+
+          const data = [
+            {
+              x: xs,
+              y: lucros,
+              mode: 'lines+markers',
+              name: 'Lucro (€) / Profit (€)',
+              type: 'scatter',
+              marker: { color: '#00ffff' }
+            },
+            {
+              x: xs,
+              y: acumulados,
+              mode: 'lines+markers',
+              name: 'Acumulado (€) / Cumulative (€)',
+              type: 'scatter',
+              marker: { color: '#ffcc00' }
+            }
+          ];
+
+          const layout = {
+            plot_bgcolor: "#222",
+            paper_bgcolor: "#111",
+            font: { color: "#fff" },
+            margin: { t: 30, r: 20, l: 40, b: 60 },
+            xaxis: { title: "Data / Date" },
+            yaxis: { title: "Lucro (€) / Profit (€)" }
+          };
+
+          Plotly.newPlot('grafico', data, layout, { responsive: true });
+        }
+
+        // Inicialização
+        renderTabela();
+        desenharGrafico();
+    </script>
+</body>
+</html>
