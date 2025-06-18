@@ -100,7 +100,12 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
 
       return View();
     }
-   
+    
+       public IActionResult AnalyticsV1()
+    {
+
+      return View();
+    }
     public IActionResult Index()
     {
 

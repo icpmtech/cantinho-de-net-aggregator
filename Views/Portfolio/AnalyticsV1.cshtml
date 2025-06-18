@@ -1,0 +1,387 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    ViewData["Title"] = "Portfolio Manager";
+}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* Ensure the chart containers are responsive */
+    .sparkline-chart, .candlestick-chart {
+        width: 100%;
+        height: auto;
+    }
+
+    /* Adjust chart height on different screen sizes if needed */
+    @@media (max-width: 768px) {
+        .candlestick-chart
+
+    {
+        height: 300px !important;
+    }
+
+    }
+
+    @@media (max-width: 480px) {
+        .candlestick-chart
+
+    {
+        height: 250px !important;
+    }
+
+    }
+    </style>
+<style>
+    /* --- Basic Card Layout --- */
+    body {
+        font-family: sans-serif;
+        margin: 20px;
+        background: #f5f5f5;
+    }
+
+    .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit,minmax(280px,1fr));
+        gap: 20px;
+    }
+
+    .card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+        .card-header h3 {
+            flex: 1;
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .card-header .info {
+            width: 16px;
+            height: 16px;
+            background: #ddd;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 16px;
+            font-size: 12px;
+            cursor: help;
+        }
+
+    .card-footer {
+        margin-top: 10px;
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    /* --- Small table for legend on bar chart --- */
+    .legend-list {
+        list-style: none;
+        padding: 0;
+        margin: 10px 0;
+    }
+
+        .legend-list li {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .legend-list span.color-box {
+            width: 12px;
+            height: 12px;
+            display: inline-block;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+
+    /* --- Pagination dots (for Sector card) --- */
+    .dots {
+        text-align: center;
+        margin-top: 8px;
+    }
+
+        .dots span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #ccc;
+            border-radius: 50%;
+            margin: 0 4px;
+        }
+
+            .dots span.active {
+                background: #8e44ad;
+            }
+</style>
+
+@Html.Partial("_PortfolioCardsV1")
+
+<div class="col-12">
+    <h6 class="text-muted">Investment Analisys</h6>
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+    <div class="cards">
+        <!-- Dividend Payouts -->
+        <div class="card" id="card-dividends">
+            <div class="card-header">
+                <h3>Dividend Payouts</h3>
+                <div class="info" title="Dividends from basic portfolios are not included in the calculation.">i</div>
+            </div>
+            <!-- Bar chart canvas -->
+            <canvas id="chartDividends" height="120"></canvas>
+            <div class="card-footer">
+                Total Payout: <strong>€841.33</strong>
+            </div>
+        </div>
+
+        <!-- Asset Allocation -->
+        <div class="card" id="card-asset">
+            <div class="card-header">
+                <h3>Asset Allocation</h3>
+                <div class="info" title="How your portfolio is split by asset type.">i</div>
+            </div>
+            <canvas id="chartAsset" height="60"></canvas>
+            <ul class="legend-list" id="legendAsset">
+                <!-- JS will populate -->
+            </ul>
+        </div>
+
+        <!-- Sector Allocation -->
+        <div class="card" id="card-sector">
+            <div class="card-header">
+                <h3>Sector Allocation</h3>
+                <div class="info" title="How your equities break down by sector.">i</div>
+            </div>
+            <canvas id="chartSector" height="120"></canvas>
+            <ul class="legend-list" id="legendSector">
+                <!-- JS will populate -->
+            </ul>
+            <div class="dots" id="sectorDots">
+                <!-- JS will populate -->
+            </div>
+        </div>
+    </div>
+    @Html.Partial("_TreeMap")
+    <script>
+        // --- Sample data (replace with your API response) ---
+        const dividendData = {
+          labels: ['Feb','Mar','Apr','May','Jun'],
+          values:   [ 0,   50.32, 25.42, 363.13, 18.74 ]
+        };
+
+        const assetData = [
+          { label: 'Equities', value: 28844.34 }
+        ];
+
+        const sectorData = [
+          { label: 'Financial Services', value: 2554.97 },
+          { label: 'Utilities',          value: 1460.40 },
+          { label: 'Consumer Discretionary', value: 1215.95 },
+          { label: 'Healthcare',         value: 1040.90 },
+          // add more sectors as needed...
+        ];
+
+        // Colors
+        const colors = [
+          '#8e44ad','#3498db','#f1c40f','#e74c3c','#2ecc71','#e67e22','#1abc9c'
+        ];
+
+        // Utility to format currency
+        function fmt(v) {
+          return new Intl.NumberFormat('en-GB',{style:'currency',currency:'EUR'}).format(v);
+        }
+
+        // 1) Dividend bar chart
+        new Chart(document.getElementById('chartDividends').getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: dividendData.labels,
+            datasets: [{
+              data: dividendData.values,
+              backgroundColor: '#3498db'
+            }]
+          },
+          options: {
+            scales: {
+              y: { display: false },
+              x: { grid: { display: false } }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: ctx => fmt(ctx.raw)
+                }
+              }
+            }
+          }
+        });
+
+        // 2) Asset horizontal bar
+        const totalAssets = assetData.reduce((sum,d)=>sum+d.value,0);
+        new Chart(document.getElementById('chartAsset').getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: assetData.map(d=>d.label),
+            datasets: [{
+              data: assetData.map(d=>d.value),
+              backgroundColor: colors.slice(0,assetData.length)
+            }]
+          },
+          options: {
+            indexAxis: 'y',
+            scales: {
+              x: {
+                display: false,
+                max: totalAssets
+              },
+              y: { grid: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+          }
+        });
+        // Populate legend
+        const legendA = document.getElementById('legendAsset');
+        assetData.forEach((d,i) => {
+          const pct = ((d.value/totalAssets)*100).toFixed(2)+'%';
+          legendA.innerHTML += `
+            <li>
+              <span class="color-box" style="background:${colors[i]}"></span>
+              ${d.label} — <strong>${fmt(d.value)}</strong> (${pct})
+            </li>`;
+        });
+
+        // 3) Sector doughnut + pagination dots
+        const sectorPerPage = 4;
+        let sectorPage = 0;
+        function drawSectorChart() {
+          const start = sectorPage*sectorPerPage;
+          const slice = sectorData.slice(start, start+sectorPerPage);
+          const ctx = document.getElementById('chartSector').getContext('2d');
+          if (window._sectorChart) window._sectorChart.destroy();
+          window._sectorChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: slice.map(d=>d.label),
+              datasets: [{
+                data: slice.map(d=>d.value),
+                backgroundColor: colors.slice(0, slice.length)
+              }]
+            },
+            options: {
+              plugins: { legend: { display: false } }
+            }
+          });
+          // Legend
+          const legendS = document.getElementById('legendSector');
+          legendS.innerHTML = '';
+          slice.forEach((d,i) => {
+            legendS.innerHTML += `
+              <li>
+                <span class="color-box" style="background:${colors[i]}"></span>
+                ${d.label} — <strong>${fmt(d.value)}</strong>
+              </li>`;
+          });
+          // Dots
+          const dots = document.getElementById('sectorDots');
+          const pages = Math.ceil(sectorData.length/sectorPerPage);
+          dots.innerHTML = '';
+          for(let i=0;i<pages;i++){
+            dots.innerHTML += `<span class="${i===sectorPage?'active':''}" data-page="${i}"></span>`;
+          }
+          // Dot click handlers
+          dots.querySelectorAll('span').forEach(dot=>{
+            dot.onclick = () => {
+              sectorPage = +dot.dataset.page;
+              drawSectorChart();
+            };
+          });
+        }
+        drawSectorChart();
+    </script>
+
+    <div hidden class="nav-align-top mb-4">
+        <ul class="nav nav-pills mb-3 nav-fill overflow-x-auto" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-home" aria-controls="navs-pills-justified-home" aria-selected="true">
+                  <i class="tf-icons bx bx-wallet me-1"></i><span class="d-none d-sm-block"> Portfolios</span>
+                  <span id="portfolios-numbers" class="badge rounded-pill badge-center h-px-20 w-px-20 bg-danger ms-1">3</span></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-profile" aria-controls="navs-pills-justified-profile" aria-selected="false" tabindex="-1">
+                  <i class="tf-icons bx bx-chart me-1"></i><span class="d-none d-sm-block"> P/L Heat Map</span></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-pills-justified-messages" aria-controls="navs-pills-justified-messages" aria-selected="false" tabindex="-1">
+                  <i class="tf-icons bx bx-cube-alt me-1">
+
+                </i>
+                <span class="d-none d-sm-block"> Analisys</span></button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane fade active show" id="navs-pills-justified-home" role="tabpanel">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div >
+                            <div>
+                               
+
+                                <!-- Portfolio List -->
+                                <div id="portfolioList" style="display: none;">
+                                    <!-- Portfolio list will be rendered here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="tab-pane fade" id="navs-pills-justified-profile" role="tabpanel">
+               <div>
+                    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+                    <div id="heatmapContainer"></div>
+                    <div id="portfolios-numbers"></div>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="navs-pills-justified-messages" role="tabpanel">
+                @Html.Partial("_TreeMap")
+            </div>
+        </div>
+    </div>
+</div>
+@Html.Partial("_AIPortfolioItemModal")
+@Html.Partial("_AddPortfolioModal")
+@Html.Partial("_EditPortfolioModal")
+@Html.Partial("_AddPortfolioItemModal")
+@Html.Partial("_EditPortfolioItemModal")
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.9/xlsx.full.min.js"></script>
+@section PageScripts {
+    <script src="~/js/pages/portfolio/portfolio.js"></script>
+    <script src="~/js/pages/portfolio/importexportportfolio.js"></script>
+    <script src="~/js/pages/portfolio/editportfolio.js"></script>
+    <script src="~/js/pages/portfolio/editportfolioitem.js"></script>
+    <script src="~/js/pages/portfolio/renderportfolioheatmaps.js"></script>
+    <script src="~/js/pages/portfolio/statsportfolio.js"></script>
+    <script src="~/js/pages/portfolio/treemap.js"></script>
+    <script src="~/js/pages/portfolio/utilsportfolio.js"></script>
+    <script src="~/js/pages/portfolio/chartsportfolio.js"></script>
+
+}
