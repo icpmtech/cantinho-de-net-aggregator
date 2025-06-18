@@ -2,11 +2,11 @@
     TempData.Keep();
     string? currentPage = ViewContext.HttpContext.Request.Path;
 }
-<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards/") ? " active open" : "")'>
+<li class='menu-item@(currentPage.EndsWith("/") || currentPage.StartsWith("/Dashboards/")|| currentPage.StartsWith("/Portfolio/") ? " active open" : "")'>
     <a href="javascript:void(0);" class="menu-link menu-toggle">
         <i class="menu-icon tf-icons bx bx-home-circle"></i>
         <div>Indicators</div>
-        <div class="badge bg-danger rounded-pill ms-auto">1</div>
+       @*  <div class="badge bg-danger rounded-pill ms-auto">1</div> *@
     </a>
     <ul class="menu-sub">
         <li class='menu-item@(currentPage == "/Dashboards/Index" ? " active" : "")'>
@@ -15,6 +15,15 @@
             </a>
 
         </li>
-
+        <li class='menu-item@(currentPage == "/Portfolio/Summary" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Summary" class="menu-link">
+                <div>Summary</div>
+            </a>
+        </li>
+        <li class='menu-item@(currentPage == "/Portfolio" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Index" class="menu-link">
+                <div>Portfolios</div>
+            </a>
+        </li>
     </ul>
 </li>

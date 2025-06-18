@@ -1,240 +1,98 @@
-@{
-    // If you have a layout, remove or change this. Otherwise, Layout = null ensures this is a standalone partial.
-    Layout = null;
-}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Portfolio Holdings Summary</title>
-    <!-- Chart.js from CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .holdings-summary-container {
-            background: #fff;
-            border: 1px solid #e1e1e1;
-            border-radius: 6px;
-            padding: 20px;
-            margin: 20px auto;
-            font-family: Arial, sans-serif;
-        }
-        /* Card Background Color for Positive/Negative Performance */
-        .positive-card {
-            background: #eaffea; /* light green */
-        }
 
-        .negative-card {
-            background: #ffeaea; /* light red */
-        }
-        /* Header Section */
-        .header-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            margin-bottom: 10px;
-        }
-
-        .main-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #333;
-        }
-
-        .sub-label {
-            font-size: 0.95rem;
-            color: #666;
-            margin-top: 4px;
-        }
-        /* Secondary Info */
-        .secondary-info {
-            display: flex;
-            gap: 40px;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
-
-        .info-item {
-            display: flex;
-            flex-direction: column;
-        }
-
-            .info-item .label {
-                font-size: 0.9rem;
-                color: #666;
-                margin-bottom: 4px;
-            }
-
-            .info-item .value {
-                font-size: 1.05rem;
-                font-weight: 600;
-            }
-
-        .positive {
-            color: #2ecc71; /* green */
-        }
-
-        .negative {
-            color: #e74c3c; /* red */
-        }
-        /* Chart Toggles */
-        .chart-toggles {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .toggle-btn {
-            border: 1px solid #ccc;
-            background-color: #fff;
-            color: #333;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-
-            .toggle-btn.active,
-            .toggle-btn:hover {
-                background-color: #f0f0f0;
-            }
-
-        .about-chart {
-            margin-left: auto;
-            font-size: 0.8rem;
-            color: #888;
-            cursor: pointer;
-        }
-        /* Chart Section */
-        .chart-section {
-            position: relative;
-            width: 100%;
-            height: 350px;
-        }
-
-        #myChart {
-            width: 100%;
-            height: 100%;
-        }
-        /* Symbol Summary Section */
-        .symbol-summary-container {
-            margin-top: 20px;
-            border-top: 1px solid #e1e1e1;
-            padding-top: 20px;
-        }
-
-        .symbol-summary {
-            margin-bottom: 10px;
-            padding: 10px;
-            background: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-
-            .symbol-summary h4 {
-                margin: 0 0 5px 0;
-            }
-
-            .symbol-summary p {
-                margin: 3px 0;
-                font-size: 0.9rem;
-            }
-        /* Responsive */
-        @@media (max-width: 600px) {
-            .secondary-info {
-                gap: 20px;
-            }
-
-            .info-item {
-                margin-bottom: 10px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="holdings-summary-container">
-        <!-- Header Row -->
-        <div class="header-section">
-            <div class="main-value">
-                <!-- Main number: updated dynamically -->
-                <span id="mainValueDisplay">€0</span>
-            </div>
-            <!-- Sub-label for Market Value -->
-            <div class="sub-label" id="marketValueDisplay">
-                Market Value €0
-            </div>
+<div class="holdings-summary-container">
+    <!-- Header Row -->
+    <div class="header-section">
+        <div class="main-value">
+            <!-- Main number: updated dynamically -->
+            <span id="mainValueDisplay">€0</span>
         </div>
-
-        <!-- Secondary Info (Day Change, Unrealized G/L, Realized G/L) -->
-        <div class="secondary-info">
-            <div class="info-item">
-                <div class="label">Day Change</div>
-                <!-- Updated dynamically -->
-                <div class="value" id="dayChangeDisplay">+€0 (+0%)</div>
-            </div>
-            <div class="info-item">
-                <div class="label">Unrealized G/L</div>
-                <!-- Updated dynamically -->
-                <div class="value" id="unrealizedDisplay">-€0 (-0%)</div>
-            </div>
-            <div class="info-item">
-                <div class="label">Realized G/L</div>
-                <!-- Placeholder for Realized Gains -->
-                <div class="value" id="realizedDisplay">+€0</div>
-            </div>
-        </div>
-
-        <!-- Time-Range Toggle Row -->
-        <div class="chart-toggles">
-            <button class="toggle-btn active">1D</button>
-            <button class="toggle-btn">1W</button>
-            <button class="toggle-btn">1M</button>
-            <button class="toggle-btn">1Y</button>
-            <button class="toggle-btn">YTD</button>
-            <button class="toggle-btn">All</button>
-            <button class="toggle-btn">Custom</button>
-            <span class="about-chart">About this chart</span>
-        </div>
-
-        <!-- Chart Section -->
-        <div class="chart-section">
-            <canvas id="myChart"></canvas>
-        </div>
-
-        <!-- Symbol Summary Section -->
-        <div id="symbolSummaryContainer" class="symbol-summary-container">
-            <!-- Per-symbol summaries will be injected here -->
+        <!-- Sub-label for Market Value -->
+        <div class="sub-label" id="marketValueDisplay">
+            Market Value €0
         </div>
     </div>
 
-    <!-- Script to fetch data, calculate metrics, update UI, and create chart -->
-    <script>
-        document.addEventListener("DOMContentLoaded", async () => {
-            try {
-                // 1) Fetch portfolio data from your API
-                const response = await fetch("/api/Portfolio", {
-                    method: "GET",
-                    headers: { "Accept": "*/*" }
-                });
-                if (!response.ok) throw new Error("Network response was not ok");
+    <!-- Secondary Info (Day Change, Unrealized G/L, Realized G/L) -->
+    <div class="secondary-info">
+        <div class="info-item">
+            <div class="label">Day Change</div>
+            <!-- Updated dynamically -->
+            <div class="value" id="dayChangeDisplay">+€0 (+0%)</div>
+        </div>
+        <div class="info-item">
+            <div class="label">Unrealized G/L</div>
+            <!-- Updated dynamically -->
+            <div class="value" id="unrealizedDisplay">-€0 (-0%)</div>
+        </div>
+        <div class="info-item">
+            <div class="label">Realized G/L</div>
+            <!-- Placeholder for Realized Gains -->
+            <div class="value" id="realizedDisplay">+€0</div>
+        </div>
+    </div>
 
-                // 2) Parse the JSON array (using the first portfolio in this example)
-                const data = await response.json();
-                const portfolio = data[0];
+    <!-- Time-Range Toggle Row -->
+    <div class="chart-toggles">
+        <button class="toggle-btn active">1D</button>
+        <button class="toggle-btn">1W</button>
+        <button class="toggle-btn">1M</button>
+        <button class="toggle-btn">1Y</button>
+        <button class="toggle-btn">YTD</button>
+        <button class="toggle-btn">All</button>
+        <button class="toggle-btn">Custom</button>
+        <span class="about-chart">About this chart</span>
+    </div>
+    <!-- Indeterminate Progress Bar (hidden by default) -->
+    <div id="progressBarContainer" class="hidden">
+        <div id="progressBar"></div>
+    </div>
+    <!-- Chart Section -->
+    <div class="chart-section">
+        <canvas id="myChart"></canvas>
+    </div>
 
-                // 3) Update the overall UI with calculated data
-                updateUI(portfolio);
+    <!-- Symbol Summary Section -->
+    <div id="symbolSummaryContainer" class="symbol-summary-container">
+        <!-- Per-symbol summaries will be injected here -->
+    </div>
+</div>
 
-                // 4) Update per-symbol summaries
-                updateSymbolSummaries(portfolio);
+<!-- Script to fetch data, calculate metrics, update UI, and create chart -->
+<script>
+                 function showLoading() {
+      document.getElementById("progressBarContainer")
+              .classList.remove("hidden");
+    }
 
-                // 5) Create the chart (using provided weekly/monthly/yearly percentages)
-                createLineChart(portfolio);
-            } catch (error) {
-                console.error("Error fetching portfolio data:", error);
-            }
+    function hideLoading() {
+      document.getElementById("progressBarContainer")
+              .classList.add("hidden");
+    }
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      showLoading();
+
+      try {
+        const response = await fetch("/api/Portfolio", {
+          method: "GET",
+          headers: { "Accept": "*/*" }
         });
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const data = await response.json();
+        const portfolio = data[0];
+
+        updateUI(portfolio);
+        updateSymbolSummaries(portfolio);
+        createLineChart(portfolio);
+
+      } catch (error) {
+        console.error("Error fetching portfolio data:", error);
+        // Optionally: show an error message in the UI here
+      } finally {
+        hideLoading();
+      }
+    });
 
         // Helper function to format currency in EUR
         function formatCurrency(val) {
@@ -399,6 +257,5 @@
                 }
             });
         }
-    </script>
-</body>
-</html>
+</script>
+

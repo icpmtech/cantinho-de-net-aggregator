@@ -10,6 +10,194 @@
   <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
   <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
   <link href="~/assets/css/portfolio-summary.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        /* Container sits at top, full width, small height */
+        #progressBarContainer {
+            position: relative;
+            width: 100%;
+            height: 1px;
+            background: #eee;
+            overflow: hidden;
+            
+        }
+
+        /* The animated bar */
+        #progressBar {
+            position: absolute;
+            top: 0;
+            left: -40%; /* start off-screen */
+            width: 40%;
+            height: 100%;
+            background: #8e44ad; /* your accent color */
+            animation: indeterminate 1s infinite;
+        }
+
+        @@keyframes indeterminate {
+            0%
+
+        {
+            left: -40%;
+            width: 40%;
+        }
+
+        50% {
+            left: 100%;
+            width: 40%;
+        }
+
+        100% {
+            left: -40%;
+            width: 40%;
+        }
+
+        }
+
+        .holdings-summary-container {
+            background: #fff;
+            border: 1px solid #e1e1e1;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 20px auto;
+            font-family: Arial, sans-serif;
+        }
+        /* Card Background Color for Positive/Negative Performance */
+        .positive-card {
+            background: #eaffea; /* light green */
+        }
+
+        .negative-card {
+            background: #ffeaea; /* light red */
+        }
+        /* Header Section */
+        .header-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .main-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .sub-label {
+            font-size: 0.95rem;
+            color: #666;
+            margin-top: 4px;
+        }
+        /* Secondary Info */
+        .secondary-info {
+            display: flex;
+            gap: 40px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+            .info-item .label {
+                font-size: 0.9rem;
+                color: #666;
+                margin-bottom: 4px;
+            }
+
+            .info-item .value {
+                font-size: 1.05rem;
+                font-weight: 600;
+            }
+
+        .positive {
+            color: #2ecc71; /* green */
+        }
+
+        .negative {
+            color: #e74c3c; /* red */
+        }
+        /* Chart Toggles */
+        .chart-toggles {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .toggle-btn {
+            border: 1px solid #ccc;
+            background-color: #fff;
+            color: #333;
+            padding: 6px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+            .toggle-btn.active,
+            .toggle-btn:hover {
+                background-color: #f0f0f0;
+            }
+
+        .about-chart {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: #888;
+            cursor: pointer;
+        }
+        /* Chart Section */
+        .chart-section {
+            position: relative;
+            width: 100%;
+            height: 350px;
+        }
+
+        #myChart {
+            width: 100%;
+            height: 100%;
+        }
+        /* Symbol Summary Section */
+        .symbol-summary-container {
+            margin-top: 20px;
+            border-top: 1px solid #e1e1e1;
+            padding-top: 20px;
+        }
+
+        .symbol-summary {
+            margin-bottom: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+            .symbol-summary h4 {
+                margin: 0 0 5px 0;
+            }
+
+            .symbol-summary p {
+                margin: 3px 0;
+                font-size: 0.9rem;
+            }
+        /* Responsive */
+        @@media (max-width: 600px) {
+            .secondary-info {
+                gap: 20px;
+            }
+
+            .info-item {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+
 </head>
 <body>
   <!-- HEADER -->

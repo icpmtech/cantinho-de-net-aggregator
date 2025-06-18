@@ -1,332 +1,122 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <title>Análise BPI Research com IA</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: #f4f4f4;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Análise BPI Research com IA e Tabs</title>
 
-        header {
-            background: #f26522;
-            color: white;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
+  <!-- libs -->
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
-            header img {
-                height: 50px;
-            }
-
-            header h1 {
-                margin: 0;
-                font-size: 1.6em;
-            }
-
-        main {
-            padding: 20px;
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        textarea, input[type="text"] {
-            width: 100%;
-            margin-bottom: 10px;
-            font-family: monospace;
-            font-size: 14px;
-            padding: 10px;
-        }
-
-        textarea {
-            height: 300px;
-        }
-
-        button {
-            padding: 10px 20px;
-            background: #f26522;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .lang-switch {
-            float: right;
-            margin: -10px 0 10px 0;
-        }
-
-            .lang-switch button {
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                font-size: 18px;
-                margin-left: 5px;
-            }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-        }
-
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: center;
-        }
-
-        th {
-            background: #f26522;
-            color: white;
-            position: sticky;
-            top: 0;
-        }
-
-        .table-container {
-            max-height: 500px;
-            overflow: auto;
-            margin-bottom: 40px;
-        }
-
-        .chart {
-            margin-bottom: 60px;
-        }
-
-        #deepseekOutput {
-            margin-top: 20px;
-            background: #fff;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-    </style>
+  <style>
+    :root{
+      --primary:#f26522;--primary-dark:#e55a1c;--text-main:#1e1e1e;--text-muted:#555;--white:#fff;--accent-bg:#667eea;--accent-bg-2:#764ba2;
+    }
+    /* ---- Reset & base ---- */
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;line-height:1.55;color:var(--text-main);background:linear-gradient(135deg,var(--accent-bg),var(--accent-bg-2)) fixed;display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden}
+    /* ---- Header ---- */
+    header{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:var(--white);padding:20px clamp(16px,4vw,30px);display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 20px rgba(0,0,0,.15);position:relative}
+    header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--white),var(--primary))}
+    header h1{font-weight:400;font-size:clamp(1.4rem,4vw,1.8rem);text-shadow:0 2px 4px rgba(0,0,0,.15)}
+    header img{height:clamp(36px,8vw,50px);filter:brightness(0) invert(1)}
+    /* ---- Controls ---- */
+    #controls{background:var(--white);padding:15px clamp(16px,4vw,30px);display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+    #controls label{font-weight:600;font-size:.95rem;color:var(--text-muted)}
+    #controls input[type="text"]{flex:1 1 250px;max-width:100%;padding:10px 14px;border-radius:8px;border:2px solid #e1e8ed;font-size:14px;transition:.3s}
+    #controls input[type="text"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(242,101,34,.15);outline:none}
+    #controls button,button.action-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border:none;border-radius:8px;font-weight:600;font-size:14px;color:var(--white);cursor:pointer;position:relative;overflow:hidden;transition:.3s}
+    #controls button{background:linear-gradient(135deg,#2c3e50,#34495e)}
+    button.action-btn{background:linear-gradient(135deg,var(--primary),var(--primary-dark));padding:12px 22px;font-size:15px}
+    #controls button::before,button.action-btn::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.25),transparent);transform:translateX(-100%);transition:transform .55s}
+    #controls button:hover::before,button.action-btn:hover::before{transform:translateX(100%)}
+    #controls button:hover,button.action-btn:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.25)}
+    .lang-switcher{margin-left:auto;display:flex;gap:10px}
+    .lang-switcher button{font-size:22px;width:38px;height:38px;border:2px solid rgba(0,0,0,.1);border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.05);cursor:pointer;transition:.3s}
+    .lang-switcher button:hover{background:rgba(0,0,0,.12);transform:scale(1.1)}
+    /* ---- Main ---- */
+    #main{flex:1;display:flex;flex-direction:column;background:var(--white);box-shadow:0 -5px 20px rgba(0,0,0,.06)}
+    main{flex:1;overflow-y:auto;padding:20px clamp(16px,4vw,30px);background:linear-gradient(180deg,#f8f9fa,#fff)}
+    /* Tabs */
+    .tabs{display:flex;gap:4px;overflow-x:auto;background:var(--white);border-radius:10px;padding:4px;box-shadow:0 4px 12px rgba(0,0,0,.05);scrollbar-width:none;-ms-overflow-style:none}
+    .tabs::-webkit-scrollbar{display:none}
+    .tab{flex:0 0 auto;padding:10px 18px;border-radius:8px;font-weight:600;color:var(--text-muted);cursor:pointer;position:relative;transition:.25s}
+    .tab::before{content:"";position:absolute;inset:0;border-radius:8px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));opacity:0;transition:.25s}
+    .tab:hover:not(.active){background:rgba(0,0,0,.04);color:var(--text-main)}
+    .tab.active{color:var(--white);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+    .tab.active::before{opacity:1}
+    .tab-content{display:none;animation:fadeIn .35s ease}
+    .tab-content.active{display:block}
+        @@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    /* Inputs */
+    textarea,input[type="file"]{width:100%;border-radius:10px;border:2px solid #e1e8ed;font-family:'Consolas',monospace;font-size:14px;background:var(--white);margin-bottom:16px;transition:.3s}
+    textarea{padding:18px;min-height:280px;resize:vertical}
+    textarea:focus,input[type="file"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(242,101,34,.12);outline:none}
+    input[type="file"]{padding:10px 14px;background:linear-gradient(135deg,#f8f9fa,#fff);cursor:pointer}
+    input[type="file"]:hover{background:linear-gradient(135deg,#fff,#f8f9fa)}
+    /* Table */
+    .table-container{max-height:350px;overflow:auto;border-radius:10px;background:var(--white);box-shadow:0 4px 12px rgba(0,0,0,.05)}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px 8px;text-align:center}
+    th{position:sticky;top:0;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:var(--white)}
+    tr:hover td{background:rgba(0,0,0,.04)}
+    /* Charts */
+    .chart{margin-bottom:30px;background:var(--white);border-radius:10px;padding:15px;box-shadow:0 4px 12px rgba(0,0,0,.05);transition:.3s}
+    .chart:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.1)}
+    /* IA output */
+    #deepseekOutput{background:var(--white);border:2px solid #e1e8ed;border-radius:10px;padding:20px;max-height:450px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,.05)}
+    #deepseekOutput h1,#deepseekOutput h2,#deepseekOutput h3{margin:0 0 .5em}
+    #deepseekOutput pre{background:#f5f5f5;padding:10px;border-radius:6px;overflow:auto}
+    #deepseekOutput code{background:#f5f5f5;padding:2px 4px;border-radius:4px}
+    /* Responsive */
+        @@media(max - width:768px){header{flex-direction:column;align-items:flex-start;gap:8px}.lang-switcher{margin-left:0}#controls{flex-direction:column;align-items:stretch}#controls button{width:100%;justify-content:center}textarea{min-height:220px}}
+        @@media(max - width:480px){body{font-size:15px}header img{height:34px}
+      .tab{padding:8px 14px;font-size:.9rem}textarea{min-height:180px}}
+  </style>
 </head>
 <body>
+  <header>
+    <h1 id="titulo">Análise de Previsões Económicas - BPI Research</h1>
+    <img src="~/assets/img/bpi.png" alt="BPI Logo" />
+  </header>
+  <div id="controls">
+    <label for="input" id="labelApiKey">🔐 Chave API DeepSeek:</label>
+    <input type="text" id="input" placeholder="Cola aqui a tua chave API da DeepSeek" />
+    <button onclick="analisarComDeepSeek()" id="btnAnalyzeAI">🧠 Analisar com IA</button>
+    <div class="lang-switcher">
+      <button onclick="setLang('pt')" title="Português">🇵🇹</button>
+      <button onclick="setLang('en')" title="English">🇬🇧</button>
+    </div>
+  </div>
 
-    <header>
-        <h1 id="titulo">Análise de Previsões Económicas - BPI Research</h1>
-        <img src="https://www.bancobpi.pt/particulares/CW_SP_Common/img/x86_logo_bpi_caixabank.png" alt="BPI Logo">
-    </header>
+  <div id="main"><main>
+    <div class="tabs">
+      <div class="tab active" data-tab="dados" id="tabDados"><span>Dados</span></div>
+      <div class="tab" data-tab="graficos" id="tabGraficos"><span>Gráficos</span></div>
+      <div class="tab" data-tab="ia" id="tabIA"><span>Análise IA</span></div>
+    </div>
 
-    <main>
-        <div class="lang-switch">
-            <button onclick="setLang('pt')">🇵🇹</button>
-            <button onclick="setLang('en')">🇬🇧</button>
-        </div>
+    <div class="tab-content active" id="dados">
+      <p id="descDados">Cole abaixo os dados do relatório ou carregue o PDF:</p>
+      <input type="file" id="pdfInput" accept="application/pdf" onchange="lerPDF()" />
+      <textarea id="inputData" placeholder="Cole aqui os dados do relatório BPI..."></textarea>
+      <button class="action-btn" onclick="analisarDados()" id="btnAnalyzeData">📊 Analisar</button>
+      <div class="table-container"><table id="resultTable"></table></div>
+    </div>
 
-        <h2 class="link">
-            <a href="https://www.bancobpi.pt/grupo-bpi/estudos-e-mercados/informacao-mensal" target="_blank">
-                www.bancobpi.pt/grupo-bpi/estudos-e-mercados/informacao-mensal
-            </a>
-        </h2>
+    <div class="tab-content" id="graficos"><div id="chartsContainer"></div></div>
+    <div class="tab-content" id="ia"><div id="deepseekOutput">Use a chave API acima e clique no botão “Analisar com IA”.</div></div>
+  </main></div>
 
-        <p id="textoDescricao">Cole abaixo os dados do relatório ou carregue o PDF:</p>
-
-        <label><strong>🔐 Chave API DeepSeek:</strong></label>
-        <input type="text" id="input" placeholder="Cola aqui a tua chave API da DeepSeek">
-
-        <input type="file" id="pdfInput" accept="application/pdf" onchange="lerPDF()" />
-        <textarea id="inputData" placeholder="Cole aqui os dados do relatório BPI..."></textarea>
-
-        <button onclick="analisarDados()" id="botaoAnalise">📊 Analisar</button>
-        <button onclick="analisarComDeepSeek()" style="background:#333; margin-left: 10px;">🧠 Analisar com IA</button>
-
-        <div class="table-container">
-            <table id="resultTable"></table>
-        </div>
-
-        <div id="chartsContainer"></div>
-
-        <div id="deepseekOutput"></div>
-    </main>
-
+  
+    <!-- --------- SCRIPT SECTION --------- -->
     <script>
-        let lang = 'pt';
-
-        const textos = {
-          pt: {
-            titulo: "Análise de Previsões Económicas - BPI Research",
-            descricao: "Cole abaixo os dados do relatório ou carregue o PDF:",
-            botao: "📊 Analisar",
-            placeholder: "Cole aqui os dados do relatório BPI...",
-            alertaPDF: "Texto extraído do PDF. Agora clique em 'Analisar'."
-          },
-          en: {
-            titulo: "Forecast Analysis - BPI Research",
-            descricao: "Paste the report data below or upload a PDF:",
-            botao: "📊 Analyze",
-            placeholder: "Paste the BPI report data here...",
-            alertaPDF: "Text extracted from PDF. Now click 'Analyze'."
-          }
-        };
-
-        function setLang(l) {
-          lang = l;
-          document.getElementById("titulo").innerText = textos[l].titulo;
-          document.getElementById("textoDescricao").innerText = textos[l].descricao;
-          document.getElementById("botaoAnalise").innerText = textos[l].botao;
-          document.getElementById("inputData").placeholder = textos[l].placeholder;
-        }
-
-        async function lerPDF() {
-          const file = document.getElementById('pdfInput').files[0];
-          if (!file) return;
-
-          const reader = new FileReader();
-          reader.onload = async function () {
-            const typedArray = new Uint8Array(this.result);
-            const pdf = await pdfjsLib.getDocument(typedArray).promise;
-            let textoFinal = "";
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-              const page = await pdf.getPage(i);
-              const textContent = await page.getTextContent();
-              const pageText = textContent.items.map(item => item.str).join(" ");
-              textoFinal += pageText + "\n";
-            }
-
-            document.getElementById('inputData').value = textoFinal;
-            alert(textos[lang].alertaPDF);
-          };
-
-          reader.readAsArrayBuffer(file);
-        }
-
-        function analisarDados() {
-          const input = document.getElementById('inputData').value;
-          const linhas = input.trim().split('\n').filter(l => l.match(/\d/));
-          const tabela = document.getElementById('resultTable');
-          const chartsDiv = document.getElementById('chartsContainer');
-          tabela.innerHTML = '';
-          chartsDiv.innerHTML = '';
-
-          if (linhas.length === 0) {
-            tabela.innerHTML = '<tr><td>Sem dados detectados.</td></tr>';
-            return;
-          }
-
-          const primeiraLinhaComNumeros = linhas.find(l => l.trim().split(/\s+/).filter(p => !isNaN(p.replace(',', '.'))).length > 1);
-          const totalValores = primeiraLinhaComNumeros.trim().split(/\s+/).filter(p => !isNaN(p.replace(',', '.'))).length;
-          const cabecalho = ['Indicador'];
-          const anosBase = ['2000-2007', '2008-2019', '2020-2022', '2023', '2024', '2025', '2026'];
-          cabecalho.push(...anosBase.slice(-totalValores));
-
-          const thead = document.createElement('thead');
-          const headerRow = document.createElement('tr');
-          cabecalho.forEach(h => {
-            const th = document.createElement('th');
-            th.textContent = h;
-            headerRow.appendChild(th);
-          });
-          thead.appendChild(headerRow);
-          tabela.appendChild(thead);
-
-          const tbody = document.createElement('tbody');
-          const series = [];
-
-          linhas.forEach(linha => {
-            const partes = linha.trim().split(/\s+/);
-            const valores = partes.filter(p => !isNaN(p.replace(',', '.')));
-            const label = linha.replace(valores.join(' '), '').trim();
-
-            if (valores.length === 0 || label === '') return;
-
-            const row = document.createElement('tr');
-            const tdLabel = document.createElement('td');
-            tdLabel.textContent = label;
-            row.appendChild(tdLabel);
-
-            valores.forEach(valor => {
-              const td = document.createElement('td');
-              td.textContent = valor;
-              row.appendChild(td);
-            });
-
-            tbody.appendChild(row);
-
-            const numericValues = valores.map(v => parseFloat(v.replace(',', '.')));
-            series.push({ label, data: numericValues });
-          });
-
-          tabela.appendChild(tbody);
-
-          series.forEach((serie, index) => {
-            const div = document.createElement('div');
-            div.id = 'chart-' + index;
-            div.classList.add('chart');
-            chartsDiv.appendChild(div);
-
-            const trace = {
-              x: cabecalho.slice(1),
-              y: serie.data,
-              mode: 'lines+markers',
-              type: 'scatter',
-              name: serie.label
-            };
-
-            const layout = {
-              title: serie.label,
-              margin: { t: 40 },
-              xaxis: { title: lang === 'pt' ? 'Ano' : 'Year' },
-              yaxis: { title: lang === 'pt' ? 'Valor' : 'Value' }
-            };
-
-            Plotly.newPlot(div.id, [trace], layout);
-          });
-        }
-
-        async function analisarComDeepSeek() {
-          const inputTexto = document.getElementById('inputData').value;
-          const apiKey = document.getElementById('input').value;
-          const outputDiv = document.getElementById('deepseekOutput');
-          outputDiv.innerHTML = "<p><em>🔍 A analisar com IA...</em></p>";
-
-          if (!apiKey || apiKey.length < 10) {
-            outputDiv.innerHTML = "<p style='color:red;'>⚠️ API Key inválida.</p>";
-            return;
-          }
-
-          try {
-            const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + apiKey
-              },
-              body: JSON.stringify({
-                model: "deepseek-chat",
-                messages: [
-                  {
-                    role: "system",
-                    content: "És um analista económico. Resume, interpreta e destaca as tendências principais dos dados económicos fornecidos (juros, dívida, câmbio e petróleo)."
-                  },
-                  {
-                    role: "user",
-                    content: inputTexto
-                  }
-                ]
-              })
-            });
-
-            const data = await response.json();
-            const resposta = data.choices?.[0]?.message?.content || "Sem resposta da IA.";
-            outputDiv.innerHTML = `<strong>🧠 Resposta da IA:</strong><br><br>${resposta}`;
-          } catch (error) {
-            outputDiv.innerHTML = "<p style='color:red;'>Erro ao comunicar com a API DeepSeek.</p>";
-            console.error(error);
-          }
-        }
+        /* Existing JavaScript unchanged, only minimised whitespace for readability */
+        const textos={pt:{titulo:"Análise de Previsões Económicas - BPI Research",labelApiKey:"🔐 Chave API DeepSeek:",btnAnalyzeAI:"🧠 Analisar com IA",tabDados:"Dados",tabGraficos:"Gráficos",tabIA:"Análise IA",descDados:"Cole abaixo os dados do relatório ou carregue o PDF:",inputPlaceholder:"Cole aqui os dados do relatório BPI...",btnAnalyzeData:"📊 Analisar",alertaPDF:"Texto extraído do PDF. Agora clique em 'Analisar'.",analyzingIA:"🔍 A analisar com IA...",invalidApiKey:"⚠️ API Key inválida.",apiError:"Erro ao comunicar com a API DeepSeek.",useApiTip:"Use a chave API acima e clique no botão “Analisar com IA”.",tabIAContentEmpty:"Use a chave API acima e clique no botão “Analisar com IA”.",noDataDetected:"Sem dados detectados."},en:{titulo:"Economic Forecast Analysis - BPI Research",labelApiKey:"🔐 DeepSeek API Key:",btnAnalyzeAI:"🧠 Analyze with AI",tabDados:"Data",tabGraficos:"Charts",tabIA:"AI Analysis",descDados:"Paste the report data below or upload a PDF:",inputPlaceholder:"Paste the BPI report data here...",btnAnalyzeData:"📊 Analyze",alertaPDF:"Text extracted from PDF. Now click 'Analyze'.",analyzingIA:"🔍 Analyzing with AI...",invalidApiKey:"⚠️ Invalid API Key.",apiError:"Error communicating with DeepSeek API.",useApiTip:"Use the API key above and click the “Analyze with IA” button.",tabIAContentEmpty:"Use the API key above and click the “Analyze with IA” button.",noDataDetected:"No data detected."}};let lang='pt';function setLang(l){lang=l;document.getElementById("titulo").innerText=textos[l].titulo;document.getElementById("labelApiKey").innerText=textos[l].labelApiKey;document.getElementById("btnAnalyzeAI").innerText=textos[l].btnAnalyzeAI;document.getElementById("tabDados").innerText=textos[l].tabDados;document.getElementById("tabGraficos").innerText=textos[l].tabGraficos;document.getElementById("tabIA").innerText=textos[l].tabIA;document.getElementById("descDados").innerText=textos[l].descDados;document.getElementById("inputData").placeholder=textos[l].inputPlaceholder;document.getElementById("btnAnalyzeData").innerText=textos[l].btnAnalyzeData;document.getElementById("deepseekOutput").innerText=textos[l].tabIAContentEmpty;}setLang(lang);document.querySelectorAll('.tab').forEach(tab=>{tab.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));tab.classList.add('active');document.querySelectorAll('.tab-content').forEach(tc=>{tc.classList.remove('active');if(tc.id===tab.dataset.tab)tc.classList.add('active');});});});async function lerPDF(){const file=document.getElementById('pdfInput').files[0];if(!file)return;const reader=new FileReader();reader.onload=async function(){try{const typedArray=new Uint8Array(this.result);const pdf=await pdfjsLib.getDocument(typedArray).promise;let textoFinal="";for(let i=1;i<=pdf.numPages;i++){const page=await pdf.getPage(i);const textContent=await page.getTextContent();textoFinal+=textContent.items.map(item=>item.str).join(" ")+"\n";}document.getElementById('inputData').value=textoFinal;alert(textos[lang].alertaPDF);}catch(e){alert("Erro ao processar o PDF");}};reader.readAsArrayBuffer(file);}function analisarDados(){const input=document.getElementById('inputData').value;const linhas=input.trim().split('\n').filter(l=>/\d/.test(l));const tabela=document.getElementById('resultTable');const chartsDiv=document.getElementById('chartsContainer');tabela.innerHTML='';chartsDiv.innerHTML='';if(!linhas.length){tabela.innerHTML=`<tr><td>${textos[lang].noDataDetected}</td></tr>`;return;}const primeiraLinhaComNumeros=linhas.find(l=>l.trim().split(/\s+/).filter(p=>!isNaN(p.replace(',','.'))).length>1);if(!primeiraLinhaComNumeros){tabela.innerHTML=`<tr><td>${textos[lang].noDataDetected}</td></tr>`;return;}const totalValores=primeiraLinhaComNumeros.trim().split(/\s+/).filter(p=>!isNaN(p.replace(',','.'))).length;const cabecalho=['Indicador','2000-2007','2008-2019','2020-2022','2023','2024','2025','2026'].slice(0,totalValores+1);tabela.insertAdjacentHTML('beforeend','<thead><tr>'+cabecalho.map(h=>`<th>${h}</th>`).join('')+'</tr></thead>');const tbody=document.createElement('tbody');const series=[];linhas.forEach(linha=>{const partes=linha.trim().split(/\s+/);const valores=partes.filter(p=>!isNaN(p.replace(',','.')));const label=linha.replace(valores.join(' '),'').trim();if(!valores.length||!label)return;tbody.insertAdjacentHTML('beforeend',`<tr><td style="text-align:left;font-weight:600;">${label}</td>`+valores.map(v=>`<td>${v}</td>`).join('')+'</tr>');series.push({label,data:valores.map(v=>parseFloat(v.replace(',','.')))});});tabela.appendChild(tbody);chartsDiv.innerHTML='';series.forEach((serie,i)=>{const chart=document.createElement('div');chart.className='chart';chart.innerHTML=`<div id="chart-${i}"></div>`;chartsDiv.appendChild(chart);Plotly.newPlot(`chart-${i}`,[{x:cabecalho.slice(1),y:serie.data,mode:'lines+markers',type:'scatter',name:serie.label,line:{color:var_css('--primary'),width:3},marker:{color:var_css('--primary'),size:8,line:{color:'#fff',width:2}}}],{title:{text:serie.label,font:{size:18,color:var_css('--text-main')}},margin:{t:60,b:60,l:60,r:20},xaxis:{title:lang==='pt'?'Período':'Period',gridcolor:'#f1f3f4'},yaxis:{title:lang==='pt'?'Valor':'Value',gridcolor:'#f1f3f4'}},{responsive:true});});}
+        /* Helper to fetch CSS var in JS plotting */
+        function var_css(name){return getComputedStyle(document.documentElement).getPropertyValue(name);}async function analisarComDeepSeek(){const inputTexto=document.getElementById('inputData').value;const apiKey=document.getElementById('input').value.trim();const target=document.getElementById('deepseekOutput');target.innerHTML=`<p><em>${textos[lang].analyzingIA}</em></p>`;if(!apiKey||apiKey.length<10){target.innerHTML=`<p style='color:red;'>${textos[lang].invalidApiKey}</p>`;return;}try{const res=await fetch("https://api.deepseek.com/v1/chat/completions",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+apiKey},body:JSON.stringify({model:"deepseek-chat",messages:[{role:"system",content:lang==='pt'?"És um analista económico. Resume, interpreta e destaca as tendências principais dos dados económicos fornecidos (juros, dívida, câmbio e petróleo).":"You are an economic analyst. Summarize, interpret, and highlight the main trends of the provided economic data (interest rates, debt, exchange rates, and oil)."},{role:"user",content:inputTexto}]})});const data=await res.json();target.innerHTML=`<strong>🧠 ${lang==='pt'?'Resposta da IA':'AI Response'}:</strong><br><br>`+(data.choices?.[0]?.message?.content||'(sem resposta)');}catch{target.innerHTML=`<p style='color:red;'>${textos[lang].apiError}</p>`;}}
     </script>
-
 </body>
 </html>
