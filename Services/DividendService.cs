@@ -1,32 +1,41 @@
+using MarketAnalyticHub.Controllers.api;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+
 namespace MarketAnalyticHub.Services
 {
-  using MarketAnalyticHub.Controllers.api;
-  using System;
-  using System.Collections.Generic;
-  using System.Net.Http;
-  using System.Text.Json;
-  using System.Threading.Tasks;
-
+  // Models matching the JSON from /api/dividends
   public class ApiDividend
   {
+    [JsonPropertyName("date")]
     public string Date { get; set; }
-    public decimal Dividend { get; set; }
-  }
 
+    [JsonPropertyName("amount")]
+    public decimal Amount { get; set; }
 
-  public class ApiDividendResponse
-  {
-    public List<ApiDividend> Dividends { get; set; }
+    [JsonPropertyName("symbol")]
     public string Symbol { get; set; }
   }
 
+  public class ApiDividendResponse
+  {
+    [JsonPropertyName("symbol")]
+    public string Symbol { get; set; }
 
+    [JsonPropertyName("dividends")]
+    public List<ApiDividend> Dividends { get; set; }
+  }
+
+ 
 
   public class DividendService
   {
     private readonly HttpClient _httpClient;
 
-    // Constructor to inject HttpClient (recommended for reusability and testability)
     public DividendService(HttpClient httpClient)
     {
       _httpClient = httpClient;
@@ -35,79 +44,70 @@ namespace MarketAnalyticHub.Services
     /// <summary>
     /// Fetches dividend data for a given stock symbol within a specified date range.
     /// </summary>
-    /// <param name="symbol">Stock symbol (e.g., "AAPL").</param>
-    /// <param name="startDate">Start date for fetching dividends.</param>
-    /// <param name="endDate">End date for fetching dividends.</param>
-    /// <returns>List of DividendScreenViewModel containing dividend details.</returns>
-    public async Task<IEnumerable<DividendScreenViewModel>> GetDividendsAsync(string symbol, DateTime startDate, DateTime endDate)
+    public async Task<IEnumerable<DividendScreenViewModel>> GetDividendsAsync(
+        string symbol,
+        DateTime startDate,
+        DateTime endDate)
     {
-      // Initialize the list to hold dividend data
-      List<DividendScreenViewModel> dividends = new List<DividendScreenViewModel>();
+      var dividends = new List<DividendScreenViewModel>();
 
       try
       {
-        // Construct the API URL with query parameters
-        string apiUrl = $"https://apimarketsanalyticshub-aeccaahebzamare9.eastus-01.azurewebsites.net/dividends?symbol={Uri.EscapeDataString(symbol)}&start={startDate:yyyy-MM-dd}&end={endDate:yyyy-MM-dd}";
+        // 1) Convert dates to UNIX timestamps
+        long period1 = new DateTimeOffset(startDate).ToUnixTimeSeconds();
+        long period2 = new DateTimeOffset(endDate).ToUnixTimeSeconds();
 
-        // Make the HTTP GET request
-        HttpResponseMessage response = await _httpClient.GetAsync(apiUrl);
+        // 2) Build URL with the correct query parameters
+        var apiUrl = new UriBuilder("https://marketanaliticsapp.vercel.app/api/dividends");
+        var qs = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        qs["symbol"] = symbol;
+        qs["period1"] = period1.ToString();
+        qs["period2"] = period2.ToString();
+        qs["interval"] = "1d";
+        apiUrl.Query = qs.ToString();
 
-        // Ensure the request was successful
+        // 3) Call the API
+        using var response = await _httpClient.GetAsync(apiUrl.Uri);
         response.EnsureSuccessStatusCode();
 
-        // Read the response content as a string
-        string jsonResponse = await response.Content.ReadAsStringAsync();
+        var json = await response.Content.ReadAsStringAsync();
 
-        // Deserialize the JSON response into a list of ApiDividend objects
-        var apiDividends = System.Text.Json.JsonSerializer.Deserialize<ApiDividendResponse>(jsonResponse, new JsonSerializerOptions
-        {
-          PropertyNameCaseInsensitive = true
-        });
+        // 4) Deserialize once
+        var apiResponse = JsonSerializer.Deserialize<ApiDividendResponse>(
+            json,
+            new JsonSerializerOptions
+            {
+              PropertyNameCaseInsensitive = true
+            }
+        );
 
-        // Check if the deserialization was successful and the list is not null
-        var apiResponse = JsonSerializer.Deserialize<ApiDividendResponse>(jsonResponse, new JsonSerializerOptions
+        // 5) Map to your ViewModel
+        if (apiResponse?.Dividends != null)
         {
-          PropertyNameCaseInsensitive = true
-        });
-
-        // Check if the deserialization was successful and the list is not null
-        if (apiResponse?.Dividends != null && apiResponse.Dividends.Count > 0)
-        {
-          foreach (var dividend in apiResponse.Dividends)
+          foreach (var d in apiResponse.Dividends)
           {
-            // Map ApiDividend to DividendScreenViewModel
             dividends.Add(new DividendScreenViewModel
             {
-              Amount = dividend.Dividend.ToString("F2"), // Formats to two decimal places
-              ExDate = dividend.Date // Assuming Date is in the desired string format
+              ExDate = d.Date,
+              Amount = d.Amount.ToString("F2")
             });
           }
         }
       }
       catch (HttpRequestException httpEx)
       {
-        // Handle HTTP-specific exceptions here (e.g., network errors, non-success status codes)
-        Console.Error.WriteLine($"HTTP Request Error: {httpEx.Message}");
-        // Optionally, log the error or rethrow the exception based on your application's needs
+        Console.Error.WriteLine($"HTTP Error: {httpEx.Message}");
       }
       catch (JsonException jsonEx)
       {
-        // Handle JSON parsing errors here
         Console.Error.WriteLine($"JSON Parsing Error: {jsonEx.Message}");
-        // Optionally, log the error or rethrow the exception based on your application's needs
       }
       catch (Exception ex)
       {
-        // Handle any other exceptions that may occur
-        Console.Error.WriteLine($"An unexpected error occurred: {ex.Message}");
-        // Optionally, log the error or rethrow the exception based on your application's needs
+        Console.Error.WriteLine($"Unexpected Error: {ex.Message}");
       }
 
-      // Return the list of dividends (empty list if an error occurred or no data was found)
       return dividends;
     }
   }
-
-
-
 }
