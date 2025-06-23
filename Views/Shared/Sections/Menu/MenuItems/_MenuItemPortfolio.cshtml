@@ -4,123 +4,115 @@
 }
 <li class='menu-item@(currentPage.StartsWith("/Portfolio") || currentPage.StartsWith("/StockEvents") ? " active open" : "")'>
     <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx bx-archive"></i>
+        <i class="menu-icon tf-icons bx bx-archive"></i>
         <div>Portfolio</div>
     </a>
 
     <ul class="menu-sub">
+        <li class='menu-item@(currentPage == "/Portfolio/Manager" ? " active" : "")'>
+            <a asp-controller="Portfolio" asp-action="Manager" class="menu-link">
+                <div>View Overview</div>
+            </a>
+        </li>
         <li class='menu-item@(currentPage == "/Portfolio/Summary" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Summary" class="menu-link">
-                <div>Summary</div>
+                <div>Portfolio Summary</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/PortfolioTransactionsV1" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="PortfolioTransactionsV1" class="menu-link">
-                <i class="menu-icon tf-icons bx bx bx-archive"></i>
                 <div>Manage Transactions</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/Holdings" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Holdings" class="menu-link">
-                <i class="menu-icon tf-icons bx bx bx-archive"></i>
-                <div>Holdings</div>
+                <div>View Holdings</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/ManagePortfolioHoldings" ? " active" : "")'>
             <a asp-controller="ManagePortfolioHoldings" asp-action="Index" class="menu-link">
-                <i class="menu-icon tf-icons bx bx bx-archive"></i>
                 <div>Manage Holdings</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/PortfolioSummary" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="PortfolioSummary" class="menu-link">
-                <i class="menu-icon tf-icons bx bx bx-archive"></i>
-                <div>Assets</div>
+                <div>Asset Breakdown</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/PortfolioOperations" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="PortfolioOperations" class="menu-link">
-                <i class="menu-icon tf-icons bx bx bx-archive"></i>
-                <div>Operations</div>
+                <div>Portfolio Operations</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/Transactions" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Transactions" class="menu-link">
-                <i class="menu-icon tf-icons bx bx bx-archive"></i>
-                <div>Transactions</div>
+                <div>Transaction History</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/TransactionsPivot" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="TransactionsPivot" class="menu-link">
-                <i class="menu-icon tf-icons bx bx bx-archive"></i>
-                <div>Transactions Pivot</div>
+                <div>Pivot Analysis</div>
             </a>
         </li>
-       
         <li class='menu-item@(currentPage == "/Portfolio/Performance" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Performance" class="menu-link">
-                <div>Performance</div>
+                <div>Portfolio Performance</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/PortfolioScrener" ? " active" : "")'>
             <a asp-controller="PortfolioScrener" asp-action="Index" class="menu-link">
-                <div>Screener</div>
+                <div>Portfolio Screener</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Index" class="menu-link">
-                <div>Manage</div>
+                <div>Portfolio Settings</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/PortfolioItems/Index" ? " active" : "")'>
             <a asp-controller="PortfolioItems" asp-action="Index" class="menu-link">
-                <div>Holdings</div>
+                <div>Itemized Holdings</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/StockEvents/Index" ? " active" : "")'>
             <a asp-controller="StockEvents" asp-action="Index" class="menu-link">
-                <div>Events</div>
+                <div>Stock Events</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/Fundamentals" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Fundamentals" class="menu-link">
-                <div>Fundamentals</div>
+                <div>Fundamental Analysis</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/Qualitatives" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="Qualitatives" class="menu-link">
-                <div>Qualitatives</div>
+                <div>Qualitative Metrics</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/LossesManager" ? " active" : "")'>
             <a asp-controller="Portfolio" asp-action="LossesManager" class="menu-link">
-                <div>Losses Manager</div>
+                <div>Harvest Losses</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/Portfolio/PortfolioBuilder" ? " active" : "")'>
             <a asp-controller="PortfolioBuilder" asp-action="Index" class="menu-link">
-                <div>Investment Prediction</div>
+                <div>Investment Predictor</div>
             </a>
         </li>
-
-
     </ul>
 </li>
 
 <li class="menu-header small text-uppercase">
     <span class="menu-header-text">Portfolio Dividends</span>
 </li>
-<li class='menu-item@(currentPage.StartsWith("/PortfolioDividends")  ? " active open" : "")'>
+<li class='menu-item@(currentPage.StartsWith("/PortfolioDividends") ? " active open" : "")'>
     <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx bx-archive"></i>
-        <div>Portfolio Dividends </div>
+        <div>Portfolio Dividends</div>
     </a>
-
     <ul class="menu-sub">
-    
         <li class='menu-item@(currentPage == "/PortfolioDividends/Dividends" ? " active" : "")'>
             <a asp-controller="PortfolioDividends" asp-action="Dividends" class="menu-link">
-                <div>Dividends</div>
+                <div>Dividend History</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/PortfolioDividends/PortfolioUpcomingDividends" ? " active" : "")'>
@@ -130,13 +122,14 @@
         </li>
         <li class='menu-item@(currentPage == "/PortfolioDividends/PortfolioAllDividends" ? " active" : "")'>
             <a asp-controller="PortfolioDividends" asp-action="PortfolioAllDividends" class="menu-link">
-                <div>All Dividends</div>
+                <div>All-Time Dividends</div>
             </a>
         </li>
         <li class='menu-item@(currentPage == "/PortfolioDividends/DividendsCalendar" ? " active" : "")'>
             <a asp-controller="PortfolioDividends" asp-action="DividendsCalendar" class="menu-link">
-                <div>Dividends Calendar</div>
+                <div>Dividend Calendar</div>
             </a>
         </li>
     </ul>
 </li>
+

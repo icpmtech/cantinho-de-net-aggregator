@@ -1,36 +1,51 @@
 @using MarketAnalyticHub.Areas.Admin.Models
-@model List<ManageUserRolesViewModel>
+@model List<MarketAnalyticHub.Areas.Admin.Models.ManageUserRolesViewModel>
 @{
-    ViewData["Title"] = "Manage";
-    Layout = "~/Areas/Admin/Views/Shared/_ContentNavbarLayout.cshtml"; // Adjust to your layout file
-    ViewData["container"] = (ViewData["container"] ?? "container-fluid");
-    ViewData["containerNav"] = (ViewData["containerNav"] ?? "container-fluid");
+    ViewData["Title"] = "Manage User Roles";
+    Layout = "~/Areas/Admin/Views/Shared/_ContentNavbarLayout.cshtml";
 }
-<form method="post">
-    <div class="card">
-        <div class="card-header">
-            <h2>Manage User Roles</h2>
-            Add/Remove Roles for User / @ViewBag.UserName.
-        </div>
-        <div class="card-body">
-            @for (int i = 0; i < Model.Count; i++)
+
+<div class="card mb-3">
+    <div class="card-header">
+        <h2>Manage Roles for @ViewBag.UserName</h2>
+    </div>
+    <div class="card-body">
+        <form asp-action="Manage"
+              asp-route-userId="@ViewBag.UserId"
+              method="post">
+            @Html.AntiForgeryToken()
+
+            @{
+                var idx = 0;
+            }
+            @foreach (var item in Model)
             {
-                <div class="form-check m-1">
-                    <input type="hidden" asp-for="@Model[i].RoleId" />
-                    <input type="hidden" asp-for="@Model[i].RoleName" />
-                    <input asp-for="@Model[i].Selected" class="form-check-input" />
-                    <label class="form-check-label" asp-for="@Model[i].Selected">
-                        @Model[i].RoleName
+                <div class="form-check mb-2">
+                    <input type="hidden" name="[@idx].RoleId" value="@item.RoleId" />
+                    <input type="hidden" name="[@idx].RoleName" value="@item.RoleName" />
+
+                    <input type="checkbox"
+                           name="[@idx].Selected"
+                           class="form-check-input"
+                           id="role-@idx"
+                           value="true"
+                    @(item.Selected ? "checked" : "") />
+
+                    <label class="form-check-label" for="role-@idx">
+                        @item.RoleName
                     </label>
                 </div>
+                idx++;
             }
-            <div asp-validation-summary="All" class="text-danger"></div>
-        </div>
-        <div class="card-footer">
-            <input type="submit" value="Update" class="btn btn-primary"
-                   style="width:auto" />
-            <a asp-action="EditUser" asp-route-id="@ViewBag.userId"
-               class="btn btn-primary" style="width:auto">Cancel</a>
-        </div>
+
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <button type="submit" class="btn btn-primary">Update</button>
+            <a asp-action="EditUser"
+               asp-route-id="@ViewBag.UserId"
+               class="btn btn-secondary ms-2">
+                Cancel
+            </a>
+        </form>
     </div>
-</form>
+</div>

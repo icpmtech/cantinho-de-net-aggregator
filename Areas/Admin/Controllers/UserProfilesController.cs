@@ -59,7 +59,8 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,FirstName,LastName,Email,Organization,PhoneNumber,Address,State,ZipCode,Country,Language,TimeZone,Currency,AvatarUrl,Username,Status,Role,TaxId,Contact,Plan,PlanExpiry,PaymentMethod,BillingAddress,TasksDone,ProjectsDone,Languages,UserId,ActivationKey,IsActivated")] UserProfile userProfile)
         {
-            if (ModelState.IsValid)
+            
+          if (ModelState.IsValid)
             {
                 _context.Add(userProfile);
                 await _context.SaveChangesAsync();

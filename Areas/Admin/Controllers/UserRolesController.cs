@@ -42,54 +42,66 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
     [HttpGet]
     public async Task<IActionResult> Manage(string userId)
     {
-      ViewBag.userId = userId;
+      if (string.IsNullOrEmpty(userId))
+        return BadRequest();
+
       var user = await _userManager.FindByIdAsync(userId);
       if (user == null)
-      {
-        ViewBag.ErrorMessage = $"User with Id = {userId} cannot be found";
-        return View("NotFound");
-      }
+        return View("NotFound", $"User with Id = {userId} cannot be found");
+
+      ViewBag.UserId = userId;
       ViewBag.UserName = user.UserName;
 
       var roles = _roleManager.Roles.ToList();
       var userRoles = await _userManager.GetRolesAsync(user);
 
-      var model = new List<ManageUserRolesViewModel>();
-      foreach (var role in roles)
-      {
-        var userRolesViewModel = new ManageUserRolesViewModel
-        {
-          RoleId = role.Id,
-          RoleName = role.Name,
-          Selected = userRoles.Contains(role.Name)
-        };
-        model.Add(userRolesViewModel);
-      }
+      var model = roles
+          .Select(r => new ManageUserRolesViewModel
+          {
+            RoleId = r.Id,
+            RoleName = r.Name,
+            Selected = userRoles.Contains(r.Name)
+          })
+          .ToList();
 
-      return PartialView("_ManageUserRolesPartial", model);
+      return View(model);
     }
+
     [HttpPost]
-    public async Task<IActionResult> Manage(List<ManageUserRolesViewModel> model, string userId)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Manage(
+        List<ManageUserRolesViewModel> model,
+        string userId)
     {
       var user = await _userManager.FindByIdAsync(userId);
       if (user == null)
+        return View("NotFound", $"User with Id = {userId} cannot be found");
+
+      ViewBag.UserId = userId;
+      ViewBag.UserName = user.UserName;
+
+      if (!ModelState.IsValid)
+        return View(model);
+
+      // Remove all roles
+      var currentRoles = await _userManager.GetRolesAsync(user);
+      var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+      if (!removeResult.Succeeded)
       {
-        return View();
-      }
-      var roles = await _userManager.GetRolesAsync(user);
-      var result = await _userManager.RemoveFromRolesAsync(user, roles);
-      if (!result.Succeeded)
-      {
-        ModelState.AddModelError("", "Cannot remove user existing roles");
+        ModelState.AddModelError("", "Could not remove existing roles.");
         return View(model);
       }
-      result = await _userManager.AddToRolesAsync(user, model.Where(x => x.Selected).Select(y => y.RoleName));
-      if (!result.Succeeded)
+
+      // Add selected
+      var selectedRoles = model.Where(x => x.Selected).Select(x => x.RoleName);
+      var addResult = await _userManager.AddToRolesAsync(user, selectedRoles);
+      if (!addResult.Succeeded)
       {
-        ModelState.AddModelError("", "Cannot add selected roles to user");
+        ModelState.AddModelError("", "Could not add selected roles.");
         return View(model);
       }
-      return RedirectToAction("Index");
+
+      return RedirectToAction("Index");  // or wherever you list users
     }
 
 

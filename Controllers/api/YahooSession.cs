@@ -253,44 +253,45 @@ namespace MarketAnalyticHub.Controllers.api
     /// <returns>The industry associated with the symbol.</returns>
     public static async Task<string> GetIndustryBySymbolAsync(string symbol, CancellationToken token = default)
     {
-      if (string.IsNullOrWhiteSpace(symbol))
-        throw new ArgumentException("Symbol cannot be null or empty.", nameof(symbol));
+      return "none";
+      //if (string.IsNullOrWhiteSpace(symbol))
+      //  throw new ArgumentException("Symbol cannot be null or empty.", nameof(symbol));
 
-      // Initialize necessary components
-      await InitAsync(token);
+      //// Initialize necessary components
+      //await InitAsync(token);
 
-      // Construct the URL
-      var url = $"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{Uri.EscapeDataString(symbol)}?modules=assetProfile";
+      //// Construct the URL
+      //var url = $"https://query2.finance.yahoo.com/v10/finance/quoteSummary/{Uri.EscapeDataString(symbol)}?modules=assetProfile";
 
-      try
-      {
-        var response = await url
-            .SetQueryParam("crumb", Crumb)
-            .WithCookie(_cookie.Name, _cookie.Value)
-            .WithHeader(UserAgentKey, UserAgentValue)
-            .GetAsync(token)
-            .ReceiveJson<QuoteSummaryResponse>();
-        Thread.Sleep(100);
-        var industry = response?.QuoteSummary?.Result?[0]?.AssetProfile?.Industry;
+      //try
+      //{
+      //  var response = await url
+      //      .SetQueryParam("crumb", Crumb)
+      //      .WithCookie(_cookie.Name, _cookie.Value)
+      //      .WithHeader(UserAgentKey, UserAgentValue)
+      //      .GetAsync(token)
+      //      .ReceiveJson<QuoteSummaryResponse>();
+      //  Thread.Sleep(100);
+      //  var industry = response?.QuoteSummary?.Result?[0]?.AssetProfile?.Industry;
 
-        if (string.IsNullOrEmpty(industry))
-        {
-          throw new InvalidOperationException($"Industry information not found for symbol: {symbol}");
-        }
+      //  if (string.IsNullOrEmpty(industry))
+      //  {
+      //    throw new InvalidOperationException($"Industry information not found for symbol: {symbol}");
+      //  }
 
-        return industry;
-      }
-      catch (FlurlHttpException ex)
-      {
-        var errorResponse = await ex.GetResponseStringAsync();
-        Console.WriteLine($"Flurl HTTP Error in GetIndustryBySymbolAsync: {ex.Message}\nResponse: {errorResponse}");
-        throw new HttpRequestException("Error fetching industry information from Yahoo Finance.", ex);
-      }
-      catch (Exception ex)
-      {
-        Console.WriteLine($"Unexpected Error in GetIndustryBySymbolAsync: {ex.Message}");
-        throw;
-      }
+      //  return industry;
+      //}
+      //catch (FlurlHttpException ex)
+      //{
+      //  var errorResponse = await ex.GetResponseStringAsync();
+      //  Console.WriteLine($"Flurl HTTP Error in GetIndustryBySymbolAsync: {ex.Message}\nResponse: {errorResponse}");
+      //  throw new HttpRequestException("Error fetching industry information from Yahoo Finance.", ex);
+      //}
+      //catch (Exception ex)
+      //{
+      //  Console.WriteLine($"Unexpected Error in GetIndustryBySymbolAsync: {ex.Message}");
+      //  throw;
+      //}
     }
 
     public static async Task<AssetProfile> GetSummaryBySymbolAsync(string symbol, CancellationToken token = default)

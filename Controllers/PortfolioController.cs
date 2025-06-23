@@ -12,6 +12,9 @@ using MarketAnalyticHub.Controllers.api;
 using Microsoft.Graph;
 using System.Globalization;
 using MarketAnalyticHub.Repositories;
+using TaskStatus = System.Threading.Tasks.TaskStatus;
+using MarketAnalyticHub.Controllers.Configurations.Reddit;
+using System.Diagnostics;
 
 namespace MarketAnalyticHub.Controllers
 {
@@ -23,13 +26,14 @@ namespace MarketAnalyticHub.Controllers
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IYahooFinanceService _yahooFinanceService;
     private readonly IDataRepository _dataRepository; // Para acesso direto, se necessário
-
-    public PortfolioController(PortfolioService portfolioService, IDataRepository dataRepository, UserManager<ApplicationUser> userManager, IYahooFinanceService yahooFinanceService)
+    private readonly ILogger<PortfolioController> _logger;
+    public PortfolioController(PortfolioService portfolioService, IDataRepository dataRepository, UserManager<ApplicationUser> userManager, IYahooFinanceService yahooFinanceService, ILogger<PortfolioController> logger)
     {
       _portfolioService = portfolioService;
       _userManager = userManager;
       _yahooFinanceService = yahooFinanceService;
       _dataRepository = dataRepository;
+      _logger = logger;
     }
 
     
@@ -277,48 +281,145 @@ namespace MarketAnalyticHub.Controllers
     [HttpGet]
     public async Task<IActionResult> GetPortfolios()
     {
+      var sw = Stopwatch.StartNew();
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      _logger.LogInformation("GetPortfolios started for UserId={UserId}", userId);
+
       if (userId == null)
       {
+        _logger.LogWarning("Unauthorized access attempt to GetPortfolios");
         return Unauthorized();
       }
 
-      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
-
-      foreach (var portfolio in portfolios)
+      try
       {
-        // Total percentage for portfolio
-        var portfolioPercentageResponse = await _portfolioService.CalculateTotalPortfolioPercentagesAsync(portfolio);
-        if (portfolioPercentageResponse != null)
+        // 1) fetch all portfolios
+        var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+        // 2) process each portfolio concurrently
+        var portfolioTasks = portfolios.Select(async portfolio =>
         {
-          portfolio.PortfolioPercentage += portfolioPercentageResponse.TotalDifferencePercentage;
-        }
+          var innerSw = Stopwatch.StartNew();
+          _logger.LogInformation("  Processing PortfolioId={PortfolioId}", portfolio.Id);
 
-       
+          // — Total percentage
+          var totalPctTask = _portfolioService.CalculateTotalPortfolioPercentagesAsync(portfolio);
 
-        foreach (var portfolioItem in portfolio.Items)
-        {
-          portfolioItem.SectorActivity = await _portfolioService.GetIndustryBySymbol(portfolioItem.Symbol);
-        }
+          // — Deduplicate symbols & kick off GetIndustryBySymbol for each
+          var uniqueSymbols = portfolio.Items
+              .Select(i => i.Symbol)
+              .Distinct();
+          var industryTasks = uniqueSymbols.ToDictionary(
+              sym => sym,
+              sym => _portfolioService
+                  .GetIndustryBySymbol(sym)
+                  .ContinueWith(t => t.Status == TaskStatus.RanToCompletion
+                      ? t.Result
+                      : "None"));
 
-        // Group portfolio items by symbol
-        var groupedItems = portfolio.Items
-             .GroupBy(item => item.Symbol)
-             .Select(group => new GroupedPortfolioItem
-             {
-               Symbol = group.Key,
-               Items = group.ToList()
-             })
-             .ToList();
+          // — Weekly/Monthly/Yearly percentage tasks
+          var weeklyPctTask = _portfolioService.CalculateWeeklyPortfolioPercentageAsync(portfolio);
+          var monthlyPctTask = _portfolioService.CalculateMonthlyPortfolioPercentageAsync(portfolio);
+          var yearlyPctTask = _portfolioService.CalculateYearlyPortfolioPercentageAsync(portfolio);
 
-        // Assign grouped items to the portfolio
-        portfolio.WeeklyPercentage = await _portfolioService.CalculateWeeklyPortfolioPercentageAsync(portfolio);
-        portfolio.MonthlyPercentage = await _portfolioService.CalculateMonthlyPortfolioPercentageAsync(portfolio);
-        portfolio.YearlyPercentage = await _portfolioService.CalculateYearlyPortfolioPercentageAsync(portfolio);
-          portfolio.GroupedItems = groupedItems;
+          // wait for all of the above
+          await Task.WhenAll(
+              totalPctTask,
+              Task.WhenAll(industryTasks.Values),
+              weeklyPctTask,
+              monthlyPctTask,
+              yearlyPctTask
+          );
+
+          // apply total percentage
+          var totalPctResp = await totalPctTask;
+          if (totalPctResp != null)
+            portfolio.PortfolioPercentage += totalPctResp.TotalDifferencePercentage;
+
+          // map industries back onto items
+          foreach (var item in portfolio.Items)
+            item.SectorActivity = industryTasks[item.Symbol].Result;
+
+          // assign period percentages
+          portfolio.WeeklyPercentage = await weeklyPctTask;
+          portfolio.MonthlyPercentage = await monthlyPctTask;
+          portfolio.YearlyPercentage = await yearlyPctTask;
+
+          // finally group items by symbol
+          portfolio.GroupedItems = portfolio.Items
+              .GroupBy(i => i.Symbol)
+              .Select(g => new GroupedPortfolioItem
+              {
+                Symbol = g.Key,
+                Items = g.ToList()
+              })
+              .ToList();
+
+          innerSw.Stop();
+          _logger.LogInformation(
+              "  Finished PortfolioId={PortfolioId} in {ElapsedMs}ms",
+              portfolio.Id,
+              innerSw.ElapsedMilliseconds);
+        });
+
+        // 3) wait for all portfolios to finish
+        await Task.WhenAll(portfolioTasks);
+
+        sw.Stop();
+        _logger.LogInformation(
+            "GetPortfolios completed for UserId={UserId} in {ElapsedMs}ms",
+            userId,
+            sw.ElapsedMilliseconds);
+
+        return Ok(portfolios);
+      }
+      catch (Exception ex)
+      {
+        sw.Stop();
+        _logger.LogError(
+            ex,
+            "GetPortfolios failed for UserId={UserId} after {ElapsedMs}ms",
+            userId,
+            sw.ElapsedMilliseconds);
+        throw; // or return StatusCode(500);
+      }
+    }
+    [HttpGet("manage-assets")]
+    public async Task<IActionResult> GetAssets()
+    {
+      var sw = Stopwatch.StartNew();
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      _logger.LogInformation("GetPortfolios started for UserId={UserId}", userId);
+
+      if (userId == null)
+      {
+        _logger.LogWarning("Unauthorized access attempt to GetPortfolios");
+        return Unauthorized();
       }
 
-      return Ok(portfolios);
+      try
+      {
+        // 1) fetch all portfolios
+        var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+
+        sw.Stop();
+        _logger.LogInformation(
+            "GetPortfolios completed for UserId={UserId} in {ElapsedMs}ms",
+            userId,
+            sw.ElapsedMilliseconds);
+
+        return Ok(portfolios);
+      }
+      catch (Exception ex)
+      {
+        sw.Stop();
+        _logger.LogError(
+            ex,
+            "GetPortfolios failed for UserId={UserId} after {ElapsedMs}ms",
+            userId,
+            sw.ElapsedMilliseconds);
+        throw; // or return StatusCode(500);
+      }
     }
 
     [HttpPost("CalculateOriginalMarketValue")]

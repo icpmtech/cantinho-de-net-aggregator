@@ -220,8 +220,7 @@ namespace MarketAnalyticHub.Services
 
       return purchaseData;
     }
-
-    public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
+    public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserV0Async(string userId)
     {
       var portfolios = await _context.Portfolios
                                      .Include(p => p.Items)
@@ -250,6 +249,68 @@ namespace MarketAnalyticHub.Services
 
       return portfolios;
     }
+
+    private async Task<Dictionary<string, StockData>> GetStockDataForPortfolios(IEnumerable<Portfolio> portfolios)
+    {
+      var symbols = portfolios.SelectMany(p => p.Items).Select(i => i.Symbol).Distinct();
+      var symbolStockData = new Dictionary<string, StockData>();
+
+      foreach (var symbol in symbols)
+      {
+        var stockData = await GetCurrentPriceAsync(symbol);
+        symbolStockData[symbol] = stockData;
+      }
+
+      return symbolStockData;
+    }
+
+    public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserAsync(string userId)
+    {
+      // 1) Kick off the DB fetch immediately
+      var portfoliosTask = _context.Portfolios
+          .AsNoTracking()
+          //.Include(p => p.Items).ThenInclude(pi => pi.Dividends)
+          //.Include(p => p.Items).ThenInclude(pi => pi.StockEvents)
+          .Where(p => p.UserId == userId)
+          .ToListAsync();
+
+      // 2) Await the DB fetch
+      var portfolios = await portfoliosTask.ConfigureAwait(false);
+
+      // 3) Extract all distinct symbols
+      var symbols = portfolios
+          .SelectMany(p => p.Items.Select(i => i.Symbol))
+          .Where(s => !string.IsNullOrWhiteSpace(s))
+          .Distinct()
+          .ToList();
+
+      // 4) Kick off the stock‐data lookup (do NOT await here)
+      var stockDataTask = GetStockDataForSymbolsAsync(symbols);
+
+      // 5) Await the lookup when you need the data
+      var symbolStockData = await stockDataTask.ConfigureAwait(false);
+
+      // 6) Map prices back onto items
+      foreach (var portfolio in portfolios)
+      {
+        foreach (var item in portfolio.Items)
+        {
+          if (symbolStockData.TryGetValue(item.Symbol, out var sd))
+          {
+            item.CurrentPrice = (decimal)sd.CurrentPrice;
+            item.Change = (decimal)sd.Change;
+            item.PercentChange = (decimal)sd.PercentChange;
+            item.HighPrice = (decimal)sd.HighPrice;
+            item.LowPrice = (decimal)sd.LowPrice;
+            item.OpenPrice = (decimal)sd.OpenPrice;
+            item.PreviousClosePrice = (decimal)sd.PreviousClosePrice;
+          }
+        }
+      }
+
+      return portfolios;
+    }
+
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByLossesUserAsync(string userId)
     {
       // Fetch portfolios with related data
@@ -262,7 +323,7 @@ namespace MarketAnalyticHub.Services
                                      .ToListAsync();
 
       // Fetch the latest stock data for the portfolios
-      var symbolStockData = await GetStockDataForPortfolios(portfolios);
+      var symbolStockData = await GetStockDataForPortfoliosAsync(portfolios);
 
       foreach (var portfolio in portfolios)
       {
@@ -391,19 +452,75 @@ namespace MarketAnalyticHub.Services
 
       return symbolStockData;
     }
-
-    private async Task<Dictionary<string, StockData>> GetStockDataForPortfolios(IEnumerable<Portfolio> portfolios)
+    /// <summary>
+    /// Fetches current stock data for each distinct symbol in parallel.
+    /// </summary>
+    /// <param name="symbols">A collection of stock symbols (e.g. ["AAPL","MSFT","GOOG"])</param>
+    /// <returns>A dictionary mapping each symbol to its StockData.</returns>
+    private async Task<Dictionary<string, StockData>> GetStockDataForSymbolsAsync(IEnumerable<string> symbols)
     {
-      var symbols = portfolios.SelectMany(p => p.Items).Select(i => i.Symbol).Distinct();
-      var symbolStockData = new Dictionary<string, StockData>();
+      // 1) Dedupe & materialize
+      var distinctSymbols = symbols
+          .Where(s => !string.IsNullOrWhiteSpace(s))
+          .Select(s => s.Trim().ToUpperInvariant())
+          .Distinct()
+          .ToList();
 
-      foreach (var symbol in symbols)
-      {
-        var stockData = await GetCurrentPriceAsync(symbol);
-        symbolStockData[symbol] = stockData;
-      }
+      // 2) Kick off one GetCurrentPriceAsync per symbol
+      var fetchTasks = distinctSymbols
+          .Select(async symbol =>
+          {
+            try
+            {
+              var data = await GetCurrentPriceAsync(symbol);
+              return KeyValuePair.Create(symbol, data);
+            }
+            catch
+            {
+              // On failure, return a default StockData (or handle however you prefer)
+              return KeyValuePair.Create(symbol, new StockData());
+            }
+          })
+          .ToList();
 
-      return symbolStockData;
+      // 3) Await all of them
+      var results = await Task.WhenAll(fetchTasks);
+
+      // 4) Build and return the dictionary
+      return results.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+    }
+
+    private async Task<Dictionary<string, StockData>> GetStockDataForPortfoliosAsync(IEnumerable<Portfolio> portfolios)
+    {
+      // 1) extract & de-dupe symbols once
+      var symbols = portfolios
+          .SelectMany(p => p.Items)
+          .Select(i => i.Symbol)
+          .Distinct()
+          .ToList();
+
+      // 2) kick off one task per symbol
+      var fetchTasks = symbols
+          .Select(async symbol =>
+          {
+            try
+            {
+              var data = await GetCurrentPriceAsync(symbol);
+              return KeyValuePair.Create(symbol, data);
+            }
+            catch
+            {
+              // on failure, supply a default StockData or null‐check upstream
+              return KeyValuePair.Create(symbol, new StockData());
+            }
+          })
+          .ToList();
+
+      // 3) await them all
+      var results = await Task.WhenAll(fetchTasks);
+
+      // 4) build your dictionary
+      return results.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
     }
 
     public async Task AddPortfolioAsync(Portfolio portfolio)

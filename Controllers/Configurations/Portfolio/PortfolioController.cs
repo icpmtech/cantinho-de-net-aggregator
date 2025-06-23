@@ -22,7 +22,12 @@ namespace MarketAnalyticHub.Controllers.Configurations.Reddit
       _context = context;
     }
 
+    
+    public IActionResult Manager()
+    {
 
+      return View();
+    }
     public IActionResult SummaryXtb()
     {
 

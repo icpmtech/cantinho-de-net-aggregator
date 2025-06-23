@@ -10,8 +10,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using MarketAnalyticHub.Models;
-using AspnetCoreMvcFull.Models;
 using AspnetCoreMvcFull.Services;
+using MarketAnalyticHub.Models.ViewsModels;
 
 namespace MarketAnalyticHub.Controllers.api
 {

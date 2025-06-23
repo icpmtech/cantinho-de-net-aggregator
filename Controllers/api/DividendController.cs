@@ -1,5 +1,5 @@
-using AspnetCoreMvcFull.Models;
 using MarketAnalyticHub.Models.SetupDb;
+using MarketAnalyticHub.Models.ViewsModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;

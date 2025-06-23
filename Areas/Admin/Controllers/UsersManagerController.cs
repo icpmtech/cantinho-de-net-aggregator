@@ -66,7 +66,60 @@ namespace MarketAnalyticHub.Areas.Admin.Controllers
 
       return View(model);
     }
+    [HttpGet]
+    public async Task<IActionResult> Delete(string id)
+    {
+      if (string.IsNullOrEmpty(id))
+        return BadRequest();
 
+      var user = await _userManager.FindByIdAsync(id);
+      if (user == null)
+        return NotFound();
+
+      var model = new DeleteUserViewModel
+      {
+        UserId = user.Id,
+        Email = user.Email,
+        FirstName = user.FirstName,
+        LastName = user.LastName,
+        Roles = await _userManager.GetRolesAsync(user)
+      };
+
+      return View(model);
+    }
+
+    // POST: Admin/UsersManager/DeleteConfirmed/5
+    [HttpPost, ActionName("Delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteConfirmed(string id)
+    {
+      if (string.IsNullOrEmpty(id))
+        return BadRequest();
+
+      var user = await _userManager.FindByIdAsync(id);
+      if (user == null)
+        return NotFound();
+
+      var result = await _userManager.DeleteAsync(user);
+      if (!result.Succeeded)
+      {
+        // You can collect errors and re-display the confirmation view if needed:
+        foreach (var err in result.Errors)
+          ModelState.AddModelError(string.Empty, err.Description);
+
+        var model = new DeleteUserViewModel
+        {
+          UserId = user.Id,
+          Email = user.Email,
+          FirstName = user.FirstName,
+          LastName = user.LastName,
+          Roles = await _userManager.GetRolesAsync(user)
+        };
+        return View("Delete", model);
+      }
+
+      return RedirectToAction(nameof(Index));
+    }
     [HttpPost]
     public async Task<IActionResult> Edit(EditUserViewModel model)
     {

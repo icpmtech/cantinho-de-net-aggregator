@@ -1,3 +1,4 @@
+using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Models.SetupDb;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,15 @@ namespace MarketAnalyticHub.Controllers.api
 
       if (userCredits == null)
       {
-        return NotFound("User credits not found");
+
+        return Ok(new
+        {
+          TotalCredits = 0,
+          UsedCredits = 0,
+          RemainingCredits = 0,
+          UsedPercentage = 0,
+          HasCredits = 0
+        });
       }
 
       // Calculate the percentage of used credits

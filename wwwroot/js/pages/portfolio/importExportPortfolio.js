@@ -1,4 +1,5 @@
 async function exportPortfolios(fileType) {
+
   const response = await fetch(`/api/Portfolio/Export?fileType=${fileType}`, {
     method: 'GET',
     headers: {

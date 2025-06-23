@@ -75,7 +75,7 @@ function renderPortfolioList(portfolios, chartType = 'bar', dateRange = 'all') {
       const sanitizedSymbol = sanitizeSymbol(group.symbol);
       if (!renderedSymbols.has(sanitizedSymbol)) {
         renderCandlestickChart(`candlestick-chart-${sanitizedSymbol}`, group.symbol, chartType, dateRange);
-        renderSparklineChart(`sparkline-chart-${sanitizedSymbol}`, group.symbol);
+       // renderSparklineChart(`sparkline-chart-${sanitizedSymbol}`, group.symbol);
         renderedSymbols.add(sanitizedSymbol);
       }
     });

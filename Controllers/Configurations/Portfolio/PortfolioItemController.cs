@@ -114,7 +114,9 @@ public class PortfolioItemController : Controller
     // Perform the update
     await _portfolioItemService.UpdateItemAsync(existingItem);
 
-    return NoContent();
+    // return the updated entity (or a DTO)
+    var updatedVm = new { id = existingItem.Id };
+    return Ok(updatedVm);
   }
 
   [HttpPut("{id}")]

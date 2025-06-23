@@ -1,4 +1,3 @@
-
 @model MarketAnalyticHub.Areas.Admin.Models.EditUserViewModel
 
 @{
@@ -8,34 +7,42 @@
 
 <h1>Edit User</h1>
 
-<form asp-action="Edit">
-    <div class="form-group">
-        <label asp-for="Email" class="control-label"></label>
+<form asp-action="Edit"
+      asp-route-id="@Model.UserId"
+      method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="UserId" />
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
         <input asp-for="Email" class="form-control" />
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <label asp-for="FirstName" class="control-label"></label>
+
+    <div class="mb-3">
+        <label asp-for="FirstName" class="form-label"></label>
         <input asp-for="FirstName" class="form-control" />
         <span asp-validation-for="FirstName" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <label asp-for="LastName" class="control-label"></label>
+
+    <div class="mb-3">
+        <label asp-for="LastName" class="form-label"></label>
         <input asp-for="LastName" class="form-control" />
         <span asp-validation-for="LastName" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <label asp-for="Roles" class="control-label"></label>
-        <select asp-for="Roles" class="form-control" multiple></select>
+
+    <div class="mb-3">
+        <label asp-for="Roles" class="form-label"></label>
+        <select asp-for="Roles"
+                asp-items="@(ViewData["Roles"] as SelectList)"
+                multiple
+                class="form-select">
+        </select>
         <span asp-validation-for="Roles" class="text-danger"></span>
     </div>
-    <div class="form-group">
-        <input type="submit" value="Save" class="btn btn-primary" />
+
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
     </div>
 </form>
-
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
-
