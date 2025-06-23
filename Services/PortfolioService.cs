@@ -269,8 +269,8 @@ namespace MarketAnalyticHub.Services
       // 1) Kick off the DB fetch immediately
       var portfoliosTask = _context.Portfolios
           .AsNoTracking()
-          //.Include(p => p.Items).ThenInclude(pi => pi.Dividends)
-          //.Include(p => p.Items).ThenInclude(pi => pi.StockEvents)
+          .Include(p => p.Items).ThenInclude(pi => pi.Dividends)
+          .Include(p => p.Items).ThenInclude(pi => pi.StockEvents)
           .Where(p => p.UserId == userId)
           .ToListAsync();
 
