@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Import to Yahoo (Preview & Upload)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"
+           
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+      
+
+        input, button {
+            margin-top: 1rem;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        #status {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>Import Portfolio to Yahoo</h1>
+
+    <input type="file" id="fileInput" accept=".csv, .xlsx" />
+    <button id="previewBtn" disabled>Preview CSV</button>
+    <button id="uploadBtn" disabled>Upload & Import</button>
+
+    <div id="status" role="status"></div>
+    <table id="previewTable" hidden>
+        <thead>
+            <tr>
+                <th>Symbol (col 0)</th>
+                <th>Purchase Date (col 9)</th>
+                <th>Price (col 10)</th>
+                <th>Quantity (col 11)</th>
+                <th>Commission (col 12)</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const fileInput  = document.getElementById('fileInput');
+        const previewBtn = document.getElementById('previewBtn');
+        const uploadBtn  = document.getElementById('uploadBtn');
+        const previewTbl = document.getElementById('previewTable');
+        const previewBody= previewTbl.querySelector('tbody');
+        const statusDiv  = document.getElementById('status');
+        let selectedFile = null;
+
+        fileInput.addEventListener('change', () => {
+          selectedFile = fileInput.files[0] || null;
+          previewBtn.disabled = !selectedFile;
+          uploadBtn.disabled  = true;
+          previewTbl.hidden = true;
+          statusDiv.textContent = '';
+        });
+
+        previewBtn.addEventListener('click', () => {
+          if (!selectedFile) return;
+          const ext = selectedFile.name.split('.').pop().toLowerCase();
+          if (ext !== 'csv') {
+            statusDiv.textContent = '⚠️ Preview only supported for CSV files.';
+            return;
+          }
+          statusDiv.textContent = 'Parsing CSV…';
+          Papa.parse(selectedFile, {
+            preview: 10,             // only read first 10 data rows
+            skipEmptyLines: true,
+            complete(results) {
+              previewBody.innerHTML = '';
+              results.data.slice(1).forEach((row) => {
+                // protect against short rows
+                const [s, , , , , , , , , date, price, qty, comm] = row;
+                const tr = document.createElement('tr');
+                [s, date, price, qty, comm].forEach(val => {
+                  const td = document.createElement('td');
+                  td.textContent = val ?? '';
+                  tr.appendChild(td);
+                });
+                previewBody.appendChild(tr);
+              });
+              previewTbl.hidden = false;
+              uploadBtn.disabled = false;
+              statusDiv.textContent = 'Preview ready. If it looks correct, click Upload.';
+            },
+            error(err) {
+              statusDiv.textContent = `❌ Failed to parse CSV: ${err.message}`;
+            }
+          });
+        });
+
+        uploadBtn.addEventListener('click', async () => {
+          if (!selectedFile) return;
+          statusDiv.textContent = 'Uploading…';
+          const form = new FormData();
+          form.append('File', selectedFile);
+          try {
+            const resp = await fetch('/api/Portfolio/ImportYahoo', {
+              method: 'POST',
+              body: form
+            });
+            if (resp.ok) {
+              statusDiv.textContent = '✅ File uploaded and portfolio imported!';
+            } else {
+              const text = await resp.text();
+              statusDiv.textContent = `❌ Server error: ${text}`;
+            }
+          } catch (e) {
+            statusDiv.textContent = `❌ Network error: ${e.message}`;
+          }
+        });
+    </script>
+</body>
+</html>
