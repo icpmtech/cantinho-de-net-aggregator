@@ -2,13 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Import to Yahoo (Preview & Upload)</title>
+    <title>Import Portfolio to Yahoo</title>
+
+    <!-- PapaParse for CSV parsing -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"
-           
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            ></script>
+
+    <!-- SheetJS for Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
+            ></script>
+
     <style>
-      
+        body {
+            font-family: sans-serif;
+            padding: 1rem;
+        }
 
         input, button {
             margin-top: 1rem;
@@ -28,86 +38,135 @@
 
         #status {
             margin-top: 1rem;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <h1>Import Portfolio to Yahoo</h1>
 
-    <input type="file" id="fileInput" accept=".csv, .xlsx" />
-    <button id="previewBtn" disabled>Preview CSV</button>
-    <button id="uploadBtn" disabled>Upload & Import</button>
+    <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" />
+    <button id="previewBtn" disabled>Preview</button>
+    <button id="uploadBtn" disabled>Upload &amp; Import</button>
+    <!-- Download-for-Yahoo button injected in script -->
 
     <div id="status" role="status"></div>
+
     <table id="previewTable" hidden>
-        <thead>
-            <tr>
-                <th>Symbol (col 0)</th>
-                <th>Purchase Date (col 9)</th>
-                <th>Price (col 10)</th>
-                <th>Quantity (col 11)</th>
-                <th>Commission (col 12)</th>
-            </tr>
-        </thead>
+        <thead><tr id="previewHeader"></tr></thead>
         <tbody></tbody>
     </table>
 
     <script>
-        const fileInput  = document.getElementById('fileInput');
-        const previewBtn = document.getElementById('previewBtn');
-        const uploadBtn  = document.getElementById('uploadBtn');
-        const previewTbl = document.getElementById('previewTable');
-        const previewBody= previewTbl.querySelector('tbody');
-        const statusDiv  = document.getElementById('status');
-        let selectedFile = null;
+        const fileInput   = document.getElementById('fileInput');
+        const previewBtn  = document.getElementById('previewBtn');
+        const uploadBtn   = document.getElementById('uploadBtn');
+        const previewTbl  = document.getElementById('previewTable');
+        const previewHead = document.getElementById('previewHeader');
+        const previewBody = previewTbl.querySelector('tbody');
+        const statusDiv   = document.getElementById('status');
+
+        // Download-for-Yahoo button
+        const downloadBtn = document.createElement('button');
+        downloadBtn.textContent    = 'Download for Yahoo';
+        downloadBtn.disabled       = true;
+        downloadBtn.style.marginLeft = '1rem';
+        uploadBtn.insertAdjacentElement('afterend', downloadBtn);
+
+        let headerRow = [];
+        let rows      = [];  // data rows
 
         fileInput.addEventListener('change', () => {
-          selectedFile = fileInput.files[0] || null;
-          previewBtn.disabled = !selectedFile;
-          uploadBtn.disabled  = true;
-          previewTbl.hidden = true;
+          headerRow = [];
+          rows      = [];
+          previewBtn.disabled   = !fileInput.files.length;
+          uploadBtn.disabled    = true;
+          downloadBtn.disabled  = true;
+          previewTbl.hidden     = true;
           statusDiv.textContent = '';
         });
 
         previewBtn.addEventListener('click', () => {
-          if (!selectedFile) return;
-          const ext = selectedFile.name.split('.').pop().toLowerCase();
-          if (ext !== 'csv') {
-            statusDiv.textContent = '⚠️ Preview only supported for CSV files.';
-            return;
+          const file = fileInput.files[0];
+          if (!file) return;
+          const ext = file.name.split('.').pop().toLowerCase();
+          statusDiv.textContent = 'Parsing…';
+
+          const handleData = data => {
+            headerRow = data[0] || [];
+            rows      = data.slice(1).filter(r => r.length >= headerRow.length);
+            renderPreview(headerRow, rows);
+            uploadBtn.disabled    = false;
+            downloadBtn.disabled  = false;
+            statusDiv.textContent = 'Preview ready. You can Upload or Download.';
+          };
+
+          if (ext === 'csv') {
+            Papa.parse(file, {
+              skipEmptyLines: true,
+              complete: r => handleData(r.data),
+              error: e => statusDiv.textContent = `❌ CSV parse error: ${e.message}`
+            });
+          } else if (ext === 'xlsx' || ext === 'xls') {
+            const reader = new FileReader();
+            reader.onload = e => {
+              const wb    = XLSX.read(e.target.result, { type: 'binary' });
+              const sheet = wb.Sheets[wb.SheetNames[0]];
+              const data  = XLSX.utils.sheet_to_json(sheet, { header:1, blankrows:false });
+              handleData(data);
+            };
+            reader.onerror = () => { statusDiv.textContent = '❌ Excel read error'; };
+            reader.readAsBinaryString(file);
+          } else {
+            statusDiv.textContent = '⚠️ Only .csv, .xlsx or .xls supported.';
           }
-          statusDiv.textContent = 'Parsing CSV…';
-          Papa.parse(selectedFile, {
-            preview: 10,             // only read first 10 data rows
-            skipEmptyLines: true,
-            complete(results) {
-              previewBody.innerHTML = '';
-              results.data.slice(1).forEach((row) => {
-                // protect against short rows
-                const [s, , , , , , , , , date, price, qty, comm] = row;
-                const tr = document.createElement('tr');
-                [s, date, price, qty, comm].forEach(val => {
-                  const td = document.createElement('td');
-                  td.textContent = val ?? '';
-                  tr.appendChild(td);
-                });
-                previewBody.appendChild(tr);
-              });
-              previewTbl.hidden = false;
-              uploadBtn.disabled = false;
-              statusDiv.textContent = 'Preview ready. If it looks correct, click Upload.';
-            },
-            error(err) {
-              statusDiv.textContent = `❌ Failed to parse CSV: ${err.message}`;
-            }
+        });
+
+        function renderPreview(header, data) {
+          // build header row
+          previewHead.innerHTML = '';
+          header.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = h;
+            previewHead.appendChild(th);
           });
+
+          // build up to 10 preview rows
+          previewBody.innerHTML = '';
+          data.slice(0, 10).forEach(row => {
+            const tr = document.createElement('tr');
+            header.forEach((_, i) => {
+              const td = document.createElement('td');
+              td.textContent = row[i] ?? '';
+              tr.appendChild(td);
+            });
+            previewBody.appendChild(tr);
+          });
+
+          previewTbl.hidden = false;
+        }
+
+        downloadBtn.addEventListener('click', () => {
+          if (!headerRow.length || !rows.length) return;
+          const out = [headerRow, ...rows];
+          const csv = Papa.unparse(out);
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement('a');
+          a.href     = url;
+          a.download = 'yahoo_import_full.csv';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
         });
 
         uploadBtn.addEventListener('click', async () => {
-          if (!selectedFile) return;
+          const file = fileInput.files[0];
+          if (!file) return;
           statusDiv.textContent = 'Uploading…';
           const form = new FormData();
-          form.append('File', selectedFile);
+          form.append('File', file);
           try {
             const resp = await fetch('/api/Portfolio/ImportYahoo', {
               method: 'POST',
