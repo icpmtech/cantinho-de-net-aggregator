@@ -21,7 +21,18 @@ namespace MarketAnalyticHub.Controllers.api
     {
       _indexingService = indexingService;
     }
+    [HttpPost]
+    public async Task<IActionResult> UpdatePortfolioDataPricesUser()
+    {
+      var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+      if (userId == null)
+      {
+        return Unauthorized(new { message = "Unauthorized" });
+      }
 
+      await _indexingService.UpdatePortfolioPricesAsync(userId);
+      return Ok(new { message = "Prices updated successfully." });
+    }
     public async Task<IActionResult> UpdatePortfolioDataPrices()
     {
       var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

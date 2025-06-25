@@ -1,6 +1,8 @@
 using AspnetCoreMvcFull.Services;
 using Elasticsearch.Net;
+using MarketAnalyticHub.Models;
 using MarketAnalyticHub.Services.Elastic;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Nest;
 
@@ -11,11 +13,12 @@ public class SearchController : ControllerBase
 {
   private readonly ElasticClient _elasticClient;
   private readonly OpenAIService _openAiClient;
-
-  public SearchController(ElasticSearchService elasticClient, OpenAIService openAiClient)
+  private readonly UserManager<ApplicationUser> _userManager;
+  public SearchController(ElasticSearchService elasticClient, OpenAIService openAiClient, UserManager<ApplicationUser> userManager)
   {
     _elasticClient = elasticClient._client;
     _openAiClient = openAiClient;
+    _userManager = userManager;
   }
 
   [HttpGet("search")]
@@ -278,6 +281,69 @@ public class SearchController : ControllerBase
     return Ok(searchResponse.Documents);
   }
 
+
+  public class PortfolioItem
+  {
+    public int Id { get; set; }
+    public string OperationType { get; set; }
+    public string UserId { get; set; }
+    public int PortfolioId { get; set; }
+    public string Symbol { get; set; }
+    public DateTime PurchaseDate { get; set; }
+    public int Quantity { get; set; }
+    public decimal PurchasePrice { get; set; }
+    public decimal CurrentPrice { get; set; }
+    public decimal Commission { get; set; }
+    public decimal TotalInvestment { get; set; }
+    public decimal CurrentMarketValue { get; set; }
+    public decimal TotalDividendIncome { get; set; }
+
+    public SocialSentimentData SocialSentiment { get; set; }
+  }
+
+  public class SocialSentimentData
+  {
+    public double PositiveScore { get; set; }
+    public double NegativeScore { get; set; }
+    public string Symbol { get; set; }
+    public double SentimentScore { get; set; }
+  }
+
+
+  [HttpGet("portfolio")]
+  public async Task<IActionResult> GetPortfolio( int page = 1, int pageSize = 50)
+  {
+    var userId = _userManager.GetUserId(User);
+    if (string.IsNullOrWhiteSpace(userId))
+      return BadRequest("userId é obrigatório.");
+
+    var indexName = $"user-id-{userId}-portfolio";
+    var from = (page - 1) * pageSize;
+
+    var searchResponse = await _elasticClient.SearchAsync<PortfolioItem>(s => s
+        .Index(indexName)
+        .From(from)
+        .Size(pageSize)
+        .Query(q => q.MatchAll())
+    );
+
+    if (!searchResponse.IsValid)
+    {
+      return StatusCode(500, new
+      {
+        error = searchResponse.ServerError?.Error?.Reason,
+        debug = searchResponse.DebugInformation
+      });
+    }
+
+    return Ok(new
+    {
+      Total = searchResponse.Total,
+      Page = page,
+      PageSize = pageSize,
+      Results = searchResponse.Documents
+    });
+  }
   // Autocomplete using OpenAI for enhanced suggestions
   [HttpGet("autocomplete")]
   public async Task<IActionResult> Autocomplete(string query, int maxSuggestions = 5)

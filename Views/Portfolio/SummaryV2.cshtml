@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Portfolio Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 p-6">
+
+    <h1 class="text-3xl font-bold text-center mb-6">📊 Portfolio Dashboard</h1>
+
+    <!-- Controls -->
+    <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+        <div class="flex items-center gap-2">
+            <label for="searchInput" class="font-medium">🔍 Search Symbol:</label>
+            <input id="searchInput" type="text" placeholder="e.g. AAPL" class="border p-2 rounded" oninput="filterTable()" />
+        </div>
+
+        <div class="flex items-center gap-2">
+            <label for="pageSizeSelect" class="font-medium">📄 Per Page:</label>
+            <select id="pageSizeSelect" class="border p-2 rounded" onchange="changePageSize()">
+                <option value="20">20</option>
+                <option value="50" selected>50</option>
+                <option value="100">100</option>
+                <option value="200">200</option>
+            </select>
+        </div>
+        <div class="flex items-center gap-2">
+            <label for="groupBySelect" class="font-medium">📦 Group By:</label>
+            <select id="groupBySelect" class="border p-2 rounded" onchange="groupTable()">
+                <option value="">None</option>
+                <option value="symbol">Symbol</option>
+                <option value="operationType">Operation Type</option>
+            </select>
+        </div>
+        <button onclick="downloadCSV()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">⬇️ Export CSV</button>
+
+        <button id="showAllBtn" onclick="toggleShowAll()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
+            🔁 Show All
+        </button>
+        <div class="flex items-center gap-2">
+            <button id="updateBtn" onclick="updatePrices()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
+                🔄 Update Prices
+            </button>
+            <span id="updateStatus" class="text-sm text-gray-600 hidden">Updating...</span>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="flex justify-center items-center gap-4 mb-4">
+        <button onclick="prevPage()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">⬅️ Prev</button>
+        <span id="pageInfo" class="font-medium">Page 1</span>
+        <button onclick="nextPage()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Next ➡️</button>
+    </div>
+
+    <!-- Summary -->
+    <div class="text-center mb-4 font-semibold" id="summaryTotals"></div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="min-w-full border rounded shadow bg-white">
+            <thead class="bg-gray-100">
+                <tr class="text-left">
+                    <th class="p-2 border">Symbol</th>
+                    <th class="p-2 border">Operation</th>
+                    <th class="p-2 border">Qty</th>
+                    <th class="p-2 border">Buy</th>
+                    <th class="p-2 border">Current</th>
+                    <th class="p-2 border">Invested</th>
+                    <th class="p-2 border">Market</th>
+                    <th class="p-2 border">P/L</th>
+                    <th class="p-2 border">Sentiment</th>
+                </tr>
+            </thead>
+            <tbody id="portfolioTable" class="text-sm"></tbody>
+        </table>
+    </div>
+
+    <!-- Chart -->
+    <div class="max-w-2xl mx-auto mt-10">
+        <canvas id="allocationChart"></canvas>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let pageSize = parseInt(localStorage.getItem("pageSize")) || 50;
+        let totalPages = 1;
+        let fullData = [];
+        let showAll = false;
+
+        document.getElementById("pageSizeSelect").value = pageSize;
+
+        async function fetchPortfolio(page = 1) {
+          try {
+            const url = showAll
+              ? `/api/Search/portfolio?page=1&pageSize=10000`
+              : `/api/Search/portfolio?page=${page}&pageSize=${pageSize}`;
+
+            const res = await fetch(url);
+            const data = await res.json();
+            fullData = data.results;
+
+            totalPages = Math.ceil(data.total / pageSize);
+            document.getElementById("pageInfo").textContent = showAll
+              ? `Showing All (${data.total})`
+              : `Page ${page} of ${totalPages}`;
+
+            renderTable(fullData);
+            renderChart(fullData);
+            updateSummary(fullData);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } catch (err) {
+            console.error("Error loading data:", err);
+          }
+        }
+                async function updatePrices() {
+          const btn = document.getElementById("updateBtn");
+          const status = document.getElementById("updateStatus");
+
+          btn.disabled = true;
+          status.classList.remove("hidden");
+          status.textContent = "⏳ Updating portfolio prices...";
+
+          try {
+            const res = await fetch("/PortfolioIndexing/UpdatePortfolioDataPricesUser", {
+              method: "POST"
+            });
+
+            if (res.ok) {
+              status.textContent = "✅ Portfolio prices updated.";
+              await fetchPortfolio(currentPage); // refresh portfolio
+            } else {
+              status.textContent = "❌ Failed to update prices.";
+            }
+          } catch (err) {
+            console.error("Error updating prices:", err);
+            status.textContent = "❌ Error while updating.";
+          } finally {
+            btn.disabled = false;
+            setTimeout(() => status.classList.add("hidden"), 4000);
+          }
+        }
+                function groupTable() {
+          renderTable(fullData);
+        }
+
+
+               function renderTable(data) {
+          const tbody = document.getElementById("portfolioTable");
+          tbody.innerHTML = "";
+
+          const groupBy = document.getElementById("groupBySelect").value;
+
+          if (!groupBy) {
+            // Sem agrupamento
+            data.forEach(item => tbody.innerHTML += renderRow(item));
+          } else {
+            // Com agrupamento
+            const grouped = data.reduce((acc, item) => {
+              const key = item[groupBy];
+              acc[key] = acc[key] || [];
+              acc[key].push(item);
+              return acc;
+            }, {});
+
+            Object.entries(grouped).forEach(([group, items]) => {
+              const totalInvested = items.reduce((sum, i) => sum + i.totalInvestment, 0).toFixed(2);
+              const totalMarket = items.reduce((sum, i) => sum + i.currentMarketValue, 0).toFixed(2);
+              const totalPL = (totalMarket - totalInvested).toFixed(2);
+              const color = totalPL > 0 ? "text-green-600" : totalPL < 0 ? "text-red-600" : "text-black";
+
+              tbody.innerHTML += `
+                <tr class="bg-gray-200 font-semibold">
+                  <td colspan="5">${group}</td>
+                  <td>${totalInvested}</td>
+                  <td>${totalMarket}</td>
+                  <td class="${color}">${totalPL} €</td>
+                  <td></td>
+                </tr>
+              `;
+
+              items.forEach(item => {
+                tbody.innerHTML += renderRow(item);
+              });
+            });
+          }
+        }
+                function renderRow(item) {
+          const diff = item.currentMarketValue - item.totalInvestment;
+          const diffClass = diff > 0 ? 'text-green-600 font-bold' : diff < 0 ? 'text-red-600 font-bold' : '';
+
+          return `
+            <tr>
+              <td class="p-2 border">${item.symbol}</td>
+              <td class="p-2 border">${item.operationType}</td>
+              <td class="p-2 border">${item.quantity}</td>
+              <td class="p-2 border">${item.purchasePrice.toFixed(2)}</td>
+              <td class="p-2 border">${item.currentPrice.toFixed(2)}</td>
+              <td class="p-2 border">${item.totalInvestment.toFixed(2)}</td>
+              <td class="p-2 border">${item.currentMarketValue.toFixed(2)}</td>
+              <td class="p-2 border ${diffClass}">${diff.toFixed(2)} €</td>
+              <td class="p-2 border">${(item.socialSentiment?.sentimentScore * 100).toFixed(0)}%</td>
+            </tr>
+          `;
+        }
+
+
+        function renderChart(data) {
+          const ctx = document.getElementById('allocationChart').getContext('2d');
+          if (window.myChart) window.myChart.destroy();
+
+          const labels = data.map(i => i.symbol);
+          const values = data.map(i => i.currentMarketValue);
+          const colors = labels.map((_, i) => `hsl(${i * 36}, 70%, 60%)`);
+
+          window.myChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+              labels: labels,
+              datasets: [{
+                data: values,
+                backgroundColor: colors
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                title: {
+                  display: true,
+                  text: 'Market Value Distribution'
+                }
+              }
+            }
+          });
+        }
+
+        function updateSummary(data) {
+          const totalInvested = data.reduce((sum, i) => sum + i.totalInvestment, 0).toFixed(2);
+          const totalMarket = data.reduce((sum, i) => sum + i.currentMarketValue, 0).toFixed(2);
+          const totalProfit = (totalMarket - totalInvested).toFixed(2);
+          const color = totalProfit > 0 ? "text-green-600" : totalProfit < 0 ? "text-red-600" : "text-black";
+
+          document.getElementById("summaryTotals").innerHTML = `
+            Invested: <strong>${totalInvested} €</strong> |
+            Market: <strong>${totalMarket} €</strong> |
+            Profit/Loss: <strong class="${color}">${totalProfit} €</strong>`;
+        }
+
+        function changePageSize() {
+          const selector = document.getElementById('pageSizeSelect');
+          pageSize = parseInt(selector.value);
+          localStorage.setItem("pageSize", pageSize);
+          currentPage = 1;
+          fetchPortfolio(currentPage);
+        }
+
+        function filterTable() {
+          const input = document.getElementById('searchInput').value.toLowerCase();
+          const filtered = fullData.filter(row => row.symbol.toLowerCase().includes(input));
+          renderTable(filtered);
+          renderChart(filtered);
+          updateSummary(filtered);
+        }
+
+        function nextPage() {
+          if (!showAll && currentPage < totalPages) {
+            currentPage++;
+            fetchPortfolio(currentPage);
+          }
+        }
+
+        function prevPage() {
+          if (!showAll && currentPage > 1) {
+            currentPage--;
+            fetchPortfolio(currentPage);
+          }
+        }
+
+        function toggleShowAll() {
+          showAll = !showAll;
+          currentPage = 1;
+          document.getElementById("showAllBtn").textContent = showAll ? "🔙 Back to Pagination" : "🔁 Show All";
+          fetchPortfolio(currentPage);
+        }
+
+        function downloadCSV() {
+          const headers = ["Symbol", "Operation", "Quantity", "Buy", "Current", "Invested", "Market", "P/L", "Sentiment"];
+          const rows = fullData.map(item => [
+            item.symbol,
+            item.operationType,
+            item.quantity,
+            item.purchasePrice.toFixed(2),
+            item.currentPrice.toFixed(2),
+            item.totalInvestment.toFixed(2),
+            item.currentMarketValue.toFixed(2),
+            (item.currentMarketValue - item.totalInvestment).toFixed(2),
+            (item.socialSentiment?.sentimentScore * 100).toFixed(0) + "%"
+          ]);
+
+          let csv = headers.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
+          const blob = new Blob([csv], { type: "text/csv" });
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = "portfolio.csv";
+          link.click();
+        }
+
+        fetchPortfolio(currentPage);
+    </script>
+
+</body>
+</html>
