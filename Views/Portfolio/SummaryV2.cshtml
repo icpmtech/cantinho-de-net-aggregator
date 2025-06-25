@@ -2,312 +2,731 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portfolio Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+          theme: {
+            extend: {
+              animation: {
+                'fade-in': 'fadeIn 0.3s ease-in-out',
+                'slide-in': 'slideIn 0.3s ease-out',
+                'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+              },
+              keyframes: {
+                fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                slideIn: { '0%': { transform: 'translateY(-10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } },
+                pulseSoft: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.7' } }
+              }
+            }
+          }
+        }
+    </script>
 </head>
-<body class="bg-gray-50 text-gray-800 p-6">
+<body class="bg-gradient-to-br from-slate-50 to-blue-50 min-h-screen">
 
-    <h1 class="text-3xl font-bold text-center mb-6">📊 Portfolio Dashboard</h1>
+    <!-- Header -->
+    <header class="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span class="text-white text-xl font-bold">₱</span>
+                    </div>
+                    <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
+                        Portfolio Dashboard
+                    </h1>
+                </div>
+                <div class="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span>Live Data</span>
+                </div>
+            </div>
+        </div>
+    </header>
 
-    <!-- Controls -->
-    <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
-        <div class="flex items-center gap-2">
-            <label for="searchInput" class="font-medium">🔍 Search Symbol:</label>
-            <input id="searchInput" type="text" placeholder="e.g. AAPL" class="border p-2 rounded" oninput="filterTable()" />
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- Summary Cards -->
+        <div id="summaryCards" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in"></div>
+
+        <!-- Controls Section -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6 mb-8 animate-slide-in">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Search -->
+                <div class="relative">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Search Symbol</label>
+                    <div class="relative">
+                        <input id="searchInput" type="text" placeholder="e.g. AAPL"
+                               class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all duration-200 bg-white/50"
+                               oninput="filterTable()" />
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <!-- Items per Page -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Items per Page</label>
+                    <select id="pageSizeSelect"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all duration-200 bg-white/50"
+                            onchange="changePageSize()">
+                        <option value="20">20</option>
+                        <option value="50" selected>50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                    </select>
+                </div>
+                <!-- Group By -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Group By</label>
+                    <select id="groupBySelect"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 transition-all duration-200 bg-white/50"
+                            onchange="changeGrouping()">
+                        <option value="none">None</option>
+                        <option value="symbol">Symbol</option>
+                        <option value="operation">Operation Type</option>
+                        <option value="sentiment">Sentiment</option>
+                    </select>
+                </div>
+                <!-- Action Buttons -->
+                <div class="sm:col-span-2 flex flex-wrap gap-3">
+                    <button onclick="downloadCSV()"
+                            class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white font-medium rounded-xl hover:from-green-700 hover:to-green-800 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>Export CSV
+                    </button>
+                    <button id="showAllBtn" onclick="toggleShowAll()"
+                            class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 text-white font-medium rounded-xl hover:from-gray-700 hover:to-gray-800 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                        </svg>Show All
+                    </button>
+                    <button id="updateBtn" onclick="updatePrices()"
+                            class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-medium rounded-xl hover:from-blue-700 hover:to-blue-800 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                        <svg id="updateIcon" class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg><span id="updateText">Update Prices</span>
+                    </button>
+                </div>
+
+            </div>
+            <div id="updateStatus" class="hidden mt-4 p-4 rounded-xl bg-blue-50 border border-blue-200">
+                <div class="flex items-center">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
+                    <span class="text-blue-800 font-medium">Updating portfolio prices...</span>
+                </div>
+            </div>
+        </div>
+        <!-- Charts Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Allocation -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Portfolio Allocation</h2>
+                    <button id="alloBackBtn" class="hidden px-3 py-1 bg-gray-200 rounded-lg">Back</button>
+                </div>
+                <canvas id="allocationChart"></canvas>
+            </div>
+            <!-- Transaction Value Allocation -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Allocation by Transaction Value</h2>
+                    <button id="txBackBtn" class="hidden px-3 py-1 bg-gray-200 rounded-lg">Back</button>
+                </div>
+                <canvas id="transactionsChart"></canvas>
+            </div>
+            <!-- P/L Allocation -->
+            <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800">Allocation by P/L</h2>
+                    <button id="plBackBtn" class="hidden px-3 py-1 bg-gray-200 rounded-lg">Back</button>
+                </div>
+                <canvas id="plChart"></canvas>
+            </div>
         </div>
 
-        <div class="flex items-center gap-2">
-            <label for="pageSizeSelect" class="font-medium">📄 Per Page:</label>
-            <select id="pageSizeSelect" class="border p-2 rounded" onchange="changePageSize()">
-                <option value="20">20</option>
-                <option value="50" selected>50</option>
-                <option value="100">100</option>
-                <option value="200">200</option>
-            </select>
-        </div>
-        <div class="flex items-center gap-2">
-            <label for="groupBySelect" class="font-medium">📦 Group By:</label>
-            <select id="groupBySelect" class="border p-2 rounded" onchange="groupTable()">
-                <option value="">None</option>
-                <option value="symbol">Symbol</option>
-                <option value="operationType">Operation Type</option>
-            </select>
-        </div>
-        <button onclick="downloadCSV()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">⬇️ Export CSV</button>
-
-        <button id="showAllBtn" onclick="toggleShowAll()" class="bg-gray-700 text-white px-4 py-2 rounded hover:bg-gray-800">
-            🔁 Show All
-        </button>
-        <div class="flex items-center gap-2">
-            <button id="updateBtn" onclick="updatePrices()" class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600">
-                🔄 Update Prices
+        <!-- Pagination -->
+        <div class="flex justify-center items-center gap-4 mb-8">
+            <button onclick="prevPage()"
+                    class="px-6 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl hover:bg-white hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M15 19l-7-7 7-7" />
+                </svg>Previous
             </button>
-            <span id="updateStatus" class="text-sm text-gray-600 hidden">Updating...</span>
+            <div id="pageInfo"
+                 class="px-6 py-3 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-300 font-medium text-gray-700">
+                Page 1
+            </div>
+            <button onclick="nextPage()"
+                    class="px-6 py-3 bg-white/80 backdrop-blur-sm border border-gray-300 rounded-xl hover:bg-white hover:shadow-md transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                Next
+                <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 5l7 7-7 7" />
+                </svg>
+            </button>
         </div>
-    </div>
 
-    <!-- Pagination -->
-    <div class="flex justify-center items-center gap-4 mb-4">
-        <button onclick="prevPage()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">⬅️ Prev</button>
-        <span id="pageInfo" class="font-medium">Page 1</span>
-        <button onclick="nextPage()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Next ➡️</button>
-    </div>
+        <!-- Table Container -->
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200 overflow-hidden mb-8">
+            <div class="overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-gradient-to-r from-gray-50 to-gray-100">
+                        <tr>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">Symbol</th>
+                            <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">Operation</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">Quantity</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">Buy Price</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">Current Price</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">Invested</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">Market Value</th>
+                            <th class="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">P/L</th>
+                            <th class="px-6 py-4 text-center text-xs font-semibold text-gray-600 uppercase border-b border-gray-200 tracking-wider">Sentiment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="portfolioTable" class="divide-y divide-gray-200">
+                        <tr>
+                            <td colspan="9" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center">
+                                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                                    <span class="text-gray-500">Loading portfolio data...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-    <!-- Summary -->
-    <div class="text-center mb-4 font-semibold" id="summaryTotals"></div>
-
-    <!-- Table -->
-    <div class="overflow-x-auto">
-        <table class="min-w-full border rounded shadow bg-white">
-            <thead class="bg-gray-100">
-                <tr class="text-left">
-                    <th class="p-2 border">Symbol</th>
-                    <th class="p-2 border">Operation</th>
-                    <th class="p-2 border">Qty</th>
-                    <th class="p-2 border">Buy</th>
-                    <th class="p-2 border">Current</th>
-                    <th class="p-2 border">Invested</th>
-                    <th class="p-2 border">Market</th>
-                    <th class="p-2 border">P/L</th>
-                    <th class="p-2 border">Sentiment</th>
-                </tr>
-            </thead>
-            <tbody id="portfolioTable" class="text-sm"></tbody>
-        </table>
-    </div>
-
-    <!-- Chart -->
-    <div class="max-w-2xl mx-auto mt-10">
-        <canvas id="allocationChart"></canvas>
+       
     </div>
 
     <script>
         let currentPage = 1;
-        let pageSize = parseInt(localStorage.getItem("pageSize")) || 50;
-        let totalPages = 1;
-        let fullData = [];
-        let showAll = false;
-
+        let pageSize    = parseInt(localStorage.getItem("pageSize")) || 50;
+        let totalPages  = 1;
+        let fullData    = [];
+        let showAll     = false;
+        let groupBy     = 'none';
+        let allocationDrillStack = [];
+        let txDrillStack        = [];
+        let plDrillStack        = [];
         document.getElementById("pageSizeSelect").value = pageSize;
 
         async function fetchPortfolio(page = 1) {
+          showLoadingState();
           try {
             const url = showAll
               ? `/api/Search/portfolio?page=1&pageSize=10000`
               : `/api/Search/portfolio?page=${page}&pageSize=${pageSize}`;
 
-            const res = await fetch(url);
+            const res  = await fetch(url);
             const data = await res.json();
-            fullData = data.results;
-
-            totalPages = Math.ceil(data.total / pageSize);
+            fullData    = data.results;
+            totalPages  = Math.ceil(data.total / pageSize);
             document.getElementById("pageInfo").textContent = showAll
               ? `Showing All (${data.total})`
               : `Page ${page} of ${totalPages}`;
 
             renderTable(fullData);
-            renderChart(fullData);
-            updateSummary(fullData);
+            renderSummaryCards(fullData);
+            renderAllocation(fullData);
+            renderTransactionsChart(fullData);
+            renderPLChart(fullData);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } catch (err) {
             console.error("Error loading data:", err);
+            showErrorState();
           }
         }
-                async function updatePrices() {
-          const btn = document.getElementById("updateBtn");
-          const status = document.getElementById("updateStatus");
 
-          btn.disabled = true;
+        function changeGrouping() {
+          groupBy = document.getElementById('groupBySelect').value;
+           resetDrills();
+          renderTable(fullData);
+          allocationDrillStack = [];
+          renderAllocation(fullData);
+          renderTransactionsChart(fullData);
+        renderPLChart(fullData);
+        }
+             function resetDrills() {
+          allocationDrillStack = [];
+          txDrillStack = [];
+          plDrillStack = [];
+          document.getElementById('alloBackBtn').classList.add('hidden');
+          document.getElementById('txBackBtn').classList.add('hidden');
+          document.getElementById('plBackBtn').classList.add('hidden');
+        }
+        function renderTable(data) {
+          const tbody = document.getElementById("portfolioTable");
+          if (!data.length) {
+            tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-12 text-center text-gray-500">No data found</td></tr>';
+            return;
+          }
+          tbody.innerHTML = '';
+          const groups = {};
+
+          // Build groups
+          if (groupBy === 'none') {
+            groups['All'] = data;
+          } else if (groupBy === 'operation') {
+            data.forEach(i => (groups[i.operationType] = groups[i.operationType] || []).push(i));
+          } else if (groupBy === 'sentiment') {
+            data.forEach(i => {
+              const s = i.socialSentiment?.sentimentScore || 0;
+              const lbl = s > 0.6 ? 'Positive' : s > 0.4 ? 'Neutral' : 'Negative';
+              (groups[lbl] = groups[lbl] || []).push(i);
+            });
+          } else if (groupBy === 'symbol') {
+            data.forEach(i => {
+              const letter = i.symbol;
+              (groups[letter] = groups[letter] || []).push(i);
+            });
+          }
+
+          // Render groups + totals + rows
+          Object.keys(groups).sort().forEach(group => {
+            const items = groups[group];
+
+            // Group header
+            const headerRow = document.createElement('tr');
+            headerRow.innerHTML = `<td colspan="9" class="px-6 py-2 bg-gray-100 font-semibold">${group}</td>`;
+            tbody.appendChild(headerRow);
+
+            // Totals row
+            const totalQty = items.reduce((sum,i)=>sum + i.quantity, 0);
+            const totalInv = items.reduce((sum,i)=>sum + i.totalInvestment, 0);
+            const totalMkt = items.reduce((sum,i)=>sum + i.currentMarketValue, 0);
+            const diff     = totalMkt - totalInv;
+            const diffPct  = totalInv>0 ? ((diff/totalInv)*100).toFixed(1) : '0.0';
+            const summaryRow = document.createElement('tr');
+            summaryRow.innerHTML = `
+              <td colspan="2" class="px-6 py-2 bg-gray-50 font-medium">Totals:</td>
+              <td class="px-6 py-2 text-right bg-gray-50 font-medium">${totalQty}</td>
+              <td class="px-6 py-2 bg-gray-50"></td>
+              <td class="px-6 py-2 bg-gray-50"></td>
+              <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${totalInv.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+              <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${totalMkt.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+              <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${diff.toFixed(2)} (${diffPct}%)</td>
+              <td class="px-6 py-2 bg-gray-50"></td>`;
+            tbody.appendChild(summaryRow);
+
+            // Item rows
+            items.forEach(item => {
+              const itemDiff = item.currentMarketValue - item.totalInvestment;
+              const diffCls  = itemDiff>0?'text-green-600':itemDiff<0?'text-red-600':'text-gray-600';
+              const s        = item.socialSentiment?.sentimentScore||0;
+              const sentCls  = s>0.6?'bg-green-100 text-green-800':s>0.4?'bg-yellow-100 text-yellow-800':'bg-red-100 text-red-800';
+              const sentPct  = (s*100).toFixed(0)+'%';
+              const row = document.createElement('tr');
+              row.className = 'hover:bg-gray-50 transition-colors duration-150 animate-fade-in';
+              row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center">
+                    <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                      <span class="text-white text-xs font-bold">${item.symbol.charAt(0)}</span>
+                    </div>
+                    <span class="font-semibold text-gray-900">${item.symbol}</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full ${item.operationType==='BUY'?'bg-blue-100 text-blue-800':'bg-red-100 text-red-800'}">
+                    ${item.operationType}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-medium">${item.quantity.toLocaleString()}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900">€${item.purchasePrice.toFixed(2)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-semibold">€${item.currentPrice.toFixed(2)}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900">€${item.totalInvestment.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-semibold">€${item.currentMarketValue.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="flex flex-col items-end">
+                    <span class="font-bold ${diffCls}">€${itemDiff.toFixed(2)}</span>
+                    <span class="text-xs ${diffCls}">(${(itemDiff/item.totalInvestment*100).toFixed(1)}%)</span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                  <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full ${sentCls}">${sentPct}</span>
+                </td>`;
+              tbody.appendChild(row);
+            });
+          });
+        }
+
+        function renderSummaryCards(data) {
+          const totalInv   = data.reduce((sum,i)=>sum + i.totalInvestment, 0);
+          const totalMkt   = data.reduce((sum,i)=>sum + i.currentMarketValue, 0);
+          const totalProf  = totalMkt - totalInv;
+          const profPct    = totalInv>0?((totalProf/totalInv)*100):0;
+          const colorCls   = totalProf>0?'green':'red';
+          document.getElementById("summaryCards").innerHTML = `
+            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200 shadow-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-blue-600">Total Invested</p>
+                  <p class="text-2xl font-bold text-blue-900">€${totalInv.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
+                </div>
+                <div class="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200 shadow-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-purple-600">Market Value</p>
+                  <p class="text-2xl font-bold text-purple-900">€${totalMkt.toLocaleString(undefined,{minimumFractionDigits:2})}</p>
+                </div>
+                <div class="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
+                  <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="bg-gradient-to-br from-${colorCls}-50 to-${colorCls}-100 rounded-2xl p-6 border border-${colorCls}-200 shadow-lg">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm font-medium text-${colorCls}-600">Total P/L</p>
+                  <p class="text-2xl font-bold text-${colorCls}-600">€${totalProf.toFixed(2)}</p>
+                  <p class="text-sm text-${colorCls}-600">${profPct>=0?'+':''}${profPct.toFixed(1)}%</p>
+                </div>
+                <div class="w-12 h-12 bg-${colorCls}-500 rounded-xl flex items-center justify-center">
+                  <span class="text-white text-xl font-bold">${totalProf>0?'↗':totalProf<0?'↘':'→'}</span>
+                </div>
+              </div>
+            </div>`;
+        }
+
+        async function updatePrices() {
+          const btn    = document.getElementById("updateBtn");
+          const status = document.getElementById("updateStatus");
+          const icon   = document.getElementById("updateIcon");
+          const text   = document.getElementById("updateText");
+
+          btn.disabled     = true;
           status.classList.remove("hidden");
-          status.textContent = "⏳ Updating portfolio prices...";
+          icon.classList.add("animate-spin");
+          text.textContent = "Updating...";
 
           try {
             const res = await fetch("/PortfolioIndexing/UpdatePortfolioDataPricesUser", {
               method: "POST"
             });
+            if (!res.ok) throw new Error("Update failed");
 
-            if (res.ok) {
-              status.textContent = "✅ Portfolio prices updated.";
-              await fetchPortfolio(currentPage); // refresh portfolio
-            } else {
-              status.textContent = "❌ Failed to update prices.";
-            }
+            status.innerHTML = `
+              <div class="flex items-center">
+                <svg class="w-4 h-4 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M5 13l4 4L19 7" />
+                </svg>
+                <span class="text-green-800 font-medium">Portfolio prices updated successfully!</span>
+              </div>`;
+            status.className = "mt-4 p-4 rounded-xl bg-green-50 border border-green-200";
+
+            await fetchPortfolio(currentPage);
           } catch (err) {
             console.error("Error updating prices:", err);
-            status.textContent = "❌ Error while updating.";
+            status.innerHTML = `
+              <div class="flex items-center">
+                <svg class="w-4 h-4 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span class="text-red-800 font-medium">Failed to update prices. Please try again.</span>
+              </div>`;
+            status.className = "mt-4 p-4 rounded-xl bg-red-50 border border-red-200";
           } finally {
-            btn.disabled = false;
+            btn.disabled     = false;
+            icon.classList.remove("animate-spin");
+            text.textContent = "Update Prices";
             setTimeout(() => status.classList.add("hidden"), 4000);
           }
         }
-                function groupTable() {
-          renderTable(fullData);
-        }
 
-
-               function renderTable(data) {
-          const tbody = document.getElementById("portfolioTable");
-          tbody.innerHTML = "";
-
-          const groupBy = document.getElementById("groupBySelect").value;
-
-          if (!groupBy) {
-            // Sem agrupamento
-            data.forEach(item => tbody.innerHTML += renderRow(item));
-          } else {
-            // Com agrupamento
-            const grouped = data.reduce((acc, item) => {
-              const key = item[groupBy];
-              acc[key] = acc[key] || [];
-              acc[key].push(item);
-              return acc;
-            }, {});
-
-            Object.entries(grouped).forEach(([group, items]) => {
-              const totalInvested = items.reduce((sum, i) => sum + i.totalInvestment, 0).toFixed(2);
-              const totalMarket = items.reduce((sum, i) => sum + i.currentMarketValue, 0).toFixed(2);
-              const totalPL = (totalMarket - totalInvested).toFixed(2);
-              const color = totalPL > 0 ? "text-green-600" : totalPL < 0 ? "text-red-600" : "text-black";
-
-              tbody.innerHTML += `
-                <tr class="bg-gray-200 font-semibold">
-                  <td colspan="5">${group}</td>
-                  <td>${totalInvested}</td>
-                  <td>${totalMarket}</td>
-                  <td class="${color}">${totalPL} €</td>
-                  <td></td>
-                </tr>
-              `;
-
-              items.forEach(item => {
-                tbody.innerHTML += renderRow(item);
-              });
-            });
+        function downloadCSV() {
+          const headers = ["Symbol","Operation","Quantity","Buy Price","Current Price","Invested","Market Value","P/L","P/L %","Sentiment"];
+          const rows = fullData.map(i => {
+            const diff = i.currentMarketValue - i.totalInvestment;
+            return [
+              i.symbol,
+              i.operationType,
+              i.quantity,
+              i.purchasePrice.toFixed(2),
+              i.currentPrice.toFixed(2),
+              i.totalInvestment.toFixed(2),
+              i.currentMarketValue.toFixed(2),
+              diff.toFixed(2),
+              ((diff/i.totalInvestment)*100).toFixed(2)+"%",
+              ((i.socialSentiment?.sentimentScore||0)*100).toFixed(0)+"%"
+            ];
+          });
+          let csv = headers.join(",") + "\n" + rows.map(r=>r.join(",")).join("\n");
+          const blob = new Blob([csv],{type:"text/csv;charset=utf-8;"});
+          const link = document.createElement("a");
+          if(link.download!==undefined){
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href",url);
+            link.setAttribute("download",`portfolio_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
           }
         }
-                function renderRow(item) {
-          const diff = item.currentMarketValue - item.totalInvestment;
-          const diffClass = diff > 0 ? 'text-green-600 font-bold' : diff < 0 ? 'text-red-600 font-bold' : '';
 
-          return `
+        function showErrorState() {
+          const tbody = document.getElementById("portfolioTable");
+          tbody.innerHTML = `
             <tr>
-              <td class="p-2 border">${item.symbol}</td>
-              <td class="p-2 border">${item.operationType}</td>
-              <td class="p-2 border">${item.quantity}</td>
-              <td class="p-2 border">${item.purchasePrice.toFixed(2)}</td>
-              <td class="p-2 border">${item.currentPrice.toFixed(2)}</td>
-              <td class="p-2 border">${item.totalInvestment.toFixed(2)}</td>
-              <td class="p-2 border">${item.currentMarketValue.toFixed(2)}</td>
-              <td class="p-2 border ${diffClass}">${diff.toFixed(2)} €</td>
-              <td class="p-2 border">${(item.socialSentiment?.sentimentScore * 100).toFixed(0)}%</td>
-            </tr>
-          `;
+              <td colspan="9" class="px-6 py-12 text-center">
+                <div class="flex flex-col items-center">
+                  <svg class="w-12 h-12 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span class="text-gray-500">Failed to load portfolio data. Please try again.</span>
+                </div>
+              </td>
+            </tr>`;
+        }
+
+        function showLoadingState() {
+          const tbody = document.getElementById("portfolioTable");
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="9" class="px-6 py-12 text-center">
+                <div class="flex flex-col items-center">
+                  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+                  <span class="text-gray-500">Loading portfolio data...</span>
+                </div>
+              </td>
+            </tr>`;
+        }
+              function filterTable() {
+          const q = document.getElementById('searchInput').value.toLowerCase();
+          const filtered = fullData.filter(i=>i.symbol.toLowerCase().includes(q));
+          renderTable(filtered);
+          renderSummaryCards(filtered);
+          resetDrills();
+          renderAllocation(filtered);
+          renderTransactionsChart(filtered);
+          renderPLChart(filtered);
         }
 
 
-        function renderChart(data) {
-          const ctx = document.getElementById('allocationChart').getContext('2d');
-          if (window.myChart) window.myChart.destroy();
+             // ---- Chart helpers ----
+        function buildGroups(data, keyFn) {
+          const groups = {};
+          data.forEach(i => {
+            const key = keyFn(i);
+            (groups[key] = groups[key]||[]).push(i);
+          });
+          return groups;
+        }
 
-          const labels = data.map(i => i.symbol);
-          const values = data.map(i => i.currentMarketValue);
-          const colors = labels.map((_, i) => `hsl(${i * 36}, 70%, 60%)`);
+        function drillData(data, drillStack, keyFn, valueFn) {
+          if (drillStack.length === 0) {
+            // top level
+            const groups = buildGroups(data, keyFn);
+            const labels = Object.keys(groups).sort();
+            const values = labels.map(l => groups[l].reduce((sum, i) => sum + valueFn(i), 0));
+            return { labels, values };
+          } else {
+            // drilled
+            const grp = drillStack.slice(-1)[0];
+            const items = buildGroups(data, keyFn)[grp]||[];
+            return {
+              labels: items.map(i=>i.symbol),
+              values: items.map(i=>valueFn(i))
+            };
+          }
+        }
 
-          window.myChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-              labels: labels,
-              datasets: [{
-                data: values,
-                backgroundColor: colors
-              }]
-            },
+        function makeDoughnut(ctx, labels, values, backBtn, drillStack, keyFn, valueFn) {
+          if (ctx.chart) ctx.chart.destroy();
+          const colors = labels.map((_,i)=>`hsl(${(i*137.508)%360},70%,60%)`);
+          ctx.chart = new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels, datasets:[{ data:values, backgroundColor:colors }] },
             options: {
-              responsive: true,
-              plugins: {
-                title: {
-                  display: true,
-                  text: 'Market Value Distribution'
+              responsive:true, maintainAspectRatio:true, cutout:'60%',
+              onClick(evt) {
+                const pts = this.getElementsAtEventForMode(evt,'nearest',{intersect:true},true);
+                if (pts.length && drillStack.length===0) {
+                  drillStack.push(labels[pts[0].index]);
+                  const d = drillData(fullData, drillStack, keyFn, valueFn);
+                  makeDoughnut(ctx, d.labels, d.values, backBtn, drillStack, keyFn, valueFn);
+                  backBtn.classList.remove('hidden');
                 }
-              }
+              },
+              plugins:{ legend:{position:'bottom'} },
+              animation:{ animateRotate:true, animateScale:true, duration:500 }
             }
           });
         }
 
-        function updateSummary(data) {
-          const totalInvested = data.reduce((sum, i) => sum + i.totalInvestment, 0).toFixed(2);
-          const totalMarket = data.reduce((sum, i) => sum + i.currentMarketValue, 0).toFixed(2);
-          const totalProfit = (totalMarket - totalInvested).toFixed(2);
-          const color = totalProfit > 0 ? "text-green-600" : totalProfit < 0 ? "text-red-600" : "text-black";
-
-          document.getElementById("summaryTotals").innerHTML = `
-            Invested: <strong>${totalInvested} €</strong> |
-            Market: <strong>${totalMarket} €</strong> |
-            Profit/Loss: <strong class="${color}">${totalProfit} €</strong>`;
+        function makeBar(ctx, labels, values, backBtn, drillStack, keyFn, valueFn) {
+          if (ctx.chart) ctx.chart.destroy();
+          ctx.chart = new Chart(ctx, {
+            type: 'bar',
+            data:{ labels, datasets:[{ label:'P/L', data:values }] },
+            options:{
+              responsive:true, maintainAspectRatio:true,
+              onClick(evt) {
+                const pts = this.getElementsAtEventForMode(evt,'nearest',{intersect:true},true);
+                if (pts.length && drillStack.length===0) {
+                  drillStack.push(labels[pts[0].index]);
+                  const d = drillData(fullData, drillStack, keyFn, valueFn);
+                  makeBar(ctx, d.labels, d.values, backBtn, drillStack, keyFn, valueFn);
+                  backBtn.classList.remove('hidden');
+                }
+              },
+              plugins:{ legend:{ display:false } },
+              scales:{ y:{ beginAtZero:true } }
+            }
+          });
         }
 
-        function changePageSize() {
-          const selector = document.getElementById('pageSizeSelect');
-          pageSize = parseInt(selector.value);
-          localStorage.setItem("pageSize", pageSize);
-          currentPage = 1;
+             // Portfolio Allocation (market value)
+        function renderAllocation(data) {
+          const { labels, values } = drillData(
+            data,
+            allocationDrillStack,
+            i=> groupBy==='none'   ? 'All'
+               : groupBy==='operation'? i.operationType
+               : groupBy==='sentiment'? (i.socialSentiment?.sentimentScore>0.6?'Positive':i.socialSentiment?.sentimentScore>0.4?'Neutral':'Negative')
+               : i.symbol,
+            i=> i.currentMarketValue
+          );
+          makeDoughnut(
+            document.getElementById('allocationChart').getContext('2d'),
+            labels, values,
+            document.getElementById('alloBackBtn'),
+            allocationDrillStack,
+            i=> groupBy==='none'   ? 'All'
+               : groupBy==='operation'? i.operationType
+               : groupBy==='sentiment'? (i.socialSentiment?.sentimentScore>0.6?'Positive':i.socialSentiment?.sentimentScore>0.4?'Neutral':'Negative')
+               : i.symbol,
+            i=> i.currentMarketValue
+          );
+        }
+
+        document.getElementById('alloBackBtn').onclick = ()=>{
+          allocationDrillStack.pop();
+          renderAllocation(fullData);
+        };
+
+        // Transactions Value (total invested)
+        function renderTransactionsChart(data) {
+          const { labels, values } = drillData(
+            data,
+            txDrillStack,
+            i=> groupBy==='none'   ? 'All'
+               : groupBy==='operation'? i.operationType
+               : groupBy==='sentiment'? (i.socialSentiment?.sentimentScore>0.6?'Positive':i.socialSentiment?.sentimentScore>0.4?'Neutral':'Negative')
+               : i.symbol,
+            i=> i.totalInvestment
+          );
+          makeDoughnut(
+            document.getElementById('transactionsChart').getContext('2d'),
+            labels, values,
+            document.getElementById('txBackBtn'),
+            txDrillStack,
+            i=> groupBy==='none'   ? 'All'
+               : groupBy==='operation'? i.operationType
+               : groupBy==='sentiment'? (i.socialSentiment?.sentimentScore>0.6?'Positive':i.socialSentiment?.sentimentScore>0.4?'Neutral':'Negative')
+               : i.symbol,
+            i=> i.totalInvestment
+          );
+        }
+        document.getElementById('txBackBtn').onclick = ()=>{
+          txDrillStack.pop();
+          renderTransactionsChart(fullData);
+        };
+
+        // P/L Allocation
+        function renderPLChart(data) {
+          const { labels, values } = drillData(
+            data,
+            plDrillStack,
+            i=> groupBy==='none'   ? 'All'
+               : groupBy==='operation'? i.operationType
+               : groupBy==='sentiment'? (i.socialSentiment?.sentimentScore>0.6?'Positive':i.socialSentiment?.sentimentScore>0.4?'Neutral':'Negative')
+               : i.symbol,
+            i=> i.currentMarketValue - i.totalInvestment
+          );
+          makeBar(
+            document.getElementById('plChart').getContext('2d'),
+            labels, values,
+            document.getElementById('plBackBtn'),
+            plDrillStack,
+            i=> groupBy==='none'   ? 'All'
+               : groupBy==='operation'? i.operationType
+               : groupBy==='sentiment'? (i.socialSentiment?.sentimentScore>0.6?'Positive':i.socialSentiment?.sentimentScore>0.4?'Neutral':'Negative')
+               : i.symbol,
+            i=> i.currentMarketValue - i.totalInvestment
+          );
+        }
+        document.getElementById('plBackBtn').onclick = ()=>{
+          plDrillStack.pop();
+          renderPLChart(fullData);
+        };
+
+        function nextPage()   { if(!showAll&&currentPage<totalPages){ currentPage++; fetchPortfolio(currentPage);} }
+        function prevPage()   { if(!showAll&&currentPage>1){ currentPage--; fetchPortfolio(currentPage);} }
+        function toggleShowAll(){
+          showAll = !showAll; currentPage=1;
+          const btn = document.getElementById("showAllBtn");
+          btn.innerHTML = showAll
+            ? `<svg class="w-4 h-4 mr-2"...></svg>Back to Pages`
+            : `<svg class="w-4 h-4 mr-2"...></svg>Show All`;
           fetchPortfolio(currentPage);
         }
 
-        function filterTable() {
-          const input = document.getElementById('searchInput').value.toLowerCase();
-          const filtered = fullData.filter(row => row.symbol.toLowerCase().includes(input));
-          renderTable(filtered);
-          renderChart(filtered);
-          updateSummary(filtered);
-        }
-
-        function nextPage() {
-          if (!showAll && currentPage < totalPages) {
-            currentPage++;
-            fetchPortfolio(currentPage);
+        // Keyboard shortcuts & tooltips & auto-refresh
+        document.addEventListener('keydown', e => {
+          if(e.ctrlKey||e.metaKey){
+            if(e.key==='r'){ e.preventDefault(); updatePrices(); }
+            if(e.key==='e'){ e.preventDefault(); downloadCSV(); }
+            if(e.key==='f'){ e.preventDefault(); document.getElementById('searchInput').focus(); }
           }
-        }
-
-        function prevPage() {
-          if (!showAll && currentPage > 1) {
-            currentPage--;
-            fetchPortfolio(currentPage);
+          if(!showAll){
+            if(e.key==='ArrowLeft' && currentPage>1) prevPage();
+            if(e.key==='ArrowRight' && currentPage<totalPages) nextPage();
           }
-        }
+        });
+        ['updateBtn','searchInput','showAllBtn'].forEach(id=>{
+          const el = document.getElementById(id);
+          if(el) el.title = id==='updateBtn'?'Ctrl+R to refresh':id==='searchInput'?'Ctrl+F to focus search':'Toggle pages/all';
+        });
+        setInterval(() => {
+          if(document.visibilityState==='visible') fetchPortfolio(currentPage);
+        },300000);
+        document.addEventListener('visibilitychange', ()=>{
+          if(document.visibilityState==='visible') fetchPortfolio(currentPage);
+        });
 
-        function toggleShowAll() {
-          showAll = !showAll;
-          currentPage = 1;
-          document.getElementById("showAllBtn").textContent = showAll ? "🔙 Back to Pagination" : "🔁 Show All";
-          fetchPortfolio(currentPage);
-        }
-
-        function downloadCSV() {
-          const headers = ["Symbol", "Operation", "Quantity", "Buy", "Current", "Invested", "Market", "P/L", "Sentiment"];
-          const rows = fullData.map(item => [
-            item.symbol,
-            item.operationType,
-            item.quantity,
-            item.purchasePrice.toFixed(2),
-            item.currentPrice.toFixed(2),
-            item.totalInvestment.toFixed(2),
-            item.currentMarketValue.toFixed(2),
-            (item.currentMarketValue - item.totalInvestment).toFixed(2),
-            (item.socialSentiment?.sentimentScore * 100).toFixed(0) + "%"
-          ]);
-
-          let csv = headers.join(",") + "\n" + rows.map(r => r.join(",")).join("\n");
-          const blob = new Blob([csv], { type: "text/csv" });
-          const link = document.createElement("a");
-          link.href = URL.createObjectURL(blob);
-          link.download = "portfolio.csv";
-          link.click();
-        }
-
+        // Init
         fetchPortfolio(currentPage);
     </script>
 
 </body>
 </html>
+
