@@ -40,7 +40,7 @@ namespace MarketAnalyticHub.Controllers.api
         return Unauthorized();
       }
 
-      var portfolios = await _portfolioService.GetPortfoliosByUserAsync(userId);
+      var portfolios = await _portfolioService.GetPortfoliosAsync();
       if (portfolios == null)
       {
         return NotFound("Portfolios not found.");

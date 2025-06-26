@@ -20,6 +20,7 @@ using AngleSharp.Text;
 using MarketAnalyticHub.Controllers.api;
 using MarketAnalyticHub.Repositories;
 
+
 namespace MarketAnalyticHub.Services
 {
   public class PortfolioService
@@ -220,6 +221,8 @@ namespace MarketAnalyticHub.Services
 
       return purchaseData;
     }
+    
+
     public async Task<IEnumerable<Portfolio>> GetPortfoliosByUserV0Async(string userId)
     {
       var portfolios = await _context.Portfolios

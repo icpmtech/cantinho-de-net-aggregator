@@ -268,101 +268,142 @@
           document.getElementById('txBackBtn').classList.add('hidden');
           document.getElementById('plBackBtn').classList.add('hidden');
         }
-        function renderTable(data) {
-          const tbody = document.getElementById("portfolioTable");
-          if (!data.length) {
-            tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-12 text-center text-gray-500">No data found</td></tr>';
-            return;
-          }
-          tbody.innerHTML = '';
-          const groups = {};
+      function renderTable(data) {
+  const tbody = document.getElementById("portfolioTable");
 
-          // Build groups
-          if (groupBy === 'none') {
-            groups['All'] = data;
-          } else if (groupBy === 'operation') {
-            data.forEach(i => (groups[i.operationType] = groups[i.operationType] || []).push(i));
-          } else if (groupBy === 'sentiment') {
-            data.forEach(i => {
-              const s = i.socialSentiment?.sentimentScore || 0;
-              const lbl = s > 0.6 ? 'Positive' : s > 0.4 ? 'Neutral' : 'Negative';
-              (groups[lbl] = groups[lbl] || []).push(i);
-            });
-          } else if (groupBy === 'symbol') {
-            data.forEach(i => {
-              const letter = i.symbol;
-              (groups[letter] = groups[letter] || []).push(i);
-            });
-          }
+  // Remove old delegated listener (if you ever re-call renderTable)
+  tbody.replaceWith(tbody.cloneNode(true));
+  const newTbody = document.getElementById("portfolioTable");
 
-          // Render groups + totals + rows
-          Object.keys(groups).sort().forEach(group => {
-            const items = groups[group];
+  // Delegate clicks on our symbol links
+  newTbody.addEventListener("click", e => {
+    const link = e.target.closest("a.symbol-link");
+    if (!link) return;
+    e.preventDefault();
+    window.location.assign(link.href);
+  });
 
-            // Group header
-            const headerRow = document.createElement('tr');
-            headerRow.innerHTML = `<td colspan="9" class="px-6 py-2 bg-gray-100 font-semibold">${group}</td>`;
-            tbody.appendChild(headerRow);
+  if (!data.length) {
+    newTbody.innerHTML =
+      '<tr><td colspan="9" class="px-6 py-12 text-center text-gray-500">No data found</td></tr>';
+    return;
+  }
 
-            // Totals row
-            const totalQty = items.reduce((sum,i)=>sum + i.quantity, 0);
-            const totalInv = items.reduce((sum,i)=>sum + i.totalInvestment, 0);
-            const totalMkt = items.reduce((sum,i)=>sum + i.currentMarketValue, 0);
-            const diff     = totalMkt - totalInv;
-            const diffPct  = totalInv>0 ? ((diff/totalInv)*100).toFixed(1) : '0.0';
-            const summaryRow = document.createElement('tr');
-            summaryRow.innerHTML = `
-              <td colspan="2" class="px-6 py-2 bg-gray-50 font-medium">Totals:</td>
-              <td class="px-6 py-2 text-right bg-gray-50 font-medium">${totalQty}</td>
-              <td class="px-6 py-2 bg-gray-50"></td>
-              <td class="px-6 py-2 bg-gray-50"></td>
-              <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${totalInv.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-              <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${totalMkt.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-              <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${diff.toFixed(2)} (${diffPct}%)</td>
-              <td class="px-6 py-2 bg-gray-50"></td>`;
-            tbody.appendChild(summaryRow);
+  newTbody.innerHTML = "";
+  const groups = {};
 
-            // Item rows
-            items.forEach(item => {
-              const itemDiff = item.currentMarketValue - item.totalInvestment;
-              const diffCls  = itemDiff>0?'text-green-600':itemDiff<0?'text-red-600':'text-gray-600';
-              const s        = item.socialSentiment?.sentimentScore||0;
-              const sentCls  = s>0.6?'bg-green-100 text-green-800':s>0.4?'bg-yellow-100 text-yellow-800':'bg-red-100 text-red-800';
-              const sentPct  = (s*100).toFixed(0)+'%';
-              const row = document.createElement('tr');
-              row.className = 'hover:bg-gray-50 transition-colors duration-150 animate-fade-in';
-              row.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-                      <span class="text-white text-xs font-bold">${item.symbol.charAt(0)}</span>
-                    </div>
-                    <span class="font-semibold text-gray-900">${item.symbol}</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full ${item.operationType==='BUY'?'bg-blue-100 text-blue-800':'bg-red-100 text-red-800'}">
-                    ${item.operationType}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-medium">${item.quantity.toLocaleString()}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900">€${item.purchasePrice.toFixed(2)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-semibold">€${item.currentPrice.toFixed(2)}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900">€${item.totalInvestment.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-semibold">€${item.currentMarketValue.toLocaleString(undefined,{minimumFractionDigits:2})}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right">
-                  <div class="flex flex-col items-end">
-                    <span class="font-bold ${diffCls}">€${itemDiff.toFixed(2)}</span>
-                    <span class="text-xs ${diffCls}">(${(itemDiff/item.totalInvestment*100).toFixed(1)}%)</span>
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-center">
-                  <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full ${sentCls}">${sentPct}</span>
-                </td>`;
-              tbody.appendChild(row);
-            });
-          });
-        }
+  // Build groups
+  if (groupBy === "none") {
+    groups["All"] = data;
+  } else if (groupBy === "operation") {
+    data.forEach(i => (groups[i.operationType] = groups[i.operationType] || []).push(i));
+  } else if (groupBy === "sentiment") {
+    data.forEach(i => {
+      const s = i.socialSentiment?.sentimentScore || 0;
+      const lbl = s > 0.6 ? "Positive" : s > 0.4 ? "Neutral" : "Negative";
+      (groups[lbl] = groups[lbl] || []).push(i);
+    });
+  } else if (groupBy === "symbol") {
+    data.forEach(i => {
+      const letter = i.symbol;
+      (groups[letter] = groups[letter] || []).push(i);
+    });
+  }
+
+  // Render
+  Object.keys(groups)
+    .sort()
+    .forEach(group => {
+      const items = groups[group];
+
+      // Group header
+      const headerRow = document.createElement("tr");
+      headerRow.innerHTML = `
+        <td colspan="9" class="px-6 py-2 bg-gray-100 font-semibold">${group}</td>`;
+      newTbody.appendChild(headerRow);
+
+      // Totals row
+      const totalQty = items.reduce((sum, i) => sum + i.quantity, 0);
+      const totalInv = items.reduce((sum, i) => sum + i.totalInvestment, 0);
+      const totalMkt = items.reduce((sum, i) => sum + i.currentMarketValue, 0);
+      const diff = totalMkt - totalInv;
+      const diffPct = totalInv > 0 ? ((diff / totalInv) * 100).toFixed(1) : "0.0";
+      const summaryRow = document.createElement("tr");
+      summaryRow.innerHTML = `
+        <td colspan="2" class="px-6 py-2 bg-gray-50 font-medium">Totals:</td>
+        <td class="px-6 py-2 text-right bg-gray-50 font-medium">${totalQty}</td>
+        <td class="px-6 py-2 bg-gray-50"></td>
+        <td class="px-6 py-2 bg-gray-50"></td>
+        <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${totalInv.toLocaleString(undefined,{
+          minimumFractionDigits:2
+        })}</td>
+        <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${totalMkt.toLocaleString(undefined,{
+          minimumFractionDigits:2
+        })}</td>
+        <td class="px-6 py-2 text-right bg-gray-50 font-medium">€${diff.toFixed(2)} (${
+        diffPct
+      }%)</td>
+        <td class="px-6 py-2 bg-gray-50"></td>`;
+      newTbody.appendChild(summaryRow);
+
+      // Item rows
+      items.forEach(item => {
+        const itemDiff = item.currentMarketValue - item.totalInvestment;
+        const diffCls = itemDiff > 0 ? "text-green-600" :
+                        itemDiff < 0 ? "text-red-600" : "text-gray-600";
+        const s = item.socialSentiment?.sentimentScore || 0;
+        const sentCls = s > 0.6 ? "bg-green-100 text-green-800" :
+                        s > 0.4 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800";
+        const sentPct = (s * 100).toFixed(0) + "%";
+
+        const row = document.createElement("tr");
+        row.className = "hover:bg-gray-50 transition-colors duration-150 animate-fade-in";
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center">
+              <div class="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <span class="text-white text-xs font-bold">${item.symbol.charAt(0)}</span>
+              </div>
+              <a
+                href="/PortfolioScrener/Details?stockSymbol=${item.symbol}"
+                class="symbol-link inline-block"
+              >
+                <span class="font-semibold text-gray-900">${item.symbol}</span>
+              </a>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full ${
+              item.operationType === "BUY"
+                ? "bg-blue-100 text-blue-800"
+                : "bg-red-100 text-red-800"
+            }">
+              ${item.operationType}
+            </span>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-medium">${item.quantity.toLocaleString()}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900">€${item.purchasePrice.toFixed(2)}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-semibold">€${item.currentPrice.toFixed(2)}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900">€${item.totalInvestment.toLocaleString(undefined,{
+            minimumFractionDigits:2
+          })}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-right text-gray-900 font-semibold">€${item.currentMarketValue.toLocaleString(undefined,{
+            minimumFractionDigits:2
+          })}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-right">
+            <div class="flex flex-col items-end">
+              <span class="font-bold ${diffCls}">€${itemDiff.toFixed(2)}</span>
+              <span class="text-xs ${diffCls}">(${(itemDiff / item.totalInvestment * 100).toFixed(1)}%)</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 whitespace-nowrap text-center">
+            <span class="inline-flex px-3 py-1 text-xs font-medium rounded-full ${sentCls}">${sentPct}</span>
+          </td>`;
+        newTbody.appendChild(row);
+      });
+    });
+}
+
 
         function renderSummaryCards(data) {
           const totalInv   = data.reduce((sum,i)=>sum + i.totalInvestment, 0);
