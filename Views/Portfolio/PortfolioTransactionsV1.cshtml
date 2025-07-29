@@ -359,9 +359,9 @@
                 // Take the first portfolio from the array
                 const portfolioData = Array.isArray(portfolios) && portfolios.length ? portfolios[0] : portfolios;
                 let items = [];
-                if (portfolioData.items && Array.isArray(portfolioData.items)) {
-                  items = portfolioData.items;
-                  window.currentPortfolioId = portfolioData.id;
+                if (portfolioData && Array.isArray(portfolioData)) {
+                  items = portfolioData;
+                  window.currentPortfolioIds = portfolioData.id;
                 }
                 window.portfoliosData = items;
                 const table = $('#stockTable').DataTable();

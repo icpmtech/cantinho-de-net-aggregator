@@ -10,4 +10,5 @@ public class ViewModelPortfolioDividend
   public DateTime? PaymentDate { get; set; }
   public int Quantity { get; set; }
   public DateTime? PurchaseDate { get; set; }
+  public int PortfolioId { get; internal set; }
 }

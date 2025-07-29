@@ -292,7 +292,7 @@
             window.portfoliosData = []; // will store the items array from the portfolio
             let fullCalendar = null;
             window.currentDtRowIndex = null; // For calendar events (we store the stock item id)
-            window.currentPortfolioId = null; // From the fetched portfolio
+            window.currentPortfolioId = []; // From the fetched portfolio
 
             // Generic fetch wrapper
             async function fetchData(url, method = 'GET', body = null) {
@@ -361,7 +361,8 @@
                 let items = [];
                 if (portfolioData.items && Array.isArray(portfolioData.items)) {
                   items = portfolioData.items;
-                  window.currentPortfolioId = portfolioData.id;
+                  portfolioData.forEach(p => {window.currentPortfolioId.push( portfolioData.portfolioId) });
+                 
                 }
                 window.portfoliosData = items;
                 const table = $('#stockTable').DataTable();

@@ -39,6 +39,7 @@ using MarketAnalyticHub.Controllers.RealTime;
 using MarketAnalyticHub.Services.Jobs.Processors;
 using MarketAnalyticHub.Repositories;
 using DividendApi.Services;
+using System.Net;
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers()
                 .AddJsonOptions(options =>
@@ -94,7 +95,24 @@ builder.Services.AddHttpClient<NewsService>(client =>
 {
   client.BaseAddress = new Uri(baseEndpoint);
 });
+builder.Services.AddHttpClient("racius", cli =>
+{
+  cli.BaseAddress = new("https://www.racius.com/");
+  cli.DefaultRequestHeaders.UserAgent.ParseAdd(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
+      "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124 Safari/537.36");
 
+  cli.DefaultRequestHeaders.AcceptLanguage.ParseAdd("pt-PT,pt;q=0.9,en;q=0.8");
+  cli.DefaultRequestHeaders.Accept.ParseAdd("application/json, text/javascript, */*; q=0.01");
+  cli.DefaultRequestHeaders.Add("X-Requested-With", "XMLHttpRequest");
+})
+.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+{
+  AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+  UseCookies = true,
+  CookieContainer = new(),          // **persists cf_clearance**
+  AllowAutoRedirect = true          // Cloudflare may 302 once
+});
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 

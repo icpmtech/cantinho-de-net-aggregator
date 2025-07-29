@@ -230,207 +230,258 @@
     <div id="resultsContainer"></div>
 
     <script>
-        const searchQueryInput = document.getElementById('searchQuery');
-        const searchButton = document.getElementById('searchButton');
-        const voiceInput = document.getElementById('voiceInput');
-        const fileUploadInput = document.getElementById('fileUploadInput');
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const responseContainer = document.getElementById('responseContainer');
-        let debounceTimer;
+               // searchApp.js — OpenAI-powered voice search + normal search UI
+        // --------------------------------------------------------------
 
-        const actionButton = document.getElementById('actionButton');
-        const textElement = document.getElementById('textElement');
+        // ---------- DOM ELEMENTS ----------
+        const searchQueryInput = document.getElementById('searchQuery');
+        const searchButton      = document.getElementById('searchButton');
+        const voiceInput        = document.getElementById('voiceInput');
+        const fileUploadInput   = document.getElementById('fileUploadInput');
+        const loadingSpinner    = document.getElementById('loadingSpinner');
+        const responseContainer = document.getElementById('responseContainer');
+        const actionButton      = document.getElementById('actionButton');
+        const textElement       = document.getElementById('textElement');
+
+        // ---------- INITIAL UI STATE ----------
+        let debounceTimer;
+        let mediaRecorder;        // MediaRecorder instance for audio capture
+        let audioChunks = [];     // Captured audio buffers
+        let isRecording = false;  // Toggle flag
 
         textElement.style.display = 'none';
 
-        function toggleTextVisibility() {
-            textElement.style.display = textElement.style.display === 'none' ? 'block' : 'none';
+        // ---------- HELPER: TOGGLE HOVER TEXT ----------
+        function toggleTextVisibility () {
+          textElement.style.display = textElement.style.display === 'none' ? 'block' : 'none';
         }
-
         actionButton.addEventListener('mouseover', toggleTextVisibility);
-        actionButton.addEventListener('mouseout', toggleTextVisibility);
+        actionButton.addEventListener('mouseout',  toggleTextVisibility);
 
-        function showResponseHeaderOnly() {
-            responseContainer.style.display = 'block';
+        // ---------- VISIBILITY HELPERS ----------
+        function showResponseHeaderOnly () { responseContainer.style.display = 'block'; }
+        function showLoadingSpinner     () { loadingSpinner.style.display = 'block'; }
+        function hideLoadingSpinner     () { loadingSpinner.style.display = 'none';  }
+
+        // ---------- TOPIC RESET ----------
+        function startNewTopic () {
+          searchQueryInput.value = '';
+          document.getElementById('resultsContainer').innerHTML = '';
+          showResponseHeaderOnly();
+          alert('New topic started.');
         }
 
-        function startNewTopic() {
-            searchQueryInput.value = '';
-            document.getElementById('resultsContainer').innerHTML = '';
-            showResponseHeaderOnly();
-            alert('New topic started.');
-        }
-
-        function setQuery(query) {
-            searchQueryInput.value = query;
-            performSearch();
+        // ---------- SEARCH PIPELINE ----------
+        function setQuery (query) {
+          searchQueryInput.value = query;
+          performSearch();
         }
 
         searchButton.addEventListener('click', () => {
-            performSearch();
-            showResponseHeaderOnly();
+          performSearch();
+          showResponseHeaderOnly();
         });
 
         searchQueryInput.addEventListener('input', () => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                performSearch();
-                showResponseHeaderOnly();
-            }, 300);
+          clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(() => {
+            performSearch();
+            showResponseHeaderOnly();
+          }, 300);
         });
 
         searchQueryInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                performSearch();
-                showResponseHeaderOnly();
-            }
+          if (e.key === 'Enter') {
+            performSearch();
+            showResponseHeaderOnly();
+          }
         });
 
-        voiceInput.addEventListener('click', () => {
-            alert('Voice search not yet implemented.');
-        });
+        // ---------- VOICE SEARCH ----------
+        voiceInput.addEventListener('click', handleVoiceInput);
 
-        fileUploadInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                processImage(file);
-            }
-        });
-
-        function processImage(file) {
-            const formData = new FormData();
-            formData.append('file', file);
-
-            fetch('/api/processImage', {
-                method: 'POST',
-                body: formData
-            })
-                .then(response => response.json())
-                .then(data => {
-                    alert(`Image processed: ${data.result}`);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        }
-
-        function performSearch(page = 1) {
-            const query = searchQueryInput.value;
-            const pageSize = 10;
-
-            if (!query) {
-                document.getElementById('resultsContainer').innerHTML = '';
-                return;
-            }
-
-            showLoadingSpinner();
-
-            fetch(`/api/search/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-                .then(response => response.json())
-                .then(data => {
-                    displayResults(data);
-                    hideLoadingSpinner();
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    hideLoadingSpinner();
-                });
-        }
-
-        function showLoadingSpinner() {
-            loadingSpinner.style.display = 'block';
-        }
-
-        function hideLoadingSpinner() {
-            loadingSpinner.style.display = 'none';
-        }
-
-        function displayResults(data) {
-            const resultsContainer = document.getElementById('resultsContainer');
-            const suggestionContainer = document.getElementById('suggestionContainer');
-
-            resultsContainer.innerHTML = '';
-            suggestionContainer.innerHTML = '';
-
-            if (data.suggestions) {
-                suggestionContainer.innerHTML = `<p>Did you mean: <strong>${data.suggestions}</strong>?</p>`;
-            }
-
-            if (data.results && data.results.length > 0) {
-                const resultList = document.createElement('div');
-
-                data.results.forEach(result => {
-                    const card = document.createElement('div');
-                    card.classList.add('result-card', 'card', 'mb-1', 'p-3');
-
-                    const title = document.createElement('h3');
-                    title.innerHTML = result.title;
-                  // Obter o conteúdo do corpo com destaque se disponível
-                    const bodyContent = result.highlights?.body_content?.[0] || result.body_content || '';
-                    const truncatedBody = truncateText(bodyContent, 200);
-
-                    const body = document.createElement('p');
-                    body.innerHTML = truncatedBody;
-                    card.appendChild(body);
-
-                    // Formatar as meta_keywords, assumindo que seja uma string separada por vírgulas
-                    const metaKeywords = Array.isArray(result.meta_keywords)
-                        ? result.meta_keywords.join(', ')
-                        : result.meta_keywords || 'Sem Tags';
-
-                    const tags = document.createElement('p');
-                    tags.innerHTML = `<strong>Tags:</strong> ${metaKeywords}`;
-                    card.appendChild(tags);
-
-                    // Criar e adicionar o link
-                    const link = document.createElement('a');
-                    link.href = result.link || '#';
-                    link.innerText = 'Read more';
-                    link.target = '_blank'; // Abre em uma nova aba
-                    card.appendChild(link);
-
-                    resultList.appendChild(card);
-                });
-
-                resultsContainer.appendChild(resultList);
-
-                // Pagination
-                const paginationContainer = document.createElement('div');
-                paginationContainer.classList.add('pagination');
-
-                if (data.page > 1) {
-                    const prevButton = document.createElement('button');
-                    prevButton.innerText = 'Previous';
-                    prevButton.addEventListener('click', () => performSearch(data.page - 1));
-                    paginationContainer.appendChild(prevButton);
-                }
-
-                const pageInfo = document.createElement('span');
-                pageInfo.innerText = `Page ${data.page} of ${data.totalPages}`;
-                paginationContainer.appendChild(pageInfo);
-
-                if (data.page < data.totalPages) {
-                    const nextButton = document.createElement('button');
-                    nextButton.innerText = 'Next';
-                    nextButton.addEventListener('click', () => performSearch(data.page + 1));
-                    paginationContainer.appendChild(nextButton);
-                }
-
-                resultsContainer.appendChild(paginationContainer);
+        async function handleVoiceInput () {
+          try {
+            if (!isRecording) {
+              await startRecording();
             } else {
-                resultsContainer.innerHTML = '<p>No results found.</p>';
+              await stopRecordingAndSearch();
             }
+          } catch (err) {
+            console.error(err);
+            alert('Microphone error: ' + err.message);
+          }
         }
 
-        function truncateText(text, maxLength) {
-            if (!text) return '';
-            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        async function startRecording () {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+          audioChunks  = [];
+
+          mediaRecorder.ondataavailable = (e) => {
+            if (e.data.size > 0) audioChunks.push(e.data);
+          };
+
+          mediaRecorder.start();
+          isRecording = true;
+          voiceInput.innerText = 'Stop';
         }
+
+        async function stopRecordingAndSearch () {
+          return new Promise((resolve) => {
+            mediaRecorder.onstop = async () => {
+              const blob      = new Blob(audioChunks, { type: 'audio/webm' });
+              const formData  = new FormData();
+              formData.append('file', blob, 'voice-query.webm');
+
+              showLoadingSpinner();
+              try {
+                // Backend route should proxy to OpenAI Whisper
+                const res   = await fetch('/api/openai/transcribe', { method: 'POST', body: formData });
+                const json  = await res.json();
+                const query = json.transcript?.trim();
+
+                if (query) {
+                  setQuery(query);
+                } else {
+                  alert('Could not transcribe audio.');
+                }
+              } catch (err) {
+                console.error(err);
+                alert('Transcription error: ' + err.message);
+              } finally {
+                hideLoadingSpinner();
+                isRecording = false;
+                voiceInput.innerText = '🎤';
+                resolve();
+              }
+            };
+
+            mediaRecorder.stop();
+          });
+        }
+
+        // ---------- FILE UPLOAD (image search placeholder) ----------
+        fileUploadInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) processImage(file);
+        });
+
+        function processImage (file) {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          fetch('/api/processImage', { method: 'POST', body: formData })
+            .then((response) => response.json())
+            .then((data)     => alert(`Image processed: ${data.result}`))
+            .catch((error)   => console.error('Error:', error));
+        }
+
+        // ---------- CORE SEARCH FUNCTION ----------
+        function performSearch (page = 1) {
+          const query    = searchQueryInput.value;
+          const pageSize = 10;
+
+          if (!query) {
+            document.getElementById('resultsContainer').innerHTML = '';
+            return;
+          }
+
+          showLoadingSpinner();
+
+          fetch(`/api/search/search?query=${encodeURIComponent(query)}&page=${page}&pageSize=${pageSize}`, {
+            method:  'GET',
+            headers: { 'Accept': 'application/json' }
+          })
+            .then((response) => response.json())
+            .then((data)     => { displayResults(data); hideLoadingSpinner(); })
+            .catch((error)   => { console.error('Error:', error); hideLoadingSpinner(); });
+        }
+
+        // ---------- RESULT RENDERING ----------
+        function displayResults (data) {
+          const resultsContainer    = document.getElementById('resultsContainer');
+          const suggestionContainer = document.getElementById('suggestionContainer');
+
+          resultsContainer.innerHTML    = '';
+          suggestionContainer.innerHTML = '';
+
+          if (data.suggestions) {
+            suggestionContainer.innerHTML = `<p>Did you mean: <strong>${data.suggestions}</strong>?</p>`;
+          }
+
+          if (data.results && data.results.length > 0) {
+            const resultList = document.createElement('div');
+
+            data.results.forEach((result) => {
+              const card = document.createElement('div');
+              card.classList.add('result-card', 'card', 'mb-1', 'p-3');
+
+              const title = document.createElement('h3');
+              title.innerHTML = result.title;
+              card.appendChild(title);
+
+              // Highlighted snippet
+              const bodyContent   = result.highlights?.title?.[0] || result.title || '';
+              const truncatedBody = truncateText(bodyContent, 160);
+              const body          = document.createElement('p');
+              body.innerHTML      = truncatedBody;
+              card.appendChild(body);
+
+              // Tags
+              const metaKeywords = Array.isArray(result.meta_keywords)
+                ? result.meta_keywords.join(', ')
+                : result.meta_keywords || 'Sem Tags';
+              const tags = document.createElement('p');
+              tags.innerHTML = `<strong>Tags:</strong> ${metaKeywords}`;
+              card.appendChild(tags);
+
+              // Link
+              const link = document.createElement('a');
+              link.href      = result.link || '#';
+              link.innerText = 'Read more';
+              link.target    = '_blank';
+              card.appendChild(link);
+
+              resultList.appendChild(card);
+            });
+
+            resultsContainer.appendChild(resultList);
+
+            // ----- Pagination -----
+            const paginationContainer = document.createElement('div');
+            paginationContainer.classList.add('pagination');
+
+            if (data.page > 1) {
+              const prevButton = document.createElement('button');
+              prevButton.innerText = 'Previous';
+              prevButton.addEventListener('click', () => performSearch(data.page - 1));
+              paginationContainer.appendChild(prevButton);
+            }
+
+            const pageInfo = document.createElement('span');
+            pageInfo.innerText = `Page ${data.page} of ${data.totalPages}`;
+            paginationContainer.appendChild(pageInfo);
+
+            if (data.page < data.totalPages) {
+              const nextButton = document.createElement('button');
+              nextButton.innerText = 'Next';
+              nextButton.addEventListener('click', () => performSearch(data.page + 1));
+              paginationContainer.appendChild(nextButton);
+            }
+
+            resultsContainer.appendChild(paginationContainer);
+
+          } else {
+            resultsContainer.innerHTML = '<p>No results found.</p>';
+          }
+        }
+
+        // ---------- UTILITIES ----------
+        function truncateText (text = '', maxLength = 160) {
+          return text.length > maxLength ? text.substring(0, maxLength) + '…' : text;
+        }
+
     </script>
 </body>
 

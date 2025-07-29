@@ -33,11 +33,7 @@ public class SearchController : ControllerBase
     // Definir os campos para buscar e suas ponderações (boost)
     var fieldsToSearch = new[]
     {
-        "title^3",             // Peso maior para o campo título
-        "body_content^2",      // Peso médio para o conteúdo do corpo
-        "meta_keywords",       // Peso normal para meta palavras-chave
-        "source^0.5",          // Peso menor para a fonte (URL original)
-        "link^1"               // Peso normal para o link do item
+        "title^3"
     };
 
     // Executar a consulta de busca com paginação

@@ -80,6 +80,7 @@ namespace MarketAnalyticHub.Controllers.api
               PurchaseDate = stock.PurchaseDate,
               Quantity = stock.Quantity,
               Id = -1,
+              PortfolioId=stock.PortfolioId,
               Symbol = stock.Symbol,
               PortfolioItemId = stock.Id,
               Amount = 0,
